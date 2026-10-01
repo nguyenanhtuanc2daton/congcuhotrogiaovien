@@ -411,7 +411,8 @@ button#hcBtn{right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe
 <div class="note" id="fml"></div>
 <div class="bar"><span class="note" style="margin:0">Đang nhập / xem:</span>
 <button class="sm sec mb on" data-m="1" type="button">Học kỳ 1</button><button class="sm sec mb" data-m="2" type="button">Học kỳ 2</button><button class="sm sec mb" data-m="3" type="button">Cả năm (chỉ xem)</button></div>
-<div class="bar"><button class="sm" id="gAdd" type="button">＋ Thêm dòng</button><button class="sm" id="gImp" type="button" title="Nhập file bảng điểm theo mẫu (.xlsx)">📤 Nhập file Excel (.xlsx)</button><button class="green sm" id="gExpImp" type="button" title="Xuất lại đúng file đã nhập, có điền ĐTB">📥 Xuất file Excel đã nhập (có ĐTB)</button><input type="file" id="gFile" accept=".xlsx" hidden><button class="sec sm" id="gClear" type="button">🗑 Xóa dữ liệu</button></div>
+<div class="bar"><button class="sm" id="gAdd" type="button">＋ Thêm dòng</button><button class="sm" id="gImp" type="button" title="Nhập file bảng điểm theo mẫu (.xlsx)">📤 Nhập file Excel (.xlsx)</button><button class="green sm" id="gExpImp" type="button" title="Xuất lại đúng file đã nhập, có điền ĐTB">📥 Xuất file Excel đã nhập (có ĐTB)</button><input type="file" id="gFile" accept=".xlsx" hidden><button class="sec sm" id="gClear" type="button">🗑 Xóa dữ liệu</button><button class="sm" id="gAI" type="button" title="Gemini phân tích bảng điểm: ĐTB, học sinh thiếu điểm, điểm cần bổ sung để đạt 5,0 / 8,0 / 9,0 → xuất file Word">🤖 Phân tích AI</button></div>
+<div class="bar" id="gAiKey" style="display:none"><label for="gAiK" class="note" style="margin:0">API key Gemini · <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">lấy miễn phí tại Google AI Studio</a></label><input type="password" id="gAiK" placeholder="Dán API key vào đây" autocomplete="off" spellcheck="false" style="flex:1 1 220px;min-width:180px"><button class="green sm" id="gAiOk" type="button">Xác nhận &amp; phân tích</button></div>
 <div class="tw"><table class="g"><thead><tr><th rowspan="2">STT</th><th rowspan="2">Họ &amp; Tên</th><th class="ix" rowspan="2">Mã định danh</th><th class="ix" rowspan="2">Ngày sinh</th><th class="ix" rowspan="2">Giới tính</th><th class="tx" colspan="5" title="Điểm đánh giá thường xuyên">ĐĐGtx</th><th class="tx" rowspan="2" title="Điểm đánh giá giữa kì">ĐĐGgk</th><th class="tx" rowspan="2" title="Điểm đánh giá cuối kì">ĐĐGck</th><th rowspan="2" title="Điểm trung bình môn học kì 1">ĐTBmhk1</th><th class="h1x" rowspan="2" title="Điểm trung bình môn học kì 2">ĐTBmhk2</th><th class="h1x" rowspan="2" title="Điểm trung bình môn cả năm">ĐTBmcn</th><th rowspan="2" id="thXl">Xếp loại</th><th rowspan="2"></th></tr><tr class="txsub"><th class="tx">1</th><th class="tx">2</th><th class="tx">3</th><th class="tx">4</th><th class="tx">5</th></tr></thead><tbody id="gBody"></tbody></table></div>
 <div class="note" id="gMeta" style="display:none"></div>
 <div class="stats" id="gStats"></div>
@@ -1904,6 +1905,202 @@ window.TG={names:()=>[]}; // Bảng điểm (tab Công cụ Word) gán lại đ�
     try{localStorage.removeItem(KEY);}catch(e){}
     src={};meta={year:'',subj:''};build();$('gMsg').className='status ok';$('gMsg').textContent='Đã xóa dữ liệu.';
   });
+  /* ---- Phân tích AI (Gemini) → báo cáo Word ----
+     Số liệu (số đầu điểm đã có, đầu điểm còn thiếu, tổng điểm còn thiếu để đạt 5,0 / 8,0 / 9,0, thống kê lớp) do code tính chính xác;
+     Gemini chỉ viết nhận xét/giải pháp. Dữ liệu gửi Gemini đã ẩn danh (chỉ số liệu tổng hợp — không gửi họ tên, mã định danh, ngày sinh).
+     Có học sinh thiếu điểm → bảng 6 cột. Tất cả đã đủ điểm → đánh giá tổng thể học lực của lớp. */
+  (()=>{
+    const AK='ph_gemini_key_s',MILE=[5,8,9],SLOT=['ĐĐGtx1','ĐĐGtx2','ĐĐGtx3','ĐĐGtx4','ĐĐGtx5','ĐĐGgk','ĐĐGck'];
+    const gk=()=>{try{return sessionStorage.getItem(AK)||'';}catch(e){return '';}};
+    const sk=v=>{try{sessionStorage.setItem(AK,v);}catch(e){}try{window.dispatchEvent(new Event('ph-key'));}catch(e){}};
+    const dk=()=>{try{sessionStorage.removeItem(AK);}catch(e){}try{window.dispatchEvent(new Event('ph-key'));}catch(e){}};
+    const model=()=>{let m='';try{m=localStorage.getItem('ph_model_v1')||'';}catch(e){}return /^gemini-[\w.\-]+$/.test(m)?m:'gemini-3.8-flash';};
+    const fv=x=>x.toFixed(1).replace('.',',');
+    const hasData=s=>rows.some(r=>anyv(r)&&FL.some(f=>String(r[fld(f,s)]||'').trim()!==''));
+    // điểm x nhỏ nhất (bước 0,1) để nếu mọi ô còn thiếu (tổng hệ số km) đều đạt x thì ĐTB làm tròn ≥ T
+    const need=(sum,w,km,T)=>{if(km<=0)return null;for(let i=0;i<=100;i++){const x=i/10;if(r1((sum+x*km)/(w+km))>=T)return x;}return Infinity;};
+
+    /* ---------- 1. Tính số liệu ---------- */
+    function analyze(s,C){
+      const base=[];
+      rows.forEach((r,i)=>{if(!anyv(r))return;
+        const v=FL.map(f=>num(r[fld(f,s)])),bad=v.some(x=>x.bad);let sum=0,w=0,tx=0,any=false,have=0;
+        v.forEach((x,j)=>{if(x.v!==null&&!x.bad){any=true;if(j<5)tx++;const k=C.k[KOF[FL[j]]];if(k>0){sum+=x.v*k;w+=k;have++;}}});
+        base.push({i,name:r.n.trim()||('(dòng '+(i+1)+')'),v,bad,sum,w,tx,any,have});});
+      // Chuẩn số cột ĐĐGtx của lớp = số cột phổ biến nhất mà các học sinh đã có điểm đã nhập (hòa → lấy số lớn hơn)
+      const cnt={};base.filter(b=>b.any&&!b.bad).forEach(b=>{if(b.tx>0)cnt[b.tx]=(cnt[b.tx]||0)+1;});
+      let reqTx=0,best=0;Object.keys(cnt).forEach(k=>{if(cnt[k]>best||(cnt[k]===best&&+k>reqTx)){best=cnt[k];reqTx=+k;}});
+      const st=base.map((b,n)=>{
+        const avg=b.bad?null:avgSem(rows[b.i],C,s);
+        const e={i:b.i,name:b.name,code:'HS'+(n+1),bad:b.bad,avg,have:b.have,miss:[],need:{}};
+        if(b.bad){MILE.forEach(T=>{e.need[T]='—';});return e;}
+        const empt=[];b.v.forEach((x,j)=>{if(x.v===null)empt.push(j);});
+        const mi=[...empt.filter(j=>j<5).slice(0,Math.max(0,reqTx-b.tx)),...empt.filter(j=>j>=5)].filter(j=>C.k[KOF[FL[j]]]>0);
+        e.miss=mi.map(j=>SLOT[j]);
+        const km=mi.reduce((a,j)=>a+C.k[KOF[FL[j]]],0);
+        MILE.forEach(T=>{
+          if(!mi.length){e.need[T]='—';return;}
+          if(avg!==null&&avg>=T){e.need[T]='Đã đạt';return;}
+          const x=need(b.sum,b.w,km,T);
+          e.need[T]=x===Infinity?'Không khả thi\n(cần > 10)':fv(r1(x*mi.length))+'\n(mỗi ô ≥ '+fv(x)+')';
+        });
+        return e;});
+      const cl=[0,0,0,0];let sum=0,m=0,g9=0,mx=null,mn=null;
+      st.forEach(e=>{if(e.avg!==null){cl[cls(e.avg,C)]++;sum+=e.avg;m++;if(e.avg>=9)g9++;mx=mx===null?e.avg:Math.max(mx,e.avg);mn=mn===null?e.avg:Math.min(mn,e.avg);}});
+      const missing=st.filter(e=>e.bad||e.miss.length);
+      const above=st.filter(e=>e.avg!==null&&e.avg>=C.t[2]).length;
+      const slotCnt={};missing.forEach(e=>e.miss.forEach(t=>{slotCnt[t]=(slotCnt[t]||0)+1;}));
+      return{s,C,reqTx,st,si:st.length,tinh:m,dtb:m?sum/m:null,cl,g9,mx,mn,above,missing,slotCnt,complete:st.length>0&&!missing.length};
+    }
+    const needTotal=e=>MILE.map(T=>fv(T)+': '+String(e.need[T]).replace('\n',' ')).join(' · ');
+
+    /* ---------- 2. Gọi Gemini ---------- */
+    const SYS='Bạn là trợ lý phân tích kết quả học tập cho giáo viên phổ thông Việt Nam. Mọi con số trong dữ liệu đã được hệ thống tính chính xác — TUYỆT ĐỐI không tính lại, không đổi số, không bịa thêm số liệu. Không đoán hay nhắc tên học sinh. Văn phong tiếng Việt, ngắn gọn, mang tính sư phạm, khích lệ. Chỉ trả về MỘT đối tượng JSON hợp lệ, không kèm markdown.';
+    function mkPrompt(A,meta){
+      const pt=n=>A.tinh?Math.round(n*1000/A.tinh)/10:0,names=['Giỏi','Khá','Trung bình','Yếu'];
+      const d={mon_hoc:meta.subj||'',nam_hoc:meta.year||'',hoc_ky:A.s,si_so:A.si,tat_ca_da_du_diem:A.complete,
+        so_hs_thieu_diem:A.missing.length,ty_le_thieu_diem_phan_tram:A.si?Math.round(A.missing.length*1000/A.si)/10:0,
+        thong_ke_o_diem_thieu_theo_o:A.slotCnt,chuan_so_cot_DDGtx:A.reqTx,
+        so_hs_da_tinh_dtb:A.tinh,dtb_lop:A.dtb===null?null:Math.round(A.dtb*100)/100,diem_cao_nhat:A.mx,diem_thap_nhat:A.mn,
+        nguong_xep_loai:{gioi:A.C.t[0],kha:A.C.t[1],trung_binh:A.C.t[2]},
+        phan_bo:Object.fromEntries(names.map((n,i)=>[n,{so_hs:A.cl[i],ty_le_phan_tram:pt(A.cl[i])}])),
+        so_hs_tren_trung_binh:A.above,ty_le_tren_trung_binh_phan_tram:pt(A.above),so_hs_tu_9_tro_len:A.g9};
+      const form=A.complete
+        ?'Cả lớp đã đủ điểm. Trả về JSON đúng cấu trúc:\n{"tong_quan":"3-4 câu đánh giá tổng thể học lực của lớp (điểm trung bình, tỷ lệ trên trung bình)","nhan_xet_phan_bo":"2-4 câu nhận xét phân bố xếp loại: điểm mạnh và điểm cần cải thiện","giai_phap":["3-5 gợi ý hành động cụ thể cho giáo viên"]}'
+        :'Lớp còn học sinh thiếu điểm. Trả về JSON đúng cấu trúc:\n{"tong_quan":"2-4 câu nhận xét về tình trạng thiếu điểm của lớp, ô điểm nào thiếu nhiều và ảnh hưởng đến việc đánh giá","giai_phap":["3-5 gợi ý cụ thể giúp giáo viên bổ sung điểm còn thiếu và hỗ trợ học sinh"]}';
+      return 'Dưới đây là số liệu đã tính sẵn của một lớp học (JSON):\n'+JSON.stringify(d)+'\n\nHãy viết nhận xét cho giáo viên. '+form+'\nKhông nhắc lại các con số một cách sai lệch.';
+    }
+    const wait=ms=>new Promise(r=>setTimeout(r,ms));
+    async function gem(key,prompt){
+      const body=JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],systemInstruction:{parts:[{text:SYS}]},generationConfig:{maxOutputTokens:16384,temperature:0.4,responseMimeType:'application/json'}});
+      const M=model(),url='https://generativelanguage.googleapis.com/v1beta/models/'+M+':generateContent';
+      let res,data;
+      for(let a=0;a<3;a++){
+        const ctl=typeof AbortController==='function'?new AbortController():null,tm=ctl?setTimeout(()=>ctl.abort(),180000):0;
+        try{res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body,signal:ctl?ctl.signal:undefined});}
+        catch(e){if(tm)clearTimeout(tm);throw new Error(e&&e.name==='AbortError'?'Gemini phản hồi quá lâu, hãy thử lại.':'Không kết nối được tới Gemini. Kiểm tra mạng (hoặc VPN/tường lửa chặn googleapis.com).');}
+        if(tm)clearTimeout(tm);
+        if((res.status===500||res.status===503)&&a<2){await wait(2500*(a+1));continue;}
+        break;}
+      try{data=await res.json();}catch(e){data=null;}
+      if(!res.ok){
+        const raw=(data&&data.error&&data.error.message)||('HTTP '+res.status);
+        if(res.status===401||res.status===403||(res.status===400&&/api key|API_KEY/i.test(raw))){dk();const er=new Error('API key không hợp lệ hoặc không có quyền dùng '+M+'. Hãy nhập lại key.');er.key=1;throw er;}
+        if(res.status===404)throw new Error('Không tìm thấy model '+M+' với key này (đổi model ở tab Prompt AI).');
+        if(res.status===429)throw new Error('Đã hết hạn mức gọi của key. Đợi khoảng 1 phút rồi thử lại.');
+        throw new Error('Gemini lỗi: '+raw);}
+      const c=data&&data.candidates&&data.candidates[0];
+      if(!c)throw new Error('Gemini không trả về kết quả.');
+      const txt=((c.content&&c.content.parts)||[]).filter(p=>!p.thought).map(p=>p.text||'').join('').trim();
+      if(!txt)throw new Error('Gemini trả về nội dung rỗng'+(c.finishReason&&c.finishReason!=='STOP'?' ('+c.finishReason+')':'')+'.');
+      let j;try{j=JSON.parse(txt.replace(/^```(?:json)?\s*|\s*```$/g,''));}catch(e){j={tong_quan:txt};}
+      const S=v=>typeof v==='string'?v.trim():'';
+      return{tong_quan:S(j.tong_quan),nhan_xet_phan_bo:S(j.nhan_xet_phan_bo),giai_phap:Array.isArray(j.giai_phap)?j.giai_phap.map(S).filter(Boolean):[]};
+    }
+
+    /* ---------- 3. Dựng file Word (.docx, trang A4 ngang) ---------- */
+    const X=s=>String(s==null?'':s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const wr=(t,o={})=>'<w:r><w:rPr>'+(o.b?'<w:b/>':'')+(o.i?'<w:i/>':'')+(o.c?'<w:color w:val="'+o.c+'"/>':'')+'<w:sz w:val="'+(o.sz||26)+'"/><w:szCs w:val="'+(o.sz||26)+'"/></w:rPr><w:t xml:space="preserve">'+X(t)+'</w:t></w:r>';
+    const para=(t,o={})=>'<w:p><w:pPr>'+(o.keep?'<w:keepNext/>':'')+'<w:spacing w:before="'+(o.bf||0)+'" w:after="'+(o.af==null?80:o.af)+'" w:line="'+(o.ln||276)+'" w:lineRule="auto"/>'+(o.ind?'<w:ind w:left="'+o.ind+'" w:hanging="'+(o.hang||0)+'"/>':'')+(o.jc?'<w:jc w:val="'+o.jc+'"/>':'')+'</w:pPr>'+wr(t,o)+'</w:p>';
+    const H=t=>para(t,{b:1,sz:28,bf:200,af:100,keep:1});
+    const H2=t=>para(t,{b:1,sz:26,bf:140,af:80,keep:1});
+    const P=t=>para(t,{jc:'both'});
+    const B=t=>para('– '+t,{ind:340,hang:240,jc:'both'});
+    // cen = danh sách chỉ số cột căn giữa (tiêu đề luôn căn giữa)
+    function tbl(w,head,body,cen){
+      cen=cen||[];const tot=w.reduce((a,b)=>a+b,0);
+      const cell=(t,i,o)=>'<w:tc><w:tcPr><w:tcW w:w="'+w[i]+'" w:type="dxa"/>'+(o.sh?'<w:shd w:val="clear" w:color="auto" w:fill="'+o.sh+'"/>':'')+'<w:vAlign w:val="center"/></w:tcPr>'+String(t==null?'':t).split('\n').map(l=>para(l,{sz:22,b:o.b,af:0,ln:240,jc:o.jc})).join('')+'</w:tc>';
+      const tr=(cells,o)=>'<w:tr><w:trPr><w:cantSplit/>'+(o.h?'<w:tblHeader/>':'')+'</w:trPr>'+cells.map((t,i)=>cell(t,i,{...o,jc:(o.h||cen.includes(i))?'center':undefined})).join('')+'</w:tr>';
+      return '<w:tbl><w:tblPr><w:tblW w:w="'+tot+'" w:type="dxa"/><w:tblBorders>'+['top','left','bottom','right','insideH','insideV'].map(s=>'<w:'+s+' w:val="single" w:sz="4" w:space="0" w:color="808080"/>').join('')+'</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="70" w:type="dxa"/><w:right w:w="70" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>'+w.map(x=>'<w:gridCol w:w="'+x+'"/>').join('')+'</w:tblGrid>'+
+        tr(head,{h:1,b:1,sh:'D9E2F3'})+body.map(r=>tr(r,{})).join('')+'</w:tbl>'+para('',{af:60});
+    }
+    const pctT=(n,si)=>si?(Math.round(n*1000/si)/10+'').replace('.',',')+'%':'—';
+    const W_STAT=[6200,3200,3200],W_MISS=[3400,1700,3200,2090,2090,2090];
+    function semXml(res,idx){
+      const{A,ai}=res,C=A.C;let x='';
+      x+=H(['I.','II.'][idx]+' HỌC KỲ '+A.s);
+      if(!A.missing.length){
+        x+=H2('1. Đánh giá tổng thể học lực của lớp');
+        x+=P('Tất cả '+A.si+' học sinh đã đủ điểm.');
+        x+=tbl(W_STAT,['Chỉ tiêu','Số học sinh','Tỷ lệ'],[
+          ['Sĩ số',A.si,''],
+          ['Giỏi (ĐTB ≥ '+fv(C.t[0])+')',A.cl[0],pctT(A.cl[0],A.tinh)],
+          ['Khá (ĐTB ≥ '+fv(C.t[1])+')',A.cl[1],pctT(A.cl[1],A.tinh)],
+          ['Trung bình (ĐTB ≥ '+fv(C.t[2])+')',A.cl[2],pctT(A.cl[2],A.tinh)],
+          ['Yếu (ĐTB < '+fv(C.t[2])+')',A.cl[3],pctT(A.cl[3],A.tinh)],
+          ['Trên trung bình (ĐTB ≥ '+fv(C.t[2])+')',A.above,pctT(A.above,A.tinh)],
+          ['Từ 9,0 trở lên',A.g9,pctT(A.g9,A.tinh)],
+          ['Điểm trung bình của lớp',A.dtb===null?'—':fv(A.dtb),''],
+          ['Điểm cao nhất / thấp nhất',A.mx===null?'—':fv(A.mx)+' / '+fv(A.mn),'']],[1,2]);
+      }else{
+        x+=H2('1. Học sinh còn thiếu điểm ('+A.missing.length+'/'+A.si+' học sinh, '+pctT(A.missing.length,A.si)+')');
+        x+=P('Chuẩn số cột ĐĐGtx của lớp: '+A.reqTx+' cột. Học sinh được xem là thiếu điểm khi chưa đủ số cột ĐĐGtx này, hoặc chưa có ĐĐGgk/ĐĐGck, hoặc có ô điểm nhập sai. "Tổng điểm còn thiếu" = tổng điểm tối thiểu của các ô còn thiếu để ĐTBmhk đạt mốc (giả sử các ô còn thiếu có điểm bằng nhau; ngoặc cho biết điểm mỗi ô).');
+        x+=tbl(W_MISS,['Tên học sinh','Số đầu điểm đã có','Đầu điểm còn thiếu','Tổng điểm còn thiếu để đạt 5,0','Tổng điểm còn thiếu để đạt 8,0','Tổng điểm còn thiếu để đạt 9,0'],
+          A.missing.map(e=>[e.name,e.have,e.bad?'Có ô điểm nhập sai':e.miss.join(', '),e.need[5],e.need[8],e.need[9]]),[1,3,4,5]);
+      }
+      x+=H2('2. Nhận xét của AI (Gemini)');
+      const ts=[ai.tong_quan,ai.nhan_xet_phan_bo].filter(Boolean);
+      if(ts.length)ts.forEach(t=>{x+=P(t);});else x+=P('(Không có nhận xét từ AI.)');
+      if(ai.giai_phap.length){x+=H2('3. Giải pháp đề xuất');ai.giai_phap.forEach(t=>{x+=B(t);});}
+      return x;
+    }
+    async function buildDocx(results,C,meta){
+      let b='';const now=new Date(),d2=n=>String(n).padStart(2,'0');
+      b+=para('BÁO CÁO PHÂN TÍCH ĐIỂM',{b:1,sz:32,jc:'center',af:60});
+      b+=para([meta.subj,meta.year].filter(Boolean).join(' · ')||'Bảng điểm môn học',{jc:'center',sz:26,af:40});
+      b+=para('Ngày lập: '+d2(now.getDate())+'/'+d2(now.getMonth()+1)+'/'+now.getFullYear(),{jc:'center',i:1,sz:24,af:160});
+      b+=P('Công thức: ĐTBmhk = (tổng ĐĐGtx × '+C.k[0]+' + ĐĐGgk × '+C.k[1]+' + ĐĐGck × '+C.k[2]+') ÷ tổng hệ số các ô đã nhập, làm tròn 1 chữ số thập phân. Các mốc tính điểm còn thiếu: 5,0; 8,0; 9,0.');
+      results.forEach((r,i)=>{b+=semXml(r,i);});
+      if(results.length===2&&mode===3){
+        const cl=[0,0,0,0];let n=0,sum=0;rows.forEach(r=>{if(!anyv(r))return;const v=calcAll(r,C).cn;if(v!==null){cl[cls(v,C)]++;n++;sum+=v;}});
+        b+=H('III. ĐIỂM TRUNG BÌNH CẢ NĂM (ĐTBmcn)');
+        b+=tbl(W_STAT,['Chỉ tiêu','Số học sinh','Tỷ lệ'],[['Đã tính được ĐTBmcn',n,''],...['Giỏi','Khá','Trung bình','Yếu'].map((t,i)=>[t,cl[i],pctT(cl[i],n)]),['Điểm trung bình của lớp',n?fv(sum/n):'—','']],[1,2]);
+      }
+      b+=para('Ghi chú: các số liệu do hệ thống tính từ bảng điểm; phần nhận xét và giải pháp do AI (Gemini) soạn dựa trên dữ liệu tổng hợp ẩn danh, giáo viên cần xem lại trước khi sử dụng.',{i:1,sz:22,bf:160});
+      const NSW='xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+      const doc='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document '+NSW+'><w:body>'+b+'<w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="709" w:footer="709" w:gutter="0"/></w:sectPr></w:body></w:document>';
+      const sty='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles '+NSW+'><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="26"/><w:szCs w:val="26"/><w:lang w:val="vi-VN"/></w:rPr></w:rPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>';
+      const z=new JSZip();
+      z.file('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>');
+      z.file('_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+      z.file('word/_rels/document.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
+      z.file('word/document.xml',doc);z.file('word/styles.xml',sty);
+      return z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',compression:'DEFLATE'});
+    }
+
+    /* ---------- 4. Giao diện ---------- */
+    let busy=false;
+    const msg=(t,c)=>{const m=$('gMsg');m.className='status'+(c?' '+c:'');m.textContent=t;};
+    async function run(){
+      if(busy)return;
+      const key=gk(),box=$('gAiKey');
+      if(!key){box.style.display='';$('gAiK').focus();msg('Chưa có API key Gemini. Dán key vào ô bên dưới (lấy miễn phí tại Google AI Studio) rồi bấm “Xác nhận & phân tích”.','err');return;}
+      box.style.display='none';
+      const C=cfg(),sems=mode<3?[mode]:[1,2].filter(hasData);
+      if(!sems.length||!sems.every(hasData)){msg(mode<3?'Học kỳ '+mode+' chưa có điểm để phân tích. Hãy nhập file Excel (hoặc nhập điểm) trước.':'Chưa có dữ liệu điểm để phân tích. Hãy nhập file Excel trước.','err');return;}
+      busy=true;$('gAI').disabled=true;
+      try{
+        const results=[];
+        for(const s of sems){
+          msg('⏳ Đang tính số liệu và nhờ Gemini phân tích Học kỳ '+s+'… (có thể mất vài chục giây)');
+          const A=analyze(s,C),ai=await gem(key,mkPrompt(A,meta));results.push({A,ai});}
+        msg('⏳ Đang tạo file Word…');
+        const blob=await buildDocx(results,C,meta),d=new Date(),nm='Phan-tich-diem_'+(mode<3?'HK'+mode:'ca-nam')+'_'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'.docx';
+        await saveBlob(blob,nm);
+        msg('✅ Đã tạo và tải về '+nm+'. Nhận xét do AI soạn — hãy xem lại trước khi sử dụng.','ok');
+      }catch(err){
+        msg('Không phân tích được: '+err.message,'err');
+        if(err.key){$('gAiKey').style.display='';$('gAiK').focus();}
+      }finally{busy=false;$('gAI').disabled=false;}
+    }
+    $('gAI').addEventListener('click',run);
+    const setKey=()=>{const k=$('gAiK').value.trim();
+      if(k.length<20||/\s/.test(k)){msg('⚠ API key không hợp lệ. Hãy dán lại đầy đủ key lấy từ Google AI Studio.','err');return;}
+      sk(k);$('gAiK').value='';run();};
+    $('gAiOk').addEventListener('click',setKey);
+    $('gAiK').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();setKey();}});
+    window._gradeAI={analyze,buildDocx,needTotal,mkPrompt};
+  })();
   // Dán từ Excel vào học kỳ đang chọn: cột cách nhau bằng Tab; tự bỏ cột STT nếu có
   $('gPasteBtn').addEventListener('click',()=>{
     const m=$('gMsg');
