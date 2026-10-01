@@ -1,5 +1,5 @@
-/* PROMPT AI — tab tạo prompt bằng Gemini API; chọn model: Gemini 3.8 Flash, Gemini 3.1 Flash Lite,
-   Gemini 3.5 Flash Lite.
+/* PROMPT AI — tab tạo prompt bằng Gemini API; chọn model:Gemini 3.5 Flash Lite, Gemini 3.1 Flash Lite, 
+    Gemini 3.8 Flash.
    - Bắt buộc nhập API key Gemini mới dùng được chức năng của tab.
    - Quy chuẩn trong prompt-data.js (window.PROMPT_MD = nội dung nguon-hub.md, window.PROMPT_NLS = nguồn NLS) được gửi làm
      chỉ dẫn hệ thống; model biên soạn prompt hoàn chỉnh theo quy chuẩn đó.
@@ -15,9 +15,9 @@
   if (!tabsBar) return;
 
   var MODELS = [
-    { id: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash' },
+    { id: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash Lite' },
     { id: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash Lite' },
-    { id: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash Lite' }
+    { id: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash' }
   ];
   var TARGETS = [
     { id: 'chatgpt', label: 'ChatGPT' },
