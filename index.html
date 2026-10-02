@@ -3234,6 +3234,99 @@ if($('kDisp')){const st=document.createElement('style');st.textContent='#kDisp:f
   $('kRes').innerHTML=g.map((m,i)=>`<b>Nhóm ${i+1}</b> (${m.length}): `+m.map((x,j)=>j==0&&$('kLead').checked?`<b>⭐ ${x}</b>`:x).join(', ')).join('<br>')});
  on('kCopy',()=>{if(!last)return;try{navigator.clipboard.writeText(last)}catch(e){const t=document.createElement('textarea');t.value=last;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove()}});
  on('kPick',()=>{const n=nm();if(!n.length){$('kRes').textContent='Chưa có danh sách.';return}const s=n.join('|');if(s!=sig||!pool.length){sig=s;pool=shuffle(n)}const x=pool.pop();$('kRes').innerHTML=`<div style="font-size:34px;font-weight:700;text-align:center;color:var(--cy)">🎯 ${x}</div><div style="text-align:center">Còn ${pool.length} bạn chưa được gọi (không gọi lặp cho đến khi hết lượt)</div>`})}
+
+/* ---------- v3: công cụ dành cho giáo viên ---------- */
+const dl=(n,t,m)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:m||'application/json'}));a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)};
+const cp=t=>{try{navigator.clipboard.writeText(t)}catch(e){const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();document.execCommand('copy');x.remove()}};
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const LV=['Nhận biết','Thông hiểu','Vận dụng'],ST=document.createElement('style');
+ST.textContent='body.tbig #t5{font-size:120%}body.tbig #t5 input,body.tbig #t5 select,body.tbig #t5 textarea,body.tbig #t5 button{font-size:inherit}#t5 table.jt{border-collapse:collapse;width:100%;font-size:13px}#t5 table.jt th,#t5 table.jt td{border:1px solid var(--bd);padding:4px 8px;text-align:center}#t5 table.jt th{background:#1a2640;color:var(--cy)}#t5 table.jt td:first-child{text-align:left}';document.head.appendChild(ST);
+
+/* Ngân hàng câu hỏi + ma trận đề */
+const BK='tc_bank_v1',bl=()=>{try{return JSON.parse(localStorage.getItem(BK)||'[]')}catch(e){return[]}},bs=a=>{try{localStorage.setItem(BK,JSON.stringify(a))}catch(e){}};
+HE('qOut','beforebegin',`<details id="qMxD" style="margin:8px 0"><summary class="note" style="cursor:pointer">🧩 Ma trận đề: số câu theo chủ đề và mức độ (nếu nhập số, công cụ tạo đề theo ma trận thay cho các ô chọn phía trên)</summary>
+<div style="overflow:auto"><table class="jt"><tr><th>Chủ đề</th>${LV.map(l=>`<th>${l}</th>`).join('')}</tr>${names.map((n,i)=>`<tr><td>${n}</td>${[1,2,3].map(l=>`<td><input type="number" class="mx" data-t="${i}" data-l="${l}" min="0" max="20" value="0" style="width:56px"></td>`).join('')}</tr>`).join('')}</table></div>
+<div class="bar"><button class="sec sm" id="mxClr" type="button">Xóa ma trận</button></div></details>
+<details id="qBkD" style="margin:8px 0"><summary class="note" style="cursor:pointer">📚 Ngân hàng câu hỏi của tôi (<span id="bN">0</span> câu, lưu trên máy này)</summary>
+<textarea id="bQ" style="min-height:70px" placeholder="Nội dung câu hỏi (công thức viết dạng $...$)"></textarea>
+<div class="bar"><input type="text" id="bA" placeholder="Đáp án" style="width:220px"><select id="bT">${names.map(n=>`<option>${n}</option>`).join('')}<option>Khác</option></select><select id="bL"><option value="1">Nhận biết</option><option value="2">Thông hiểu</option><option value="3">Vận dụng</option></select><button class="sm" id="bAdd" type="button">＋ Thêm</button></div>
+<div class="bar"><label>Chèn thêm <input type="number" id="qBn" value="0" min="0" max="30" style="width:60px"> câu ngẫu nhiên từ ngân hàng vào đề</label><button class="sec sm" id="bExp" type="button">⬇ Xuất JSON</button><button class="sec sm" id="bImp" type="button">⬆ Nhập JSON</button><button class="sec sm" id="bClr" type="button">🗑 Xóa hết</button><input type="file" id="bFile" accept=".json" style="display:none"></div></details>`);
+const bn=()=>{$('bN').textContent=bl().length};bn();
+on('mxClr',()=>document.querySelectorAll('.mx').forEach(i=>i.value=0));
+on('bAdd',()=>{const q=$('bQ').value.trim();if(!q)return;const a=bl();a.push({q,a:$('bA').value.trim(),t:$('bT').value,l:+$('bL').value});bs(a);$('bQ').value='';$('bA').value='';bn()});
+on('bExp',()=>dl('ngan-hang-cau-hoi.json',JSON.stringify(bl(),null,1)));on('bImp',()=>$('bFile').click());
+$('bFile').onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());if(Array.isArray(j)){bs(bl().concat(j.filter(x=>x&&x.q)));bn()}}catch(x){alert('File JSON không hợp lệ.')}e.target.value=''};
+on('bClr',()=>{if(confirm('Xóa toàn bộ ngân hàng câu hỏi?')){bs([]);bn()}});
+
+const PAD=['Không xác định được','Cả ba đáp án còn lại đều sai','Không có đáp án nào đúng'];
+function emit(plan,bank,m,tn,sol){let i=1,out=`ĐỀ SỐ ${m}\n\n`;const ans=[];
+ const add=t=>{out+=`Câu ${i}. ${t.q}\n`;
+  if(tn&&t.w){const wr=[...new Set(t.w.map(String))].filter(x=>x!==t.a).slice(0,3);while(wr.length<3)wr.push(PAD[wr.length]);const op=shuffle([t.a,...wr]);op.forEach((o,j)=>out+=`${'ABCD'[j]}. ${o}\n`);out+='\n';ans.push(`Câu ${i}: ${'ABCD'[op.indexOf(t.a)]}`+(sol&&t.s?` (${t.s})`:''))}
+  else{out+='\n';ans.push(`Câu ${i}: ${t.a}`+(sol&&t.s?`\n   Lời giải: ${t.s}`:''))}i++};
+ plan.forEach(([s,L])=>add(T[s][1](L)));bank.forEach(b=>add({q:b.q,a:b.a||'(chưa nhập)',s:''}));
+ return out+`ĐÁP ÁN ĐỀ SỐ ${m}\n${ans.join('\n')}\n\n`}
+on('qGen',()=>{
+ const mx=[...document.querySelectorAll('.mx')].map(i=>({t:+i.dataset.t,l:+i.dataset.l,n:+i.value||0})).filter(x=>x.n>0),useMx=mx.length>0,n=+$('qN').value||1,v=+$('qV').value||1,L=+$('qL').value,tn=$('qF').value=='tn',sol=$('qS').checked,nb=Math.max(0,+$('qBn').value||0);
+ let plan=[];
+ if(useMx)mx.forEach(x=>{for(let k=0;k<x.n;k++)plan.push([x.t,x.l])});
+ else{const sel=[...document.querySelectorAll('.qt:checked')].map(c=>+c.value);sel.forEach(s=>{for(let k=0;k<n;k++)plan.push([s,L])})}
+ if(!plan.length&&!nb){$('qOut').value='Hãy chọn ít nhất một dạng bài (hoặc nhập ma trận đề).';return}
+ let out='';for(let m=1;m<=v;m++)out+=emit(plan,shuffle(bl()).slice(0,nb),m,tn,sol)+(m<v?'--------------------\n\n':'');
+ if(useMx){const tot=[0,0,0,0],rows=names.map((nm,i)=>{const r=[1,2,3].map(l=>(mx.find(x=>x.t==i&&x.l==l)||{n:0}).n),s=r[0]+r[1]+r[2];if(!s)return'';r.forEach((c,j)=>tot[j]+=c);tot[3]+=s;return`${nm}: ${r.join(' | ')} | tổng ${s}`}).filter(Boolean);
+  out+=`MA TRẬN ĐỀ (Nhận biết | Thông hiểu | Vận dụng)\n${rows.join('\n')}\nTổng: ${tot.slice(0,3).join(' | ')} | ${tot[3]} câu — tỉ lệ ${tot.slice(0,3).map(x=>Math.round(100*x/tot[3])+'%').join(' / ')}\n`}
+ $('qOut').value=out});
+HP('qSend','afterend','<button class="orange sm" id="qDoc" type="button">📄 Tải đề + đáp án (.docx)</button>');
+on('qDoc',()=>{const t=$('qOut').value;if(!t)return;$('input').value=t;const f=$('fmt');if(f)f.value='docx';document.querySelector('[data-tab=t1]').click();setTimeout(()=>$('btnExport').click(),150)});
+
+/* Phổ điểm: phân loại giỏi/khá/đạt/chưa đạt */
+const o3=$('sRun').onclick;$('sRun').onclick=()=>{o3();
+ const d=$('sIn').value.trim().split(/[\s;]+/).map(s=>parseFloat(s.replace(',','.'))).filter(x=>!isNaN(x));if(!d.length||d.some(x=>x<0||x>10))return;
+ const c=[d.filter(x=>x>=8).length,d.filter(x=>x>=6.5&&x<8).length,d.filter(x=>x>=5&&x<6.5).length,d.filter(x=>x<5).length],p=x=>Math.round(1000*x/d.length)/10;
+ $('sRes').innerHTML+=`<br><b>Xếp loại theo điểm:</b> Giỏi (≥8) ${c[0]} (${p(c[0])}%) · Khá (6,5–<8) ${c[1]} (${p(c[1])}%) · Đạt (5–<6,5) ${c[2]} (${p(c[2])}%) · Chưa đạt (<5) ${c[3]} (${p(c[3])}%)<br>Tỉ lệ từ trung bình trở lên: ${p(d.length-c[3])}%`+(c[3]?` · <b>Cần quan tâm: ${c[3]} học sinh dưới 5 điểm</b>`:'')};
+
+/* Chia nhóm theo năng lực (xen kẽ giỏi – yếu) */
+HP('kLead','afterend','<label class="qchip"><input type="checkbox" id="kMix"> Ghép theo năng lực (mỗi dòng: Tên, điểm)</label>');
+const o4=$('kSplit').onclick;$('kSplit').onclick=()=>{if(!$('kMix').checked)return o4();
+ const a=$('kNames').value.split('\n').map(s=>s.trim()).filter(Boolean).map(s=>{const m=s.match(/^(.*?)[,;\t]\s*(\d+(?:[.,]\d+)?)$/);return m?{n:m[1].trim(),s:parseFloat(m[2].replace(',','.'))}:{n:s,s:0}}).sort((x,y)=>y.s-x.s);
+ if(!a.length){$('kRes').textContent='Chưa có danh sách.';return}
+ const per=+$('kPer').value||0,k=per>0?Math.ceil(a.length/per):Math.max(1,Math.min(20,+$('kN').value||1)),g=Array.from({length:k},()=>[]);
+ a.forEach((x,i)=>{const r=Math.floor(i/k);g[r%2?k-1-i%k:i%k].push(x)});
+ $('kRes').innerHTML=g.map((m,i)=>`<b>Nhóm ${i+1}</b> (${m.length} · TB ${rd(m.reduce((s,x)=>s+x.s,0)/m.length)}): `+m.map((x,j)=>(j==0&&$('kLead').checked?`<b>⭐ ${esc(x.n)}</b>`:esc(x.n))+` (${x.s})`).join(', ')).join('<br>')+'<br><i>Mỗi nhóm có đủ học sinh giỏi, khá và yếu để giúp nhau.</i>'};
+$('kCopy').onclick=()=>cp($('kRes').innerText);
+
+/* Chấm trắc nghiệm & phân tích câu hỏi */
+$('mSel').insertAdjacentHTML('beforeend','<option value="mJ">✅ Chấm trắc nghiệm &amp; phân tích câu</option>');
+$('mI').insertAdjacentHTML('afterend',`<div class="mt" id="mJ"><div class="bar"><label>Đáp án đúng <input type="text" id="jKey" placeholder="ABCDABCDAB..." style="width:320px"></label><label>Thang điểm <input type="number" id="jMax" value="10" min="1" style="width:60px"></label><button class="sm" id="jRun" type="button">Chấm &amp; phân tích</button><button class="sec sm" id="jCopy" type="button">📋 Sao chép bảng điểm</button></div>
+<textarea id="jIn" style="min-height:130px" placeholder="Mỗi dòng một học sinh, dạng: Tên: ABCDABCD...&#10;Ví dụ: Nguyễn Văn An: ABCDDBCA&#10;Câu bỏ trống nhập dấu - hoặc ."></textarea><div id="jRes" style="overflow:auto"></div>
+<div class="note">Dán từ Excel được (tên và dãy đáp án cách nhau bằng Tab hoặc dấu hai chấm). Kết quả gồm điểm từng học sinh, tỉ lệ làm đúng từng câu, mức khó và phương án sai nhiều nhất để biết cần dạy lại nội dung nào.</div></div>`);
+let jTsv='';
+on('jRun',()=>{const key=$('jKey').value.toUpperCase().replace(/[^A-D]/g,''),mx=+$('jMax').value||10,n=key.length;if(!n){$('jRes').innerHTML='Hãy nhập chuỗi đáp án đúng (A–D).';return}
+ const st=$('jIn').value.split('\n').map(s=>s.trim()).filter(Boolean).map(s=>{const m=s.match(/^(.*?)[:;,\t]\s*([A-Da-d\-_.\s]+)$/);return m?{n:m[1].trim(),a:m[2].toUpperCase().replace(/\s/g,'').split('')}:null}).filter(Boolean);
+ if(!st.length){$('jRes').innerHTML='Chưa có bài làm hợp lệ.';return}
+ const ok=Array(n).fill(0),wr=Array.from({length:n},()=>({A:0,B:0,C:0,D:0,'-':0}));
+ const rs=st.map(x=>{let c=0;for(let i=0;i<n;i++){const v='ABCD'.includes(x.a[i]||'')?x.a[i]:'-';if(v==key[i]){c++;ok[i]++}else wr[i][v]++}return{n:x.n,c,s:Math.round(c/n*mx*100)/100}}),avg=rs.reduce((s,r)=>s+r.s,0)/rs.length;
+ jTsv='Họ tên\tSố câu đúng\tĐiểm\n'+rs.map(r=>`${r.n}\t${r.c}\t${r.s}`).join('\n');
+ const qs=ok.map((c,i)=>{const p=c/st.length,w=Object.entries(wr[i]).filter(e=>e[0]!='-').sort((a,b)=>b[1]-a[1])[0];return{i:i+1,p,lv:p>=.8?'Dễ':p>=.4?'Trung bình':'Khó',w:w&&w[1]?w[0]+' ('+w[1]+' HS)':'—',b:wr[i]['-']}});
+ const hard=qs.filter(q=>q.p<.5).map(q=>q.i);
+ $('jRes').innerHTML=`<p>Số bài: <b>${rs.length}</b> · Điểm trung bình: <b>${rd(avg)}</b> · Cao nhất: <b>${Math.max(...rs.map(r=>r.s))}</b> · Thấp nhất: <b>${Math.min(...rs.map(r=>r.s))}</b></p>`+
+ `<p><b>Câu cần dạy lại</b> (dưới 50% làm đúng): ${hard.length?hard.join(', '):'không có'}</p>`+
+ `<table class="jt"><tr><th>Câu</th><th>Đáp án</th><th>% đúng</th><th>Mức</th><th>Sai nhiều nhất</th><th>Bỏ trống</th></tr>${qs.map(q=>`<tr><td>${q.i}</td><td>${key[q.i-1]}</td><td>${Math.round(q.p*100)}%</td><td>${q.lv}</td><td>${q.w}</td><td>${q.b}</td></tr>`).join('')}</table><br>`+
+ `<table class="jt"><tr><th>Học sinh</th><th>Đúng</th><th>Điểm</th></tr>${rs.map(r=>`<tr><td>${esc(r.n)}</td><td>${r.c}/${n}</td><td><b>${r.s}</b></td></tr>`).join('')}</table>`});
+on('jCopy',()=>jTsv&&cp(jTsv));
+
+/* Xuất hình học (SVG / PNG) */
+$('gMode').parentNode.insertAdjacentHTML('beforeend','<button class="sec sm" id="gSvgB" type="button">⬇ Lưu SVG</button><button class="orange sm" id="gPngB" type="button">📷 Lưu PNG</button>');
+const gs=()=>{const s=$('gSvg').cloneNode(true);s.setAttribute('xmlns','http://www.w3.org/2000/svg');s.setAttribute('width',640);s.setAttribute('height',420);s.removeAttribute('style');s.insertAdjacentHTML('afterbegin','<rect width="640" height="420" fill="#0f172a"/>');return new XMLSerializer().serializeToString(s)};
+on('gSvgB',()=>dl('hinh-hoc.svg',gs(),'image/svg+xml'));
+on('gPngB',()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=1280;c.height=840;c.getContext('2d').drawImage(im,0,0,1280,840);c.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='hinh-hoc.png';a.click()})};im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(gs())});
+
+/* Sao lưu / khôi phục dữ liệu, chữ lớn khi chiếu */
+$('mSel').parentNode.insertAdjacentHTML('beforeend','<button class="sec sm" id="tBak" type="button" title="Lưu toàn bộ dữ liệu (bảng điểm, ngân hàng câu hỏi...) ra file">💾 Sao lưu</button><button class="sec sm" id="tRes" type="button">📂 Khôi phục</button><button class="ghost sm" id="tBig" type="button">🔠 Chữ lớn</button><input type="file" id="tFile" accept=".json" style="display:none">');
+on('tBak',()=>{const o={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);o[k]=localStorage.getItem(k)}}catch(e){}dl('sao-luu-tro-giang-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(o))});
+on('tRes',()=>$('tFile').click());
+$('tFile').onchange=async e=>{try{const o=JSON.parse(await e.target.files[0].text());if(confirm('Khôi phục '+Object.keys(o).length+' mục dữ liệu? Dữ liệu cùng tên trên máy sẽ bị ghi đè.')){Object.keys(o).forEach(k=>localStorage.setItem(k,o[k]));location.reload()}}catch(x){alert('File sao lưu không hợp lệ.')}e.target.value=''};
+on('tBig',()=>document.body.classList.toggle('tbig'));
+
 })();
 
 
