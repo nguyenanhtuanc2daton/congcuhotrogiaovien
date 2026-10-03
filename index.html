@@ -3305,13 +3305,19 @@ document.head.appendChild(jSt);
 $('mI').insertAdjacentHTML('afterend',`<div class="mt" id="mJ"><div class="bar"><label>Đáp án đúng <input type="text" id="jKey" placeholder="ABCDABCDAB..." style="width:320px"></label><label>Thang điểm <input type="number" id="jMax" value="10" min="1" style="width:60px"></label><button class="sm" id="jRun" type="button">Chấm &amp; phân tích</button><button class="sec sm" id="jShot" type="button">📷 Chụp bài</button><button class="orange sm" id="jDoc" type="button" disabled title="Bấm Chấm &amp; phân tích trước">⬇️ Tải về (Word)</button><button class="ghost sm" id="jCfg" type="button" title="Cài đặt khóa Gemini API">⚙️</button><input type="file" id="jFile" accept="image/*" capture="environment" multiple style="display:none"></div>
 <div id="jCfgBox" class="note" style="display:none">Khóa Gemini API: <input type="password" id="jApi" placeholder="Dán khóa API" autocomplete="off" style="width:260px"> <button class="sm" id="jApiSave" type="button">Lưu</button> <button class="sec sm" id="jApiDel" type="button">Xóa khóa</button><br>⚠ Ảnh bài làm sẽ được gửi đến Google (Gemini) để đọc đáp án. Khóa chỉ lưu trong trình duyệt của máy này; không chia sẻ file khi đã nhập khóa. Model dùng: gemini-3.5-flash-lite.</div>
 <div id="jMsg"></div><div id="jProgW" style="display:none"><div style="height:8px;background:var(--card2);border-radius:6px;overflow:hidden"><div id="jProg" style="height:100%;width:0;background:var(--a1);transition:width .2s"></div></div><div class="note" id="jProgT"></div></div><div id="jShotLog"></div>
-<textarea id="jIn" style="min-height:130px" placeholder="Mỗi dòng một học sinh, ví dụ:&#10;Nguyễn Văn An: ABCDABCD&#10;Trần Bình ABDDABCA (cách bằng dấu cách)&#10;Lê Chi&lt;Tab&gt;ABCDABCD (dán từ Excel)&#10;Câu bỏ trống nhập - hoặc ."></textarea><div id="jFlag"></div><div id="jErr"></div><div id="jRes" style="overflow:auto"></div>
-<div class="note">Tên và đáp án có thể cách nhau bằng Tab, dấu hai chấm hoặc dấu cách (đáp án là cụm A/B/C/D ở cuối dòng; chữ thường tự đổi thành chữ hoa). Bấm 📷 Chụp bài để AI đọc đáp án từ ảnh — AI chỉ chép lại những gì học sinh tô, không chấm; các dòng có dấu ? được tô vàng để thầy cô kiểm tra và sửa trước khi bấm Chấm &amp; phân tích. Kết quả gồm điểm từng học sinh, tỉ lệ làm đúng từng câu, mức khó và phương án sai nhiều nhất.</div></div>`);
+<textarea id="jIn" style="min-height:130px" placeholder="Mỗi dòng một học sinh, ví dụ:&#10;Nguyễn Văn An: ABCDABCD&#10;Trần Bình ABDDABCA (cách bằng dấu cách)&#10;Lê Chi&lt;Tab&gt;ABCDABCD (dán từ Excel)&#10;Hoặc theo số câu (thứ tự bất kỳ): Dũng 1A 2C 5D 3A 4B&#10;Câu bỏ trống nhập - hoặc ."></textarea><div id="jFlag"></div><div id="jErr"></div><div id="jRes" style="overflow:auto"></div>
+<div class="note">Tên và đáp án có thể cách nhau bằng Tab, dấu hai chấm hoặc dấu cách (đáp án là cụm A/B/C/D ở cuối dòng; chữ thường tự đổi thành chữ hoa). Cũng chấp nhận dạng ghi theo số câu như “1A 2C 5D 3A…”, thứ tự lộn xộn cũng được — chương trình tự sắp xếp lại theo số câu và báo nếu thiếu, trùng hoặc thừa câu. Bấm 📷 Chụp bài để AI đọc đáp án từ ảnh — AI chỉ chép lại những gì học sinh tô, không chấm; các dòng có dấu ? được tô vàng để thầy cô kiểm tra và sửa trước khi bấm Chấm &amp; phân tích. Kết quả gồm điểm từng học sinh, tỉ lệ làm đúng từng câu, mức khó và phương án sai nhiều nhất.</div></div>`);
 
 /* ---------- Đọc một dòng "Tên + đáp án" ---------- */
 const jOkC=/^[A-Da-d\-_.?,;\s]+$/,jCl=s=>s.replace(/[\s,;]/g,'');
 function jParse(line,n){
  let name='',ans='';
+ /* 0) Dạng ghi theo SỐ CÂU, thứ tự bất kỳ: "An 1A 2C 5D 6B 3A…" → tự sắp xếp lại theo số câu */
+ const nm=line.match(/^(.*?)[\s:：\t]*((?:\d{1,3}\s*[.:)\-–]?\s*[A-Da-d?]\s*[,;\s]*){3,})$/);
+ if(nm){const arr=Array(n).fill(null),miss=[],dup=[],over=[],re=/(\d{1,3})\s*[.:)\-–]?\s*([A-Da-d?])/g;let m;
+  while((m=re.exec(nm[2]))){const q=+m[1],v=m[2].toUpperCase();if(q<1||q>n){over.push(q);continue}if(arr[q-1]!=null&&arr[q-1]!==v)dup.push(q);else arr[q-1]=v}
+  for(let i=0;i<n;i++)if(arr[i]==null){miss.push(i+1);arr[i]='-'}
+  return{name:nm[1].trim(),a:arr,numbered:true,miss,dup,over}}
  /* 1) Tab (cả trường hợp mỗi đáp án một ô Excel) */
  if(line.includes('\t')){const f=line.split('\t').map(s=>s.trim()),r=f.slice(1).join('');if(f.length>1&&jCl(r)&&jOkC.test(r)){name=f[0];ans=r}}
  /* 2) dấu hai chấm (lấy dấu cuối cùng) */
@@ -3333,6 +3339,9 @@ on('jRun',()=>{
  if(!n){$('jRes').innerHTML='Hãy nhập chuỗi đáp án đúng (A–D).';return}
  const lines=$('jIn').value.split('\n'),st=[],er=[],wn=[];
  lines.forEach((raw,i)=>{const line=raw.trim();if(!line)return;const p=jParse(line,n),ln=i+1;
+  if(p.numbered){const nx=p.name||'không tên',bad=[];if(p.over.length)bad.push('có câu số '+[...new Set(p.over)].join(', ')+' vượt quá '+n+' câu');if(p.dup.length)bad.push('câu '+[...new Set(p.dup)].join(', ')+' bị ghi 2 lần khác nhau');if(p.miss.length)bad.push('thiếu câu '+p.miss.join(', '));
+   if(bad.length){er.push(`Dòng ${ln} (${nx}): ${bad.join('; ')}.`);return}
+   const q=[];p.a.forEach((c,k)=>{if(c==='?')q.push(k+1)});if(q.length)wn.push(`Dòng ${ln} (${nx}): ô “?” ở câu ${q.join(', ')} — tính là chưa trả lời.`);st.push({n:nx,a:p.a,q});return}
   if(!p.a.length){er.push(`Dòng ${ln}${p.name?' ('+p.name+')':''}: không tách được tên và đáp án (cần dạng “Tên: ABCD…” hoặc “Tên ABCD…”).`);return}
   if(p.a.length<n){er.push(`Dòng ${ln} (${p.name||'không tên'}): THIẾU ${n-p.a.length} câu — có ${p.a.length}/${n} câu.`);return}
   if(p.a.length>n){er.push(`Dòng ${ln} (${p.name||'không tên'}): THỪA ${p.a.length-n} câu — có ${p.a.length}/${n} câu.`);return}
@@ -3381,10 +3390,18 @@ function jCompress(file){return new Promise((res,rej)=>{const u=URL.createObject
  im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Không đọc được ảnh (file lỗi hoặc định dạng không hỗ trợ). Hãy chụp lại.'))};im.src=u})}
 async function jGemini(b64,n){
  const key=jkey();if(!key)throw new Error('Chưa có khóa Gemini API. Bấm ⚙️ để nhập khóa.');
- const prompt=`Đây là ảnh bài làm trắc nghiệm của MỘT học sinh. Bài có đúng ${n} câu, đáp án A, B, C hoặc D.
-Nhiệm vụ DUY NHẤT: đọc lại chính xác những gì học sinh đã ghi/tô/khoanh. KHÔNG suy đoán, KHÔNG tự chấm điểm, KHÔNG so sánh với đáp án đúng.
-Trả về JSON: "ten" = họ tên học sinh ghi trên bài (chuỗi rỗng nếu không thấy); "dap_an" = mảng đúng ${n} phần tử theo thứ tự câu 1 đến ${n}, mỗi phần tử là "A", "B", "C" hoặc "D"; nếu câu bỏ trống, tô/khoanh nhiều hơn một đáp án hoặc không đọc rõ thì ghi "?" và đưa số câu đó vào "khong_chac"; "khong_chac" = mảng số thứ tự câu (bắt đầu từ 1) mà bạn không chắc; "ghi_chu" = nhận xét ngắn nếu ảnh mờ, lệch, thiếu phần hoặc khó đọc (nếu không có thì chuỗi rỗng).`;
- const body=JSON.stringify({contents:[{role:'user',parts:[{text:prompt},{inline_data:{mime_type:'image/jpeg',data:b64}}]}],generationConfig:{temperature:0,maxOutputTokens:2048,responseMimeType:'application/json',responseSchema:{type:'OBJECT',properties:{ten:{type:'STRING'},dap_an:{type:'ARRAY',items:{type:'STRING'}},khong_chac:{type:'ARRAY',items:{type:'INTEGER'}},ghi_chu:{type:'STRING'}},required:['ten','dap_an','khong_chac','ghi_chu']}}});
+ const prompt=`Đây là ảnh bài làm trắc nghiệm của MỘT học sinh. Đề có đúng ${n} câu (câu 1 đến câu ${n}), mỗi câu chọn A, B, C hoặc D.
+Nhiệm vụ DUY NHẤT: chép lại chính xác những gì học sinh đã ghi/tô/khoanh. KHÔNG suy đoán, KHÔNG tự chấm điểm, KHÔNG so với đáp án đúng.
+QUAN TRỌNG – cách đọc: ảnh có thể chỉ gồm các cặp "số câu + chữ cái" viết LỘN XỘN thứ tự, chia nhiều cột/nhiều dòng, ví dụ "1A 2C 5D 6B 7C 3A 8D 9B 4A 10C", hoặc viết dạng 1.A, 1-A, 1) A, Câu 1: A, chữ thường. Hãy đọc TỪNG CẶP và lấy SỐ CÂU theo đúng SỐ GHI TRÊN ẢNH (không đánh số theo vị trí xuất hiện). Nếu ảnh là phiếu tô có số câu in sẵn thì lấy theo số in trên phiếu. Chỉ khi ảnh chỉ có một dãy chữ cái hoàn toàn không có số câu thì mới đánh số lần lượt từ 1.
+Nếu học sinh gạch bỏ rồi sửa thì lấy đáp án cuối cùng; câu tô/khoanh nhiều hơn một đáp án hoặc không đọc rõ thì dap = "?" và đưa số câu vào khong_chac.
+Trả về JSON:
+- "ten": họ tên học sinh ghi trên bài (chuỗi rỗng nếu không thấy).
+- "cau_dap_an": mảng các cặp {"cau": số câu, "dap": "A"|"B"|"C"|"D"|"?"} liệt kê ĐÚNG THỨ TỰ NHƯ TRONG ẢNH, mỗi cặp ghi trên ảnh là một phần tử.
+- "dap_an": mảng đúng ${n} phần tử đã SẮP XẾP theo câu 1 đến câu ${n}; câu không thấy trong ảnh ghi "?".
+- "khong_chac": mảng số câu (bắt đầu từ 1) mà bạn không chắc.
+- "ghi_chu": nhận xét ngắn nếu ảnh mờ, lệch, thiếu phần hoặc có câu không thấy (nếu không có thì chuỗi rỗng).
+Ví dụ: ảnh ghi "1A 2C 5D 6B 7C 3A 8D 9B 4A 10C" (10 câu) thì cau_dap_an = [{"cau":1,"dap":"A"},{"cau":2,"dap":"C"},{"cau":5,"dap":"D"},{"cau":6,"dap":"B"},{"cau":7,"dap":"C"},{"cau":3,"dap":"A"},{"cau":8,"dap":"D"},{"cau":9,"dap":"B"},{"cau":4,"dap":"A"},{"cau":10,"dap":"C"}] và dap_an = ["A","C","A","A","D","B","C","D","B","C"].`;
+ const body=JSON.stringify({contents:[{role:'user',parts:[{text:prompt},{inline_data:{mime_type:'image/jpeg',data:b64}}]}],generationConfig:{temperature:0,maxOutputTokens:4096,responseMimeType:'application/json',responseSchema:{type:'OBJECT',properties:{ten:{type:'STRING'},cau_dap_an:{type:'ARRAY',items:{type:'OBJECT',properties:{cau:{type:'INTEGER'},dap:{type:'STRING'}},required:['cau','dap']}},dap_an:{type:'ARRAY',items:{type:'STRING'}},khong_chac:{type:'ARRAY',items:{type:'INTEGER'}},ghi_chu:{type:'STRING'}},required:['ten','cau_dap_an','dap_an','khong_chac','ghi_chu']}}});
  const url='https://generativelanguage.googleapis.com/v1beta/models/'+JM+':generateContent';let res;
  for(let a=0;a<=3;a++){ /* thử lại tối đa 3 lần khi 429/5xx hoặc rớt mạng, chờ tăng dần 1,5s – 3s – 6s */
   try{res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body})}
@@ -3400,14 +3417,25 @@ Trả về JSON: "ten" = họ tên học sinh ghi trên bài (chuỗi rỗng n�
  const c=(data.candidates||[])[0],txt=c&&c.content&&c.content.parts?c.content.parts.map(p=>p.text||'').join(''):'';
  if(!txt)throw new Error('Gemini không đọc được ảnh này (ảnh quá mờ hoặc bị bộ lọc chặn). Hãy chụp lại rõ hơn.');
  let r;try{r=JSON.parse(txt.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,''))}catch(e){throw new Error('AI trả về sai định dạng. Bấm “Thử lại” hoặc chụp lại ảnh.')}
- if(!r||!Array.isArray(r.dap_an))throw new Error('AI trả về sai định dạng (thiếu mảng đáp án). Bấm “Thử lại”.');
+ if(!r||(!Array.isArray(r.dap_an)&&!Array.isArray(r.cau_dap_an)))throw new Error('AI trả về sai định dạng (thiếu mảng đáp án). Bấm “Thử lại”.');
  return r}
 /* đưa kết quả AI đọc vào ô nhập (KHÔNG chấm), chuẩn hóa về đúng n câu */
 function jApply(job,r){
- const n=job.n;let a=r.dap_an.map(x=>{x=String(x).trim().toUpperCase();return/^[A-D]$/.test(x)?x:'?'}),note=[];
- if(!a.length)throw new Error('AI không đọc được đáp án nào (ảnh quá mờ hoặc không phải phiếu trắc nghiệm).');
- if(a.length!==n){note.push(`AI đọc được ${a.length} câu, đề có ${n} câu`);while(a.length<n)a.push('?');a.length=n}
- const un=new Set((Array.isArray(r.khong_chac)?r.khong_chac:[]).map(Number).filter(q=>q>=1&&q<=n));a.forEach((x,i)=>{if(x==='?')un.add(i+1)});
+ const n=job.n,note=[],a=Array(n).fill(null),un=new Set(),pr=Array.isArray(r.cau_dap_an)?r.cau_dap_an:[],da=Array.isArray(r.dap_an)?r.dap_an.map(x=>{x=String(x==null?'':x).trim().toUpperCase();return/^[A-D]$/.test(x)?x:'?'}):[];
+ if(pr.length){ /* ưu tiên các cặp (số câu, đáp án) ghi trên ảnh, rồi TỰ SẮP XẾP theo số câu bằng mã JS */
+  const over=[];pr.forEach(p=>{const q=parseInt(p&&p.cau,10),v=String(p&&p.dap!=null?p.dap:'').trim().toUpperCase(),L=/^[A-D]$/.test(v)?v:'?';
+   if(!(q>=1&&q<=n)){if(q>n)over.push(q);return}
+   if(a[q-1]!=null&&a[q-1]!==L){a[q-1]='?';un.add(q);note.push(`câu ${q} bị ghi 2 lần khác nhau`)}else if(a[q-1]==null)a[q-1]=L;
+   if(a[q-1]==='?')un.add(q)});
+  const miss=[];for(let i=0;i<n;i++)if(a[i]==null){a[i]='?';un.add(i+1);miss.push(i+1)}
+  if(miss.length)note.push('không thấy câu '+miss.join(', ')+' trong ảnh');if(over.length)note.push('ảnh có câu số '+[...new Set(over)].join(', ')+' vượt quá '+n+' (đã bỏ qua)');
+  /* đối chiếu chéo: nếu mảng dap_an do AI tự sắp xếp khác kết quả ghép theo số câu → đánh dấu để GV kiểm tra */
+  if(da.length===n){const df=[];for(let i=0;i<n;i++)if(da[i]!==a[i]&&a[i]!=='?'&&da[i]!=='?'){df.push(i+1);un.add(i+1)}if(df.length)note.push('AI đọc hai cách không khớp ở câu '+df.join(', ')+' (đang giữ theo số câu ghi trên ảnh)')}
+ }else{ /* ảnh không ghi số câu: lấy theo thứ tự xuất hiện */
+  if(!da.length)throw new Error('AI không đọc được đáp án nào (ảnh quá mờ hoặc không phải phiếu trắc nghiệm).');
+  da.forEach((x,i)=>{if(i<n)a[i]=x});if(da.length!==n)note.push(`AI đọc được ${da.length} câu, đề có ${n} câu`);
+  for(let i=0;i<n;i++){if(a[i]==null)a[i]='?';if(a[i]==='?')un.add(i+1)}}
+ (Array.isArray(r.khong_chac)?r.khong_chac:[]).map(Number).filter(q=>q>=1&&q<=n).forEach(q=>un.add(q));
  if(r.ghi_chu)note.push(String(r.ghi_chu));
  const name=String(r.ten||'').replace(/[:：\t\n]/g,' ').replace(/\s+/g,' ').trim()||`Bài ${job.id} (chưa đọc được tên)`,ta=$('jIn');
  ta.value=(ta.value&&!ta.value.endsWith('\n')?ta.value+'\n':ta.value)+name+': '+a.join('')+'\n';
