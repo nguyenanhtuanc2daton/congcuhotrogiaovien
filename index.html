@@ -3363,18 +3363,17 @@ const o4=$('kSplit').onclick;$('kSplit').onclick=()=>{if(!$('kMix').checked)retu
 $('kCopy').onclick=()=>cp($('kRes').innerText);
 
 /* ===== Chấm trắc nghiệm & phân tích câu =====
-   Bản nâng cấp: (1) đọc dòng "Tên + đáp án" linh hoạt, báo lỗi từng dòng; (2) 📷 Chụp bài – Gemini chỉ ĐỌC đáp án, KHÔNG chấm;
+   Bản nâng cấp: (1) đọc dòng "Tên + đáp án" linh hoạt, báo lỗi từng dòng; (2) 📄 File mẫu / 📥 Nạp file (Word: Tên | Đáp án → “Tên: đáp án”);
    (3) ⬇️ Tải về (Word). Việc chấm điểm luôn do mã JavaScript bên dưới thực hiện. */
 $('mSel').insertAdjacentHTML('beforeend','<option value="mJ">✅ Chấm trắc nghiệm &amp; phân tích câu</option>');
 const jSt=document.createElement('style');
 /* Giao diện điện thoại: nút cao ≥ 42px, ô nhập không tràn ngang, bảng kết quả cuộn ngang */
 jSt.textContent='#mJ .bar button{min-height:42px}#mJ #jIn{font-size:16px}#mJ #jRes{overflow-x:auto;-webkit-overflow-scrolling:touch}#mJ #jRes table.jt{min-width:480px}#mJ .jwarn{background:rgba(250,204,21,.12);border:1px solid #facc15;border-radius:10px;padding:8px 12px;margin:8px 0;font-size:14px;line-height:1.6}#mJ .jchip{background:rgba(250,204,21,.18)!important;border-color:#facc15!important}#mJ tr.jyel td{background:rgba(250,204,21,.16)}@media(max-width:640px){#mJ .bar>label,#mJ #jKey{width:100%!important}#mJ .bar button{flex:1 1 130px}}';
 document.head.appendChild(jSt);
-$('mI').insertAdjacentHTML('afterend',`<div class="mt" id="mJ"><div class="bar"><label>Đáp án đúng <input type="text" id="jKey" placeholder="ABCDABCDAB..." style="width:320px"></label><label>Thang điểm <input type="number" id="jMax" value="10" min="1" style="width:60px"></label><button class="sm" id="jRun" type="button">Chấm &amp; phân tích</button><button class="sec sm" id="jShot" type="button">📷 Chụp bài</button><button class="orange sm" id="jDoc" type="button" disabled title="Bấm Chấm &amp; phân tích trước">⬇️ Tải về (Word)</button><button class="ghost sm" id="jCfg" type="button" title="Cài đặt khóa Gemini API">⚙️</button><input type="file" id="jFile" accept="image/*" capture="environment" multiple style="display:none"></div>
-<div id="jCfgBox" class="note" style="display:none">Khóa Gemini API: <input type="password" id="jApi" placeholder="Dán khóa API" autocomplete="off" style="width:260px"> <button class="sm" id="jApiSave" type="button">Lưu</button> <button class="sec sm" id="jApiDel" type="button">Xóa khóa</button><br>⚠ Ảnh bài làm sẽ được gửi đến Google (Gemini) để đọc đáp án. Khóa chỉ lưu trong trình duyệt của máy này; không chia sẻ file khi đã nhập khóa. Model dùng: gemini-3.5-flash-lite.</div>
-<div id="jMsg"></div><div id="jProgW" style="display:none"><div style="height:8px;background:var(--card2);border-radius:6px;overflow:hidden"><div id="jProg" style="height:100%;width:0;background:var(--a1);transition:width .2s"></div></div><div class="note" id="jProgT"></div></div><div id="jShotLog"></div>
+$('mI').insertAdjacentHTML('afterend',`<div class="mt" id="mJ"><div class="bar"><label>Đáp án đúng <input type="text" id="jKey" placeholder="ABCDABCDAB..." style="width:320px"></label><label>Thang điểm <input type="number" id="jMax" value="10" min="1" style="width:60px"></label><button class="sm" id="jRun" type="button">Chấm &amp; phân tích</button><button class="sec sm" id="jTpl" type="button" title="Tải file Word mẫu gồm 2 cột: Tên và Đáp án">📄 File mẫu</button><button class="sec sm" id="jLoad" type="button" title="Nạp file Word đã điền Tên và Đáp án">📥 Nạp file</button><button class="orange sm" id="jDoc" type="button" disabled title="Bấm Chấm &amp; phân tích trước">⬇️ Tải về (Word)</button><input type="file" id="jDocIn" accept=".docx,.xlsx,.xls,.csv" style="display:none"></div>
+<div id="jMsg"></div>
 <textarea id="jIn" style="min-height:130px" placeholder="Mỗi dòng một học sinh, ví dụ:&#10;Nguyễn Văn An: ABCDABCD&#10;Trần Bình ABDDABCA (cách bằng dấu cách)&#10;Lê Chi&lt;Tab&gt;ABCDABCD (dán từ Excel)&#10;Hoặc theo số câu (thứ tự bất kỳ): Dũng 1A 2C 5D 3A 4B&#10;Câu bỏ trống nhập - hoặc ."></textarea><div id="jFlag"></div><div id="jErr"></div><div id="jRes" style="overflow:auto"></div>
-<div class="note">Tên và đáp án có thể cách nhau bằng Tab, dấu hai chấm hoặc dấu cách (đáp án là cụm A/B/C/D ở cuối dòng; chữ thường tự đổi thành chữ hoa). Cũng chấp nhận dạng ghi theo số câu như “1A 2C 5D 3A…”, thứ tự lộn xộn cũng được — chương trình tự sắp xếp lại theo số câu và báo nếu thiếu, trùng hoặc thừa câu. Bấm 📷 Chụp bài để AI đọc đáp án từ ảnh — AI chỉ chép lại những gì học sinh tô, không chấm; các dòng có dấu ? được tô vàng để thầy cô kiểm tra và sửa trước khi bấm Chấm &amp; phân tích. Kết quả gồm điểm từng học sinh, tỉ lệ làm đúng từng câu, mức khó và phương án sai nhiều nhất.</div></div>`);
+<div class="note">Tên và đáp án có thể cách nhau bằng Tab, dấu hai chấm hoặc dấu cách (đáp án là cụm A/B/C/D ở cuối dòng; chữ thường tự đổi thành chữ hoa). Cũng chấp nhận dạng ghi theo số câu như “1A 2C 5D 3A…”, thứ tự lộn xộn cũng được — chương trình tự sắp xếp lại theo số câu và báo nếu thiếu, trùng hoặc thừa câu. Cách nhanh: bấm 📄 File mẫu để tải file Word 2 cột (Tên | Đáp án), điền xong bấm 📥 Nạp file — chương trình tự chuyển thành dạng “Tên: đáp án” theo đúng thứ tự câu. Các dòng có dấu ? được tô vàng để thầy cô kiểm tra trước khi bấm Chấm &amp; phân tích. Kết quả gồm điểm từng học sinh, tỉ lệ làm đúng từng câu, mức khó và phương án sai nhiều nhất.</div></div>`);
 
 /* ---------- Đọc một dòng "Tên + đáp án" ---------- */
 const jOkC=/^[A-Da-d\-_.?,;\s]+$/,jCl=s=>s.replace(/[\s,;]/g,'');
@@ -3440,86 +3439,69 @@ function jFlagRender(){
  $('jFlag').innerHTML=out.length?`<div class="jwarn"><b>🟡 Cần kiểm tra (${out.length} dòng)</b> — chạm vào tên để đến dòng cần sửa:<br>${out.map((o,k)=>`<button class="sec sm jchip" type="button" data-k="${k}">${jEsc(o.name)}${o.q.length?': câu '+o.q.join(', '):''}</button>${o.note?' <i>'+jEsc(o.note)+'</i>':''}`).join(' ')}</div>`:'';
  $('jFlag').querySelectorAll('.jchip').forEach(b=>b.onclick=()=>{const o=out[+b.dataset.k];ta.focus();ta.setSelectionRange(o.start,o.start+o.len)})}
 
-/* ---------- 📷 Chụp bài: nén ảnh → Gemini đọc đáp án (không chấm) ---------- */
-const JK='tc_gemini_key_v1',JM='gemini-3.5-flash-lite',JW=4;let jMem='';
-const jkey=()=>GKEY.get();
-const jw=ms=>new Promise(r=>setTimeout(r,ms)),jMsg=(t,bad)=>{$('jMsg').innerHTML=t?`<div class="jwarn"${bad?'':' style="border-color:var(--bd);background:transparent"'}>${t}</div>`:''};
-on('jCfg',()=>GKEY.open('Key Gemini dùng chung cho mọi tính năng AI của trang.'));
-on('jApiSave',()=>{const v=$('jApi').value.trim();if(!v){jMsg('Hãy dán khóa API vào ô trước khi lưu.',1);return}GKEY.set(v);jMsg('✓ Đã lưu khóa API (dùng chung cho mọi tính năng AI).');$('jApi').value='';$('jCfgBox').style.display='none'});
-on('jApiDel',()=>{GKEY.clear();$('jApi').value='';jMsg('Đã xóa khóa API.')});
-const jobs=[];let jSeq=0;
-on('jShot',()=>{if(!jKeyStr().length){jMsg('Hãy nhập <b>Đáp án đúng</b> trước khi chụp bài (để AI biết bài có bao nhiêu câu).',1);return}
- if(!jkey()){jMsg('Chưa có khóa Gemini API. Hãy nhập ở ô “API key Gemini” phía đầu trang (chỉ cần làm một lần).',1);GKEY.open();return}
- jMsg('');$('jFile').click()});
-/* chọn/chụp xong: lấy danh sách file rồi xóa ô chọn ngay để mở lại chụp bài tiếp theo trong lúc AI đang đọc */
-$('jFile').onchange=e=>{const fs=[...e.target.files];e.target.value='';const n=jKeyStr().length;fs.forEach(f=>jobs.push({id:++jSeq,file:f,n,st:'wait',msg:''}));jLog();jPump()};
-function jCompress(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),im=new Image();
- im.onload=()=>{try{let w=im.naturalWidth,h=im.naturalHeight;if(!w||!h)throw 0;const s=Math.min(1,1500/Math.max(w,h));w=Math.round(w*s);h=Math.round(h*s);const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);const d=c.toDataURL('image/jpeg',0.8);URL.revokeObjectURL(u);res(d.split(',')[1])}catch(e){URL.revokeObjectURL(u);rej(new Error('Không xử lý được ảnh này. Hãy chụp lại.'))}};
- im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Không đọc được ảnh (file lỗi hoặc định dạng không hỗ trợ). Hãy chụp lại.'))};im.src=u})}
-async function jGemini(b64,n){
- const key=jkey();if(!key)throw new Error('Chưa có khóa Gemini API. Bấm ⚙️ để nhập khóa.');
- const prompt=`Đây là ảnh bài làm trắc nghiệm của MỘT học sinh. Đề có đúng ${n} câu (câu 1 đến câu ${n}), mỗi câu chọn A, B, C hoặc D.
-Nhiệm vụ DUY NHẤT: chép lại chính xác những gì học sinh đã ghi/tô/khoanh. KHÔNG suy đoán, KHÔNG tự chấm điểm, KHÔNG so với đáp án đúng.
-QUAN TRỌNG – cách đọc: ảnh có thể chỉ gồm các cặp "số câu + chữ cái" viết LỘN XỘN thứ tự, chia nhiều cột/nhiều dòng, ví dụ "1A 2C 5D 6B 7C 3A 8D 9B 4A 10C", hoặc viết dạng 1.A, 1-A, 1) A, Câu 1: A, chữ thường. Hãy đọc TỪNG CẶP và lấy SỐ CÂU theo đúng SỐ GHI TRÊN ẢNH (không đánh số theo vị trí xuất hiện). Nếu ảnh là phiếu tô có số câu in sẵn thì lấy theo số in trên phiếu. Chỉ khi ảnh chỉ có một dãy chữ cái hoàn toàn không có số câu thì mới đánh số lần lượt từ 1.
-Nếu học sinh gạch bỏ rồi sửa thì lấy đáp án cuối cùng; câu tô/khoanh nhiều hơn một đáp án hoặc không đọc rõ thì dap = "?" và đưa số câu vào khong_chac.
-Trả về JSON:
-- "ten": họ tên học sinh ghi trên bài (chuỗi rỗng nếu không thấy).
-- "cau_dap_an": mảng các cặp {"cau": số câu, "dap": "A"|"B"|"C"|"D"|"?"} liệt kê ĐÚNG THỨ TỰ NHƯ TRONG ẢNH, mỗi cặp ghi trên ảnh là một phần tử.
-- "dap_an": mảng đúng ${n} phần tử đã SẮP XẾP theo câu 1 đến câu ${n}; câu không thấy trong ảnh ghi "?".
-- "khong_chac": mảng số câu (bắt đầu từ 1) mà bạn không chắc.
-- "ghi_chu": nhận xét ngắn nếu ảnh mờ, lệch, thiếu phần hoặc có câu không thấy (nếu không có thì chuỗi rỗng).
-Ví dụ: ảnh ghi "1A 2C 5D 6B 7C 3A 8D 9B 4A 10C" (10 câu) thì cau_dap_an = [{"cau":1,"dap":"A"},{"cau":2,"dap":"C"},{"cau":5,"dap":"D"},{"cau":6,"dap":"B"},{"cau":7,"dap":"C"},{"cau":3,"dap":"A"},{"cau":8,"dap":"D"},{"cau":9,"dap":"B"},{"cau":4,"dap":"A"},{"cau":10,"dap":"C"}] và dap_an = ["A","C","A","A","D","B","C","D","B","C"].`;
- const body=JSON.stringify({contents:[{role:'user',parts:[{text:prompt},{inline_data:{mime_type:'image/jpeg',data:b64}}]}],generationConfig:{temperature:0,maxOutputTokens:4096,responseMimeType:'application/json',responseSchema:{type:'OBJECT',properties:{ten:{type:'STRING'},cau_dap_an:{type:'ARRAY',items:{type:'OBJECT',properties:{cau:{type:'INTEGER'},dap:{type:'STRING'}},required:['cau','dap']}},dap_an:{type:'ARRAY',items:{type:'STRING'}},khong_chac:{type:'ARRAY',items:{type:'INTEGER'}},ghi_chu:{type:'STRING'}},required:['ten','cau_dap_an','dap_an','khong_chac','ghi_chu']}}});
- const url='https://generativelanguage.googleapis.com/v1beta/models/'+JM+':generateContent';let res;
- for(let a=0;a<=3;a++){ /* thử lại tối đa 3 lần khi 429/5xx hoặc rớt mạng, chờ tăng dần 1,5s – 3s – 6s */
-  try{res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body})}
-  catch(e){if(a<3){await jw(1500*2**a);continue}throw new Error(navigator.onLine===false?'Mất kết nối mạng. Hãy kiểm tra Internet rồi bấm “Thử lại”.':'Không kết nối được tới Gemini (mạng yếu hoặc bị chặn). Bấm “Thử lại”.')}
-  if((res.status===429||res.status>=500)&&a<3){await jw(1500*2**a);continue}break}
- if(!res.ok){let m='';try{m=(await res.json()).error.message||''}catch(e){}
-  if(res.status===429)throw new Error('Vượt giới hạn gọi API (đã tự thử lại 3 lần). Chờ một lúc rồi bấm “Thử lại”.');
-  if(res.status>=500)throw new Error('Máy chủ Gemini đang quá tải (đã tự thử lại 3 lần). Bấm “Thử lại” sau ít phút.');
-  if(res.status===401||res.status===403||/API key/i.test(m))throw new Error('Khóa API không hợp lệ hoặc chưa được phép dùng model '+JM+'. Bấm ⚙️ để kiểm tra khóa.');
-  if(res.status===404)throw new Error('Không tìm thấy model '+JM+' (tên model có thể đã đổi).');
-  throw new Error('Gemini từ chối yêu cầu ('+res.status+'). '+m.slice(0,120))}
- let data;try{data=await res.json()}catch(e){throw new Error('Gemini trả về dữ liệu không đọc được. Bấm “Thử lại”.')}
- const c=(data.candidates||[])[0],txt=c&&c.content&&c.content.parts?c.content.parts.map(p=>p.text||'').join(''):'';
- if(!txt)throw new Error('Gemini không đọc được ảnh này (ảnh quá mờ hoặc bị bộ lọc chặn). Hãy chụp lại rõ hơn.');
- let r;try{r=JSON.parse(txt.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,''))}catch(e){throw new Error('AI trả về sai định dạng. Bấm “Thử lại” hoặc chụp lại ảnh.')}
- if(!r||(!Array.isArray(r.dap_an)&&!Array.isArray(r.cau_dap_an)))throw new Error('AI trả về sai định dạng (thiếu mảng đáp án). Bấm “Thử lại”.');
- return r}
-/* đưa kết quả AI đọc vào ô nhập (KHÔNG chấm), chuẩn hóa về đúng n câu */
-function jApply(job,r){
- const n=job.n,note=[],a=Array(n).fill(null),un=new Set(),pr=Array.isArray(r.cau_dap_an)?r.cau_dap_an:[],da=Array.isArray(r.dap_an)?r.dap_an.map(x=>{x=String(x==null?'':x).trim().toUpperCase();return/^[A-D]$/.test(x)?x:'?'}):[];
- if(pr.length){ /* ưu tiên các cặp (số câu, đáp án) ghi trên ảnh, rồi TỰ SẮP XẾP theo số câu bằng mã JS */
-  const over=[];pr.forEach(p=>{const q=parseInt(p&&p.cau,10),v=String(p&&p.dap!=null?p.dap:'').trim().toUpperCase(),L=/^[A-D]$/.test(v)?v:'?';
-   if(!(q>=1&&q<=n)){if(q>n)over.push(q);return}
-   if(a[q-1]!=null&&a[q-1]!==L){a[q-1]='?';un.add(q);note.push(`câu ${q} bị ghi 2 lần khác nhau`)}else if(a[q-1]==null)a[q-1]=L;
-   if(a[q-1]==='?')un.add(q)});
-  const miss=[];for(let i=0;i<n;i++)if(a[i]==null){a[i]='?';un.add(i+1);miss.push(i+1)}
-  if(miss.length)note.push('không thấy câu '+miss.join(', ')+' trong ảnh');if(over.length)note.push('ảnh có câu số '+[...new Set(over)].join(', ')+' vượt quá '+n+' (đã bỏ qua)');
-  /* đối chiếu chéo: nếu mảng dap_an do AI tự sắp xếp khác kết quả ghép theo số câu → đánh dấu để GV kiểm tra */
-  if(da.length===n){const df=[];for(let i=0;i<n;i++)if(da[i]!==a[i]&&a[i]!=='?'&&da[i]!=='?'){df.push(i+1);un.add(i+1)}if(df.length)note.push('AI đọc hai cách không khớp ở câu '+df.join(', ')+' (đang giữ theo số câu ghi trên ảnh)')}
- }else{ /* ảnh không ghi số câu: lấy theo thứ tự xuất hiện */
-  if(!da.length)throw new Error('AI không đọc được đáp án nào (ảnh quá mờ hoặc không phải phiếu trắc nghiệm).');
-  da.forEach((x,i)=>{if(i<n)a[i]=x});if(da.length!==n)note.push(`AI đọc được ${da.length} câu, đề có ${n} câu`);
-  for(let i=0;i<n;i++){if(a[i]==null)a[i]='?';if(a[i]==='?')un.add(i+1)}}
- (Array.isArray(r.khong_chac)?r.khong_chac:[]).map(Number).filter(q=>q>=1&&q<=n).forEach(q=>un.add(q));
- if(r.ghi_chu)note.push(String(r.ghi_chu));
- const name=String(r.ten||'').replace(/[:：\t\n]/g,' ').replace(/\s+/g,' ').trim()||`Bài ${job.id} (chưa đọc được tên)`,ta=$('jIn');
- ta.value=(ta.value&&!ta.value.endsWith('\n')?ta.value+'\n':ta.value)+name+': '+a.join('')+'\n';
- jFlags[name]={q:[...un],note:note.join('; ')};job.name=name;job.unsure=un.size}
-async function jWork(job){job.st='run';jLog();
- try{jApply(job,await jGemini(await jCompress(job.file),job.n));job.st='ok'}catch(e){job.st='err';job.msg=e&&e.message?e.message:'Lỗi không xác định.'}
- jLog();jFlagRender();jPump()}
-function jPump(){let run=jobs.filter(j=>j.st==='run').length;for(const j of jobs){if(run>=JW)break;if(j.st==='wait'){run++;jWork(j)}}}
-function jLog(){const tot=jobs.length,dn=jobs.filter(j=>j.st==='ok'||j.st==='err').length,er=jobs.filter(j=>j.st==='err').length;
- $('jProgW').style.display=tot?'':'none';$('jProg').style.width=(tot?100*dn/tot:0)+'%';
- $('jProgT').textContent=tot?`Đã xử lý ${dn}/${tot} ảnh${er?` · ${er} ảnh lỗi`:''}${dn===tot?' — xong. Hãy xem các dòng 🟡 rồi bấm “Chấm & phân tích”.':' …'}`:'';
- $('jShotLog').innerHTML=tot?jobs.map(j=>`<div class="note" style="margin:2px 0">${j.st==='ok'?'✅':j.st==='err'?'❌':j.st==='run'?'⏳':'🕓'} Ảnh ${j.id}${j.st==='ok'?' — '+jEsc(j.name)+(j.unsure?` (${j.unsure} câu chưa chắc)`:''):j.st==='err'?' — '+jEsc(j.msg)+' <button class="sec sm jretry" type="button" data-id="'+j.id+'">↻ Thử lại</button>':''}</div>`).join('')+(dn===tot?'<button class="ghost sm" id="jLogClr" type="button">Xóa nhật ký ảnh</button>':''):'';
- $('jShotLog').querySelectorAll('.jretry').forEach(b=>b.onclick=()=>{const j=jobs.find(x=>x.id==b.dataset.id);if(j){j.st='wait';j.n=jKeyStr().length;jLog();jPump()}});
- const c=$('jLogClr');if(c)c.onclick=()=>{jobs.length=0;jLog()}}
-
-/* ---------- ⬇️ Tải về (Word): bảng Tên học sinh | Các câu sai | Điểm ---------- */
+/* ---------- 📄 File mẫu & 📥 Nạp file: Word 2 cột (Tên | Đáp án) → dòng "Tên: đáp án" ---------- */
+const jMsg=(t,bad)=>{$('jMsg').innerHTML=t?`<div class="jwarn"${bad?'':' style="border-color:var(--bd);background:transparent"'}>${t}</div>`:''};
+const jWns='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+function jTplXml(n){
+ const xe=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+ const F='<w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman"/>';
+ const run=(t,b,sz)=>`<w:r><w:rPr>${F}${b?'<w:b/>':''}<w:sz w:val="${sz||26}"/><w:szCs w:val="${sz||26}"/></w:rPr><w:t xml:space="preserve">${xe(t)}</w:t></w:r>`;
+ const P=(parts,al,sa,sz)=>`<w:p><w:pPr><w:spacing w:before="0" w:after="${sa==null?80:sa}"/><w:jc w:val="${al||'left'}"/></w:pPr>${parts.map(x=>run(x[0],x[1],sz)).join('')}</w:p>`;
+ const W=[3800,5800],BD=['top','left','bottom','right','insideH','insideV'].map(k=>`<w:${k} w:val="single" w:sz="4" w:space="0" w:color="000000"/>`).join('');
+ const cell=(w,t,o={})=>`<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${o.f?`<w:shd w:val="clear" w:color="auto" w:fill="${o.f}"/>`:''}<w:vAlign w:val="center"/></w:tcPr>${t?P([[t,o.b]],o.al||'left',0):'<w:p><w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr></w:p>'}</w:tc>`;
+ const rows=[`<w:tr><w:trPr><w:cantSplit/><w:tblHeader/></w:trPr>${cell(W[0],'Tên',{b:1,f:'D9D9D9',al:'center'})}${cell(W[1],'Đáp án',{b:1,f:'D9D9D9',al:'center'})}</w:tr>`];
+ for(let i=0;i<40;i++)rows.push(`<w:tr><w:trPr><w:cantSplit/><w:trHeight w:val="400"/></w:trPr>${cell(W[0],'')}${cell(W[1],'')}</w:tr>`);
+ const tbl=`<w:tbl><w:tblPr><w:tblW w:w="${W[0]+W[1]}" w:type="dxa"/><w:jc w:val="center"/><w:tblBorders>${BD}</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="40" w:type="dxa"/><w:left w:w="100" w:type="dxa"/><w:bottom w:w="40" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${W.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows.join('')}</w:tbl>`;
+ const m=n>0?Math.min(n,60):8,ex=Array.from({length:m},(_,i)=>'ABCD'[i%4]).join('');
+ const body=P([['FILE MẪU NHẬP BÀI LÀM TRẮC NGHIỆM',1]],'center',120,32)
+  +P([['Hướng dẫn: ',1],['điền tên học sinh vào cột “Tên”, đáp án vào cột “Đáp án”, mỗi học sinh một dòng. Không xóa dòng tiêu đề; cần thêm dòng thì thêm vào cuối bảng.',0]],'left',60,24)
+  +P([['Cách ghi đáp án: ',1],['viết liền theo thứ tự câu 1 → câu cuối (có thể cách nhau bằng dấu cách); câu bỏ trống ghi dấu “-”. Ví dụ'+(n>0?' (bài '+n+' câu)':'')+': ',0],[ex,1]],'left',160,24)
+  +tbl;
+ return'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="'+jWns+'"><w:body>'+body+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr></w:body></w:document>'}
+on('jTpl',async()=>{try{jMsg('');await downloadBlob(makeZip([{name:'[Content_Types].xml',data:strToBytes(TXT_CONTENT_TYPES)},{name:'_rels/.rels',data:strToBytes(TXT_ROOT_RELS)},{name:'word/_rels/document.xml.rels',data:strToBytes(TXT_DOC_RELS)},{name:'word/document.xml',data:strToBytes(jTplXml(jKeyStr().length))}]),'File-mau-nhap-bai-lam-trac-nghiem.docx')}catch(e){jMsg('Không tạo được file mẫu: '+jEsc(e.message||e),1)}});
+/* đọc chữ trong một ô/đoạn của Word */
+function jElTxt(el){let t='';const all=el.getElementsByTagName('*');for(let i=0;i<all.length;i++){const n=all[i].localName;if(n==='t')t+=all[i].textContent;else if(n==='tab'||n==='br')t+=' '}return t}
+function jCellTxt(tc){const ps=tc.getElementsByTagNameNS(jWns,'p'),o=[];for(let i=0;i<ps.length;i++){const x=jElTxt(ps[i]).trim();if(x)o.push(x)}return o.join(' ').replace(/\s+/g,' ').trim()}
+const jKids=(el,n)=>{const o=[];for(let c=el.firstChild;c;c=c.nextSibling)if(c.nodeType===1&&c.localName===n)o.push(c);return o};
+function jDocRows(xml){
+ const doc=new DOMParser().parseFromString(xml,'application/xml'),rows=[];
+ if(doc.getElementsByTagName('parsererror').length)throw new Error('nội dung file Word bị lỗi, không đọc được.');
+ const tbs=doc.getElementsByTagNameNS(jWns,'tbl');
+ for(let i=0;i<tbs.length;i++)jKids(tbs[i],'tr').forEach(tr=>{const cs=jKids(tr,'tc').map(jCellTxt);if(cs.length>=2)rows.push(cs)});
+ if(rows.length)return{rows};
+ /* không có bảng: lấy từng đoạn văn như một dòng (nếu thầy cô đã gõ sẵn dạng “Tên: đáp án”) */
+ const ps=doc.getElementsByTagNameNS(jWns,'p'),lines=[];for(let i=0;i<ps.length;i++){const x=jElTxt(ps[i]).replace(/\s+/g,' ').trim();if(x)lines.push(x)}
+ return{rows:null,lines}}
+/* các hàng (Tên, Đáp án…) → các dòng "Tên: đáp án"; đáp án chỉ gồm A–D thì gộp liền theo đúng thứ tự */
+function jRowsToLines(rows){
+ const lines=[];let ni=0,ai=1;
+ rows.forEach(r=>{
+  const isNm=c=>/^(họ\s*(và\s*)?tên|tên|học\s*sinh|stt|tt)(\s*(học\s*sinh|hs))?$/i.test(c),isAn=c=>/^(đáp\s*án|bài\s*làm)/i.test(c);
+  if(r.some(isNm)&&r.some(isAn)){const a=r.findIndex(isAn),n=r.findIndex(c=>isNm(c)&&!/^(stt|tt)$/i.test(c));ni=n>=0?n:0;ai=a;return}
+  let n0=ni,a0=ai;if(r.length>=3&&/^\d+$/.test(r[0])&&ni===0&&ai===1){n0=1;a0=2}
+  const name=(r[n0]||'').replace(/[:：]/g,' ').replace(/\s+/g,' ').trim();
+  let ans=r.slice(a0).join(' ').replace(/\s+/g,' ').trim();
+  if(!name&&!ans)return;
+  if(ans&&jOkC.test(ans)&&jCl(ans))ans=jCl(ans).toUpperCase().replace(/[_.]/g,'-');
+  lines.push((name||'(không tên)')+': '+ans)});
+ return lines}
+on('jLoad',()=>{jMsg('');$('jDocIn').click()});
+$('jDocIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ try{const ext=(f.name.split('.').pop()||'').toLowerCase();let lines=[];
+  if(ext==='docx'){if(typeof JSZip==='undefined')throw new Error('chưa tải được thư viện JSZip (cần mạng để nạp từ CDN).');
+   let z;try{z=await JSZip.loadAsync(await f.arrayBuffer())}catch(_){throw new Error('không mở được file (cần đúng file Word .docx).')}
+   const x=z.file('word/document.xml');if(!x)throw new Error('đây không phải file Word .docx hợp lệ.');
+   const r=jDocRows(await x.async('string'));lines=r.rows?jRowsToLines(r.rows):r.lines}
+  else if(/^(xlsx|xls|csv)$/.test(ext)){if(typeof XLSX==='undefined')throw new Error('chưa tải được thư viện đọc Excel (cần mạng).');
+   const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:false}).map(r=>r.map(c=>String(c).trim())).filter(r=>r.some(Boolean));
+   lines=jRowsToLines(rows.map(r=>{const k=r.slice();while(k.length<2)k.push('');return k}))}
+  else throw new Error('chỉ nạp được file Word (.docx) điền theo File mẫu.');
+  if(!lines.length){jMsg('Không tìm thấy dòng nào có tên và đáp án trong file. Hãy điền theo đúng <b>File mẫu</b> (2 cột: Tên | Đáp án).',1);return}
+  if($('jIn').value.trim()&&!confirm('Ô danh sách bài làm đang có dữ liệu.\nBấm OK để THAY THẾ bằng '+lines.length+' dòng từ file vừa nạp; Hủy để giữ nguyên.'))return;
+  $('jIn').value=lines.join('\n');$('jIn').dispatchEvent(new Event('input'));
+  const n=jKeyStr().length,diff=n?lines.filter(l=>{const p=jParse(l,n);return !p.numbered&&p.a.length!==n}).length:0;
+  jMsg(`✓ Đã nạp <b>${lines.length}</b> học sinh từ “${jEsc(f.name)}” (dạng “Tên: đáp án”).`+(n?'':' Nhớ nhập <b>Đáp án đúng</b> rồi bấm Chấm &amp; phân tích.')+(diff?` ⚠ Có ${diff} dòng có số câu khác ${n} — sẽ được báo lỗi khi chấm, hãy kiểm tra lại.`:' Kiểm tra lại rồi bấm Chấm &amp; phân tích.'),diff?1:0)}
+ catch(err){jMsg('Không nạp được file: '+jEsc(err.message||err),1)}};
 function jWordXml(L){
  const xe=s=>String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
  const F='<w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman"/>';
