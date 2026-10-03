@@ -10,6 +10,76 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+#gkBar{margin:10px auto;max-width:1100px;padding:8px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--fg);font-size:14px}
+#gkBar .gkrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#gkBar .gkst{font-weight:700}#gkBar .gkst.ok{color:var(--ok)}#gkBar .gkst.no{color:var(--warn)}
+#gkBar input[type=password]{flex:1 1 240px;min-width:180px;background:var(--card2);color:var(--fg);border:1px solid var(--bd);border-radius:10px;padding:9px;font:14px Consolas,'Segoe UI',monospace}
+#gkBar label{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--mut)}
+#gkBar a{color:var(--cy)}#gkBar #gkMsg{width:100%;font-size:13px;color:var(--mut)}
+</style>
+<script>
+/* ===== Khóa Gemini API DÙNG CHUNG: nhập 1 lần – mọi tính năng AI trong trang đều dùng khóa này =====
+   Lưu ở localStorage (khóa 'ph_gemini_key_v2') nếu bật "Ghi nhớ trên máy này"; nếu tắt thì chỉ lưu trong phiên (sessionStorage).
+   Đồng thời ghi vào 'ph_gemini_key_s' để tương thích mã cũ. Khóa KHÔNG nằm trong file sao lưu. */
+(function(){
+  var K='ph_gemini_key_v2',SK='ph_gemini_key_s',OLD='tc_gemini_key_v1',R='ph_gemini_remember';
+  function rd(st,k){try{return String(window[st].getItem(k)||'').trim();}catch(e){return '';}}
+  function wr(st,k,v){try{window[st].setItem(k,v);}catch(e){}}
+  function rm(st,k){try{window[st].removeItem(k);}catch(e){}}
+  function fire(){try{window.dispatchEvent(new Event('ph-key'));}catch(e){}}
+  function remember(){return rd('localStorage',R)!=='0';}
+  function get(){return rd('sessionStorage',SK)||rd('localStorage',K);}
+  function set(v,keep){
+    v=String(v||'').trim(); if(!v) return false;
+    if(keep===undefined) keep=remember();
+    wr('localStorage',R,keep?'1':'0'); wr('sessionStorage',SK,v);
+    if(keep) wr('localStorage',K,v); else rm('localStorage',K);
+    rm('localStorage',OLD); fire(); return true;
+  }
+  function clear(){rm('localStorage',K);rm('localStorage',OLD);rm('sessionStorage',SK);fire();}
+  /* chuyển khóa cũ (Chụp bài) sang khóa chung; đưa khóa đã lưu vào phiên */
+  (function(){var cur=get(),old=rd('localStorage',OLD);
+    if(!cur&&old){wr('localStorage',K,old);wr('sessionStorage',SK,old);rm('localStorage',OLD);}
+    else if(cur){wr('sessionStorage',SK,cur);}})();
+  /* nếu nơi khác (vd. tab Prompt AI) ghi khóa vào phiên thì đồng bộ sang bộ nhớ lâu dài */
+  window.addEventListener('ph-key',function(){var ss=rd('sessionStorage',SK);
+    if(ss&&remember()&&rd('localStorage',K)!==ss) wr('localStorage',K,ss); refresh();});
+  var $=function(i){return document.getElementById(i);};
+  function refresh(){var st=$('gkSt');if(!st)return;var k=get();
+    st.textContent=k?'đã nhập ✓ (dùng cho mọi tính năng AI)':'chưa nhập';st.className='gkst '+(k?'ok':'no');
+    $('gkDel').style.display=k?'':'none';$('gkBtn').textContent=k?'🔑 Đổi / xem key':'🔑 Nhập key';}
+  function open(msg){var b=$('gkBox');if(!b)return;b.hidden=false;$('gkIn').focus();
+    $('gkMsg').textContent=msg||'';try{$('gkBar').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}
+  function build(){
+    var hero=document.querySelector('.hero');if(!hero||$('gkBar'))return;
+    var d=document.createElement('div');d.id='gkBar';
+    d.innerHTML='<div class="gkrow"><span>API key Gemini: <span id="gkSt" class="gkst no">chưa nhập</span></span>'
+      +'<button type="button" id="gkBtn" class="sm sec" style="flex:0 0 auto">🔑 Nhập key</button></div>'
+      +'<div id="gkBox" hidden style="margin-top:8px"><div class="gkrow">'
+      +'<input type="password" id="gkIn" placeholder="Dán API key Gemini (nhập 1 lần, dùng cho mọi tính năng AI)" autocomplete="off" spellcheck="false">'
+      +'<button type="button" id="gkSave" class="sm" style="flex:0 0 auto">Lưu</button>'
+      +'<button type="button" id="gkDel" class="sm sec" style="flex:0 0 auto">Xóa key</button></div>'
+      +'<div class="gkrow" style="margin-top:6px"><label><input type="checkbox" id="gkRem"> Ghi nhớ trên máy này (bỏ chọn nếu dùng máy chung)</label>'
+      +'<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Lấy key miễn phí tại Google AI Studio</a></div>'
+      +'<div id="gkMsg"></div></div>';
+    hero.insertAdjacentElement('afterend',d);
+    $('gkRem').checked=remember();
+    $('gkBtn').onclick=function(){var b=$('gkBox');b.hidden=!b.hidden;if(!b.hidden)$('gkIn').focus();};
+    function save(){var v=$('gkIn').value.trim();
+      if(v.length<20||/\s/.test(v)){$('gkMsg').textContent='⚠ Key không hợp lệ — hãy dán đầy đủ key lấy từ Google AI Studio.';return;}
+      set(v,$('gkRem').checked);$('gkIn').value='';$('gkMsg').textContent='✓ Đã lưu. Từ giờ không cần nhập lại cho các tính năng AI khác.';
+      setTimeout(function(){$('gkBox').hidden=true;},1200);}
+    $('gkSave').onclick=save;
+    $('gkIn').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();save();}});
+    $('gkDel').onclick=function(){clear();$('gkMsg').textContent='Đã xóa key khỏi trình duyệt này.';};
+    refresh();
+  }
+  window.GKEY={get:get,set:set,clear:clear,has:function(){return !!get();},open:open};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
+})();
+</script>
 <style>
 :root{--bg:#0b1220;--card:#131c2e;--card2:#0f1626;--bd:#25324d;--fg:#e6ebf5;--mut:#93a0ba;--a1:#4f5bf0;--a2:#a02ee0;--cy:#38bdf8;--ok:#34d399;--warn:#fb923c;--bad:#f87171}
 *{box-sizing:border-box}
@@ -2334,9 +2404,7 @@ window.TG={names:()=>[]}; // Bảng điểm (tab Công cụ Word) gán lại đ�
      Có học sinh thiếu điểm → bảng 6 cột. Tất cả đã đủ điểm → đánh giá tổng thể học lực của lớp. */
   (()=>{
     const AK='ph_gemini_key_s',MILE=[5,8,9],SLOT=['ĐĐGtx1','ĐĐGtx2','ĐĐGtx3','ĐĐGtx4','ĐĐGtx5','ĐĐGgk','ĐĐGck'];
-    const gk=()=>{try{return sessionStorage.getItem(AK)||'';}catch(e){return '';}};
-    const sk=v=>{try{sessionStorage.setItem(AK,v);}catch(e){}try{window.dispatchEvent(new Event('ph-key'));}catch(e){}};
-    const dk=()=>{try{sessionStorage.removeItem(AK);}catch(e){}try{window.dispatchEvent(new Event('ph-key'));}catch(e){}};
+    const gk=()=>GKEY.get(),sk=v=>GKEY.set(v),dk=()=>GKEY.clear();
     const model=()=>{let m='';try{m=localStorage.getItem('ph_model_v1')||'';}catch(e){}return /^gemini-[\w.\-]+$/.test(m)?m:'gemini-3.8-flash';};
     const fv=x=>x.toFixed(1).replace('.',',');
     const hasData=s=>rows.some(r=>anyv(r)&&FL.some(f=>String(r[fld(f,s)]||'').trim()!==''));
@@ -2497,7 +2565,7 @@ window.TG={names:()=>[]}; // Bảng điểm (tab Công cụ Word) gán lại đ�
     async function run(){
       if(busy)return;
       const key=gk(),box=$('gAiKey');
-      if(!key){box.style.display='';$('gAiK').focus();msg('Chưa có API key Gemini. Dán key vào ô bên dưới (lấy miễn phí tại Google AI Studio) rồi bấm “Xác nhận & phân tích”.','err');return;}
+      if(!key){GKEY.open('Nhập key một lần ở đây, sau đó bấm lại “Phân tích AI”.');msg('Chưa có API key Gemini. Hãy nhập ở ô “API key Gemini” phía đầu trang (chỉ cần nhập một lần) rồi bấm lại “Phân tích AI”.','err');return;}
       box.style.display='none';
       const C=cfg(),sems=mode<3?[mode]:[1,2].filter(hasData);
       if(!sems.length||!sems.every(hasData)){msg(mode<3?'Học kỳ '+mode+' chưa có điểm để phân tích. Hãy nhập file Excel (hoặc nhập điểm) trước.':'Chưa có dữ liệu điểm để phân tích. Hãy nhập file Excel trước.','err');return;}
@@ -2513,7 +2581,7 @@ window.TG={names:()=>[]}; // Bảng điểm (tab Công cụ Word) gán lại đ�
         msg('✅ Đã tạo và tải về '+nm+'. Nhận xét do AI soạn — hãy xem lại trước khi sử dụng.','ok');
       }catch(err){
         msg('Không phân tích được: '+err.message,'err');
-        if(err.key){$('gAiKey').style.display='';$('gAiK').focus();}
+        if(err.key){GKEY.open('Key bị từ chối — hãy nhập lại key hợp lệ.');}
       }finally{busy=false;$('gAI').disabled=false;}
     }
     $('gAI').addEventListener('click',run);
@@ -3374,14 +3442,14 @@ function jFlagRender(){
 
 /* ---------- 📷 Chụp bài: nén ảnh → Gemini đọc đáp án (không chấm) ---------- */
 const JK='tc_gemini_key_v1',JM='gemini-3.5-flash-lite',JW=4;let jMem='';
-const jkey=()=>{if(jMem)return jMem;try{return localStorage.getItem(JK)||''}catch(e){return ''}};
+const jkey=()=>GKEY.get();
 const jw=ms=>new Promise(r=>setTimeout(r,ms)),jMsg=(t,bad)=>{$('jMsg').innerHTML=t?`<div class="jwarn"${bad?'':' style="border-color:var(--bd);background:transparent"'}>${t}</div>`:''};
-on('jCfg',()=>{const b=$('jCfgBox');b.style.display=b.style.display=='none'?'':'none'});
-on('jApiSave',()=>{const v=$('jApi').value.trim();if(!v){jMsg('Hãy dán khóa API vào ô trước khi lưu.',1);return}jMem=v;try{localStorage.setItem(JK,v);jMsg('✓ Đã lưu khóa API trên trình duyệt này.')}catch(e){jMsg('Trình duyệt không cho lưu khóa — khóa chỉ dùng tạm cho đến khi tải lại trang.',1)}$('jApi').value='';$('jCfgBox').style.display='none'});
-on('jApiDel',()=>{jMem='';try{localStorage.removeItem(JK)}catch(e){}$('jApi').value='';jMsg('Đã xóa khóa API.')});
+on('jCfg',()=>GKEY.open('Key Gemini dùng chung cho mọi tính năng AI của trang.'));
+on('jApiSave',()=>{const v=$('jApi').value.trim();if(!v){jMsg('Hãy dán khóa API vào ô trước khi lưu.',1);return}GKEY.set(v);jMsg('✓ Đã lưu khóa API (dùng chung cho mọi tính năng AI).');$('jApi').value='';$('jCfgBox').style.display='none'});
+on('jApiDel',()=>{GKEY.clear();$('jApi').value='';jMsg('Đã xóa khóa API.')});
 const jobs=[];let jSeq=0;
 on('jShot',()=>{if(!jKeyStr().length){jMsg('Hãy nhập <b>Đáp án đúng</b> trước khi chụp bài (để AI biết bài có bao nhiêu câu).',1);return}
- if(!jkey()){jMsg('Chưa có khóa Gemini API. Bấm ⚙️ để nhập khóa (chỉ cần làm một lần).',1);$('jCfgBox').style.display='';return}
+ if(!jkey()){jMsg('Chưa có khóa Gemini API. Hãy nhập ở ô “API key Gemini” phía đầu trang (chỉ cần làm một lần).',1);GKEY.open();return}
  jMsg('');$('jFile').click()});
 /* chọn/chụp xong: lấy danh sách file rồi xóa ô chọn ngay để mở lại chụp bài tiếp theo trong lúc AI đang đọc */
 $('jFile').onchange=e=>{const fs=[...e.target.files];e.target.value='';const n=jKeyStr().length;fs.forEach(f=>jobs.push({id:++jSeq,file:f,n,st:'wait',msg:''}));jLog();jPump()};
@@ -3482,9 +3550,9 @@ on('gPngB',()=>{const im=new Image();im.onload=()=>{const c=document.createEleme
 
 /* Sao lưu / khôi phục dữ liệu, chữ lớn khi chiếu */
 $('mSel').parentNode.insertAdjacentHTML('beforeend','<button class="sec sm" id="tBak" type="button" title="Lưu toàn bộ dữ liệu (bảng điểm, ngân hàng câu hỏi...) ra file">💾 Sao lưu</button><button class="sec sm" id="tRes" type="button">📂 Khôi phục</button><button class="ghost sm" id="tBig" type="button">🔠 Chữ lớn</button><input type="file" id="tFile" accept=".json" style="display:none">');
-on('tBak',()=>{const o={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);o[k]=localStorage.getItem(k)}}catch(e){}dl('sao-luu-tro-giang-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(o))});
+on('tBak',()=>{const o={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/gemini_key/.test(k))continue;o[k]=localStorage.getItem(k)}}catch(e){}dl('sao-luu-tro-giang-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(o))});
 on('tRes',()=>$('tFile').click());
-$('tFile').onchange=async e=>{try{const o=JSON.parse(await e.target.files[0].text());if(confirm('Khôi phục '+Object.keys(o).length+' mục dữ liệu? Dữ liệu cùng tên trên máy sẽ bị ghi đè.')){Object.keys(o).forEach(k=>localStorage.setItem(k,o[k]));location.reload()}}catch(x){alert('File sao lưu không hợp lệ.')}e.target.value=''};
+$('tFile').onchange=async e=>{try{const o=JSON.parse(await e.target.files[0].text());if(confirm('Khôi phục '+Object.keys(o).length+' mục dữ liệu? Dữ liệu cùng tên trên máy sẽ bị ghi đè.')){Object.keys(o).filter(k=>!/gemini_key/.test(k)).forEach(k=>localStorage.setItem(k,o[k]));location.reload()}}catch(x){alert('File sao lưu không hợp lệ.')}e.target.value=''};
 on('tBig',()=>document.body.classList.toggle('tbig'));
 
 })();
@@ -3496,7 +3564,7 @@ on('tBig',()=>document.body.classList.toggle('tbig'));
 const $=id=>document.getElementById(id);
 const E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const AK='ph_gemini_key_s',TY=['NLC','DS','TLN','TL'],LV=['B','H','VD'],TYN={NLC:'Nhiều lựa chọn',DS:'Đúng – Sai',TLN:'Trả lời ngắn',TL:'Tự luận'},LVN={B:'Biết',H:'Hiểu',VD:'Vận dụng'};
-const gkey=()=>{try{return sessionStorage.getItem(AK)||''}catch(e){return ''}};
+const gkey=()=>GKEY.get();
 const gmodel=()=>{let m='';try{m=localStorage.getItem('ph_model_v1')||''}catch(e){}return /^gemini-[\w.\-]+$/.test(m)?m:'gemini-3.8-flash'};
 const num=x=>{const n=parseFloat(String(x).replace(',','.'));return isFinite(n)?n:0};
 const fm=n=>{n=Math.round(n*100)/100;return(Math.abs(n*10-Math.round(n*10))<1e-9?n.toFixed(1):n.toFixed(2)).replace('.',',')};
@@ -3514,9 +3582,9 @@ sel.parentNode.parentNode.insertAdjacentHTML('beforeend',`<div class="wtool" id=
 <div class="bar"><button class="green" id="mxGo" type="button">🧾 Tạo ma trận &amp; đặc tả</button><button class="orange" id="mxDl" type="button" disabled>⬇ Tải file Word (.docx)</button></div>
 <div id="mxSt" class="status"></div><div id="mxOut"></div>
 <div class="note">Quy trình: AI phân tích đề → rà soát lần 1 (đối chiếu từng câu) → rà soát lần 2 (kiểm tra nhất quán) → chương trình tự tính lại toàn bộ số câu, điểm, tỉ lệ % rồi mới dựng file Word khổ A4 ngang theo đúng mẫu Phụ lục 1 và 2 của Công văn 7991. Nội dung đề thi được gửi tới Google Gemini để phân tích; không đưa đề chưa công bố nếu chưa được phép. Mỗi câu Đúng – Sai tính theo 4 ý (mỗi ý bằng 1/4 điểm của câu). Hãy mở file Word đọc lại trước khi sử dụng chính thức.</div></div>`);
-const keyUI=()=>{const k=gkey();$('mxKeyBar').querySelector('label').style.display=k?'none':'';$('mxKeySave').style.display=k?'none':'';$('mxKeyNote').textContent=k?'✓ Đã có khóa Gemini trong phiên này (dùng chung với phần nhận xét Bảng điểm).':''};
+const keyUI=()=>{const k=gkey();$('mxKeyBar').querySelector('label').style.display='none';$('mxKeySave').style.display='none';$('mxKeyNote').textContent=k?'✓ Đã có khóa Gemini (dùng chung toàn trang).':'Chưa có khóa Gemini — hãy nhập ở ô “API key Gemini” phía đầu trang (chỉ một lần).'};
 keyUI();window.addEventListener('ph-key',keyUI);
-$('mxKeySave').onclick=()=>{const v=$('mxKey').value.trim();if(!v)return;try{sessionStorage.setItem(AK,v);window.dispatchEvent(new Event('ph-key'))}catch(e){}$('mxKey').value='';keyUI()};
+$('mxKeySave').onclick=()=>{const v=$('mxKey').value.trim();if(!v)return;GKEY.set(v);$('mxKey').value='';keyUI()};
 $('mxPick').onclick=()=>$('mxFile').click();
 
 /* ---------- Đọc đề ---------- */
@@ -3532,7 +3600,7 @@ $('mxFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{$('mxT
 const SYS='Bạn là chuyên gia khảo thí phổ thông Việt Nam, thành thạo Công văn 7991/BGDĐT-GDTrH (ma trận và bản đặc tả đề kiểm tra định kì, đề có 4 dạng: Nhiều lựa chọn, Đúng – Sai, Trả lời ngắn, Tự luận; 3 mức Biết, Hiểu, Vận dụng). Chỉ dựa vào nội dung đề được cung cấp, không bịa thêm câu hỏi. Chỉ trả về một đối tượng JSON hợp lệ, không kèm giải thích ngoài JSON.';
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 async function gem(prompt){
- const key=gkey();if(!key)throw new Error('Chưa có khóa Gemini API. Hãy dán khóa vào ô phía trên rồi bấm "Lưu khóa".');
+ const key=gkey();if(!key){GKEY.open();throw new Error('Chưa có khóa Gemini API. Hãy nhập ở ô “API key Gemini” phía đầu trang (chỉ cần nhập một lần).');}
  const body=JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],systemInstruction:{parts:[{text:SYS}]},generationConfig:{maxOutputTokens:32768,temperature:0.2,responseMimeType:'application/json'}});
  const url='https://generativelanguage.googleapis.com/v1beta/models/'+gmodel()+':generateContent';let res,data;
  for(let a=0;a<3;a++){

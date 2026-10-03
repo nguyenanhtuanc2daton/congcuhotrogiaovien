@@ -103,7 +103,18 @@
   var sentB = 0, sentC = 0;
 
   function $(id) { return document.getElementById(id); }
-  function ss(op, v) { try { if (op === 'get') return KEY_STORE.getItem(K) || ''; if (op === 'set') KEY_STORE.setItem(K, v); else KEY_STORE.removeItem(K); } catch (e) { /* bỏ qua */ } return ''; }
+  /* Key Gemini dùng chung toàn trang (GKEY khai báo trong index.html): nhập 1 lần, mọi tính năng AI đều dùng */
+  function ss(op, v) {
+    try {
+      if (window.GKEY) {
+        if (op === 'get') return window.GKEY.get();
+        if (op === 'set') window.GKEY.set(v); else window.GKEY.clear();
+        return '';
+      }
+    } catch (e) { /* rơi xuống cách cũ */ }
+    try { if (op === 'get') return KEY_STORE.getItem(K) || ''; if (op === 'set') KEY_STORE.setItem(K, v); else KEY_STORE.removeItem(K); } catch (e) { /* bỏ qua */ }
+    return '';
+  }
   try { localStorage.removeItem('ph_gemini_api_key_v1'); } catch (e) { /* xóa key lưu lâu dài của bản cũ */ }
 
   /* ---------- CSS (chỉ cho #t6) ---------- */
@@ -250,7 +261,7 @@
   $('phChange').addEventListener('click', function () { apiKey = ''; ss('del'); showKeyState(); $('phKey').focus(); });
   apiKey = ss('get');
   showKeyState();
-  window.addEventListener('ph-key', function () { apiKey = ss('get'); showKeyState(); }); /* key nhập từ tab Công cụ Word › Phân tích AI */
+  window.addEventListener('ph-key', function () { apiKey = ss('get'); showKeyState(); }); /* key nhập ở ô chung đầu trang hoặc ở tính năng AI khác */
 
   /* ---------- Gọi Gemini ---------- */
   function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
