@@ -136,6 +136,7 @@ table.g td.ix:last-of-type input{min-width:56px}
 select{background:var(--card2);color:var(--fg);border:1px solid var(--bd);border-radius:10px;padding:9px;font:14px 'Segoe UI',Arial,sans-serif}
 .mt{display:none}.mt.on{display:block}
 .wtool{display:none}.wtool.on{display:block}
+.ut{display:none}.ut.on{display:block}
 .qchip{display:inline-flex;gap:4px;align-items:center;background:var(--card2);border:1px solid var(--bd);border-radius:99px;padding:5px 10px;font-size:13px}
 /* ===== MÀN CHÀO (#t0) ===== */
 #t0{padding:10px;overflow:hidden}

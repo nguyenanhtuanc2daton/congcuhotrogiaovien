@@ -371,7 +371,7 @@ const dl=(n,t,m)=>{const a=document.createElement('a');a.href=URL.createObjectUR
 const cp=t=>{try{navigator.clipboard.writeText(t)}catch(e){const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();document.execCommand('copy');x.remove()}};
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const LV=['Nhận biết','Thông hiểu','Vận dụng'],ST=document.createElement('style');
-ST.textContent='body.tbig #t5{font-size:120%}body.tbig #t5 input,body.tbig #t5 select,body.tbig #t5 textarea,body.tbig #t5 button{font-size:inherit}#t5 table.jt{border-collapse:collapse;width:100%;font-size:13px}#t5 table.jt th,#t5 table.jt td{border:1px solid var(--bd);padding:4px 8px;text-align:center}#t5 table.jt th{background:#1a2640;color:var(--cy)}#t5 table.jt td:first-child{text-align:left}';document.head.appendChild(ST);
+ST.textContent='body.tbig #t5,body.tbig #t8{font-size:120%}body.tbig #t5 input,body.tbig #t5 select,body.tbig #t5 textarea,body.tbig #t5 button,body.tbig #t8 input,body.tbig #t8 select,body.tbig #t8 textarea,body.tbig #t8 button{font-size:inherit}#t5 table.jt{border-collapse:collapse;width:100%;font-size:13px}#t5 table.jt th,#t5 table.jt td{border:1px solid var(--bd);padding:4px 8px;text-align:center}#t5 table.jt th{background:#1a2640;color:var(--cy)}#t5 table.jt td:first-child{text-align:left}';document.head.appendChild(ST);
 
 /* Ngân hàng câu hỏi + ma trận đề */
 const BK='tc_bank_v1',bl=()=>{try{return JSON.parse(localStorage.getItem(BK)||'[]')}catch(e){return[]}},bs=a=>{try{localStorage.setItem(BK,JSON.stringify(a))}catch(e){}};

@@ -165,7 +165,7 @@
 
   /* Prompt AI đứng đầu, đánh số lại nhãn */
   (function () {
-    var ORDER = ['t6', 't2', 't1', 't3', 't5'];
+    var ORDER = ['t6', 't3', 't8', 't5'];
     var all = Array.prototype.slice.call(tabsBar.querySelectorAll('.tab')), byId = {}, seq = [];
     all.forEach(function (b) { byId[b.getAttribute('data-tab')] = b; });
     ORDER.forEach(function (id) { if (byId[id]) seq.push(byId[id]); });

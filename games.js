@@ -1123,9 +1123,9 @@
   var lpCards = document.querySelector('.lp-cards');
   if (lpCards && !lpCards.querySelector('[data-go="t7"]')) {
     var card = document.createElement('button');
-    card.type = 'button'; card.className = 'lp-card'; card.setAttribute('data-go', 't7'); card.style.setProperty('--i', '6');
+    card.type = 'button'; card.className = 'lp-card'; card.setAttribute('data-go', 't7'); card.style.setProperty('--i', String(lpCards.children.length + 1));
     card.innerHTML = '<span class="ic">🎮</span><b>Trò chơi</b><small>6 trò chơi trí tuệ & giải trí</small>';
-    lpCards.appendChild(card); lpCards.classList.add('six');
+    lpCards.appendChild(card); if (lpCards.children.length >= 6) lpCards.classList.add('six');
   }
 
   panel.innerHTML =

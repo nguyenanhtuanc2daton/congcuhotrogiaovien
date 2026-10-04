@@ -11,19 +11,19 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-<link rel="stylesheet" href="style.css?v=20261003">
-<script src="gkey.js?v=20261003"></script>
+<link rel="stylesheet" href="style.css?v=20261005">
+<script src="gkey.js?v=20261005"></script>
 
 </head>
 <body>
 <div class="app">
-<div class="hero"><div class="logo"><img src="logo.jpg?v=20261003" alt="Logo Trường THCS Đa Tốn"></div><div class="htxt"><div class="school">Trường THCS Đa Tốn</div><h1>Bộ công cụ trợ giảng Toán - GV Nguyễn Anh Tuấn</h1><div class="stars" aria-hidden="true"><i style="--s:18px;--d:0s;--t:2.2s">✦</i><i style="--s:12px;--d:0.5s;--t:1.7s">★</i><i style="--s:20px;--d:1.1s;--t:2.6s">✧</i><i style="--s:14px;--d:0.3s;--t:1.9s">✦</i><i style="--s:20px;--d:1.6s;--t:2.4s">★</i><i style="--s:13px;--d:0.8s;--t:2.0s">✧</i><i style="--s:22px;--d:1.3s;--t:2.8s">✦</i><i style="--s:13px;--d:0.2s;--t:1.6s">★</i><i style="--s:17px;--d:1.9s;--t:2.3s">✧</i><i style="--s:12px;--d:0.6s;--t:1.8s">✦</i><i style="--s:18px;--d:1.0s;--t:2.5s">★</i><i style="--s:15px;--d:0.1s;--t:2.1s">✧</i><i style="--s:19px;--d:1.7s;--t:2.7s">✦</i></div></div></div>
+<div class="hero"><div class="logo"><img src="logo.jpg?v=20261005" alt="Logo Trường THCS Đa Tốn"></div><div class="htxt"><div class="school">Trường THCS Đa Tốn</div><h1>Bộ công cụ trợ giảng Toán - GV Nguyễn Anh Tuấn</h1><div class="stars" aria-hidden="true"><i style="--s:18px;--d:0s;--t:2.2s">✦</i><i style="--s:12px;--d:0.5s;--t:1.7s">★</i><i style="--s:20px;--d:1.1s;--t:2.6s">✧</i><i style="--s:14px;--d:0.3s;--t:1.9s">✦</i><i style="--s:20px;--d:1.6s;--t:2.4s">★</i><i style="--s:13px;--d:0.8s;--t:2.0s">✧</i><i style="--s:22px;--d:1.3s;--t:2.8s">✦</i><i style="--s:13px;--d:0.2s;--t:1.6s">★</i><i style="--s:17px;--d:1.9s;--t:2.3s">✧</i><i style="--s:12px;--d:0.6s;--t:1.8s">✦</i><i style="--s:18px;--d:1.0s;--t:2.5s">★</i><i style="--s:15px;--d:0.1s;--t:2.1s">✧</i><i style="--s:19px;--d:1.7s;--t:2.7s">✦</i></div></div></div>
 <div class="tabs" role="tablist">
-<button class="tab" data-tab="t1">📝 1. Chuyển LaTeX</button>
-<button class="tab" data-tab="t2">🎯 2. Vòng Quay Gọi Tên</button>
 <button class="tab" data-tab="t3">🧰 3. Công cụ Word</button>
-<button class="tab" data-tab="t5">🧮 4. Toán học</button>
+<button class="tab" data-tab="t8">🛠 4. Công cụ thường dùng</button>
+<button class="tab" data-tab="t5">🧮 5. Toán học</button>
 </div>
+<div id="tabRoutes" hidden aria-hidden="true"><button class="tab" data-tab="t1" tabindex="-1">Chuyển LaTeX</button><button class="tab" data-tab="t2" tabindex="-1">Vòng Quay Gọi Tên</button></div>
 
 <!-- ===== MÀN CHÀO: không có nút tab riêng; hiện khi tải trang hoặc bấm logo/tiêu đề ===== -->
 <section class="panel on" id="t0" aria-label="Màn chào">
@@ -85,59 +85,23 @@
 </div>
 <div class="lp-cards">
 <button type="button" class="lp-card" data-go="t6" style="--i:1"><span class="ic">🤖</span><b>Prompt AI</b><small>Tạo prompt để AI hỗ trợ soạn giáo án, đề bài</small></button>
-<button type="button" class="lp-card" data-go="t2" style="--i:2"><span class="ic">🎯</span><b>Vòng Quay Gọi Tên</b><small>Gọi học sinh ngẫu nhiên, vui và công bằng</small></button>
-<button type="button" class="lp-card" data-go="t1" style="--i:3"><span class="ic">📝</span><b>Chuyển LaTeX</b><small>Đổi công thức LaTeX sang Word, PDF</small></button>
-<button type="button" class="lp-card" data-go="t3" style="--i:4"><span class="ic">🧰</span><b>Công cụ Word</b><small>Tiện ích cho tài liệu Word và bảng điểm</small></button>
-<button type="button" class="lp-card" data-go="t5" style="--i:5"><span class="ic">🧮</span><b>Toán học</b><small>Máy tính, đồ thị và hình học</small></button>
+<button type="button" class="lp-card" data-go="t3" style="--i:2"><span class="ic">🧰</span><b>Công cụ Word</b><small>Chuyển LaTeX, bảng điểm, chuẩn hóa, ghép file</small></button>
+<button type="button" class="lp-card" data-go="t8" style="--i:3"><span class="ic">🛠</span><b>Công cụ thường dùng</b><small>Vòng quay gọi tên, đếm giờ, chia nhóm</small></button>
+<button type="button" class="lp-card" data-go="t5" style="--i:4"><span class="ic">🧮</span><b>Toán học</b><small>Máy tính, đồ thị và hình học</small></button>
 </div>
 <p class="lp-note">🔒 Các công cụ xử lý ngay trên máy của bạn, không gửi dữ liệu đi đâu cả.</p>
 <p class="lp-note lp-touch">💗 Chạm vào màn hình để thả tim bay lên</p>
 </section>
 
-<!-- ===== MÔ-ĐUN 1 ===== -->
-<section class="panel" id="t1">
-<h2>📝 Chuyển LaTeX → Word (.docx) / PDF <span id="modeBadge" class="modebadge" style="display:none"></span></h2>
-<div class="grid2"><div>
-<div class="bar"><input type="file" id="fileInput" accept=".docx,.txt" multiple style="display:none">
-<button class="ghost" id="btnChoose" type="button">📁 Chọn file (.docx / .txt) — chọn được nhiều file</button>
-<button class="sec sm" id="btnClearFiles" type="button" style="display:none">🗑 Xóa danh sách</button></div>
-<div id="fileList"></div>
-<div id="fileStatus" class="status"></div>
-<textarea id="input" style="min-height:260px" placeholder="Chọn file .docx (giữ nguyên bảng) hoặc dán văn bản vào đây.&#10;Ví dụ: $$x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$$&#10;Hệ pt: $$\begin{cases} x+y=3 \\ 2x-y=1 \end{cases}$$"></textarea>
-<div class="note" id="modeNote"></div>
-</div><div>
-<div class="bar"><button id="btnConvert" type="button">✅ Chuyển đổi (Xem trước)</button>
-<label class="note" style="margin:0">Xuất ra: <select id="fmt"><option value="docx">Word (.docx)</option><option value="pdf">PDF (.pdf)</option><option value="both">Cả Word và PDF</option></select></label>
-<button class="green" id="btnExport" type="button">🔄 Chuyển Đổi &amp; Xuất File</button></div>
-<label class="note" style="display:block;margin-top:0"><input type="checkbox" id="zipOpt" checked> Khi có nhiều file kết quả, nén chung thành 1 file .zip (bỏ chọn để tải từng file riêng)</label>
-<div id="exportStatus" class="status"></div>
-<div id="eqReport" class="note" style="display:none"></div>
-<div id="preview"></div>
-<div class="note">Công thức $…$, $$…$$, \(…\), \[…\] và \begin{equation/align…} được đổi thành Equation (OMML) của Word, sửa được trong Word; mỗi công thức được kiểm tra cấu trúc trước khi ghi vào file — công thức nào không dựng được sẽ giữ nguyên chữ LaTeX và được liệt kê bên dưới, để file Word luôn mở được. Bản PDF dựng công thức dạng hình (không chọn/sao chép được chữ) trên khổ A4; PDF chỉ giữ chữ đậm/nghiêng/gạch chân, căn lề, cỡ chữ và bảng — không giữ ảnh, đánh số tự động, tiêu đề/chân trang. Cần đầy đủ định dạng gốc thì dùng file Word.</div>
-</div></div>
-</section>
 
-<!-- ===== MÔ-ĐUN 2 ===== -->
-<section class="panel" id="t2">
-<h2>🎯 Vòng Quay Gọi Tên Học Sinh</h2>
-<div class="grid2"><div>
-<textarea id="wNames" style="min-height:200px" placeholder="Mỗi dòng một tên học sinh"></textarea>
-<div class="bar"><button class="ghost sm" id="wImport" type="button">⬇ Nhập từ Bảng điểm (tab Công cụ Word)</button><button class="sec sm" id="wReset" type="button">↺ Đặt lại</button></div>
-<label class="note"><input type="checkbox" id="wRemove"> Loại học sinh đã gọi khỏi vòng quay</label>
-<div id="wInfo" class="status info"></div>
-<h2 style="font-size:15px;margin-top:12px">Lịch sử đã gọi</h2><ol id="hist"></ol>
-</div><div class="wheelbox">
-<div class="wwrap"><canvas id="wheel"></canvas><div class="ptr"></div></div>
-<div class="bar" style="justify-content:center;margin:0"><button class="red" id="wSpin" type="button" style="font-size:18px;padding:13px 30px">🎯 QUAY NGẪU NHIÊN</button><button class="sec sm" id="wSnd" type="button"></button></div>
-</div></div>
-<div class="ov" id="wOv"><div class="ovbox"><div class="s">Mời em</div><div class="n" id="wWin"></div><div class="s">lên bảng ạ!</div><div class="bar" style="justify-content:center;margin-top:16px"><button class="sec" id="wClose" type="button" style="font-size:18px">Đóng</button></div></div></div>
-</section>
+
+
 
 <!-- ===== MÔ-ĐUN 3 ===== -->
 <section class="panel" id="t3">
 <h2>🧰 Công cụ Word</h2>
 <div class="bar"><label for="wtSel" style="font-weight:600">Chọn công cụ:</label>
-<select id="wtSel"><option value="wtGrade" selected>📊 Tính điểm TB &amp; xếp loại</option><option value="wtNorm">🧹 Chuẩn hóa Word</option><option value="wtMerge">🔗 Ghép file Word</option></select></div>
+<select id="wtSel"><option value="wtGrade" selected>📊 Tính điểm TB &amp; xếp loại</option><option value="wtNorm">🧹 Chuẩn hóa Word</option><option value="wtMerge">🔗 Ghép file Word</option><option value="wtLatex">📝 Chuyển LaTeX → Word / PDF</option></select></div>
 <div class="wtool on" id="wtGrade">
 <div class="cfg">
 <div><label>Hệ số ĐĐGtx</label><input type="number" id="k1" value="1" min="0" step="0.5"></div>
@@ -179,15 +143,75 @@
 <div id="wtMOut"></div>
 <div class="note">Cần ít nhất 2 file; thứ tự ghép theo danh sách (dùng ▲ ▼ để đổi). Ghi chú cuối trang và chú thích trong các file sau file đầu chưa ghép được an toàn nên sẽ bị bỏ kèm cảnh báo. PDF dựng dạng ảnh (không chọn/sao chép được chữ), chỉ giữ chữ đậm/nghiêng/gạch chân, căn lề, cỡ chữ và bảng; không giữ ảnh chèn trong file.</div>
 </div>
+<div class="wtool" id="wtLatex">
+<div id="t1">
+<h2>📝 Chuyển LaTeX → Word (.docx) / PDF <span id="modeBadge" class="modebadge" style="display:none"></span></h2>
+<div class="grid2"><div>
+<div class="bar"><input type="file" id="fileInput" accept=".docx,.txt" multiple style="display:none">
+<button class="ghost" id="btnChoose" type="button">📁 Chọn file (.docx / .txt) — chọn được nhiều file</button>
+<button class="sec sm" id="btnClearFiles" type="button" style="display:none">🗑 Xóa danh sách</button></div>
+<div id="fileList"></div>
+<div id="fileStatus" class="status"></div>
+<textarea id="input" style="min-height:260px" placeholder="Chọn file .docx (giữ nguyên bảng) hoặc dán văn bản vào đây.&#10;Ví dụ: $$x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$$&#10;Hệ pt: $$\begin{cases} x+y=3 \\ 2x-y=1 \end{cases}$$"></textarea>
+<div class="note" id="modeNote"></div>
+</div><div>
+<div class="bar"><button id="btnConvert" type="button">✅ Chuyển đổi (Xem trước)</button>
+<label class="note" style="margin:0">Xuất ra: <select id="fmt"><option value="docx">Word (.docx)</option><option value="pdf">PDF (.pdf)</option><option value="both">Cả Word và PDF</option></select></label>
+<button class="green" id="btnExport" type="button">🔄 Chuyển Đổi &amp; Xuất File</button></div>
+<label class="note" style="display:block;margin-top:0"><input type="checkbox" id="zipOpt" checked> Khi có nhiều file kết quả, nén chung thành 1 file .zip (bỏ chọn để tải từng file riêng)</label>
+<div id="exportStatus" class="status"></div>
+<div id="eqReport" class="note" style="display:none"></div>
+<div id="preview"></div>
+<div class="note">Công thức $…$, $$…$$, \(…\), \[…\] và \begin{equation/align…} được đổi thành Equation (OMML) của Word, sửa được trong Word; mỗi công thức được kiểm tra cấu trúc trước khi ghi vào file — công thức nào không dựng được sẽ giữ nguyên chữ LaTeX và được liệt kê bên dưới, để file Word luôn mở được. Bản PDF dựng công thức dạng hình (không chọn/sao chép được chữ) trên khổ A4; PDF chỉ giữ chữ đậm/nghiêng/gạch chân, căn lề, cỡ chữ và bảng — không giữ ảnh, đánh số tự động, tiêu đề/chân trang. Cần đầy đủ định dạng gốc thì dùng file Word.</div>
+</div></div>
+</div>
+</div>
 </section>
 <script>
 (function(){var s=document.getElementById('wtSel');s.addEventListener('change',function(){document.querySelectorAll('.wtool').forEach(function(m){m.classList.toggle('on',m.id===s.value)})})})();
 </script>
 
+<section class="panel" id="t8">
+<h2>🛠 Công cụ thường dùng</h2>
+<div class="bar"><label for="utSel" style="font-weight:600">Chọn công cụ:</label>
+<select id="utSel"><option value="utWheel" selected>🎯 Vòng Quay Gọi Tên</option><option value="utTimer">⏱ Đếm giờ &amp; chia nhóm</option></select></div>
+<div class="ut on" id="utWheel">
+<div id="t2">
+<h2>🎯 Vòng Quay Gọi Tên Học Sinh</h2>
+<div class="grid2"><div>
+<textarea id="wNames" style="min-height:200px" placeholder="Mỗi dòng một tên học sinh"></textarea>
+<div class="bar"><button class="ghost sm" id="wImport" type="button">⬇ Nhập từ Bảng điểm (tab Công cụ Word)</button><button class="sec sm" id="wReset" type="button">↺ Đặt lại</button></div>
+<label class="note"><input type="checkbox" id="wRemove"> Loại học sinh đã gọi khỏi vòng quay</label>
+<div id="wInfo" class="status info"></div>
+<h2 style="font-size:15px;margin-top:12px">Lịch sử đã gọi</h2><ol id="hist"></ol>
+</div><div class="wheelbox">
+<div class="wwrap"><canvas id="wheel"></canvas><div class="ptr"></div></div>
+<div class="bar" style="justify-content:center;margin:0"><button class="red" id="wSpin" type="button" style="font-size:18px;padding:13px 30px">🎯 QUAY NGẪU NHIÊN</button><button class="sec sm" id="wSnd" type="button"></button></div>
+</div></div>
+<div class="ov" id="wOv"><div class="ovbox"><div class="s">Mời em</div><div class="n" id="wWin"></div><div class="s">lên bảng ạ!</div><div class="bar" style="justify-content:center;margin-top:16px"><button class="sec" id="wClose" type="button" style="font-size:18px">Đóng</button></div></div></div>
+</div>
+</div>
+<div class="ut" id="utTimer">
+<div class="grid2"><div>
+<b>⏱ Đồng hồ đếm giờ</b>
+<div id="kDisp" style="font-size:56px;font-weight:700;text-align:center;margin:8px 0;color:var(--cy)">05:00</div>
+<div class="bar"><label>Phút <input type="number" id="kMin" value="5" min="1" max="180" style="width:70px"></label><button class="sm" id="kGo" type="button">▶ Bắt đầu / Tạm dừng</button><button class="sec sm" id="kReset" type="button">↺ Đặt lại</button></div>
+</div><div>
+<b>👥 Chia nhóm ngẫu nhiên</b>
+<textarea id="kNames" style="min-height:90px" placeholder="Mỗi dòng một tên"></textarea>
+<div class="bar"><label>Số nhóm <input type="number" id="kN" value="4" min="1" max="20" style="width:70px"></label><button class="sm" id="kSplit" type="button">🎲 Chia nhóm</button><button class="sec sm" id="kPull" type="button">Lấy từ tab Công cụ Word</button></div>
+<div id="kRes" class="note" style="font-size:13px"></div></div></div>
+</div>
+</section>
+
+<script>
+(function(){var s=document.getElementById('utSel');s.addEventListener('change',function(){document.querySelectorAll('.ut').forEach(function(m){m.classList.toggle('on',m.id===s.value)});if(s.value==='utWheel'){setTimeout(function(){window.dispatchEvent(new CustomEvent('tabshow',{detail:'t2'}))},0)}})})();
+</script>
+
 <section class="panel" id="t5">
 <h2>🧮 Toán học — Bộ công cụ</h2>
 <div class="bar"><label for="mSel" style="font-weight:600">Chọn công cụ:</label>
-<select id="mSel"><option value="mA">📝 Bộ tạo đề ngẫu nhiên</option><option value="mB">📊 Thống kê &amp; Xác suất</option><option value="mC">📐 Hình học động</option><option value="mD">🔢 Số học: ƯCLN, BCNN, phân tích</option><option value="mE">✏️ Giải phương trình từng bước</option><option value="mF">📏 Tam giác vuông &amp; hệ thức lượng</option><option value="mG">⏱ Đếm giờ &amp; chia nhóm</option><option value="mH">🔀 Trộn đề Word &amp; sinh mã đề</option><option value="mI">📈 Vẽ đồ thị hàm số</option></select></div>
+<select id="mSel"><option value="mA">📝 Bộ tạo đề ngẫu nhiên</option><option value="mB">📊 Thống kê &amp; Xác suất</option><option value="mC">📐 Hình học động</option><option value="mD">🔢 Số học: ƯCLN, BCNN, phân tích</option><option value="mE">✏️ Giải phương trình từng bước</option><option value="mF">📏 Tam giác vuông &amp; hệ thức lượng</option><option value="mH">🔀 Trộn đề Word &amp; sinh mã đề</option><option value="mI">📈 Vẽ đồ thị hàm số</option></select></div>
 
 <div class="mt on" id="mA">
 <div class="bar" id="qTopics"></div>
@@ -195,7 +219,7 @@
 <label>Số mã đề <input type="number" id="qV" value="1" min="1" max="6" style="width:70px"></label>
 <button class="sm" id="qGen" type="button">🎲 Tạo đề</button>
 <button class="sec sm" id="qCopy" type="button">📋 Sao chép</button>
-<button class="green sm" id="qSend" type="button">➡ Gửi sang tab LaTeX (xuất Word)</button></div>
+<button class="green sm" id="qSend" type="button">➡ Gửi sang Chuyển LaTeX (Công cụ Word)</button></div>
 <textarea id="qOut" style="min-height:280px" placeholder="Chọn dạng bài rồi bấm Tạo đề. Công thức viết dạng LaTeX $...$"></textarea>
 <div class="note">Mỗi mã đề có số liệu khác nhau, kèm đáp án ở cuối. Kiểm tra lại đề trước khi dùng chính thức.</div>
 </div>
@@ -242,17 +266,6 @@
 <div class="note">Nhập đúng 2 trong 3 cạnh (tam giác ABC vuông tại A, đường cao AH). Tính cạnh còn lại, h, b', c', các góc và diện tích theo Pythagore và hệ thức lượng.</div>
 </div>
 
-<div class="mt" id="mG">
-<div class="grid2"><div>
-<b>⏱ Đồng hồ đếm giờ</b>
-<div id="kDisp" style="font-size:56px;font-weight:700;text-align:center;margin:8px 0;color:var(--cy)">05:00</div>
-<div class="bar"><label>Phút <input type="number" id="kMin" value="5" min="1" max="180" style="width:70px"></label><button class="sm" id="kGo" type="button">▶ Bắt đầu / Tạm dừng</button><button class="sec sm" id="kReset" type="button">↺ Đặt lại</button></div>
-</div><div>
-<b>👥 Chia nhóm ngẫu nhiên</b>
-<textarea id="kNames" style="min-height:90px" placeholder="Mỗi dòng một tên"></textarea>
-<div class="bar"><label>Số nhóm <input type="number" id="kN" value="4" min="1" max="20" style="width:70px"></label><button class="sm" id="kSplit" type="button">🎲 Chia nhóm</button><button class="sec sm" id="kPull" type="button">Lấy từ tab Công cụ Word</button></div>
-<div id="kRes" class="note" style="font-size:13px"></div></div></div>
-</div>
 <div class="mt" id="mH">
 <div class="bar"><input type="file" id="xFile" accept=".docx"><label>Mã đề <input type="text" id="xCodes" value="101,102,103,104" style="width:170px"></label></div>
 <div class="bar">
@@ -282,23 +295,23 @@
 </section>
 </div>
 
-<script src="word-latex.js?v=20261003"></script>
-<script src="word-zip-pdf.js?v=20261003"></script>
-<script src="word-ui.js?v=20261003"></script>
-<script src="core.js?v=20261003"></script>
-<script src="goi-ten.js?v=20261003"></script>
-<script src="tinh-diem.js?v=20261003"></script>
-<script src="do-thi.js?v=20261003"></script>
-<script src="toan-hoc.js?v=20261003"></script>
-<script src="cham-trac-nghiem.js?v=20261003"></script>
-<script src="word-matran.js?v=20261003"></script>
-<script src="tron-de.js?v=20261003"></script>
-<script src="word-chuan-hoa.js?v=20261003"></script>
-<script src="word-ra-soat.js?v=20261003"></script>
-<script src="word-chuyen-doi.js?v=20261004b"></script>
-<script src="prompt-data.js?v=20261003"></script>
-<script src="prompt-hub.js?v=20261003"></script>
-<script src="games.js?v=20261003"></script>
-<script src="hieu-ung.js?v=20261003"></script>
+<script src="word-latex.js?v=20261005"></script>
+<script src="word-zip-pdf.js?v=20261005"></script>
+<script src="word-ui.js?v=20261005"></script>
+<script src="core.js?v=20261005"></script>
+<script src="goi-ten.js?v=20261005"></script>
+<script src="tinh-diem.js?v=20261005"></script>
+<script src="do-thi.js?v=20261005"></script>
+<script src="toan-hoc.js?v=20261005"></script>
+<script src="cham-trac-nghiem.js?v=20261005"></script>
+<script src="word-matran.js?v=20261005"></script>
+<script src="tron-de.js?v=20261005"></script>
+<script src="word-chuan-hoa.js?v=20261005"></script>
+<script src="word-ra-soat.js?v=20261005"></script>
+<script src="word-chuyen-doi.js?v=20261005"></script>
+<script src="prompt-data.js?v=20261005"></script>
+<script src="prompt-hub.js?v=20261005"></script>
+<script src="games.js?v=20261005"></script>
+<script src="hieu-ung.js?v=20261005"></script>
 </body>
 </html>
