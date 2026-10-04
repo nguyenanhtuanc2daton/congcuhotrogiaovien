@@ -35,10 +35,9 @@
     repeating-linear-gradient(90deg,rgba(0,0,0,.50) 0,rgba(255,255,255,.14) 24px,rgba(0,0,0,.50) 48px),
     linear-gradient(90deg,#7a1313,#a11d1d 50%,#7a1313);
   background-blend-mode:normal;
-  transition:transform 2.6s cubic-bezier(.62,0,.22,1);
   will-change:transform}
 .curtain.left{left:0;transform-origin:left center;box-shadow:12px 0 36px rgba(0,0,0,.55)}
-.curtain.right{right:0;transform-origin:right center;box-shadow:-12px 0 36px rgba(0,0,0,.55);transition-delay:.18s}
+.curtain.right{right:0;transform-origin:right center;box-shadow:-12px 0 36px rgba(0,0,0,.55)}
 
 /* Thanh treo rèm màu vàng đồng, có vòng móc */
 .curtain::before{content:"";position:absolute;top:0;left:0;right:0;height:26px;
@@ -65,12 +64,53 @@
 .curtain-title .l{margin-top:10px;font-size:18px;letter-spacing:.5em;color:#e8c04f}
 
 /* Khi mở */
-body.open .curtain.left{transform:translateX(-102%) scaleX(.78)}
-body.open .curtain.right{transform:translateX(102%) scaleX(.78)}
+body.open .curtain.left{animation:curOpenL 4s ease-in-out forwards}
+body.open .curtain.right{animation:curOpenR 4s ease-in-out .25s forwards}
+body.open .curtain .wr{animation:curWr 4s ease-in-out forwards}
+body.open .curtain.right .wr{animation-delay:.25s}
+
+/* Nếp nhăn tỏa ra từ điểm bị mắc trên thanh treo */
+.curtain .wr{position:absolute;left:0;right:0;top:26px;bottom:0;opacity:0;pointer-events:none;
+  background:repeating-conic-gradient(from 150deg at 85% 0,rgba(0,0,0,.42) 0 3deg,rgba(255,255,255,.14) 3deg 6deg,rgba(0,0,0,0) 6deg 11deg);
+  -webkit-mask-image:radial-gradient(ellipse 85% 75% at 85% 0,#000 20%,transparent 100%);
+  mask-image:radial-gradient(ellipse 85% 75% at 85% 0,#000 20%,transparent 100%)}
+.curtain.right .wr{
+  background:repeating-conic-gradient(from 150deg at 15% 0,rgba(0,0,0,.42) 0 3deg,rgba(255,255,255,.14) 3deg 6deg,rgba(0,0,0,0) 6deg 11deg);
+  -webkit-mask-image:radial-gradient(ellipse 85% 75% at 15% 0,#000 20%,transparent 100%);
+  mask-image:radial-gradient(ellipse 85% 75% at 15% 0,#000 20%,transparent 100%)}
+
+@keyframes curOpenL{
+  0%{transform:none}
+  10%{transform:translateX(-5%) scaleX(.97) skewY(.6deg)}
+  18%{transform:translateX(-5.5%) scaleX(.96) skewY(1deg);animation-timing-function:cubic-bezier(.2,.8,.3,1)}
+  26%{transform:translateX(-2.5%) scaleX(.99) skewY(-.3deg)}
+  38%{transform:translateX(-12%) scaleX(.94) skewY(.8deg)}
+  46%{transform:translateX(-11%) scaleX(.95) skewY(.5deg);animation-timing-function:cubic-bezier(.45,0,.2,1)}
+  100%{transform:translateX(-102%) scaleX(.78) skewY(0)}
+}
+@keyframes curOpenR{
+  0%{transform:none}
+  8%{transform:translateX(4%) scaleX(.975) skewY(-.5deg)}
+  15%{transform:translateX(4.5%) scaleX(.965) skewY(-.9deg);animation-timing-function:cubic-bezier(.2,.8,.3,1)}
+  23%{transform:translateX(2%) scaleX(.99) skewY(.3deg)}
+  34%{transform:translateX(10%) scaleX(.945) skewY(-.7deg)}
+  44%{transform:translateX(9%) scaleX(.955) skewY(-.4deg);animation-timing-function:cubic-bezier(.45,0,.2,1)}
+  100%{transform:translateX(102%) scaleX(.78) skewY(0)}
+}
+@keyframes curWr{
+  0%{opacity:0}
+  8%{opacity:.9}
+  18%{opacity:1}
+  26%{opacity:.25}
+  36%{opacity:.9}
+  46%{opacity:.8}
+  62%{opacity:0}
+  100%{opacity:0}
+}
 body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 
 /* Nội dung phía sau hiện rõ dần */
-.cur-reveal .app{animation:curAppIn 1.8s ease-out .5s backwards}
+.cur-reveal .app{animation:curAppIn 1.8s ease-out 1.5s backwards}
 @keyframes curAppIn{from{opacity:.4;transform:scale(.985)}to{opacity:1;transform:none}}
 
 @media (prefers-reduced-motion:reduce){.curtain-wrap{display:none}.cur-reveal .app{animation:none}}
@@ -78,8 +118,8 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 </head>
 <body>
 <div class="curtain-wrap" aria-hidden="true">
-<div class="curtain left"></div>
-<div class="curtain right"></div>
+<div class="curtain left"><i class="wr"></i></div>
+<div class="curtain right"><i class="wr"></i></div>
 <div class="curtain-title">
 <img src="logo.jpg?v=20261005" alt="" onerror="this.style.display='none'">
 <div class="s">Trường THCS Đa Tốn</div>
@@ -397,7 +437,7 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
       document.body.classList.add('open');
       document.documentElement.classList.add('cur-reveal');
     },1100);
-    setTimeout(function(){wrap.remove();},1100+2600+180+300);
+    setTimeout(function(){wrap.remove();},1100+4000+250+300);
   }
   if(document.readyState!=='loading')openCurtain();
   else document.addEventListener('DOMContentLoaded',openCurtain);
