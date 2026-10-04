@@ -143,7 +143,7 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 <button class="tab" data-tab="t3">🧰 3. Công cụ Word</button>
 <button class="tab" data-tab="t8">🛠 4. Công cụ thường dùng</button>
 <button class="tab" data-tab="t5">🧮 5. Toán học</button>
-<button class="tab" data-tab="t9" id="tabDocBtn">📚 6. Tài liệu</button>
+<button class="tab" data-tab="t9" id="tabDocBtn">📚 5. Tài liệu</button>
 </div>
 <div id="tabRoutes" hidden aria-hidden="true"><button class="tab" data-tab="t1" tabindex="-1">Chuyển LaTeX</button><button class="tab" data-tab="t2" tabindex="-1">Vòng Quay Gọi Tên</button></div>
 
@@ -500,9 +500,33 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
       }
     },0);
   });
-  /* Giữ nút Tài liệu ở cuối thanh tab, sau các tab thêm bằng script khác */
-  function toEnd(){var t=btn&&btn.parentNode;if(t&&t.lastElementChild!==btn)t.appendChild(btn);}
-  window.addEventListener('load',function(){toEnd();setTimeout(toEnd,600);});
+  /* Xếp thứ tự tab: ... 4. Toán học, 5. Tài liệu, 6. Trò chơi và đánh số lại theo vị trí */
+  var busy=false,mo=null;
+  function fixTabs(){
+    if(busy||!btn)return;var bar=btn.parentNode;if(!bar)return;
+    busy=true;
+    try{
+      var tabs=Array.prototype.slice.call(bar.querySelectorAll('.tab'));
+      var games=tabs.filter(function(t){return t!==btn&&/Trò chơi/i.test(t.textContent)})[0];
+      if(games){if(btn.nextElementSibling!==games)bar.insertBefore(btn,games);}
+      else if(bar.lastElementChild!==btn){bar.appendChild(btn);}
+      Array.prototype.slice.call(bar.querySelectorAll('.tab')).forEach(function(t,i){
+        var w=document.createTreeWalker(t,NodeFilter.SHOW_TEXT,null),n;
+        while((n=w.nextNode())){
+          if(/\d+\.\s/.test(n.nodeValue)){
+            var v=n.nodeValue.replace(/\d+\.\s/,(i+1)+'. ');
+            if(v!==n.nodeValue)n.nodeValue=v;
+            break;
+          }
+        }
+      });
+    }finally{busy=false;}
+  }
+  window.addEventListener('load',function(){fixTabs();setTimeout(fixTabs,600);setTimeout(fixTabs,1500);});
+  if(btn&&btn.parentNode){
+    mo=new MutationObserver(function(){setTimeout(fixTabs,0)});
+    mo.observe(btn.parentNode,{childList:true,subtree:true,characterData:true});
+  }
 })();
 </script>
 </body>
