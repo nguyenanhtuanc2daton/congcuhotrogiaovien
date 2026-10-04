@@ -14,8 +14,20 @@
 <link rel="stylesheet" href="style.css?v=20261005">
 <script src="gkey.js?v=20261005"></script>
 
+<style id="curtain-css">
+.curtain{position:fixed;top:0;width:50%;height:100%;z-index:99999;pointer-events:none;
+background:repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 6px,transparent 6px 22px),linear-gradient(180deg,#b71c1c,#7f0000);
+box-shadow:0 0 40px rgba(0,0,0,.5);transition:transform 2.2s cubic-bezier(.77,0,.18,1);will-change:transform}
+.curtain.left{left:0;border-right:4px solid #ffd54f}
+.curtain.right{right:0;border-left:4px solid #ffd54f}
+body.open .curtain.left{transform:translateX(-100%)}
+body.open .curtain.right{transform:translateX(100%)}
+@media (prefers-reduced-motion:reduce){.curtain{display:none}}
+</style>
 </head>
 <body>
+<div class="curtain left"></div><div class="curtain right"></div>
+
 <div class="app">
 <div class="hero"><div class="logo"><img src="logo.jpg?v=20261005" alt="Logo Trường THCS Đa Tốn"></div><div class="htxt"><div class="school">Trường THCS Đa Tốn</div><h1>Bộ công cụ trợ giảng Toán - GV Nguyễn Anh Tuấn</h1><div class="stars" aria-hidden="true"><i style="--s:18px;--d:0s;--t:2.2s">✦</i><i style="--s:12px;--d:0.5s;--t:1.7s">★</i><i style="--s:20px;--d:1.1s;--t:2.6s">✧</i><i style="--s:14px;--d:0.3s;--t:1.9s">✦</i><i style="--s:20px;--d:1.6s;--t:2.4s">★</i><i style="--s:13px;--d:0.8s;--t:2.0s">✧</i><i style="--s:22px;--d:1.3s;--t:2.8s">✦</i><i style="--s:13px;--d:0.2s;--t:1.6s">★</i><i style="--s:17px;--d:1.9s;--t:2.3s">✧</i><i style="--s:12px;--d:0.6s;--t:1.8s">✦</i><i style="--s:18px;--d:1.0s;--t:2.5s">★</i><i style="--s:15px;--d:0.1s;--t:2.1s">✧</i><i style="--s:19px;--d:1.7s;--t:2.7s">✦</i></div></div></div>
 <div class="tabs" role="tablist">
@@ -313,5 +325,11 @@
 <script src="prompt-hub.js?v=20261005"></script>
 <script src="games.js?v=20261005"></script>
 <script src="hieu-ung.js?v=20261005"></script>
+<script>
+window.addEventListener('load',function(){
+  setTimeout(function(){document.body.classList.add('open');},600);
+  setTimeout(function(){document.querySelectorAll('.curtain').forEach(function(c){c.remove();});},3200);
+});
+</script>
 </body>
 </html>
