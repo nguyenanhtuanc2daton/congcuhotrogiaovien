@@ -124,6 +124,22 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 #t9 .doc-note{margin-top:8px;font-size:13px;opacity:.8}
 #t9 .doc-open{display:inline-block;margin-top:8px;font-weight:600}
 </style>
+<style id="meteor-css">
+.meteor-layer{position:fixed;inset:0;z-index:99997;pointer-events:none;overflow:hidden}
+.mt-glow{position:absolute;left:50%;top:0;width:70vw;height:100%;transform:translateX(-50%);opacity:0;
+  background:radial-gradient(ellipse at center,rgba(255,236,170,.6) 0,rgba(255,200,90,.25) 35%,transparent 68%)}
+.mt{position:absolute;height:3px;border-radius:3px;transform-origin:100% 50%;opacity:0;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,236,170,.35) 45%,#fff);
+  filter:drop-shadow(0 0 6px rgba(255,220,130,.9))}
+.mt::after{content:"";position:absolute;right:-3px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;
+  background:#fff;box-shadow:0 0 10px 4px rgba(255,225,140,.95),0 0 24px 10px rgba(255,190,80,.5)}
+.mt-spark{position:absolute;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#fff;opacity:0;
+  box-shadow:0 0 16px 7px rgba(255,225,140,.95),0 0 36px 16px rgba(255,190,80,.45)}
+.mt-spark::before,.mt-spark::after{content:"";position:absolute;left:50%;top:50%;background:#fff;border-radius:2px}
+.mt-spark::before{width:34px;height:2px;margin:-1px 0 0 -17px}
+.mt-spark::after{width:2px;height:34px;margin:-17px 0 0 -1px}
+@media (prefers-reduced-motion:reduce){.meteor-layer{display:none}}
+</style>
 </head>
 <body>
 <div class="curtain-wrap" aria-hidden="true">
@@ -210,6 +226,7 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 <button type="button" class="lp-card" data-go="t3" style="--i:2"><span class="ic">🧰</span><b>Công cụ Word</b><small>Chuyển LaTeX, bảng điểm, chuẩn hóa, ghép file</small></button>
 <button type="button" class="lp-card" data-go="t8" style="--i:3"><span class="ic">🛠</span><b>Công cụ thường dùng</b><small>Vòng quay gọi tên, đếm giờ, chia nhóm</small></button>
 <button type="button" class="lp-card" data-go="t5" style="--i:4"><span class="ic">🧮</span><b>Toán học</b><small>Máy tính, đồ thị và hình học</small></button>
+<button type="button" class="lp-card" data-go="t9" id="lpDocCard" style="--i:5"><span class="ic">📚</span><b>Tài liệu</b><small>Tài liệu Toán, PowerPoint, phần mềm, công nghệ</small></button>
 </div>
 <p class="lp-note">🔒 Các công cụ xử lý ngay trên máy của bạn, không gửi dữ liệu đi đâu cả.</p>
 <p class="lp-note lp-touch">💗 Chạm vào màn hình để thả tim bay lên</p>
@@ -447,12 +464,48 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 (function(){
   var wrap=document.querySelector('.curtain-wrap');
   if(!wrap||document.documentElement.classList.contains('no-curtain')){if(wrap)wrap.remove();return;}
+  /* Sao băng loé sáng khi rèm vừa mở */
+  function meteorShow(){
+    if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    if(!document.body.animate)return;
+    var W=window.innerWidth,H=window.innerHeight,rnd=function(a,b){return a+Math.random()*(b-a)};
+    var layer=document.createElement('div');layer.className='meteor-layer';layer.setAttribute('aria-hidden','true');
+    var glow=document.createElement('div');glow.className='mt-glow';layer.appendChild(glow);
+    document.body.appendChild(layer);
+    /* Ánh sáng hắt ra từ khe rèm */
+    glow.animate([{opacity:0},{opacity:.9,offset:.35},{opacity:0}],{duration:2600,delay:1500,easing:'ease-in-out',fill:'both'});
+    function spark(x,y){
+      var sp=document.createElement('div');sp.className='mt-spark';sp.style.left=x+'px';sp.style.top=y+'px';
+      layer.appendChild(sp);
+      sp.animate([{opacity:0,transform:'scale(.2)'},{opacity:1,transform:'scale(1.4)',offset:.3},{opacity:0,transform:'scale(2.3)'}],
+        {duration:650,easing:'ease-out',fill:'both'});
+    }
+    function meteor(i){
+      var left=(i%2===0);                 /* xen kẽ: lao xuống trái / xuống phải */
+      var a=(left?rnd(145,160):rnd(20,35))*Math.PI/180;
+      var x=left?rnd(.5*W,.98*W):rnd(.02*W,.5*W), y=rnd(0,.3*H);
+      var L=rnd(130,210),D=Math.min(rnd(.45*W,.75*W),(left?x:W-x)*.95);
+      var dx=Math.cos(a)*D,dy=Math.sin(a)*D,deg=a*180/Math.PI;
+      var m=document.createElement('div');m.className='mt';
+      m.style.width=L+'px';m.style.left=(x-L)+'px';m.style.top=y+'px';
+      layer.appendChild(m);
+      var an=m.animate([
+        {opacity:0,transform:'translate(0,0) rotate('+deg+'deg)'},
+        {opacity:1,offset:.15},{opacity:1,offset:.8},
+        {opacity:0,transform:'translate('+dx+'px,'+dy+'px) rotate('+deg+'deg)'}
+      ],{duration:rnd(950,1300),easing:'cubic-bezier(.35,.1,.6,1)',fill:'both'});
+      an.onfinish=function(){spark(x+dx,y+dy);m.remove();};
+    }
+    [1900,2450,2950,3400,3900].forEach(function(t,i){setTimeout(function(){meteor(i)},t+rnd(0,150));});
+    setTimeout(function(){layer.remove();},6800);
+  }
   var started=false;
   function openCurtain(){
     if(started)return;started=true;
     setTimeout(function(){
       document.body.classList.add('open');
       document.documentElement.classList.add('cur-reveal');
+      meteorShow();
     },1100);
     setTimeout(function(){wrap.remove();},1100+4000+250+300);
   }
@@ -500,6 +553,10 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
         panel.classList.add('on');
       }
     },0);
+  });
+  var card=document.getElementById('lpDocCard');
+  if(card&&btn)card.addEventListener('click',function(){
+    setTimeout(function(){if(!panel.classList.contains('on'))btn.click();},80);
   });
   /* Xếp thứ tự tab: ... 4. Toán học, 5. Tài liệu, 6. Trò chơi và đánh số lại theo vị trí */
   var busy=false,mo=null;
