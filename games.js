@@ -109,25 +109,31 @@
     return res;
   }
 
-  /* ---- Cờ Caro: bàn N×N, X đi trước. Thắng khi có ≥5 quân liên tiếp
-          (tuỳ chọn "chặn 2 đầu": hàng bị đối phương chặn cả hai đầu thì không tính thắng). ---- */
-  function CaroEngine(N, rule) {
-    var B = new Int8Array(N * N), stones = 0, DIRS = [[1, 0], [0, 1], [1, 1], [1, -1]], W = [0, 1, 10, 120, 2500, 1000000];
-    var WIN = 1e7, TO = {}, nodes = 0, deadline = 0, eng = { N: N, B: B, rule: !!rule };
-    function inb(x, y) { return x >= 0 && x < N && y >= 0 && y < N; }
-    eng.place = function (i, p) { B[i] = p; stones++; };
-    eng.unplace = function (i) { B[i] = 0; stones--; };
-    eng.count = function () { return stones; };
+  /* ---- Cờ Caro: bàn VÔ HẠN, X đi trước. Thắng khi có ≥5 quân liên tiếp
+          (tuỳ chọn "chặn 2 đầu": hàng bị đối phương chặn cả hai đầu thì không tính thắng).
+          Quân cờ lưu trong Map theo khóa số ckey(x, y); toạ độ x, y là số nguyên (được phép âm). ---- */
+  var CK_OFF = 32768, CK_W = 65536;
+  function ckey(x, y) { return (x + CK_OFF) * CK_W + (y + CK_OFF); }
+  function ckx(k) { return Math.floor(k / CK_W) - CK_OFF; }
+  function cky(k) { return (k % CK_W) - CK_OFF; }
+  function CaroEngine(rule) {
+    var M = new Map(), DIRS = [[1, 0], [0, 1], [1, 1], [1, -1]], W = [0, 1, 10, 120, 2500, 1000000];
+    var WIN = 1e7, TO = {}, nodes = 0, deadline = 0, eng = { M: M, rule: !!rule };
+    function get(x, y) { var v = M.get(ckey(x, y)); return v === undefined ? 0 : v; }
+    eng.get = get;
+    eng.place = function (k, p) { M.set(k, p); };
+    eng.unplace = function (k) { M.delete(k); };
+    eng.count = function () { return M.size; };
 
-    // Quân vừa đặt ở ô i (màu p): trả về mảng ô của hàng thắng hoặc null
-    eng.winAt = function (i, p) {
-      var x = i % N, y = (i / N) | 0;
+    // Quân vừa đặt ở ô k (màu p): trả về mảng ô của hàng thắng hoặc null
+    eng.winAt = function (k, p) {
+      var x = ckx(k), y = cky(k);
       for (var d = 0; d < 4; d++) {
-        var dx = DIRS[d][0], dy = DIRS[d][1], cells = [i], fx = x + dx, fy = y + dy;
-        while (inb(fx, fy) && B[fy * N + fx] === p) { cells.push(fy * N + fx); fx += dx; fy += dy; }
-        var endF = inb(fx, fy) ? B[fy * N + fx] : 0, bx = x - dx, by = y - dy;
-        while (inb(bx, by) && B[by * N + bx] === p) { cells.unshift(by * N + bx); bx -= dx; by -= dy; }
-        var endB = inb(bx, by) ? B[by * N + bx] : 0;
+        var dx = DIRS[d][0], dy = DIRS[d][1], cells = [k], fx = x + dx, fy = y + dy;
+        while (get(fx, fy) === p) { cells.push(ckey(fx, fy)); fx += dx; fy += dy; }
+        var endF = get(fx, fy), bx = x - dx, by = y - dy;
+        while (get(bx, by) === p) { cells.unshift(ckey(bx, by)); bx -= dx; by -= dy; }
+        var endB = get(bx, by);
         if (cells.length >= 5) {
           if (eng.rule && endF === 3 - p && endB === 3 - p) continue;
           return cells;
@@ -137,16 +143,14 @@
     };
 
     // Điểm của một ô nếu p đặt vào: cộng điểm các "cửa sổ 5 ô" chứa ô đó và không có quân đối phương
-    function cellScore(i, p) {
-      var x = i % N, y = (i / N) | 0, o = 3 - p, s = 0;
+    function cellScore(k, p) {
+      var x = ckx(k), y = cky(k), o = 3 - p, s = 0;
       for (var d = 0; d < 4; d++) {
         var dx = DIRS[d][0], dy = DIRS[d][1];
-        for (var k = 0; k < 5; k++) {
-          var sx = x - k * dx, sy = y - k * dy, ex = sx + 4 * dx, ey = sy + 4 * dy;
-          if (!inb(sx, sy) || !inb(ex, ey)) continue;
-          var mine = 0, blocked = false;
+        for (var q = 0; q < 5; q++) {
+          var sx = x - q * dx, sy = y - q * dy, mine = 0, blocked = false;
           for (var t = 0; t < 5; t++) {
-            var cx = sx + t * dx, cy = sy + t * dy, v = B[cy * N + cx];
+            var cx = sx + t * dx, cy = sy + t * dy, v = get(cx, cy);
             if (v === o) { blocked = true; break; }
             if (v === p || (cx === x && cy === y)) mine++;
           }
@@ -155,31 +159,36 @@
       }
       return s;
     }
-    // Đánh giá toàn bàn theo góc nhìn của p (p đang đến lượt)
+    // Đánh giá theo góc nhìn của p (p đang đến lượt): chỉ xét các cửa sổ 5 ô có quân, mỗi cửa sổ tính đúng 1 lần
     function evalBoard(p) {
-      var o = 3 - p, sp = 0, so = 0;
-      for (var d = 0; d < 4; d++) {
-        var dx = DIRS[d][0], dy = DIRS[d][1], step = dy * N + dx;
-        for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) {
-          if (!inb(x + 4 * dx, y + 4 * dy)) continue;
-          var a = 0, b = 0, idx = y * N + x;
-          for (var t = 0; t < 5; t++) { var v = B[idx]; if (v === p) a++; else if (v === o) b++; idx += step; }
-          if (a && b) continue;
-          if (a) { if (a === 4) return WIN / 2; sp += W[a]; } else if (b) so += W[b];
+      var o = 3 - p, sp = 0, so = 0, win = false;
+      M.forEach(function (v0, k) {
+        var x = ckx(k), y = cky(k);
+        for (var d = 0; d < 4; d++) {
+          var dx = DIRS[d][0], dy = DIRS[d][1];
+          for (var q = 0; q < 5; q++) {
+            var sx = x - q * dx, sy = y - q * dy, a = 0, b = 0, skip = false;
+            for (var t = 0; t < 5; t++) {
+              var v = get(sx + t * dx, sy + t * dy);
+              if (v) { if (t < q) { skip = true; break; } if (v === p) a++; else b++; }
+            }
+            if (skip || (a && b)) continue;
+            if (a) { if (a === 4) win = true; sp += W[a]; } else so += W[b];
+          }
         }
-      }
-      return sp - so * 1.1;
+      });
+      return win ? WIN / 2 : sp - so * 1.1;
     }
     function genCands() {
-      if (!stones) return [(N >> 1) * N + (N >> 1)];
-      var mark = new Uint8Array(N * N), out = [];
-      for (var i = 0; i < N * N; i++) if (B[i]) {
-        var x = i % N, y = (i / N) | 0;
+      if (!M.size) return [ckey(0, 0)];
+      var mark = new Set(), out = [];
+      M.forEach(function (v, k) {
+        var x = ckx(k), y = cky(k);
         for (var dy = -2; dy <= 2; dy++) for (var dx = -2; dx <= 2; dx++) {
-          var nx = x + dx, ny = y + dy; if (!inb(nx, ny)) continue;
-          var j = ny * N + nx; if (!B[j] && !mark[j]) { mark[j] = 1; out.push(j); }
+          var j = ckey(x + dx, y + dy);
+          if (!M.has(j) && !mark.has(j)) { mark.add(j); out.push(j); }
         }
-      }
+      });
       return out;
     }
     function ordered(p, K) {
@@ -194,12 +203,12 @@
       if (d === 0) return evalBoard(p);
       list = ordered(p, K);
       if (!list.length) return 0;
-      for (q = 0; q < list.length; q++) { i = list[q][1]; B[i] = p; var w = eng.winAt(i, p); B[i] = 0; if (w) return WIN + d; }
+      for (q = 0; q < list.length; q++) { i = list[q][1]; M.set(i, p); var w = eng.winAt(i, p); M.delete(i); if (w) return WIN + d; }
       var best = -Infinity;
       for (q = 0; q < list.length; q++) {
-        i = list[q][1]; B[i] = p;
+        i = list[q][1]; M.set(i, p);
         var v = -node(d - 1, -beta, -alpha, o, Math.max(6, K - 2));
-        B[i] = 0;
+        M.delete(i);
         if (v > best) best = v;
         if (best > alpha) alpha = best;
         if (alpha >= beta) break;
@@ -210,36 +219,36 @@
       var list = ordered(p, K), best = null, alpha = -Infinity;
       for (var q = 0; q < list.length; q++) {
         var i = list[q][1], v;
-        B[i] = p;
+        M.set(i, p);
         if (eng.winAt(i, p)) v = WIN * 2;
         else v = -node(d - 1, -Infinity, -alpha, 3 - p, Math.max(6, K - 2));
-        B[i] = 0;
+        M.delete(i);
         v += Math.random() * noise;
         if (!best || v > best.v) { best = { i: i, v: v }; if (v > alpha) alpha = v; }
       }
       return best;
     }
     function searchBest(p, dmax, K, ms, noise) {
-      var snap = B.slice(), best = ordered(p, 1)[0][1];
+      var snap = new Map(M), best = ordered(p, 1)[0][1];
       deadline = performance.now() + ms; nodes = 0;
       for (var d = 2; d <= dmax; d++) {
         try { var r = rootSearch(p, d, K, noise); if (r) best = r.i; if (r && r.v >= WIN) break; }
-        catch (e) { B.set(snap); if (e !== TO) throw e; break; }
+        catch (e) { M.clear(); snap.forEach(function (v, k) { M.set(k, v); }); if (e !== TO) throw e; break; }
       }
       return best;
     }
 
-    // Máy chọn nước đi. level 1..5 (càng cao càng mạnh). Trả về chỉ số ô, -1 nếu bàn đã đầy.
+    // Máy chọn nước đi. level 1..5 (càng cao càng mạnh). Trả về khóa ô (bàn vô hạn nên luôn có nước đi).
     eng.aiMove = function (level, me) {
-      var opp = 3 - me, i, c = (N >> 1) * N + (N >> 1);
-      if (!stones) { if (level <= 2) { var j = c + (rnd(3) - 1) * N + (rnd(3) - 1); return B[j] ? c : j; } return c; }
+      var opp = 3 - me, i;
+      if (!M.size) { if (level <= 2) return ckey(rnd(3) - 1, rnd(3) - 1); return ckey(0, 0); }
       var cands = genCands(); if (!cands.length) return -1;
       var winC = [], blkC = [];
       for (var q = 0; q < cands.length; q++) {
         i = cands[q];
-        B[i] = me; if (eng.winAt(i, me)) winC.push(i);
-        B[i] = opp; if (eng.winAt(i, opp)) blkC.push(i);
-        B[i] = 0;
+        M.set(i, me); if (eng.winAt(i, me)) winC.push(i);
+        M.set(i, opp); if (eng.winAt(i, opp)) blkC.push(i);
+        M.delete(i);
       }
       var pWin = [0.6, 1, 1, 1, 1][level - 1], pBlk = [0.35, 0.7, 1, 1, 1][level - 1];
       if (winC.length && Math.random() < pWin) return pick(winC);
@@ -1037,7 +1046,8 @@
     '.sd-pad{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-top:10px}',
     '.sd-pad button{padding:6px 0 4px;min-height:46px;font-size:18px;line-height:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center}',
     '.sd-pad button small{font-size:10px;font-weight:400;opacity:.75}',
-    '#gcaro{width:100%;aspect-ratio:1;display:block;border-radius:8px;border:2px solid #8b95ff;touch-action:manipulation;cursor:pointer;background:#0f1a2e}',
+    '#gvCaro .gm-board{overflow:auto;border:2px solid #8b95ff;border-radius:8px;background:#0f1a2e;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}',
+    '#gcaro{display:block;max-width:none;touch-action:manipulation;cursor:pointer;background:#0f1a2e}',
     '.gm-tally{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}',
     '.gm-tally span{background:var(--card2);border:1px solid var(--bd);border-radius:10px;padding:6px 12px;font-size:14px}',
     '.bg-stage{position:relative}',
@@ -1084,7 +1094,8 @@
     '#gvSd .sd-grid{border-width:2px;border-radius:6px;touch-action:manipulation}',
     '#gvSd .sd-pad{gap:3px;margin-top:8px}',
     '#gvSd .sd-pad button{min-height:54px;font-size:20px;padding:6px 0 4px}',
-    '#gcaro,#gvCh .bg-cv,#gvXq .bg-cv{border-width:2px;border-radius:6px}',
+    '#gvCaro .gm-board{border-width:2px;border-radius:6px}',
+    '#gvCh .bg-cv,#gvXq .bg-cv{border-width:2px;border-radius:6px}',
     '#gvSd .gm-side .bar button,#gvCaro .gm-side .bar button,#gvCh .gm-side .bar button,#gvXq .gm-side .bar button{min-height:42px}',
     '}'
   ].join('\n');
@@ -1302,20 +1313,21 @@
       '<div class="gm-side">' +
       '<div class="bar"><label class="note" style="margin:0">Chế độ: <select id="cgMode"><option value="ai">Đấu với máy</option><option value="pvp">2 người chơi chung</option></select></label>' +
       '<label class="note" style="margin:0" id="cgLvBox">Mức độ: <select id="cgLevel"><option value="1">1. Rất dễ</option><option value="2">2. Dễ</option><option value="3">3. Vừa</option><option value="4">4. Khó</option><option value="5">5. Cao thủ</option></select></label></div>' +
-      '<div class="bar"><label class="note" style="margin:0" id="cgSideBox">Bạn cầm: <select id="cgSide"><option value="1">X (đi trước)</option><option value="2">O (máy đi trước)</option></select></label>' +
-      '<label class="note" style="margin:0">Bàn cờ: <select id="cgSize"><option value="10">10 × 10</option><option value="15">15 × 15</option><option value="19">19 × 19</option></select></label></div>' +
+      '<div class="bar"><label class="note" style="margin:0" id="cgSideBox">Bạn cầm: <select id="cgSide"><option value="1">X (đi trước)</option><option value="2">O (máy đi trước)</option></select></label></div>' +
       '<label class="note" style="display:block"><input type="checkbox" id="cgRule"> Luật chặn 2 đầu (hàng 5 quân bị đối phương chặn cả hai đầu thì không tính thắng)</label>' +
       '<div class="bar"><button type="button" id="cgNew">🔄 Ván mới</button><button type="button" class="sec sm" id="cgUndo">↩ Đi lại</button><button type="button" class="sec sm" id="cgHint">💡 Gợi ý nước đi</button></div>' +
       '<div id="cgStatus" class="gm-line" style="font-weight:600"></div>' +
       '<div class="gm-tally"><span>✕ <b id="cgX">0</b></span><span>◯ <b id="cgO">0</b></span><span>Hòa <b id="cgD">0</b></span><button type="button" class="sec sm" id="cgReset">Xóa tỉ số</button></div>' +
-      '<div class="note">Luật: hai bên lần lượt đặt quân, X đi trước; ai xếp được <b>5 quân liên tiếp</b> (ngang, dọc hoặc chéo) trước là thắng. Khi bật "chặn 2 đầu", mép bàn cờ không tính là chặn. ' +
+      '<div class="note">Luật: hai bên lần lượt đặt quân, X đi trước; ai xếp được <b>5 quân liên tiếp</b> (ngang, dọc hoặc chéo) trước là thắng. ' +
+      '<b>Bàn cờ không giới hạn</b>: khi đánh gần mép, bàn tự mở rộng về phía đó; vuốt để xem các vùng khác. Khi bật "chặn 2 đầu", chỉ quân đối phương mới tính là chặn. ' +
       'Mức 1–3 máy đánh theo cảm tính (mức 1 hay bỏ lỡ), mức 4 tính trước 2 nước, mức 5 tính sâu tới 4 nước nên khá khó.</div>' +
       '</div></div>';
 
-    var cv = $('gcaro'), ctx = cv.getContext('2d');
-    var cfg = lsGet('gm_caro_cfg', { mode: 'ai', level: 3, size: 15, side: 1, rule: false }), tally = lsGet('gm_caro_tally', { x: 0, o: 0, d: 0 });
+    var cv = $('gcaro'), ctx = cv.getContext('2d'), box = cv.parentNode;
+    var cfg = lsGet('gm_caro_cfg', { mode: 'ai', level: 3, side: 1, rule: false }), tally = lsGet('gm_caro_tally', { x: 0, o: 0, d: 0 });
     var eng = null, hist = [], over = false, winCells = null, thinking = false, hint = -1, hover = -1, round = 0, hintT = 0;
-    $('cgMode').value = cfg.mode; $('cgLevel').value = String(cfg.level); $('cgSize').value = String(cfg.size); $('cgSide').value = String(cfg.side); $('cgRule').checked = !!cfg.rule;
+    var view = null, pendX = 0, pendY = 0, CELL = 26, EDGE = 3;
+    $('cgMode').value = cfg.mode; $('cgLevel').value = String(cfg.level); $('cgSide').value = String(cfg.side); $('cgRule').checked = !!cfg.rule;
 
     function turn() { return hist.length % 2 === 0 ? 1 : 2; }
     function saveCfg() { lsSet('gm_caro_cfg', cfg); }
@@ -1332,28 +1344,65 @@
     }
     function setStatus(txt) { $('cgStatus').textContent = txt == null ? statusText() : txt; }
 
+    /* ---- Vùng hiển thị (toạ độ ô, gồm cả hai đầu). Chỉ lớn dần trong một ván. ---- */
+    function cellSize(w) { return Math.max(26, Math.floor(w / 15)); }
+    function initView(w) {
+      var cols = Math.max(15, Math.ceil(w / cellSize(w))); if (cols % 2 === 0) cols++;
+      var h = cols >> 1; view = { x0: -h, y0: -h, x1: h, y1: h };
+    }
+    // Quân ở ô k cách mép < EDGE ô thì mở rộng thêm về phía đó
+    function expand(k) {
+      var x = ckx(k), y = cky(k);
+      if (x - EDGE < view.x0) { pendX += view.x0 - (x - EDGE); view.x0 = x - EDGE; }
+      if (x + EDGE > view.x1) view.x1 = x + EDGE;
+      if (y - EDGE < view.y0) { pendY += view.y0 - (y - EDGE); view.y0 = y - EDGE; }
+      if (y + EDGE > view.y1) view.y1 = y + EDGE;
+    }
+    function reveal(k) {
+      if (!view) return;
+      var x = (ckx(k) - view.x0) * CELL, y = (cky(k) - view.y0) * CELL, m = CELL * 1.5, vw = box.clientWidth, vh = box.clientHeight;
+      if (x - m < box.scrollLeft) box.scrollLeft = Math.max(0, x - m); else if (x + CELL + m > box.scrollLeft + vw) box.scrollLeft = x + CELL + m - vw;
+      if (y - m < box.scrollTop) box.scrollTop = Math.max(0, y - m); else if (y + CELL + m > box.scrollTop + vh) box.scrollTop = y + CELL + m - vh;
+    }
+
     function draw() {
-      if (!eng) return; var S = cv.clientWidth; if (!S) return;
-      var dpr = Math.min(2, window.devicePixelRatio || 1), px = Math.round(S * dpr);
-      if (cv.width !== px) { cv.width = px; cv.height = px; }
+      if (!eng) return; var W = box.clientWidth; if (!W) return;
+      box.style.height = box.offsetWidth + 'px';             // khung nhìn hình vuông, bàn cờ cuộn bên trong
+      var H = box.clientHeight, c = cellSize(W), fresh = false, k;
+      if (!view) { initView(W); eng.M.forEach(function (v, kk) { expand(kk); }); pendX = pendY = 0; fresh = true; }
+      CELL = c;
+      var cols = view.x1 - view.x0 + 1, rows = view.y1 - view.y0 + 1;
+      while (cols * c < W) { view.x1++; cols++; }
+      while (rows * c < H) { view.y1++; rows++; }
+      var pw = cols * c, ph = rows * c, dpr = Math.min(2, window.devicePixelRatio || 1);
+      if (pw * ph * dpr * dpr > 12e6) dpr = 1;
+      var bw = Math.round(pw * dpr), bh = Math.round(ph * dpr);
+      if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
+      cv.style.width = pw + 'px'; cv.style.height = ph + 'px';
+      if (fresh) { box.scrollLeft = (pw - W) / 2; box.scrollTop = (ph - H) / 2; }
+      else if (pendX || pendY) { box.scrollLeft += pendX * c; box.scrollTop += pendY * c; }
+      pendX = pendY = 0;
+
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      var n = eng.N, c = S / n, B = eng.B, k, x, y;
-      ctx.fillStyle = '#0f1a2e'; ctx.fillRect(0, 0, S, S);
-      if (hist.length) { var lm = hist[hist.length - 1]; ctx.fillStyle = 'rgba(250,204,21,.18)'; ctx.fillRect((lm % n) * c, ((lm / n) | 0) * c, c, c); }
-      if (winCells) { ctx.fillStyle = 'rgba(250,204,21,.45)'; for (k = 0; k < winCells.length; k++) ctx.fillRect((winCells[k] % n) * c, ((winCells[k] / n) | 0) * c, c, c); }
+      ctx.fillStyle = '#0f1a2e'; ctx.fillRect(0, 0, pw, ph);
+      function cx(kk) { return (ckx(kk) - view.x0) * c; }
+      function cy(kk) { return (cky(kk) - view.y0) * c; }
+      if (hist.length) { var lm = hist[hist.length - 1]; ctx.fillStyle = 'rgba(250,204,21,.18)'; ctx.fillRect(cx(lm), cy(lm), c, c); }
+      if (winCells) { ctx.fillStyle = 'rgba(250,204,21,.45)'; for (k = 0; k < winCells.length; k++) ctx.fillRect(cx(winCells[k]), cy(winCells[k]), c, c); }
       ctx.strokeStyle = '#26375a'; ctx.lineWidth = 1; ctx.beginPath();
-      for (k = 0; k <= n; k++) { ctx.moveTo(k * c, 0); ctx.lineTo(k * c, S); ctx.moveTo(0, k * c); ctx.lineTo(S, k * c); }
+      for (k = 0; k <= cols; k++) { ctx.moveTo(k * c, 0); ctx.lineTo(k * c, ph); }
+      for (k = 0; k <= rows; k++) { ctx.moveTo(0, k * c); ctx.lineTo(pw, k * c); }
       ctx.stroke();
       ctx.lineCap = 'round';
-      function mark(i, p, alpha) {
-        var cx = (i % n + 0.5) * c, cy = (((i / n) | 0) + 0.5) * c; ctx.globalAlpha = alpha; ctx.lineWidth = Math.max(2, c * 0.11);
-        if (p === 1) { var m = c * 0.24; ctx.strokeStyle = '#fb7185'; ctx.beginPath(); ctx.moveTo(cx - m, cy - m); ctx.lineTo(cx + m, cy + m); ctx.moveTo(cx + m, cy - m); ctx.lineTo(cx - m, cy + m); ctx.stroke(); }
-        else { ctx.strokeStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(cx, cy, c * 0.29, 0, Math.PI * 2); ctx.stroke(); }
+      function mark(kk, p, alpha) {
+        var mx = cx(kk) + c / 2, my = cy(kk) + c / 2; ctx.globalAlpha = alpha; ctx.lineWidth = Math.max(2, c * 0.11);
+        if (p === 1) { var m = c * 0.24; ctx.strokeStyle = '#fb7185'; ctx.beginPath(); ctx.moveTo(mx - m, my - m); ctx.lineTo(mx + m, my + m); ctx.moveTo(mx + m, my - m); ctx.lineTo(mx - m, my + m); ctx.stroke(); }
+        else { ctx.strokeStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(mx, my, c * 0.29, 0, Math.PI * 2); ctx.stroke(); }
         ctx.globalAlpha = 1;
       }
-      for (k = 0; k < n * n; k++) if (B[k]) mark(k, B[k], 1);
-      if (hover >= 0 && !B[hover] && !over && !thinking && (cfg.mode === 'pvp' || turn() === cfg.side)) mark(hover, turn(), 0.35);
-      if (hint >= 0) { ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3; ctx.strokeRect((hint % n) * c + 2, ((hint / n) | 0) * c + 2, c - 4, c - 4); }
+      eng.M.forEach(function (p, kk) { mark(kk, p, 1); });
+      if (hover >= 0 && !eng.M.has(hover) && !over && !thinking && (cfg.mode === 'pvp' || turn() === cfg.side)) mark(hover, turn(), 0.35);
+      if (hint >= 0) { ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3; ctx.strokeRect(cx(hint) + 2, cy(hint) + 2, c - 4, c - 4); }
     }
 
     function finish(msg, winner) {
@@ -1363,11 +1412,10 @@
       if (winner && cfg.mode === 'ai' && winner !== cfg.side) Au.lose(); else if (winner) { Au.win(); confetti(); }
     }
     function play(i) {
-      var p = turn(); eng.place(i, p); hist.push(i); hint = -1; Au.stone(p);
+      var p = turn(); eng.place(i, p); if (view) expand(i); hist.push(i); hint = -1; Au.stone(p);
       var w = eng.winAt(i, p);
-      if (w) { winCells = w; finish(cfg.mode === 'ai' ? (p === cfg.side ? '🎉 Bạn thắng rồi! (' + who(p) + ')' : '🤖 Máy thắng (' + who(p) + '). Thử lại nhé!') : '🎉 ' + who(p) + ' thắng!', p); return; }
-      if (hist.length >= eng.N * eng.N) { finish('🤝 Hòa — bàn cờ đã đầy.', 0); return; }
-      draw(); setStatus(); maybeAI();
+      if (w) { winCells = w; finish(cfg.mode === 'ai' ? (p === cfg.side ? '🎉 Bạn thắng rồi! (' + who(p) + ')' : '🤖 Máy thắng (' + who(p) + '). Thử lại nhé!') : '🎉 ' + who(p) + ' thắng!', p); reveal(i); return; }
+      draw(); reveal(i); setStatus(); maybeAI();
     }
     function maybeAI() {
       if (cfg.mode !== 'ai' || over || turn() === cfg.side) return;
@@ -1376,23 +1424,26 @@
         if (my !== round || over) return;
         var i; try { i = eng.aiMove(cfg.level, turn()); } catch (e) { console.error(e); i = -1; }
         thinking = false;
-        if (i >= 0) play(i); else finish('🤝 Hòa — bàn cờ đã đầy.', 0);
+        if (i >= 0) play(i); else finish('🤝 Hòa.', 0);
       }, 120);
     }
     function newRound() {
-      round++; eng = CaroEngine(cfg.size, cfg.rule); hist = []; over = false; winCells = null; thinking = false; hint = -1; hover = -1;
+      round++; eng = CaroEngine(cfg.rule); hist = []; over = false; winCells = null; thinking = false; hint = -1; hover = -1;
+      view = null; pendX = pendY = 0;
       syncUi(); draw(); setStatus(); maybeAI();
     }
+    function cellAt(e) {
+      var r = cv.getBoundingClientRect();
+      return ckey(Math.floor((e.clientX - r.left) / CELL) + view.x0, Math.floor((e.clientY - r.top) / CELL) + view.y0);
+    }
     cv.addEventListener('click', function (e) {
-      Au.unlock(); if (!eng || over || thinking) return;
+      Au.unlock(); if (!eng || !view || over || thinking) return;
       if (cfg.mode === 'ai' && turn() !== cfg.side) return;
-      var r = cv.getBoundingClientRect(), n = eng.N, x = Math.floor((e.clientX - r.left) / r.width * n), y = Math.floor((e.clientY - r.top) / r.height * n);
-      if (x < 0 || y < 0 || x >= n || y >= n) return; var i = y * n + x; if (eng.B[i]) return; play(i);
+      var i = cellAt(e); if (eng.M.has(i)) return; play(i);
     });
     cv.addEventListener('pointermove', function (e) {
-      if (e.pointerType !== 'mouse' || !eng) return;
-      var r = cv.getBoundingClientRect(), n = eng.N, x = Math.floor((e.clientX - r.left) / r.width * n), y = Math.floor((e.clientY - r.top) / r.height * n);
-      var h = (x >= 0 && y >= 0 && x < n && y < n) ? y * n + x : -1; if (h !== hover) { hover = h; draw(); }
+      if (e.pointerType !== 'mouse' || !eng || !view) return;
+      var h = cellAt(e); if (h !== hover) { hover = h; draw(); }
     });
     cv.addEventListener('pointerleave', function () { if (hover !== -1) { hover = -1; draw(); } });
 
@@ -1408,7 +1459,7 @@
       $('cgHint').disabled = true; setStatus('💡 Đang tìm nước đi tốt…');
       setTimeout(function () {
         try { hint = eng.aiMove(4, turn()); } catch (e) { hint = -1; }
-        $('cgHint').disabled = false; setStatus(); draw(); clearTimeout(hintT); hintT = setTimeout(function () { hint = -1; draw(); }, 2500);
+        $('cgHint').disabled = false; setStatus(); draw(); if (hint >= 0) reveal(hint); clearTimeout(hintT); hintT = setTimeout(function () { hint = -1; draw(); }, 2500);
       }, 30);
     });
     $('cgReset').addEventListener('click', function () { tally = { x: 0, o: 0, d: 0 }; lsSet('gm_caro_tally', tally); showTally(); });
@@ -1419,10 +1470,10 @@
       });
     }
     bindCfg('cgMode', 'mode', false, false, true); bindCfg('cgLevel', 'level', true, false, false);
-    bindCfg('cgSide', 'side', true, false, true); bindCfg('cgSize', 'size', true, false, true); bindCfg('cgRule', 'rule', false, true, true);
+    bindCfg('cgSide', 'side', true, false, true); bindCfg('cgRule', 'rule', false, true, true);
     $('cgLevel').addEventListener('change', function () { setStatus(); });
 
-    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(function () { draw(); }).observe(cv);
+    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(function () { draw(); }).observe(box);
     window.addEventListener('resize', draw);
     showTally();
 
