@@ -20,7 +20,7 @@
   };
   var M = { pts: [], objs: [], meas: [], marks: [], nid: 1, nname: 0 };
   var ui = { tool: 'select', lock: false, pend: [], sel: [], grid: true, snap: false, names: true, meas: true, auto: true, dec: 2, unit: '', expGrid: false,
-             playing: false, speed: 1, drag: null, down: null, ptr: null, touch: false, pinch: null };
+             playing: false, speed: 1, full: false, home: null, drag: null, down: null, ptr: null, touch: false, pinch: null };
   var view = { z: 1, ox: 0, oy: 0 };
   var traces = {}, undoS = [], redoS = [], ptrs = {};
   var WU = 16, HU = 10.5, S0 = 40, S = 40, SW = 0, SH = 0;
@@ -60,6 +60,17 @@
     '#mVeHinh .vh-tail{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 2px;padding-top:6px;border-top:1px dashed rgba(255,255,255,.18)}' +
     '#mVeHinh .vh-tail .vh-a{min-height:34px;padding:3px 9px;font-size:13px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.2)}' +
     '#mVeHinh .vh-tail .vh-a.red{border-color:rgba(248,113,113,.7);background:rgba(248,113,113,.14)}' +
+    '#mVeHinh .vh-onlyfull{display:none}#mVeHinh.vh-full .vh-onlyfull{display:flex}' +
+    '#mVeHinh .vh-drawer{display:none}' +
+    '#mVeHinh.vh-full{position:fixed!important;inset:0;z-index:100001;margin:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));background:var(--bg,#0b1220);display:flex!important;flex-direction:column;box-sizing:border-box;width:100vw;height:100vh;height:100dvh;overflow:hidden;font:inherit;color:inherit}' +
+    '#mVeHinh.vh-full .vh-tools{margin:0 0 4px;flex:0 0 auto}#mVeHinh.vh-full .vh-b{min-height:40px}#mVeHinh.vh-full .vh-b span{display:none}' +
+    '#mVeHinh.vh-full .vh-wrap{flex:1 1 auto;min-height:0;display:flex}' +
+    '#mVeHinh.vh-full .vh-wrap svg.vh-svg{height:100%!important;flex:1 1 auto;margin:0}' +
+    '#mVeHinh.vh-full .vh-fabs{top:8px}' +
+    '#mVeHinh.vh-full .vh-dock{position:relative;flex:0 0 auto;max-height:36vh;margin-top:4px}' +
+    '#mVeHinh.vh-full #vhExA,#mVeHinh.vh-full #vhExB{display:none}' +
+    '#mVeHinh.vh-full.vh-menu .vh-drawer{display:block;position:absolute;left:8px;right:8px;top:54px;max-height:calc(100% - 70px);overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:30;background:var(--card,#101a2e);border:1px solid var(--bd,#25324d);border-radius:12px;padding:8px;box-shadow:0 8px 30px rgba(0,0,0,.5)}' +
+    '#mVeHinh.vh-full .vh-drawer #vhExA,#mVeHinh.vh-full .vh-drawer #vhExB{display:block}' +
     '#mVeHinh .vh-sep{display:inline-flex;align-items:center;min-height:30px;padding:0 4px;font-size:12px;font-weight:700;opacity:.8;color:#ffd54f}' +
     '#mVeHinh .vh-a.tri{border-color:rgba(127,212,255,.6);background:rgba(127,212,255,.12)}' +
     '#mVeHinh details.vh-num{margin:8px 0;border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.04)}' +
@@ -84,22 +95,22 @@
 
   root.innerHTML =
     '<div class="vh-tools" id="vhTools"></div>' +
-    '<div class="vh-lbl"><b>Vẽ nhanh hình cơ bản</b> (trượt ngang để xem thêm; kéo điểm để đổi kích thước, hình vẫn giữ tính chất)</div>' +
+    '<div id="vhExA"><div class="vh-lbl"><b>Vẽ nhanh hình cơ bản</b> (trượt ngang để xem thêm; kéo điểm để đổi kích thước, hình vẫn giữ tính chất)</div>' +
     '<div class="vh-shapes" id="vhShapes"></div>' +
     '<details class="vh-num" id="vhNum"><summary>📏 Dựng theo số đo (nhập độ dài, góc)</summary>' +
     '<div class="vh-numrow"><select id="vhNumKind"></select></div>' +
     '<div class="vh-numrow" id="vhNumIn"></div>' +
     '<div class="vh-numrow"><label><input type="checkbox" id="vhNumMeas" checked> Ghi số đo lên hình</label><button class="sm" id="vhNumGo" type="button">✏️ Vẽ hình</button></div>' +
-    '<div class="vh-numhelp" id="vhNumHelp"></div></details>' +
+    '<div class="vh-numhelp" id="vhNumHelp"></div></details></div>' +
     '<div class="vh-wrap"><svg class="vh-svg" id="vhSvg"></svg>' +
-    '<div class="vh-fabs vh-fl"><button type="button" class="vh-fab" id="vhUndo" title="Hoàn tác (Ctrl+Z)">↶</button><button type="button" class="vh-fab" id="vhRedo" title="Làm lại (Ctrl+Y)">↷</button></div>' +
+    '<div class="vh-fabs vh-fl"><button type="button" class="vh-fab" id="vhUndo" title="Hoàn tác (Ctrl+Z)">↶</button><button type="button" class="vh-fab" id="vhRedo" title="Làm lại (Ctrl+Y)">↷</button><button type="button" class="vh-fab vh-onlyfull" id="vhMenu" title="Cài đặt, hình mẫu, dựng theo số đo">☰</button></div>' +
     '<div class="vh-fabs vh-fr" id="vhFabR"></div></div>' +
     '<div class="vh-dock" id="vhDock">' +
     '<div class="vh-status" id="vhStatus"></div>' +
     '<div class="vh-sel" id="vhSel"></div>' +
     '<div class="vh-acts" id="vhActs"></div>' +
     '<div class="vh-cols" id="vhCols"></div></div>' +
-    '<div class="vh-ctl">' +
+    '<div id="vhExB"><div class="vh-ctl">' +
     '<button class="sm green" id="vhPlay" type="button">▶ Chạy</button>' +
     '<label>Tốc độ <input type="range" id="vhSpeed" min="0.2" max="3" step="0.1" value="1" style="width:110px"></label>' +
     '<button class="sm sec" id="vhClrTr" type="button">🧹 Xóa vệt</button>' +
@@ -122,7 +133,8 @@
     '<label>Đơn vị <select id="vhUnit"><option value="">(không)</option><option value="cm">cm</option><option value="mm">mm</option><option value="dm">dm</option><option value="m">m</option></select></label>' +
     '</div>' +
     '<div class="vh-meas" id="vhMeas"></div>' +
-    '<div class="note"><b>Cách dựng hình kiểu Sketchpad:</b> chạm để chọn đối tượng (điểm, đoạn, đường, hoặc chạm <b>vào bên trong</b> một đa giác để chọn cả hình), rồi bấm lệnh hiện ra ở thanh dưới khung vẽ. <b>Tam giác:</b> chọn tam giác (hoặc 3 đỉnh) để dựng nhanh 3 đường cao + trực tâm, 3 trung tuyến + trọng tâm, 3 phân giác + tâm nội tiếp, 3 trung trực + tâm ngoại tiếp, đường trung bình, đo cạnh và góc; chọn thêm 1 đỉnh để chỉ dựng đường từ đỉnh đó. Chọn đa giác để đo cạnh, góc, ký hiệu cạnh bằng nhau, góc vuông. Mở mục <b>Dựng theo số đo</b> để vẽ đúng tam giác, hình chữ nhật, hình bình hành... theo số liệu đề bài. Điểm <b>vàng</b> kéo tự do, điểm <b>xanh lá</b> chạy trên đường, điểm <b>xanh tím</b> phụ thuộc. Dạy học: bật số đo, cho học sinh <b>dự đoán</b> rồi kéo điểm; bỏ chọn \"Hiện số đo\" để ẩn số trước khi hé lộ. Mặc định 1 ô lưới = 1 đơn vị. Chạm lại công cụ đang chọn để khóa công cụ (vẽ liên tục). Phím tắt (máy tính): Esc bỏ chọn, Ctrl+Z hoàn tác, Ctrl+Y làm lại, Delete xóa.</div>';
+    '<div class="note"><b>Cách dựng hình kiểu Sketchpad:</b> chạm để chọn đối tượng (điểm, đoạn, đường, hoặc chạm <b>vào bên trong</b> một đa giác để chọn cả hình), rồi bấm lệnh hiện ra ở thanh dưới khung vẽ. Nút <b>⛶</b> ở góc phải khung vẽ để vẽ toàn màn hình (vẫn đủ công cụ ở trên, lệnh ở dưới, nút ☰ mở hình mẫu và cài đặt). <b>Tam giác:</b> chọn tam giác (hoặc 3 đỉnh) để dựng nhanh 3 đường cao + trực tâm, 3 trung tuyến + trọng tâm, 3 phân giác + tâm nội tiếp, 3 trung trực + tâm ngoại tiếp, đường trung bình, đo cạnh và góc; chọn thêm 1 đỉnh để chỉ dựng đường từ đỉnh đó. Chọn đa giác để đo cạnh, góc, ký hiệu cạnh bằng nhau, góc vuông. Mở mục <b>Dựng theo số đo</b> để vẽ đúng tam giác, hình chữ nhật, hình bình hành... theo số liệu đề bài. Điểm <b>vàng</b> kéo tự do, điểm <b>xanh lá</b> chạy trên đường, điểm <b>xanh tím</b> phụ thuộc. Dạy học: bật số đo, cho học sinh <b>dự đoán</b> rồi kéo điểm; bỏ chọn \"Hiện số đo\" để ẩn số trước khi hé lộ. Mặc định 1 ô lưới = 1 đơn vị. Chạm lại công cụ đang chọn để khóa công cụ (vẽ liên tục). Phím tắt (máy tính): Esc bỏ chọn, Ctrl+Z hoàn tác, Ctrl+Y làm lại, Delete xóa.</div>' + '</div>' +
+    '<div class="vh-drawer" id="vhDrawer"><button type="button" class="sm" id="vhMenuClose">✖ Đóng bảng cài đặt</button></div>';
 
   var svg = root.querySelector('#vhSvg');
   var elTools = root.querySelector('#vhTools'), elShapes = root.querySelector('#vhShapes');
@@ -918,6 +930,73 @@
     return null;
   }
 
+  /* Đặt nhãn tên điểm: thử 8 hướng ở 2 khoảng cách, chọn vị trí ít đè lên đường, đường tròn, điểm khác,
+     số đo và nhãn khác nhất; có xét mép khung vẽ. Ưu tiên hướng ra ngoài đa giác, giữ ổn định khi kéo điểm. */
+  var lblPrev = {};
+  function segDist(px, py, x1, y1, x2, y2) {
+    var dx = x2 - x1, dy = y2 - y1, l2 = dx * dx + dy * dy, t = l2 < 1e-9 ? 0 : ((px - x1) * dx + (py - y1) * dy) / l2;
+    t = t < 0 ? 0 : t > 1 ? 1 : t; return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+  }
+  function placeLabels() {
+    var prims = [], boxes = [], dots = [], res = {}, W = SW, H = SH, i;
+    function seg(x1, y1, x2, y2) { prims.push({ k: 's', a: x1, b: y1, c: x2, d: y2 }); }
+    M.objs.forEach(function (o) {
+      if (!shownObj(o) || o.type === 'locus') return;
+      if (o.type === 'poly') {
+        var ps = o.p.map(P); if (ps.some(function (q) { return !q || !q.ok; })) return;
+        for (var e = 0; e < ps.length; e++) { var q1 = ps[e], q2 = ps[(e + 1) % ps.length]; seg(X(q1.x), Y(q1.y), X(q2.x), Y(q2.y)); }
+        return;
+      }
+      var g = geom({ id: o.id }); if (!g) return;
+      if (g.k === 'l') {
+        var lo = Math.max(g.lo, -80), hi = Math.min(g.hi, 80);
+        seg(X(g.p.x + g.d.x * lo), Y(g.p.y + g.d.y * lo), X(g.p.x + g.d.x * hi), Y(g.p.y + g.d.y * hi));
+      } else if (g.k === 'c') prims.push({ k: 'c', a: X(g.c.x), b: Y(g.c.y), c: g.r * S });
+    });
+    M.pts.forEach(function (p) { if (shownPt(p)) dots.push({ id: p.id, x: X(p.x), y: Y(p.y) }); });
+    if (ui.meas) M.meas.forEach(function (m) {
+      var r = measEval(m); if (!r || !r.cv) return;
+      var w = r.cv.length * 7.2 + 6;
+      boxes.push({ x0: X(r.x) + r.dx - w / 2, x1: X(r.x) + r.dx + w / 2, y0: Y(r.y) + r.dy - 14, y1: Y(r.y) + r.dy + 4 });
+    });
+    function dmin(x, y) {
+      var m = 1e9, d, k;
+      for (k = 0; k < prims.length; k++) {
+        var pr = prims[k];
+        d = pr.k === 's' ? segDist(x, y, pr.a, pr.b, pr.c, pr.d) : Math.abs(Math.hypot(x - pr.a, y - pr.b) - pr.c);
+        if (d < m) m = d;
+      }
+      return m;
+    }
+    var DIRS = [[1, -1], [-1, -1], [1, 1], [-1, 1], [0, -1], [0, 1], [1, 0], [-1, 0]];
+    M.pts.forEach(function (p) {
+      if (!shownPt(p)) return;
+      var px = X(p.x), py = Y(p.y), nm = String(p.name), w = nm.length * 9.6 + 4, h = 17, cands = [], lo = labelOff(p), k, j;
+      if (lo) cands.push({ cx: px + lo.x, cy: py + lo.y - 5, id: 'o' });
+      for (k = 0; k < 2; k++) DIRS.forEach(function (dv, n) {
+        var f = k ? 1.9 : 1, cx, cy;
+        if (dv[0] && dv[1]) { cx = px + dv[0] * (w / 2 + 5) * f; cy = py + dv[1] * (h / 2 + 5) * f; }
+        else if (dv[1]) { cx = px; cy = py + dv[1] * (h / 2 + 9) * f; }
+        else { cx = px + dv[0] * (w / 2 + 10) * f; cy = py; }
+        cands.push({ cx: cx, cy: cy, id: k + ':' + n });
+      });
+      var best = null, bs = 1e9;
+      cands.forEach(function (c, idx) {
+        var x0 = c.cx - w / 2, x1 = c.cx + w / 2, y0 = c.cy - h / 2, y1 = c.cy + h / 2, pen = idx * 0.8, sx, sy, t;
+        for (sx = 0; sx <= 2; sx++) for (sy = 0; sy <= 2; sy++) { t = 8 - dmin(x0 + (x1 - x0) * sx / 2, y0 + (y1 - y0) * sy / 2); if (t > 0) pen += t; }
+        if (x0 < 2) pen += 50 + (2 - x0); if (y0 < 2) pen += 50 + (2 - y0); if (x1 > W - 2) pen += 50 + (x1 - W + 2); if (y1 > H - 2) pen += 50 + (y1 - H + 2);
+        boxes.forEach(function (b) { if (x0 < b.x1 && x1 > b.x0 && y0 < b.y1 && y1 > b.y0) pen += 40; });
+        dots.forEach(function (d) { if (d.id !== p.id && d.x > x0 - 8 && d.x < x1 + 8 && d.y > y0 - 8 && d.y < y1 + 8) pen += 30; });
+        if (lblPrev[p.id] === c.id) pen -= 1.5;
+        c.pen = pen; c.box = { x0: x0, x1: x1, y0: y0, y1: y1 };
+        if (pen < bs) { bs = pen; best = c; }
+      });
+      lblPrev[p.id] = best.id; boxes.push(best.box);
+      res[p.id] = { x: best.cx, y: best.cy + 5 };
+    });
+    return res;
+  }
+
   function draw(theme) {
     var C = PAL[theme || 'dark'], CL = COLS[theme || 'dark'], s = '', i, W = SW, H = SH, exp = theme === 'light';
     var FONT = 'font-family="system-ui,Arial,sans-serif"';
@@ -970,6 +1049,7 @@
         s += '<circle cx="' + r2(X(q.x)) + '" cy="' + r2(Y(q.y)) + '" r="12" fill="none" stroke="' + C.pend + '" stroke-width="2" stroke-dasharray="3 3"/>';
       });
     }
+    var LP = ui.names ? placeLabels() : null;
     M.pts.forEach(function (p) {
       if (!shownPt(p)) return;
       var col = p.c !== undefined ? CL[p.c] : p.type === 'free' ? C.free : isGlider(p) ? C.glide : C.dep, x = r2(X(p.x)), y = r2(Y(p.y));
@@ -977,9 +1057,8 @@
       if (p.anim) s += '<circle cx="' + x + '" cy="' + y + '" r="11" fill="none" stroke="' + C.glide + '" stroke-width="1.8" stroke-dasharray="3 3"/>';
       if (p.trace) s += '<circle cx="' + x + '" cy="' + y + '" r="9.5" fill="none" stroke="' + C.trace + '" stroke-width="1.5"/>';
       s += '<circle cx="' + x + '" cy="' + y + '" r="6" fill="' + col + '" stroke="' + C.bg + '" stroke-width="1.5"/>';
-      if (ui.names) {
-        var lo = labelOff(p), tx = lo ? x + lo.x : x + 9, ty = lo ? y + lo.y : y - 9;
-        s += '<text x="' + r2(tx) + '" y="' + r2(ty) + '"' + (lo ? ' text-anchor="middle"' : '') + ' font-size="15" font-weight="700" ' + FONT + ' fill="' + C.txt + '" stroke="' + C.bg + '" stroke-width="3" paint-order="stroke">' + String(p.name).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</text>';
+      if (ui.names && LP && LP[p.id]) {
+        s += '<text x="' + r2(LP[p.id].x) + '" y="' + r2(LP[p.id].y) + '" text-anchor="middle" font-size="15" font-weight="700" ' + FONT + ' fill="' + C.txt + '" stroke="' + C.bg + '" stroke-width="3" paint-order="stroke">' + String(p.name).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</text>';
       }
     });
     return s;
@@ -1547,6 +1626,43 @@
     b.className = 'vh-fab'; b.title = v[2]; b.innerHTML = v[1];
     elFabR.appendChild(b);
   });
+  var fabFull = document.createElement('button'); fabFull.type = 'button'; fabFull.className = 'vh-fab'; fabFull.title = 'Toàn màn hình'; fabFull.innerHTML = '⛶'; elFabR.appendChild(fabFull);
+  var elExA = root.querySelector('#vhExA'), elExB = root.querySelector('#vhExB'), elDrawer = root.querySelector('#vhDrawer'), elWrap = root.querySelector('.vh-wrap'), elDock = root.querySelector('#vhDock');
+  function closeMenu() {
+    if (!root.classList.contains('vh-menu')) return;
+    root.classList.remove('vh-menu');
+    root.insertBefore(elExA, elWrap); root.insertBefore(elExB, elDock.nextSibling);
+    setTimeout(refresh, 30);
+  }
+  function openMenu() {
+    root.classList.add('vh-menu'); elDrawer.appendChild(elExA); elDrawer.appendChild(elExB);
+  }
+  function setFull(on) {
+    on = !!on; if (on === ui.full) return;
+    ui.full = on;
+    if (on) {
+      ui.home = document.createComment('vh-home'); root.parentNode.insertBefore(ui.home, root); document.body.appendChild(root);
+      root.classList.add('vh-full'); document.documentElement.style.overflow = 'hidden';
+      try { if (root.requestFullscreen && !document.fullscreenElement) { var pr = root.requestFullscreen(); if (pr && pr.catch) pr.catch(function () { }); } } catch (e) { }
+    } else {
+      closeMenu(); root.classList.remove('vh-full'); document.documentElement.style.overflow = '';
+      if (ui.home && ui.home.parentNode) { ui.home.parentNode.insertBefore(root, ui.home); ui.home.parentNode.removeChild(ui.home); }
+      ui.home = null;
+      try { if (document.fullscreenElement === root && document.exitFullscreen) document.exitFullscreen(); } catch (e) { }
+    }
+    fabFull.innerHTML = on ? '✕' : '⛶'; fabFull.title = on ? 'Thoát toàn màn hình' : 'Toàn màn hình';
+    setTimeout(refresh, 40); setTimeout(refresh, 320);
+    say(on ? 'Toàn màn hình: nút ☰ ở góc trái để mở hình mẫu, dựng theo số đo, cài đặt; nút ✕ để thoát.' : 'Đã thoát toàn màn hình.');
+  }
+  fabFull.addEventListener('click', function () { setFull(!ui.full); });
+  root.querySelector('#vhMenu').addEventListener('click', function () { if (root.classList.contains('vh-menu')) closeMenu(); else openMenu(); });
+  root.querySelector('#vhMenuClose').addEventListener('click', closeMenu);
+  elDrawer.addEventListener('click', function (e) {
+    var t = e.target; if (!t || !t.closest) return;
+    if (t.closest('.vh-chip') || t.closest('#vhNumGo') || t.closest('#vhPng') || t.closest('#vhCopy')) setTimeout(closeMenu, 80);
+  });
+  document.addEventListener('fullscreenchange', function () { if (ui.full && !document.fullscreenElement) setFull(false); });
+  window.addEventListener('orientationchange', function () { setTimeout(refresh, 250); });
   SHAPES.forEach(function (sh) {
     var b = document.createElement('button'); b.type = 'button'; b.className = 'vh-chip'; b.textContent = sh[0];
     b.addEventListener('click', function () {
@@ -1591,6 +1707,8 @@
     if (ctrl && k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
     if (ctrl && (k === 'y' || (k === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
     if (e.key === 'Escape') {
+      if (ui.full && root.classList.contains('vh-menu')) { closeMenu(); return; }
+      if (ui.full && !ui.sel.length && !ui.pend.length && ui.tool === 'select') { setFull(false); return; }
       ui.sel = []; ui.pend = []; ui.lock = false;
       if (ui.tool !== 'select') { ui.tool = 'select'; updToolBtns(); }
       hint(); refresh(); return;
