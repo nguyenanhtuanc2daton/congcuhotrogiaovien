@@ -28,7 +28,7 @@
 
   /* ================= Giao diện ================= */
   var css =
-    '#mVeHinh .vh-tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px;margin:8px 0}' +
+    '#mVeHinh .vh-tools{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0}' +
     '#mVeHinh .vh-b{cursor:pointer;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:inherit;border-radius:10px;padding:5px 2px;font:inherit;line-height:1.1;text-align:center;min-height:46px}' +
     '#mVeHinh .vh-b i{display:block;font-style:normal;font-size:19px}' +
     '#mVeHinh .vh-b span{display:block;font-size:10.5px;opacity:.85;margin-top:2px}' +
@@ -53,6 +53,13 @@
     '#mVeHinh .vh-m button{min-height:0;padding:2px 8px;cursor:pointer;border:0;background:transparent;color:inherit;font-size:16px;opacity:.7}' +
     '#mVeHinh .vh-dock{position:sticky;bottom:0;z-index:6;background:var(--card2,#0f1626);border:1px solid var(--bd,#25324d);border-radius:10px;padding:4px 8px;margin-top:6px;max-height:42vh;overflow-y:auto;-webkit-overflow-scrolling:touch}' +
     '#mVeHinh .vh-dock .vh-status{margin:2px 0}#mVeHinh .vh-dock .vh-sel{margin:2px 0}' +
+    '#mVeHinh .vh-wrap{position:relative}#mVeHinh .vh-wrap svg.vh-svg{margin-top:6px}' +
+    '#mVeHinh .vh-fabs{position:absolute;top:12px;display:flex;gap:6px;z-index:3}#mVeHinh .vh-fl{left:8px}#mVeHinh .vh-fr{right:8px}' +
+    '#mVeHinh .vh-fab{width:40px;height:40px;min-width:0;min-height:0;margin:0;box-sizing:border-box;padding:0;border-radius:50%;cursor:pointer;border:1px solid rgba(255,255,255,.3);background:rgba(15,22,38,.82);color:#fff;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center}' +
+    '#mVeHinh .vh-fab:disabled{opacity:.35;cursor:default}' +
+    '#mVeHinh .vh-tail{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 2px;padding-top:6px;border-top:1px dashed rgba(255,255,255,.18)}' +
+    '#mVeHinh .vh-tail .vh-a{min-height:34px;padding:3px 9px;font-size:13px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.2)}' +
+    '#mVeHinh .vh-tail .vh-a.red{border-color:rgba(248,113,113,.7);background:rgba(248,113,113,.14)}' +
     '#mVeHinh .vh-sep{display:inline-flex;align-items:center;min-height:30px;padding:0 4px;font-size:12px;font-weight:700;opacity:.8;color:#ffd54f}' +
     '#mVeHinh .vh-a.tri{border-color:rgba(127,212,255,.6);background:rgba(127,212,255,.12)}' +
     '#mVeHinh details.vh-num{margin:8px 0;border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.04)}' +
@@ -72,7 +79,8 @@
     ['circ', '○', 'Tròn', 'Kéo từ tâm ra bán kính, hoặc chạm tâm rồi chạm một điểm trên đường tròn.'],
     ['poly', '⬠', 'Đa giác', 'Chạm lần lượt các đỉnh. Chạm lại đỉnh đầu hoặc bấm "Khép đa giác" để kết thúc.']
   ];
-  var VIEWBTNS = [['zin', '＋', 'Phóng to'], ['zout', '－', 'Thu nhỏ'], ['zfit', '⤢', 'Vừa khung'], ['zreset', '⌂', 'Về gốc']];
+  var SHOWN_TOOLS = { select: 1, point: 1, seg: 1, line: 1, ray: 1 };
+  var VIEWBTNS = [['zin', '＋', 'Phóng to'], ['zout', '－', 'Thu nhỏ'], ['zfit', '⤢', 'Vừa khung']];
 
   root.innerHTML =
     '<div class="vh-tools" id="vhTools"></div>' +
@@ -83,7 +91,9 @@
     '<div class="vh-numrow" id="vhNumIn"></div>' +
     '<div class="vh-numrow"><label><input type="checkbox" id="vhNumMeas" checked> Ghi số đo lên hình</label><button class="sm" id="vhNumGo" type="button">✏️ Vẽ hình</button></div>' +
     '<div class="vh-numhelp" id="vhNumHelp"></div></details>' +
-    '<svg class="vh-svg" id="vhSvg"></svg>' +
+    '<div class="vh-wrap"><svg class="vh-svg" id="vhSvg"></svg>' +
+    '<div class="vh-fabs vh-fl"><button type="button" class="vh-fab" id="vhUndo" title="Hoàn tác (Ctrl+Z)">↶</button><button type="button" class="vh-fab" id="vhRedo" title="Làm lại (Ctrl+Y)">↷</button></div>' +
+    '<div class="vh-fabs vh-fr" id="vhFabR"></div></div>' +
     '<div class="vh-dock" id="vhDock">' +
     '<div class="vh-status" id="vhStatus"></div>' +
     '<div class="vh-sel" id="vhSel"></div>' +
@@ -92,8 +102,6 @@
     '<div class="vh-ctl">' +
     '<button class="sm green" id="vhPlay" type="button">▶ Chạy</button>' +
     '<label>Tốc độ <input type="range" id="vhSpeed" min="0.2" max="3" step="0.1" value="1" style="width:110px"></label>' +
-    '<button class="sm sec" id="vhUndo" type="button">↶ Hoàn tác</button>' +
-    '<button class="sm sec" id="vhRedo" type="button">↷ Làm lại</button>' +
     '<button class="sm sec" id="vhClrTr" type="button">🧹 Xóa vệt</button>' +
     '<button class="sm orange" id="vhPng" type="button">📷 Lưu ảnh</button>' +
     '<button class="sm orange" id="vhCopy" type="button">📋 Sao chép ảnh</button>' +
@@ -344,17 +352,25 @@
     traces = {}; ui.pend = []; ui.sel = []; ui.drag = null; ui.down = null;
   }
   function snap() { var j = dump(); if (undoS[undoS.length - 1] !== j) { undoS.push(j); if (undoS.length > 80) undoS.shift(); redoS = []; } }
+  function undoLeft() { var cur = dump(), n = 0; for (var i = 0; i < undoS.length; i++) if (undoS[i] !== cur) n++; return n; }
+  function updUndoBtns() {
+    var u = root.querySelector('#vhUndo'), r = root.querySelector('#vhRedo'); if (!u || !r) return;
+    u.disabled = !(ui.pend.length || undoS.length); r.disabled = !redoS.length;
+  }
   function undo() {
+    if (ui.pend.length) { ui.pend = []; hint(); refresh(); say('Đã hủy bước vẽ dở. Bấm hoàn tác lần nữa để lùi về nét vẽ trước.'); return; }
     var cur = dump(), j = null;
     while (undoS.length) { j = undoS.pop(); if (j !== cur) break; j = null; }
-    if (!j) { say('Không còn thao tác để hoàn tác.'); return; }
+    if (!j) { say('Không còn thao tác để hoàn tác.'); updUndoBtns(); return; }
     redoS.push(cur); restore(j); commit();
+    say('↶ Đã hoàn tác. Còn ' + undoS.length + ' bước có thể lùi lại; bấm ↷ nếu muốn làm lại.');
   }
   function redo() {
     var cur = dump(), j = null;
     while (redoS.length) { j = redoS.pop(); if (j !== cur) break; j = null; }
-    if (!j) { say('Không có thao tác để làm lại.'); return; }
+    if (!j) { say('Không có thao tác để làm lại.'); updUndoBtns(); return; }
     undoS.push(cur); restore(j); commit();
+    say('↷ Đã làm lại.');
   }
   var saveT = 0;
   function persist() {
@@ -989,7 +1005,7 @@
     ui.sel = ui.sel.filter(itemValid);
     compute(); computeLocus(); recordTraces();
     svg.innerHTML = draw('dark');
-    updMeas(); updSelPanel();
+    updMeas(); updSelPanel(); updUndoBtns();
   }
 
   /* ================= Bảng lệnh dựng theo đối tượng đã chọn ================= */
@@ -1226,7 +1242,13 @@
       add('↗ Tia', act(function () { return [objItem(addObj({ type: 'ray', p: [A.id, B.id] }))]; }));
       add('⊙ Trung điểm', act(function () { return midAndTick(A, B); }));
       add('⊣ Trung trực', act(function () { return [objItem(addObj({ type: 'pbis', p: [A.id, B.id] }))]; }));
+      add('↗ Tia ' + B.name + A.name, act(function () { return [objItem(addObj({ type: 'ray', p: [B.id, A.id] }))]; }));
       add('○ Đường tròn (tâm ' + A.name + ')', act(function () { return [objItem(addObj({ type: 'circ', p: [A.id, B.id] }))]; }));
+      add('○ Đường tròn (tâm ' + B.name + ')', act(function () { return [objItem(addObj({ type: 'circ', p: [B.id, A.id] }))]; }));
+      add('⌀ Đường tròn đường kính ' + A.name + B.name, act(function () {
+        var m0 = M.pts.length, mm = getMid(A, B); if (M.pts.length > m0) mm.name = pickName(['O', 'I', 'J']);
+        return [objItem(addObj({ type: 'circ', p: [mm.id, A.id] }))];
+      }));
       add('📏 Khoảng cách', act(function () { M.meas.push({ id: M.nid++, type: 'dist', p: [A.id, B.id] }); return a.pts.map(ptItem); }));
       if (isGlider(A)) add('🌀 Quỹ tích của ' + B.name, act(function () { return [objItem(addObj({ type: 'locus', p: [A.id, B.id] }))]; }));
     }
@@ -1398,6 +1420,37 @@
         return imagesOf({ pts: [], polys: a.polys }, function (q) { return addPt({ type: 'rot', name: imgName(q), p: [q.id, A.id], k: k }); });
       }));
     }
+    /* ---- lệnh bổ sung theo loại đối tượng đang chạm ---- */
+    function fromPt(tool, lab) { add(lab, function () { ui.tool = tool; ui.pend = [A]; ui.sel = []; ui.lock = false; updToolBtns(); hint(); refresh(); }); }
+    if (np === 1 && onlyPts) {
+      sep('Vẽ từ điểm ' + A.name);
+      fromPt('seg', '╱ Đoạn từ ' + A.name); fromPt('line', '↔ Đường qua ' + A.name); fromPt('ray', '↗ Tia gốc ' + A.name); fromPt('circ', '○ Tròn tâm ' + A.name);
+      add('○ Tròn tâm ' + A.name + ', bán kính r', function () {
+        var t = prompt('Bán kính r (theo đơn vị lưới) của đường tròn tâm ' + A.name + ':', '3'); if (t === null) return;
+        var r = parseFloat(String(t).replace(',', '.')); if (!(r > 0) || !isFinite(r)) { say('Bán kính phải là số dương.'); return; }
+        snap(); var R0 = addPt({ type: 'free', x: A.x + r, y: A.y }), c0 = addObj({ type: 'circ', p: [A.id, R0.id] });
+        pushMeas({ type: 'rad', o: [{ id: c0.id }] }); ui.sel = [objItem(c0)]; commit();
+      });
+    }
+    if (nl === 1 && !np && !nc && !ng) {
+      var l1 = a.lines[0], lo1 = O(l1.ref.id), g1 = geom(l1.ref);
+      if (g1 && g1.k === 'l') {
+        add('● Điểm trên ' + (l1.fin ? 'đoạn' : 'đường') + ' (kéo được)', act(function () {
+          var e1 = l1.fin ? segEnds(l1.ref) : null, w1 = (e1 && e1[0] && e1[1]) ? { x: (e1[0].x + e1[1].x) / 2, y: (e1[0].y + e1[1].y) / 2 } : { x: g1.p.x + g1.d.x, y: g1.p.y + g1.d.y };
+          var gp = glideOn(l1.ref, w1); return gp ? [ptItem(gp)] : false;
+        }));
+        if (l1.fin) add('⌀ Đường tròn đường kính', act(function () {
+          var e2 = segEnds(l1.ref), m0 = M.pts.length, mm = getMid(e2[0], e2[1]); if (M.pts.length > m0) mm.name = pickName(['O', 'I', 'J']);
+          return [objItem(addObj({ type: 'circ', p: [mm.id, e2[0].id] }))];
+        }));
+      }
+    }
+    if (nc === 1 && !np && !nl && !ng) {
+      var gc = geom(a.circs[0]);
+      if (gc && gc.k === 'c') add('● Điểm trên đường tròn (kéo được)', act(function () {
+        var gp2 = glideOn(a.circs[0], { x: gc.c.x, y: gc.c.y - gc.r }); return gp2 ? [ptItem(gp2)] : false;
+      }));
+    }
     if (a.pts.some(isGlider)) {
       var anyOff = a.pts.filter(isGlider).some(function (p) { return !p.anim; });
       add(anyOff ? '▶ Cho điểm chạy' : '⏸ Dừng điểm chạy', function () { toggleAnim(a); commit(); });
@@ -1430,9 +1483,13 @@
   }
   function updSelPanel() {
     curActs = buildActs();
-    var names = ui.sel.map(itemName).join(', '), selTxt = ui.sel.length ? 'Đã chọn: ' + names : (ui.tool === 'select' ? 'Chưa chọn gì. Chạm vào điểm hoặc đường để chọn.' : '');
+    var names = ui.sel.map(itemName).join(', '), selTxt = ui.sel.length ? 'Đã chọn: ' + names : (ui.tool === 'select' ? 'Chạm vào điểm, đoạn, đường, đường tròn hoặc bên trong đa giác: các lệnh dựng và đo sẽ hiện ngay ở đây.' : '');
     if (elSel.textContent !== selTxt) elSel.textContent = selTxt;
-    var h = curActs.map(function (x, i) { return x.sep ? '<span class="vh-sep">' + x.sep + '</span>' : '<button type="button" class="vh-a ' + x.cls + '" data-a="' + i + '">' + x.label + '</button>'; }).join('');
+    var isTail = function (x) { return !!x.label && /^(〰|✏️|🙈|🗑|✖|👁|┄)/.test(x.label); };
+    var chip = function (x, i) { return x.sep ? '<span class="vh-sep">' + x.sep + '</span>' : '<button type="button" class="vh-a ' + x.cls + '" data-a="' + i + '">' + x.label + '</button>'; };
+    var hm = '', ht = '';
+    curActs.forEach(function (x, i) { if (isTail(x)) ht += chip(x, i); else hm += chip(x, i); });
+    var h = hm + (ht ? '<div class="vh-tail">' + ht + '</div>' : '');
     if (h !== lastActsKey) { elActs.innerHTML = h; lastActsKey = h; }
     var ch = '';
     if (ui.sel.length) {
@@ -1468,6 +1525,7 @@
     });
   }
   TOOLS.forEach(function (t) {
+    if (!SHOWN_TOOLS[t[0]]) return;
     var b = document.createElement('button'); b.type = 'button'; b.className = 'vh-b'; b.setAttribute('data-t', t[0]);
     b.innerHTML = '<i>' + t[1] + '</i><span>' + t[2] + '</span>';
     b.addEventListener('click', function () {
@@ -1476,9 +1534,9 @@
     });
     elTools.appendChild(b);
   });
+  var elFabR = root.querySelector('#vhFabR');
   VIEWBTNS.forEach(function (v) {
-    var b = document.createElement('button'); b.type = 'button'; b.className = 'vh-b'; b.setAttribute('data-v', v[0]);
-    b.innerHTML = '<i>' + v[1] + '</i><span>' + v[2] + '</span>';
+    var b = document.createElement('button'); b.type = 'button'; b.setAttribute('data-v', v[0]);
     b.addEventListener('click', function () {
       if (!resize()) return;
       if (v[0] === 'zin') zoomAt(1.3, SW / 2, SH / 2); else if (v[0] === 'zout') zoomAt(1 / 1.3, SW / 2, SH / 2);
@@ -1486,7 +1544,8 @@
       else { view.z = 1; view.ox = 0; view.oy = 0; }
       refresh();
     });
-    elTools.appendChild(b);
+    b.className = 'vh-fab'; b.title = v[2]; b.innerHTML = v[1];
+    elFabR.appendChild(b);
   });
   SHAPES.forEach(function (sh) {
     var b = document.createElement('button'); b.type = 'button'; b.className = 'vh-chip'; b.textContent = sh[0];
