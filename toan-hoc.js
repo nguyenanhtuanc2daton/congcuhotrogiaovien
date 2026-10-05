@@ -2,7 +2,7 @@
 /* ---- Tab 5: Toán học (Tạo đề · Thống kê & Xác suất · Hình học động) ---- */
 (function(){
 const $=id=>document.getElementById(id);
-$('mSel').addEventListener('change',()=>{document.querySelectorAll('.mt').forEach(m=>m.classList.toggle('on',m.id===$('mSel').value));if($('mSel').value==='mI')window.dispatchEvent(new CustomEvent('tabshow',{detail:'t4'}));});
+$('mSel').addEventListener('change',()=>{document.querySelectorAll('#t5>.mt').forEach(m=>m.classList.toggle('on',m.id===$('mSel').value));if($('mSel').value==='mI')window.dispatchEvent(new CustomEvent('tabshow',{detail:'t4'}));});
 window.addEventListener('tabshow',e=>{if(e.detail==='t5'&&$('mSel').value==='mI')window.dispatchEvent(new CustomEvent('tabshow',{detail:'t4'}));});
 
 /* A. Tạo đề */
@@ -264,22 +264,22 @@ on('pRun',()=>{const t=$('pType').value,N=Math.min(100000,Math.max(1,+$('pN').va
 
 /* ---------- E. Giải phương trình từng bước (nhãn ô nhập, 5 dạng, kiểm nghiệm) ---------- */
 const em=$('eMode');
-if(em){em.insertAdjacentHTML('beforeend','<option value="4">Bất phương trình ax + b (&gt;, ≥, &lt;, ≤) 0</option><option value="5">Phương trình trùng phương ax⁴ + bx² + c = 0</option>');
+if(em){em.insertAdjacentHTML('beforeend','<option value="4">Bất phương trình ax + b (&gt;, ≥, &lt;, ≤) 0</option><option value="5">Phương trình trùng phương ax⁴ + bx² + c = 0</option><option value="6">Bất phương trình bậc hai ax² + bx + c (&gt;, ≥, &lt;, ≤) 0</option>');
  em.insertAdjacentHTML('afterend','<select id="eOp" style="display:none"><option value=">">&gt;</option><option value=">=">≥</option><option value="<">&lt;</option><option value="<=">≤</option></select>');
  HP('eRun','beforebegin','');$('eRun').parentNode.insertAdjacentHTML('beforebegin','<div id="eHint" class="note" style="font-size:15px;color:var(--cy)"></div>');
- const n6=[3,2,1,4,5,6],NUM={1:2,2:3,3:6,4:2,5:3},LB={1:'a, b',2:'a, b, c',3:'a₁, b₁, c₁, a₂, b₂, c₂',4:'a, b',5:'a, b, c'};
+ const n6=[3,2,1,4,5,6],NUM={1:2,2:3,3:6,4:2,5:3,6:3},LB={1:'a, b',2:'a, b, c',3:'a₁, b₁, c₁, a₂, b₂, c₂',4:'a, b',5:'a, b, c',6:'a, b, c'};
  const pv=()=>{const m=em.value,v=[1,2,3,4,5,6].map(i=>+$('e'+i).value),sg=(n)=>n<0?' − ':' + ',ab=Math.abs,cf=n=>ab(n)==1?'':ab(n);
   const L1=(a,b)=>`${a==1?'':a==-1?'−':a}x${b?sg(b)+ab(b):''}`,Q=(a,b,c)=>`${a==1?'':a==-1?'−':a}x²${b?sg(b)+cf(b)+'x':''}${c?sg(c)+ab(c):''}`;
-  for(let i=1;i<=6;i++){const e=$('e'+i);e.style.display=i<=NUM[m]?'':'none'}$('eOp').style.display=m=='4'?'':'none';
-  $('eHint').innerHTML=`Nhập ${LB[m]} theo thứ tự các ô: &nbsp;<b>`+(m=='1'?L1(v[0],v[1])+' = 0':m=='2'?Q(v[0],v[1],v[2])+' = 0':m=='3'?`${cf(v[0])}x${sg(v[1])}${cf(v[1])}y = ${v[2]} ; ${cf(v[3])}x${sg(v[4])}${cf(v[4])}y = ${v[5]}`:m=='4'?L1(v[0],v[1])+' '+$('eOp').selectedOptions[0].textContent+' 0':Q(v[0],v[1],v[2]).replace('x²','x⁴').replace(/x(?=( [+−]|$))/,'x²')+' = 0')+'</b>'};
+  for(let i=1;i<=6;i++){const e=$('e'+i);e.style.display=i<=NUM[m]?'':'none'}$('eOp').style.display=(m=='4'||m=='6')?'':'none';
+  $('eHint').innerHTML=`Nhập ${LB[m]} theo thứ tự các ô: &nbsp;<b>`+(m=='1'?L1(v[0],v[1])+' = 0':m=='2'?Q(v[0],v[1],v[2])+' = 0':m=='3'?`${cf(v[0])}x${sg(v[1])}${cf(v[1])}y = ${v[2]} ; ${cf(v[3])}x${sg(v[4])}${cf(v[4])}y = ${v[5]}`:m=='4'?L1(v[0],v[1])+' '+$('eOp').selectedOptions[0].textContent+' 0':m=='6'?Q(v[0],v[1],v[2])+' '+$('eOp').selectedOptions[0].textContent+' 0':Q(v[0],v[1],v[2]).replace('x²','x⁴').replace(/x(?=( [+−]|$))/,'x²')+' = 0')+'</b>'};
  ['eMode','eOp'].forEach(i=>$(i).addEventListener('change',pv));for(let i=1;i<=6;i++)$('e'+i).addEventListener('input',pv);pv()}
 on('eRun',()=>{const m=$('eMode').value,v=[1,2,3,4,5,6].map(i=>+$('e'+i).value),o=[],B=s=>`<b>${s}</b>`,mi=s=>String(s).replace(/-/g,'−');
  if(m=='1'){const[a,b]=v;if(a==0)o.push(b==0?'0 = 0 đúng với mọi x ⇒ vô số nghiệm.':`a = 0 và b = ${b} ≠ 0 nên ${b} = 0 vô lí ⇒ vô nghiệm.`);
   else o.push(`Chuyển vế: ${a}x = ${-b}`,`Chia hai vế cho ${a}: x = ${B(mi(fr(-b,a)))}`+(I(-b/a)?'':` ≈ ${mi(rd(-b/a))}`),`Thử lại: ${a}·(${mi(fr(-b,a))}) ${b<0?'−':'+'} ${Math.abs(b)} = 0 ✓`)}
  else if(m=='2'){const[a,b,c]=v;if(a==0)o.push('a = 0: đây không phải phương trình bậc hai (hãy chọn dạng bậc nhất).');
   else{const D=b*b-4*a*c,ints=[a,b,c].every(I),s=Math.sqrt(Math.max(0,D)),ex=ints&&I(s);o.push(`Hệ số: a = ${a}, b = ${b}, c = ${c}`,`Δ = b² − 4ac = (${b})² − 4·${a}·${c} = ${B(rd(D))}`);
-   if(D<0)o.push('Δ < 0 ⇒ phương trình vô nghiệm trên ℝ.');
-   else if(D==0)o.push(`Δ = 0 ⇒ nghiệm kép x₁ = x₂ = −b/2a = ${B(mi(fr(-b,2*a)))}`);
+   if(D<-1e-9)o.push('Δ < 0 ⇒ phương trình vô nghiệm trên ℝ.');
+   else if(Math.abs(D)<1e-9)o.push(`Δ = 0 ⇒ nghiệm kép x₁ = x₂ = −b/2a = ${B(mi(fr(-b,2*a)))}`);
    else{const x1=ex?fr(-b+s,2*a):rd((-b+s)/(2*a)),x2=ex?fr(-b-s,2*a):rd((-b-s)/(2*a));o.push(`Δ > 0 ⇒ hai nghiệm phân biệt (√Δ ${ex?'= '+s:'≈ '+rd(s)}):`,`x₁ = (−b + √Δ)/2a = ${B(mi(x1))}`,`x₂ = (−b − √Δ)/2a = ${B(mi(x2))}`);if(ex){const r1=(-b+s)/(2*a),r2=(-b-s)/(2*a),fx=r=>r==0?'x':`(x ${r>0?'−':'+'} ${Math.abs(rd(r))})`;o.push(`Phân tích: ${a==1?'':a}${fx(r1)}${r1==r2?'':fx(r2)} = 0`.replace(/^(\S*)x(\(|$)/,'$1x$2'))}}
    o.push(`Vi-ét: x₁ + x₂ = −b/a = ${mi(rd(-b/a))} · x₁x₂ = c/a = ${mi(rd(c/a))}`,`Parabol y = ax² + bx + c: bề lõm ${a>0?'lên trên':'xuống dưới'}, đỉnh I(${mi(rd(-b/(2*a)))}; ${mi(rd(-D/(4*a)))}), trục đối xứng x = ${mi(rd(-b/(2*a)))}`)}}
  else if(m=='3'){const[a,b,c,d,e,f]=v,D=a*e-b*d,Dx=c*e-b*f,Dy=a*f-c*d,pa=n=>n<0?`(${n})`:n,eq=(p,q,r)=>`${p==1?'':p==-1?'−':p}x ${q<0?'−':'+'} ${Math.abs(q)==1?'':Math.abs(q)}y = ${r}`;o.push(`(1) ${eq(a,b,c)}`,`(2) ${eq(d,e,f)}`,`D = a₁b₂ − a₂b₁ = ${a}·${pa(e)} − ${pa(d)}·${pa(b)} = ${B(rd(D))}`,`Dx = c₁b₂ − c₂b₁ = ${B(rd(Dx))} · Dy = a₁c₂ − a₂c₁ = ${B(rd(Dy))}`);
@@ -287,6 +287,15 @@ on('eRun',()=>{const m=$('eMode').value,v=[1,2,3,4,5,6].map(i=>+$('e'+i).value),
   else if((a==0&&b==0&&c!=0)||(d==0&&e==0&&f!=0))o.push('Một phương trình có dạng 0 = số khác 0 ⇒ hệ vô nghiệm.');
   else if(Dx==0&&Dy==0)o.push('D = Dx = Dy = 0 ⇒ hai phương trình tương đương: hệ có vô số nghiệm.',b!=0?`Nghiệm tổng quát: x tùy ý, y = (${c} ${a<0?'+':'−'} ${Math.abs(a)}x)/${b}`:`Nghiệm tổng quát: x = ${mi(fr(c,a))}, y tùy ý`);
   else o.push('D = 0 nhưng Dx hoặc Dy ≠ 0 ⇒ hệ vô nghiệm (hai đường thẳng song song).')}
+ else if(m=='6'){const[a,b,c]=v,op=$('eOp').value,sym=$('eOp').selectedOptions[0].textContent,st=op.length==1,gt=op[0]=='>',iv=(l,r)=>`${st?'(':'['}${l}; ${r}${st?')':']'}`;
+  o.push(`Bất phương trình: ${a}x² ${b<0?'−':'+'} ${Math.abs(b)}x ${c<0?'−':'+'} ${Math.abs(c)} ${sym} 0`);
+  if(a==0)o.push('a = 0: đây là bất phương trình bậc nhất, hãy chọn dạng "ax + b".');
+  else{const D=b*b-4*a*c,z=Math.abs(D)<1e-9,up=(a>0)==gt;o.push(`Δ = b² − 4ac = ${B(rd(D))}`,`Dấu của f(x): cùng dấu với a (${a>0?'dương':'âm'}) ngoài hai nghiệm, trái dấu với a ở giữa hai nghiệm.`);
+   if(D<-1e-9)o.push('Δ < 0 ⇒ f(x) luôn cùng dấu với a.',`Tập nghiệm: S = ${B((a>0)==gt?'ℝ':'∅')}`);
+   else if(z){const x0=mi(fr(-b,2*a));o.push(`Δ = 0 ⇒ nghiệm kép x₀ = ${x0}; f(x) cùng dấu a, bằng 0 tại x₀.`);
+    o.push(`Tập nghiệm: S = ${B(up?(st?`ℝ ∖ {${x0}}`:'ℝ'):(st?'∅':`{${x0}}`))}`)}
+   else{const s=Math.sqrt(D),ex=[a,b,c].every(I)&&I(s),n1=-b-s,n2=-b+s,v1=n1/(2*a),v2=n2/(2*a),lo=v1<v2?[n1,v1]:[n2,v2],hi=v1<v2?[n2,v2]:[n1,v1],f=r=>mi(ex?fr(r[0],2*a):rd(r[1])),x1=f(lo),x2=f(hi);
+    o.push(`Δ > 0 ⇒ hai nghiệm x₁ = ${x1} < x₂ = ${x2}`,`Tập nghiệm: S = ${B(up?(st?`(−∞; ${x1}) ∪ (${x2}; +∞)`:`(−∞; ${x1}] ∪ [${x2}; +∞)`):iv(x1,x2))}`)}}}
  else if(m=='4'){const[a,b]=v,op=$('eOp').value,sym=$('eOp').selectedOptions[0].textContent,st=op.length==1,gt=op[0]=='>';o.push(`Bất phương trình: ${a}x ${b<0?'−':'+'} ${Math.abs(b)} ${sym} 0`);
   if(a==0){const ok=gt?(st?b>0:b>=0):(st?b<0:b<=0);o.push(ok?'a = 0 và mệnh đề đúng ⇒ nghiệm là mọi x ∈ ℝ.':'a = 0 và mệnh đề sai ⇒ vô nghiệm.')}
   else{const x0=mi(fr(-b,a)),up=(a>0)==gt,fl=a<0;o.push(`Chuyển vế: ${a}x ${sym} ${-b}`,`Chia hai vế cho ${a}${fl?' (số âm nên ĐỔI chiều bất đẳng thức)':''}: x ${up?(st?'>':'≥'):(st?'<':'≤')} ${B(x0)}`,`Tập nghiệm: S = ${up?(st?'('+x0+'; +∞)':'['+x0+'; +∞)'):(st?'(−∞; '+x0+')':'(−∞; '+x0+']')}`)}}
@@ -439,4 +448,143 @@ on('tRes',()=>$('tFile').click());
 $('tFile').onchange=async e=>{try{const o=JSON.parse(await e.target.files[0].text());if(confirm('Khôi phục '+Object.keys(o).length+' mục dữ liệu? Dữ liệu cùng tên trên máy sẽ bị ghi đè.')){Object.keys(o).filter(k=>!/gemini_key/.test(k)).forEach(k=>localStorage.setItem(k,o[k]));location.reload()}}catch(x){alert('File sao lưu không hợp lệ.')}e.target.value=''};
 on('tBig',()=>document.body.classList.toggle('tbig'));
 
+})();
+
+/* ===== v4: chữ to rõ · số thập phân kiểu Việt · biểu đồ rõ nét · sửa lỗi chính xác ===== */
+(function(){
+const $=id=>document.getElementById(id),ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),rd=x=>Math.round(x*1e4)/1e4;
+const RES='#sRes,#pRes,#gInfo,#nRes,#eRes,#rRes,#xRes';
+const st=document.createElement('style');
+st.textContent=`
+#t5 .mt{font-size:17px}
+#t5 input[type=number],#t5 input[type=text],#t5 select{font-size:17px!important;min-height:46px;padding:6px 10px;box-sizing:border-box}
+#t5 textarea{font-size:17px!important;line-height:1.6}
+#t5 button{font-size:16px!important;min-height:46px;padding:8px 14px}
+#t5 label{font-size:16px}
+#t5 .bar{gap:10px;align-items:center}
+#t5 :is(${RES}){font-size:17px!important;line-height:1.85!important;padding:12px 14px;margin-top:10px;background:var(--card2);border:1px solid var(--bd);border-left:4px solid var(--cy);border-radius:10px;color:#e6ebf5;overflow-wrap:anywhere}
+#t5 :is(${RES}):empty{display:none}
+#t5 .note{font-size:15px;line-height:1.6}
+#t5 #gSvg circle[data-n]{r:13px!important}#t5 #gSvg text{font-size:20px!important}
+body.tbig #t5 .mt,body.tbig #t5 :is(${RES}){font-size:22px!important}
+body.tbig #t5 input,body.tbig #t5 select,body.tbig #t5 textarea,body.tbig #t5 button,body.tbig #t5 label{font-size:21px!important}
+body.tbig #t5 input[type=number]{width:110px!important}`;
+document.head.appendChild(st);
+
+/* Số thập phân: 1.5 → 1,5 (chỉ ở kết quả hiển thị); hình suy biến thay vì NaN */
+const vn=el=>{const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),L=[];let n;while(n=w.nextNode())L.push(n);
+ L.forEach(t=>{const s=t.nodeValue.replace(/(\d)\.(\d)/g,'$1,$2');if(s!==t.nodeValue)t.nodeValue=s})};
+RES.split(',').forEach(s=>{const el=$(s.slice(1));if(!el)return;
+ new MutationObserver(()=>{if(s==='#gInfo'&&/NaN|Infinity/.test(el.textContent)){el.innerHTML='Ba điểm A, B, C đang thẳng hàng hoặc trùng nhau nên chưa tạo thành tam giác. Hãy kéo một điểm ra khỏi đường thẳng.';return}vn(el)}).observe(el,{childList:true,subtree:true,characterData:true})});
+
+/* Biểu đồ cột lớn, chữ rõ, có số trên cột */
+const chart=(cv,labs,ser,cols,names)=>{const W=cv.width=760,H=cv.height=420,c=cv.getContext('2d'),fm=x=>(x<=1?x.toFixed(2):String(Math.round(x))).replace('.',',');
+ c.clearRect(0,0,W,H);const mx=Math.max(1e-9,...ser.flat())*1.1,L=62,B=H-50,T=60,w=(W-L-12)/labs.length;
+ c.font='20px sans-serif';c.strokeStyle='#25324d';c.fillStyle='#b6c2da';
+ for(let g=0;g<=4;g++){const y=B-(B-T)*g/4;c.beginPath();c.moveTo(L,y);c.lineTo(W-8,y);c.stroke();c.fillText(fm(mx*g/4),4,y+7)}
+ const bw=w*.8/ser.length,lab=labs.length<=8||ser.length==1&&labs.length<=14;
+ labs.forEach((lb,i)=>{ser.forEach((s,j)=>{const h=(B-T)*s[i]/mx,x=L+i*w+w*.1+j*bw;c.fillStyle=cols[j];c.fillRect(x,B-h,bw-3,h);
+   if(lab){c.fillStyle='#fff';c.font='bold 17px sans-serif';c.textAlign='center';c.fillText(fm(s[i]),x+bw/2,B-h-6);c.textAlign='left'}});
+  c.font='20px sans-serif';c.fillStyle='#e6ebf5';c.textAlign='center';c.fillText(lb,L+i*w+w/2,B+28);c.textAlign='left'});
+ let x=L;names.forEach((s,j)=>{c.fillStyle=cols[j];c.fillRect(x,12,16,16);c.fillStyle='#e6ebf5';c.font='20px sans-serif';c.fillText(s,x+22,27);x+=c.measureText(s).width+60})};
+
+/* Xác suất: viết lại, vẽ biểu đồ lớn */
+const lb=(a,b)=>Array.from({length:b-a+1},(_,i)=>String(a+i));
+const PX={coin:[['Sấp','Ngửa'],[.5,.5],()=>ri(0,1)],c2:[lb(0,2),[.25,.5,.25],()=>ri(0,1)+ri(0,1)],c3:[lb(0,3),[.125,.375,.375,.125],()=>ri(0,1)+ri(0,1)+ri(0,1)],
+ d6:[lb(1,6),Array(6).fill(1/6),()=>ri(0,5)],d2:[lb(2,12),lb(2,12).map(s=>(6-Math.abs(s-7))/36),()=>ri(1,6)+ri(1,6)-2]};
+$('pRun').onclick=()=>{const t=$('pType').value,N=Math.min(100000,Math.max(1,Math.floor(+$('pN').value)||1));let labs,th,g;
+ if(t=='box'){const r=Math.max(1,Math.floor(+$('pR').value)||1),b=Math.max(1,Math.floor(+$('pB').value)||1);labs=['Đỏ','Xanh'];th=[r/(r+b),b/(r+b)];g=()=>Math.random()<th[0]?0:1}else[labs,th,g]=PX[t];
+ const cnt=labs.map(()=>0);for(let i=0;i<N;i++)cnt[g()]++;const fq=cnt.map(c=>c/N),dev=Math.max(...fq.map((x,i)=>Math.abs(x-th[i])));
+ $('pRes').innerHTML=`Thực hiện <b>${N}</b> lần.<br>`+labs.map((l,i)=>`<b>${l}</b>: ${cnt[i]} lần · tần suất ${fq[i].toFixed(3)} · lí thuyết ${th[i].toFixed(3)}`).join('<br>')+`<br>Sai lệch lớn nhất: <b>${dev.toFixed(3)}</b>. Số lần thử càng lớn, tần suất càng gần xác suất lí thuyết (luật số lớn).`;
+ chart($('mbCv'),labs,[fq,th],['#4f5bf0','#34d399'],['Thực nghiệm','Lí thuyết'])};
+
+/* Thống kê: biểu đồ lớn, hộp lớn, sửa "mốt" khi mọi giá trị xuất hiện 1 lần */
+const med=a=>{const n=a.length;return n%2?a[(n-1)/2]:(a[n/2-1]+a[n/2])/2};
+const s0=$('sRun').onclick;
+$('sRun').onclick=()=>{s0();const d=$('sIn').value.trim().split(/[\s;]+/).map(s=>parseFloat(s.replace(',','.'))).filter(x=>!isNaN(x)).sort((a,b)=>a-b);if(!d.length)return;
+ const n=d.length,f={};d.forEach(x=>f[x]=(f[x]||0)+1);const keys=Object.keys(f).map(Number).sort((a,b)=>a-b);
+ if(n>1&&keys.length==n)$('sRes').innerHTML=$('sRes').innerHTML.replace(/Mốt = [^<]*/,'Mốt = không có (mọi giá trị chỉ xuất hiện 1 lần)');
+ chart($('mbCv'),keys.map(String),[keys.map(k=>f[k])],['#4f5bf0'],['Tần số']);
+ const cv=$('mbBox');if(!cv)return;const W=cv.width=760,Ht=cv.height=190,c=cv.getContext('2d'),mean=d.reduce((a,b)=>a+b,0)/n,h=Math.floor(n/2),q1=n>1?med(d.slice(0,h)):d[0],q3=n>1?med(d.slice(n-h)):d[0],iq=q3-q1,lo=q1-1.5*iq,hi=q3+1.5*iq,mn=d[0],mx=d[n-1],sp=(mx-mn)||1,X=v=>50+(v-mn)/sp*(W-100),m=med(d),out=d.filter(x=>x<lo||x>hi),inl=d.filter(x=>x>=lo&&x<=hi),wl=inl[0],wh=inl[inl.length-1],fm=v=>String(rd(v)).replace('.',',');
+ c.clearRect(0,0,W,Ht);c.font='20px sans-serif';c.fillStyle='#b6c2da';c.fillText('Biểu đồ hộp',6,22);c.fillStyle='#fb923c';c.fillText('● trung bình',W-150,22);
+ c.strokeStyle='#38bdf8';c.lineWidth=3;c.beginPath();c.moveTo(X(wl),84);c.lineTo(X(q1),84);c.moveTo(X(q3),84);c.lineTo(X(wh),84);c.moveTo(X(wl),64);c.lineTo(X(wl),104);c.moveTo(X(wh),64);c.lineTo(X(wh),104);c.stroke();
+ c.fillStyle='rgba(79,91,240,.5)';c.fillRect(X(q1),54,Math.max(3,X(q3)-X(q1)),60);c.strokeRect(X(q1),54,Math.max(3,X(q3)-X(q1)),60);
+ c.strokeStyle='#facc15';c.beginPath();c.moveTo(X(m),54);c.lineTo(X(m),114);c.stroke();
+ c.fillStyle='#fb923c';c.beginPath();c.arc(X(mean),84,7,0,7);c.fill();c.fillStyle='#ef4444';out.forEach(x=>{c.beginPath();c.arc(X(x),84,6,0,7);c.fill()});
+ c.fillStyle='#e6ebf5';c.textAlign='center';[[mn,'Min'],[q1,'Q1'],[m,'TV'],[q3,'Q3'],[mx,'Max']].forEach(([v,l],i)=>c.fillText(fm(v),X(v),140+(i%2)*26));c.textAlign='left'};
+
+/* Giải hệ: sửa mô tả phép cộng đại số cho đúng dấu */
+const e0=$('eRun').onclick;
+$('eRun').onclick=()=>{e0();$('eRes').innerHTML=$('eRes').innerHTML.replace(/nhân \(1\) với ([^,]+), \(2\) với ([^ ]+) rồi trừ vế/,'nhân (1) với $1, (2) với $2 rồi lấy (2)×$2 − (1)×$1 (vế theo vế)')};
+
+/* Chữ lớn: ghi nhớ lựa chọn */
+try{if(localStorage.getItem('tc_big')==='1')document.body.classList.add('tbig')}catch(e){}
+const tb=$('tBig');if(tb){const sync=()=>{tb.textContent=document.body.classList.contains('tbig')?'🔠 Chữ lớn ✓':'🔠 Chữ lớn'};sync();
+ tb.addEventListener('click',()=>{try{localStorage.setItem('tc_big',document.body.classList.contains('tbig')?'1':'0')}catch(e){}sync()})}
+})();
+
+
+/* ===== v5: Đồ thị — hàm mẫu bấm nhanh + bảng giá trị ===== */
+(function(){
+const $=id=>document.getElementById(id),fl=$('fList');if(!fl||!$('gres'))return;
+const st=document.createElement('style');st.textContent='#t5 #fList input{flex:1;min-width:0}#t5 .chipb{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}#t5 .chipb button{min-height:42px;padding:6px 12px}#t5 table.vt{border-collapse:collapse;width:100%;font-size:17px}#t5 table.vt th,#t5 table.vt td{border:1px solid var(--bd);padding:6px 8px;text-align:center}#t5 table.vt th{background:#1a2640;color:var(--cy)}#t5 #vOut{overflow:auto;max-height:420px}body.tbig #t5 table.vt{font-size:22px}';document.head.appendChild(st);
+const PRE=[['x²','x^2'],['x³','x^3'],['√x','sqrt(x)'],['1/x','1/x'],['|x|','abs(x)'],['sin x','sin(x)'],['cos x','cos(x)'],['tan x','tan(x)'],['2ˣ','2^x'],['ln x','ln(x)'],['(x+1)/(x−1)','(x+1)/(x-1)']];
+fl.insertAdjacentHTML('afterend','<div class="chipb" id="fPre"><span class="note" style="width:100%;margin:0">Bấm để thêm hàm mẫu:</span>'+PRE.map(([l,f])=>`<button class="sec sm" type="button" data-f="${f}">${l}</button>`).join('')+'</div>');
+$('fPre').addEventListener('click',e=>{const f=e.target.dataset&&e.target.dataset.f;if(!f)return;
+ let ins=[...fl.querySelectorAll('input')],last=ins[ins.length-1];if(last&&last.value.trim()){if(ins.length>=6){$('fErr').textContent='Tối đa 6 hàm cùng lúc.';return}$('fAdd').click();ins=[...fl.querySelectorAll('input')];last=ins[ins.length-1]}
+ last.value=f;last.dispatchEvent(new Event('input'))});
+$('gres').insertAdjacentHTML('afterend',`<div style="margin-top:14px"><b>📋 Bảng giá trị hàm số</b><div class="bar"><label>x từ <input type="number" id="vA" value="-3" step="any" style="width:90px"></label><label>đến <input type="number" id="vB" value="3" step="any" style="width:90px"></label><label>bước <input type="number" id="vS" value="1" step="any" min="0.0001" style="width:90px"></label><button class="sm" id="vGo" type="button">Lập bảng</button></div><div id="vOut"></div></div>`);
+$('vGo').onclick=()=>{const T=window._graphTest,o=$('vOut'),a=+$('vA').value,b=+$('vB').value,s=+$('vS').value;
+ if(!T){o.textContent='Chưa tải được công cụ vẽ đồ thị.';return}
+ if(!(s>0)||b<a){o.textContent='Hãy nhập x từ ≤ đến và bước > 0.';return}
+ if((b-a)/s>200){o.textContent='Tối đa 200 dòng — hãy tăng bước hoặc thu hẹp khoảng.';return}
+ const F=[];try{[...fl.querySelectorAll('input')].forEach(i=>{if(i.value.trim()){const f=T.compile(i.value);if(f)F.push([i.value.trim(),f])}})}catch(e){o.textContent='Có hàm chưa đúng cú pháp: '+(e.message||'').slice(0,80);return}
+ if(!F.length){o.textContent='Chưa có hàm nào để lập bảng.';return}
+ const fm=v=>!isFinite(v)?'không xác định':String(Math.round(v*1e6)/1e6).replace('.',',').replace('-','−'),n=Math.floor((b-a)/s+1e-9),R=[];
+ for(let i=0;i<=n;i++){const x=Math.round((a+i*s)*1e9)/1e9;R.push(`<tr><td><b>${fm(x)}</b></td>${F.map(([,f])=>`<td>${fm(f(x))}</td>`).join('')}</tr>`)}
+ o.innerHTML=`<table class="vt"><tr><th>x</th>${F.map(([s])=>`<th>y = ${s.replace(/[<>&]/g,'')}</th>`).join('')}</tr>${R.join('')}</table>`};
+})();
+
+/* ===== v6: Xuất đề + đáp án ra Word chuẩn (mỗi mã đề 1 file đề + 1 file đáp án, nén .zip) ===== */
+(function(){
+const $=id=>document.getElementById(id),b=$('qDoc');if(!b||!$('qOut'))return;
+b.textContent='📄 Xuất Word: đề + đáp án (.zip)';
+$('qOut').insertAdjacentHTML('beforebegin',`<details id="qWd" style="margin:8px 0"><summary class="note" style="cursor:pointer">⚙️ Tùy chọn file Word (tiêu đề, thời gian, phông chữ)</summary><div class="bar"><label>Tiêu đề <input type="text" id="qTitle" value="ĐỀ KIỂM TRA" style="width:210px"></label><label>Thời gian (phút) <input type="number" id="qTime" value="45" min="0" style="width:80px"></label><label>Phông <input type="text" id="qFont" value="Times New Roman" style="width:170px"></label><label>Cỡ <input type="number" id="qSz" value="13" min="8" max="24" style="width:70px"></label></div></details>`);
+$('qOut').insertAdjacentHTML('afterend','<div id="qMsg" class="note" style="font-size:15px"></div>');
+const W='http://schemas.openxmlformats.org/wordprocessingml/2006/main',kids=n=>[...n.childNodes].filter(c=>c.nodeType==1);
+const AFTER=['w:highlight','w:u','w:effect','w:bdr','w:shd','w:fitText','w:vertAlign','w:rtl','w:cs','w:em','w:lang','w:eastAsianLayout','w:specVanish'];
+function setSz(doc,pr,tag,val){let e=kids(pr).find(c=>c.nodeName==tag);if(!e){e=doc.createElementNS(W,tag);const r=kids(pr).find(c=>AFTER.includes(c.nodeName));r?pr.insertBefore(e,r):pr.appendChild(e)}e.setAttributeNS(W,'w:val',val)}
+async function fmtDocx(bytes,o){if(typeof JSZip=='undefined')return bytes;
+ const z=await JSZip.loadAsync(bytes),f=z.file('word/document.xml');if(!f)return bytes;
+ const doc=new DOMParser().parseFromString(await f.async('string'),'application/xml'),body=doc.getElementsByTagName('w:body')[0];if(!body)return bytes;
+ let sp=[...doc.getElementsByTagName('w:sectPr')].pop();if(!sp){sp=doc.createElementNS(W,'w:sectPr');body.appendChild(sp)}
+ const c=v=>String(Math.round(v*567)),mk=(t,at)=>{let e=kids(sp).find(x=>x.nodeName==t);if(!e){e=doc.createElementNS(W,t);t=='w:pgSz'?sp.insertBefore(e,sp.firstChild):sp.appendChild(e)}for(const k in at)e.setAttributeNS(W,'w:'+k,at[k])};
+ mk('w:pgSz',{w:'11906',h:'16838'});mk('w:pgMar',{top:c(2),bottom:c(2),left:c(3),right:c(1.5),header:'708',footer:'708',gutter:'0'});
+ const sz=String(Math.round(o.sz*2));
+ [...body.getElementsByTagName('w:r')].forEach(r=>{let pr=kids(r).find(x=>x.nodeName=='w:rPr');if(!pr){pr=doc.createElementNS(W,'w:rPr');r.insertBefore(pr,r.firstChild)}
+  let ft=kids(pr).find(x=>x.nodeName=='w:rFonts');if(!ft){ft=doc.createElementNS(W,'w:rFonts');pr.insertBefore(ft,pr.firstChild)}
+  ['ascii','hAnsi','cs','eastAsia'].forEach(a=>ft.setAttributeNS(W,'w:'+a,o.font));['asciiTheme','hAnsiTheme','eastAsiaTheme','cstheme'].forEach(a=>ft.removeAttributeNS(W,a));
+  if(!kids(pr).some(x=>x.nodeName=='w:sz')){setSz(doc,pr,'w:sz',sz);setSz(doc,pr,'w:szCs',sz)}});
+ [...body.getElementsByTagName('w:p')].forEach(p=>{let pr=kids(p).find(x=>x.nodeName=='w:pPr');if(!pr){pr=doc.createElementNS(W,'w:pPr');p.insertBefore(pr,p.firstChild)}
+  if(!kids(pr).some(x=>x.nodeName=='w:spacing')){const s=doc.createElementNS(W,'w:spacing');s.setAttributeNS(W,'w:line','276');s.setAttributeNS(W,'w:lineRule','auto');s.setAttributeNS(W,'w:after','60');
+   const nx=kids(pr).find(x=>['w:ind','w:contextualSpacing','w:jc','w:rPr'].includes(x.nodeName));nx?pr.insertBefore(s,nx):pr.appendChild(s)}});
+ let xml=new XMLSerializer().serializeToString(doc);if(!xml.startsWith('<?xml'))xml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+xml;
+ z.file('word/document.xml',xml);return await z.generateAsync({type:'uint8array',compression:'DEFLATE'})}
+b.onclick=async()=>{const M=$('qMsg'),T=$('qOut').value;if(!T.trim()){M.textContent='Hãy bấm "Tạo đề" trước.';return}
+ if(typeof itemToDocxBytes!='function'||typeof makeZip!='function'){M.textContent='Chưa nạp được bộ xuất Word (word-ui.js / word-zip-pdf.js).';return}
+ const o={font:$('qFont').value.trim()||'Times New Roman',sz:+$('qSz').value||13},title=$('qTitle').value.trim()||'ĐỀ KIỂM TRA',tm=Math.max(0,Math.floor(+$('qTime').value||0));
+ const mx=(T.match(/^MA TRẬN ĐỀ[\s\S]*$/m)||[''])[0].trim(),body=mx?T.slice(0,T.indexOf(mx)):T,parts=body.split(/^ĐỀ SỐ (\d+)[ \t]*$/m),files=[];
+ const head=c=>`${title.toUpperCase()}\n${tm?`Thời gian làm bài: ${tm} phút (không kể thời gian phát đề)\n`:''}Mã đề: ${c}\nHọ và tên: ................................................  Lớp: ..........\n\n`;
+ const mkDoc=async t=>fmtDocx(await itemToDocxBytes({kind:'txt',text:t.replace(/\n{3,}/g,'\n\n').trim()+'\n'}),o);
+ try{
+  if(parts.length<3)files.push({name:'de-thi.docx',data:await mkDoc(head(101)+body)});
+  else for(let i=1;i<parts.length;i+=2){const n=+parts[i],txt=parts[i+1],k=txt.search(/^ĐÁP ÁN ĐỀ SỐ \d+[ \t]*$/m),qs=k<0?txt:txt.slice(0,k),an=k<0?'':txt.slice(k).replace(/^ĐÁP ÁN ĐỀ SỐ \d+[ \t]*\n?/,'').replace(/\n?-{5,}\s*$/,'').trim(),code=100+n,id=String(n).padStart(2,'0');
+   files.push({name:`De_${id}.docx`,data:await mkDoc(head(code)+qs)});
+   if(an)files.push({name:`DapAn_${id}.docx`,data:await mkDoc(`ĐÁP ÁN – ${title.toUpperCase()}\nMã đề: ${code}\n\n${an}`)})}
+  if(mx)files.push({name:'Ma_tran_de.docx',data:await mkDoc(mx)});
+  const dl=typeof downloadBlob=='function'?downloadBlob:(d,n,m)=>saveBlob(new Blob([d],{type:m}),n);
+  if(files.length==1)await dl(files[0].data,files[0].name,'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  else await dl(await makeZip(files),'de-thi-toan.zip','application/zip');
+  M.innerHTML=`Đã xuất <b>${files.length}</b> file Word (A4, lề 2/2/3/1,5 cm, ${o.font} cỡ ${o.sz})${files.length>1?' trong de-thi-toan.zip':''}. Hãy mở kiểm tra công thức trước khi in.`
+ }catch(e){M.textContent='Lỗi khi xuất: '+e.message}};
 })();

@@ -21,7 +21,7 @@ function marked(p,m){const r=m=='u'?null:first(p,0);
  const c=kids(pr).find(c=>c.nodeName=='w:color'),v=c?(c.getAttribute('w:val')||'').toUpperCase():'';return /^(FF|C0|E0|D0)/.test(v)&&!/^(FFFFFF)$/.test(v)}
 function strip(p,m){const rs=m=='u'?[...p.getElementsByTagName('w:r')]:[first(p,0)];rs.forEach(r=>{const pr=r&&kids(r).find(c=>c.nodeName=='w:rPr');if(!pr)return;
  kids(pr).filter(c=>c.nodeName==({u:'w:u',b:'w:b',r:'w:color'})[m]).forEach(c=>pr.removeChild(c))})}
-const QRE=/^\s*(?:Câu|Bài)\s*(\d+)\s*[.:)]/i,ORE=/^\s*([A-D])\s*[.)]/,FIX=/(tất cả|cả\s+[ABCD]|đều đúng|đều sai|không có)/i;
+const QRE=/^\s*(?:Câu|Bài)\s*(\d+)\s*[.:)]/i,ORE=/^\s*([A-D])\s*[.)]/,FIX=/(tất cả (các|đều)|cả\s+[ABCD](\s*,|\s+và|\s+đều)|\b[ABCD]\s*,\s*[ABCD]\s*(,|và)|đều (đúng|sai)|không có (đáp án|phương án)|các phương án)/i;
 function parse(doc){const body=doc.getElementsByTagName('w:body')[0],all=kids(body),sect=all.filter(n=>n.nodeName=='w:sectPr').pop(),it=all.filter(n=>n!==sect);
  const isQ=n=>n.nodeName=='w:p'&&QRE.test(txt(n));let f=it.findIndex(isQ);if(f<0)return null;
  let end=it.length;for(let i=f+1;i<it.length;i++)if(it[i].nodeName=='w:p'&&/^\s*[-–—*\s]*HẾT/i.test(txt(it[i]))){end=i;break}
@@ -36,6 +36,17 @@ function fmt(doc,o){const body=doc.getElementsByTagName('w:body')[0];
   const f=ch(pr,'w:rFonts',{ascii:o.font,hAnsi:o.font,cs:o.font,eastAsia:o.font},RB);['asciiTheme','hAnsiTheme','eastAsiaTheme','cstheme'].forEach(a=>f.removeAttributeNS(W,a));
   const z=String(Math.round(o.sz*2));ch(pr,'w:sz',{val:z},RB.slice(RB.indexOf('w:szCs')));ch(pr,'w:szCs',{val:z},RB.slice(RB.indexOf('w:highlight')))});
  if(o.sp)[...body.getElementsByTagName('w:p')].forEach(p=>{let pr=kids(p).find(c=>c.nodeName=='w:pPr');if(!pr){pr=doc.createElementNS(W,'w:pPr');p.insertBefore(pr,p.firstChild)}ch(pr,'w:spacing',{line:276,lineRule:'auto',after:60},PB)})}
+
+function issueTxt(P,m){const L=a=>a.length?a.slice(0,25).join(', ')+(a.length>25?'…':''):'',none=[],odd=[],multi=[];
+ P.bl.forEach((b,i)=>{const k=b.opts.filter(p=>marked(p,m)).length;if(!k)none.push(i+1);if(k>1)multi.push(i+1);if(b.opts.length!=4)odd.push(i+1)});
+ return (odd.length?`<br><span style="color:var(--warn)">Câu không đủ 4 phương án (hoặc phương án cùng dòng): ${L(odd)}</span>`:'')+(none.length?`<br><span style="color:var(--warn)">Câu chưa đánh dấu đáp án: ${L(none)}</span>`:'')+(multi.length?`<br><span style="color:var(--warn)">Câu đánh dấu nhiều hơn 1 đáp án: ${L(multi)}</span>`:'')+(!odd.length&&!none.length&&!multi.length?'<br>✓ Không phát hiện vấn đề nào.':'')}
+$('xGo').insertAdjacentHTML('beforebegin','<button class="sec" id="xChk" type="button">🔍 Kiểm tra đề (chưa tải)</button> ');
+$('xChk').onclick=async()=>{const f=$('xFile').files[0],R=$('xRes');if(!f){R.textContent='Hãy chọn file .docx.';return}
+ if(typeof JSZip=='undefined'){R.textContent='Chưa tải được thư viện JSZip (cần mạng).';return}
+ try{const z=await JSZip.loadAsync(await f.arrayBuffer()),x=z.file('word/document.xml');if(!x){R.textContent='Đây không phải file .docx hợp lệ.';return}
+  const P=parse(new DOMParser().parseFromString(await x.async('string'),'application/xml'));
+  if(!P){R.innerHTML='Không nhận diện được câu hỏi. Mỗi câu phải bắt đầu bằng chữ "Câu 1." (gõ trực tiếp, không dùng danh sách tự đánh số của Word).';return}
+  R.innerHTML=`Nhận diện <b>${P.bl.length}</b> câu.`+issueTxt(P,$('xM').value)}catch(e){R.textContent='Lỗi: '+e.message}};
 $('xGo').onclick=async()=>{
  const f=$('xFile').files[0],R=$('xRes');if(!f){R.textContent='Hãy chọn file .docx.';return}
  if(typeof JSZip=='undefined'){R.textContent='Chưa tải được thư viện JSZip (cần mạng để tải từ cdnjs).';return}
@@ -44,7 +55,7 @@ $('xGo').onclick=async()=>{
   const buf=await f.arrayBuffer(),z0=await JSZip.loadAsync(buf),src=await z0.file('word/document.xml').async('string');
   const codes=$('xCodes').value.split(/[,;\s]+/).filter(Boolean),m=$('xM').value,K=Math.max(0,+$('xK').value||0);
   const o={T:+$('xT').value,B:+$('xB').value,L:+$('xL').value,R:+$('xR').value,fmt:$('xFmt').checked,font:$('xFont').value||'Times New Roman',sz:+$('xSz').value||13,sp:$('xSp').checked};
-  const probe=parse(new DOMParser().parseFromString(src,'application/xml'));if(!probe){R.textContent='Không nhận diện được câu hỏi ("Câu 1.", "Câu 2."…).';return}
+  const probe=parse(new DOMParser().parseFromString(src,'application/xml'));if(!probe){R.innerHTML='Không nhận diện được câu hỏi. Mỗi câu phải bắt đầu bằng chữ "Câu 1." (gõ trực tiếp, không dùng danh sách tự đánh số của Word).';return}
   const n4=probe.bl.filter(b=>b.opts.length==4).length,nm=probe.bl.filter(b=>b.opts.some(p=>marked(p,m))).length,odd=probe.bl.filter(b=>b.opts.length>0&&b.opts.length!=4).length;
   const master=new JSZip(),keys=[],maps=[];
   for(const code of codes){
@@ -70,6 +81,6 @@ $('xGo').onclick=async()=>{
   if(typeof XLSX!='undefined'){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Dap an');XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows2),'Doi chieu');master.file('Dap_an_va_doi_chieu.xlsx',XLSX.write(wb,{type:'array',bookType:'xlsx'}))}
   $('xKey').innerHTML='<table style="border-collapse:collapse;font-size:13px">'+rows.map((r,i)=>'<tr>'+r.map(c=>`<${i?'td':'th'} style="border:1px solid var(--bd);padding:3px 8px">${c}</${i?'td':'th'}>`).join('')+'</tr>').join('')+'</table>';
   const blob=await master.generateAsync({type:'blob'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cac_ma_de_'+f.name.replace(/\.docx$/i,'')+'.zip';a.click();
-  R.innerHTML=`Nhận diện <b>${N}</b> câu · ${n4} câu có đủ 4 phương án · ${nm} câu có đáp án được đánh dấu`+(odd?` · <span style="color:var(--warn)">${odd} câu có số phương án khác 4 (kiểm tra lại)</span>`:'')+(nm<N?` · <span style="color:var(--warn)">${N-nm} câu chưa có đáp án (hiện dấu ?)</span>`:'')+`<br>Đã tạo ${codes.length} mã đề và tải về file .zip.`;
+  R.innerHTML=`Nhận diện <b>${N}</b> câu · ${n4} câu có đủ 4 phương án · ${nm} câu có đáp án được đánh dấu`+(odd?` · <span style="color:var(--warn)">${odd} câu có số phương án khác 4 (kiểm tra lại)</span>`:'')+(nm<N?` · <span style="color:var(--warn)">${N-nm} câu chưa có đáp án (hiện dấu ?)</span>`:'')+`<br>Đã tạo ${codes.length} mã đề và tải về file .zip.`+issueTxt(probe,m);
  }catch(e){R.textContent='Lỗi: '+e.message}};
 })();
