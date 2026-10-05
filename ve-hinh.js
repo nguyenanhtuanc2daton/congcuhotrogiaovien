@@ -1,8 +1,8 @@
 /* Vẽ hình tương tác (kiểu Sketchpad) - dùng cho tab Toán học
-   Gắn vào <div id="mJ"> trong index.html. Không cần thư viện ngoài. */
+   Gắn vào <div id="mVeHinh"> trong index.html. Không cần thư viện ngoài. */
 (function () {
   'use strict';
-  var root = document.getElementById('mJ');
+  var root = document.getElementById('mVeHinh');
   if (!root || root.getAttribute('data-vh')) return;
   root.setAttribute('data-vh', '1');
 
@@ -21,21 +21,21 @@
 
   /* ================= Giao diện ================= */
   var css =
-    '#mJ .vh-tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px;margin:8px 0}' +
-    '#mJ .vh-b{cursor:pointer;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:inherit;border-radius:10px;padding:5px 2px;font:inherit;line-height:1.1;text-align:center;min-height:46px}' +
-    '#mJ .vh-b i{display:block;font-style:normal;font-size:19px}' +
-    '#mJ .vh-b span{display:block;font-size:10.5px;opacity:.85;margin-top:2px}' +
-    '#mJ .vh-b.on{background:var(--a1,#4f5bf0);border-color:transparent;color:#fff}' +
-    '#mJ .vh-shapes{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}' +
-    '#mJ .vh-chip{min-height:36px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,213,79,.12);color:inherit;border-radius:999px;padding:6px 11px;font:inherit;font-size:13px;white-space:nowrap}' +
-    '#mJ .vh-lbl{font-size:12.5px;opacity:.85;margin:8px 0 0}' +
-    '#mJ svg.vh-svg{width:100%;aspect-ratio:16/10.5;display:block;touch-action:none;user-select:none;-webkit-user-select:none;background:var(--card2,#0f1626);border:1px solid var(--bd,#25324d);border-radius:10px;margin-top:6px}' +
-    '#mJ .vh-status{font-size:13px;margin:6px 0;min-height:19px;opacity:.95}' +
-    '#mJ .vh-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}' +
-    '#mJ .vh-ctl label{font-size:14.5px;display:inline-flex;align-items:center;gap:4px}' +
-    '#mJ .vh-meas{margin:6px 0}' +
-    '#mJ .vh-m{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;margin:4px 0;border:1px solid rgba(255,255,255,.14);border-radius:8px;font-size:14px}' +
-    '#mJ .vh-m button{min-height:0;padding:2px 8px;cursor:pointer;border:0;background:transparent;color:inherit;font-size:16px;opacity:.7}';
+    '#mVeHinh .vh-tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px;margin:8px 0}' +
+    '#mVeHinh .vh-b{cursor:pointer;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:inherit;border-radius:10px;padding:5px 2px;font:inherit;line-height:1.1;text-align:center;min-height:46px}' +
+    '#mVeHinh .vh-b i{display:block;font-style:normal;font-size:19px}' +
+    '#mVeHinh .vh-b span{display:block;font-size:10.5px;opacity:.85;margin-top:2px}' +
+    '#mVeHinh .vh-b.on{background:var(--a1,#4f5bf0);border-color:transparent;color:#fff}' +
+    '#mVeHinh .vh-shapes{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}' +
+    '#mVeHinh .vh-chip{min-height:36px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,213,79,.12);color:inherit;border-radius:999px;padding:6px 11px;font:inherit;font-size:13px;white-space:nowrap}' +
+    '#mVeHinh .vh-lbl{font-size:12.5px;opacity:.85;margin:8px 0 0}' +
+    '#mVeHinh svg.vh-svg{width:100%;aspect-ratio:16/10.5;display:block;touch-action:none;user-select:none;-webkit-user-select:none;background:var(--card2,#0f1626);border:1px solid var(--bd,#25324d);border-radius:10px;margin-top:6px}' +
+    '#mVeHinh .vh-status{font-size:13px;margin:6px 0;min-height:19px;opacity:.95}' +
+    '#mVeHinh .vh-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}' +
+    '#mVeHinh .vh-ctl label{font-size:14.5px;display:inline-flex;align-items:center;gap:4px}' +
+    '#mVeHinh .vh-meas{margin:6px 0}' +
+    '#mVeHinh .vh-m{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;margin:4px 0;border:1px solid rgba(255,255,255,.14);border-radius:8px;font-size:14px}' +
+    '#mVeHinh .vh-m button{min-height:0;padding:2px 8px;cursor:pointer;border:0;background:transparent;color:inherit;font-size:16px;opacity:.7}';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
   var TOOLS = [
@@ -719,8 +719,8 @@
   /* ================= Khởi động ================= */
   var sel = document.getElementById('mSel');
   if (sel) sel.addEventListener('change', function () {
-    if (sel.value === 'mJ') {
-      document.querySelectorAll('#t5>.mt').forEach(function (d) { d.classList.toggle('on', d.id === 'mJ'); });
+    if (sel.value === 'mVeHinh') {
+      document.querySelectorAll('#t5>.mt').forEach(function (d) { d.classList.toggle('on', d.id === 'mVeHinh'); });
     }
     setTimeout(refresh, 60); setTimeout(refresh, 400);
   });
