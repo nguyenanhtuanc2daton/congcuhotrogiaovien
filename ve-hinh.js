@@ -82,7 +82,7 @@
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
   var TOOLS = [
-    ['select', '👆', 'Chọn/Kéo', 'Chạm để chọn điểm, đoạn, đường; chạm vào bên trong để chọn cả đa giác (chạm nhiều đối tượng để chọn nhiều). Kéo điểm để di chuyển, kéo vùng trống để dời khung, 2 ngón để phóng to/thu nhỏ.'],
+    ['select', '👆', 'Chọn/Kéo', 'Chạm để chọn điểm, đoạn, đường; chạm trong góc gần đỉnh để chọn góc; chạm vào bên trong để chọn cả đa giác (chạm nhiều đối tượng để chọn nhiều). Kéo điểm để di chuyển, kéo vùng trống để dời khung, 2 ngón để phóng to/thu nhỏ.'],
     ['point', '●', 'Điểm', 'Chạm chỗ trống để đặt điểm. Chạm lên đoạn, đường, đường tròn để đặt điểm chạy trên đó.'],
     ['seg', '╱', 'Đoạn', 'Kéo từ điểm này sang điểm kia, hoặc chạm lần lượt 2 điểm.'],
     ['line', '↔', 'Đường', 'Kéo qua 2 điểm, hoặc chạm lần lượt 2 điểm.'],
@@ -1359,6 +1359,24 @@
       add('⌒ Ký hiệu cung góc', act(function () { arcAt(Aa, Bb, Cc, 1); return ui.sel.slice(); }));
     }
     if (a.angs.length === 1 && !np && !nl && !nc && !ng) angleActs(a.angs[0]);
+    /* góc tạo bởi hai cạnh/đoạn có chung đỉnh (có thể chọn kèm đỉnh đó), hoặc một đỉnh của đa giác */
+    if (!a.angs.length && !nc && !ng && nl === 2 && np <= 1) {
+      var e1 = segEnds(a.lines[0].ref), e2 = segEnds(a.lines[1].ref), cm = null, ot = null;
+      if (e1 && e2 && e1[0] && e1[1] && e2[0] && e2[1]) {
+        [0, 1].forEach(function (i) { [0, 1].forEach(function (j) { if (!cm && e1[i].id === e2[j].id) { cm = e1[i]; ot = [e1[1 - i], e2[1 - j]]; } }); });
+      }
+      if (cm && ot[0].id !== ot[1].id && (np === 0 || A.id === cm.id)) {
+        var r1o = O(a.lines[0].ref.id), samePoly = r1o && r1o.type === 'poly' && a.lines[0].ref.id === a.lines[1].ref.id && a.lines[0].ref.e !== undefined && a.lines[1].ref.e !== undefined;
+        angleActs({ t: 'g', p: [ot[0].id, cm.id, ot[1].id], po: samePoly ? r1o.id : undefined });
+      }
+    }
+    if (np === 1 && !nl && !nc && !ng && !a.angs.length) {
+      var inPolys = M.objs.filter(function (o2) { return o2.type === 'poly' && shownObj(o2) && o2.p.indexOf(A.id) >= 0; });
+      if (inPolys.length === 1) {
+        var pp0 = inPolys[0], nn0 = pp0.p.length, ix = pp0.p.indexOf(A.id);
+        angleActs({ t: 'g', p: [pp0.p[(ix + nn0 - 1) % nn0], A.id, pp0.p[(ix + 1) % nn0]], po: pp0.id });
+      }
+    }
     var tri = triOf(a);
     if (tri) {
       sep('△ Tam giác ' + triName(tri));
