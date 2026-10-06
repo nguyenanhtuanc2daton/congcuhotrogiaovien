@@ -1,5 +1,5 @@
 /* Tab Toán học: Tạo đề · Thống kê & Xác suất · Hình học · Số học · Giải PT (bản v2 ghi đè công cụ cũ), xuất SVG/PNG, sao lưu/khôi phục */
-/* ---- Tab 5: Toán học (Tạo đề · Thống kê & Xác suất · Hình học động) ---- */
+/* ---- Tab 5: Toán học (Tạo đề · Thống kê & Xác suất) ---- */
 (function(){
 const $=id=>document.getElementById(id);
 $('mSel').addEventListener('change',()=>{document.querySelectorAll('#t5>.mt').forEach(m=>m.classList.toggle('on',m.id===$('mSel').value));if($('mSel').value==='mI')window.dispatchEvent(new CustomEvent('tabshow',{detail:'t4'}));});
@@ -70,41 +70,6 @@ $('pRun').onclick=()=>{
  $('pRes').innerHTML=`N = ${N} lần. `+labs.map((l,i)=>`${l}: ${cnt[i]} (tần suất ${fr[i].toFixed(3)} · lí thuyết ${th[i].toFixed(3)})`).join(' | ');
  bars($('mbCv'),labs,[fr,th],cols,['Tần suất thực nghiệm','Xác suất lí thuyết'])};
 
-/* C. Hình học động */
-const svg=$('gSvg'),NS='http://www.w3.org/2000/svg',U=40,ox=40,oy=380;
-const P={A:[3,7],B:[1,1],C:[10,2]};
-const X=p=>ox+p[0]*U,Y=p=>oy-p[1]*U,d=(p,q)=>Math.hypot(p[0]-q[0],p[1]-q[1]);
-const ang=(p,q,r)=>{const u=[q[0]-p[0],q[1]-p[1]],v=[r[0]-p[0],r[1]-p[1]];return Math.acos((u[0]*v[0]+u[1]*v[1])/(Math.hypot(...u)*Math.hypot(...v)))*180/Math.PI};
-const el=(t,a,x)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(x!=null)e.textContent=x;svg.appendChild(e);return e};
-const pt=(n,p,c)=>{el('circle',{cx:X(p),cy:Y(p),r:7,fill:c||'#4f5bf0',stroke:'#fff','data-n':n,style:'cursor:grab'});el('text',{x:X(p)+9,y:Y(p)-9,fill:'#fff','font-size':15,'font-weight':700},n)};
-const ln=(p,q,c,w,dash)=>el('line',{x1:X(p),y1:Y(p),x2:X(q),y2:Y(q),stroke:c,'stroke-width':w||2,'stroke-dasharray':dash||''});
-function draw(){
- svg.innerHTML='';
- for(let i=0;i<=15;i++){el('line',{x1:ox+i*U,y1:0,x2:ox+i*U,y2:420,stroke:'#1b2740'});}
- for(let j=0;j<=9;j++)el('line',{x1:0,y1:oy-j*U,x2:640,y2:oy-j*U,stroke:'#1b2740'});
- const A=P.A,B=P.B,C=P.C,a=d(B,C),b=d(A,C),c=d(A,B),s=(a+b+c)/2,S=Math.sqrt(Math.max(0,s*(s-a)*(s-b)*(s-c))),f=x=>x.toFixed(2);
- const mode=$('gMode').value;let info='';
- ln(A,B,'#38bdf8');ln(B,C,'#38bdf8');ln(C,A,'#38bdf8');
- if(mode=='tri'){
-  const D=2*(A[0]*(B[1]-C[1])+B[0]*(C[1]-A[1])+C[0]*(A[1]-B[1]));
-  if($('gCirc').checked&&Math.abs(D)>1e-6){const ux=((A[0]**2+A[1]**2)*(B[1]-C[1])+(B[0]**2+B[1]**2)*(C[1]-A[1])+(C[0]**2+C[1]**2)*(A[1]-B[1]))/D,uy=((A[0]**2+A[1]**2)*(C[0]-B[0])+(B[0]**2+B[1]**2)*(A[0]-C[0])+(C[0]**2+C[1]**2)*(B[0]-A[0]))/D,R=d([ux,uy],A);
-   el('circle',{cx:X([ux,uy]),cy:Y([ux,uy]),r:R*U,fill:'none',stroke:'#fb923c','stroke-dasharray':'5 4'});info+=` · R = ${f(R)}`}
-  if($('gInc').checked&&S>1e-6){const I=[(a*A[0]+b*B[0]+c*C[0])/(2*s),(a*A[1]+b*B[1]+c*C[1])/(2*s)],r=S/s;
-   el('circle',{cx:X(I),cy:Y(I),r:r*U,fill:'none',stroke:'#34d399','stroke-dasharray':'5 4'});info+=` · r = ${f(r)}`}
-  info=`AB = ${f(c)} · BC = ${f(a)} · CA = ${f(b)}<br>Â = ${f(ang(A,B,C))}° · B̂ = ${f(ang(B,A,C))}° · Ĉ = ${f(ang(C,A,B))}°<br>Chu vi = ${f(2*s)} · Diện tích = ${f(S)}`+info;
- }else{
-  const t=+$('gT').value,D=[A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t],E=[A[0]+(C[0]-A[0])*t,A[1]+(C[1]-A[1])*t];
-  ln(D,E,'#fb923c',3);pt('D',D,'#fb923c');pt('E',E,'#fb923c');
-  info=`AD/AB = ${f(d(A,D)/c)} · AE/AC = ${f(d(A,E)/b)} · DE/BC = ${f(d(D,E)/a)}<br>AD/DB = ${f(d(A,D)/d(D,B))} · AE/EC = ${f(d(A,E)/d(E,C))}<br>Ba tỉ số bằng nhau ⇒ DE // BC (định lí Thalès và hệ quả).`}
- pt('A',A);pt('B',B);pt('C',C);$('gInfo').innerHTML=info}
-let drag=null;
-svg.addEventListener('pointerdown',e=>{const n=e.target.getAttribute&&e.target.getAttribute('data-n');if(P[n]){drag=n;svg.setPointerCapture(e.pointerId)}});
-svg.addEventListener('pointermove',e=>{if(!drag)return;const r=svg.getBoundingClientRect(),k=640/r.width;
- P[drag]=[Math.min(15,Math.max(0,Math.round(((e.clientX-r.left)*k-ox)/U*4)/4)),Math.min(9,Math.max(0,Math.round((oy-(e.clientY-r.top)*k)/U*4)/4))];draw()});
-svg.addEventListener('pointerup',()=>drag=null);
-['gCirc','gInc','gT'].forEach(i=>$(i).addEventListener('input',draw));
-$('gMode').addEventListener('change',()=>{const th=$('gMode').value=='tha';$('gTw').style.display=th?'':'none';$('gOpt').style.display=th?'none':'';$('gCirc').parentNode.nextElementSibling.style.display=th?'none':'';draw()});
-draw();
 })();
 
 /* ---- Tab 5 (mở rộng): Số học · Giải PT · Tam giác vuông · Giờ & nhóm ---- */
@@ -334,22 +299,6 @@ if($('rA')){HP('rA','afterend','<label>Góc B (độ) <input type="number" id="r
    tx(0,A[0]-12,A[1]+14,'A')+tx(0,Bb[0]-14,Bb[1]-4,'B')+tx(0,Cc[0]+4,Cc[1]+14,'C')+tx(0,Hh[0]+5,Hh[1]-3,'H','#fb923c')+tx(0,A[0]-6,(A[1]+Bb[1])/2+4,'c='+rd(c),'','end')+tx(0,(A[0]+Cc[0])/2,A[1]+16,'b='+rd(b),'','middle')+tx(0,(Bb[0]+Cc[0])/2+8,(Bb[1]+Cc[1])/2-4,'a='+rd(a))+tx(0,(A[0]+Hh[0])/2,(A[1]+Hh[1])/2-8,'h='+rd(h),'#fb923c','middle')});
 }
 
-/* ---------- C. Hình học động: trung tuyến, đường cao, phân giác, phân loại tam giác ---------- */
-(function(){const svg=$('gSvg');if(!svg||!$('gInc'))return;
- HP('gInc','afterend','<label id="gX1"><input type="checkbox" id="gMed"> Trung tuyến · trọng tâm G</label><label id="gX2"><input type="checkbox" id="gAlt"> Đường cao · trực tâm H</label><label id="gX3"><input type="checkbox" id="gBis"> Phân giác trong</label>');
- const NS='http://www.w3.org/2000/svg',ox=40,oy=380,U=40,X=q=>ox+q[0]*U,Y=q=>oy-q[1]*U,dd=(p,q)=>Math.hypot(p[0]-q[0],p[1]-q[1]);
- const pts=()=>{const o={};svg.querySelectorAll('circle[data-n]').forEach(c=>{o[c.getAttribute('data-n')]=[(+c.getAttribute('cx')-ox)/U,(oy-+c.getAttribute('cy'))/U]});return o};
- const ft=(P,Q,Rr)=>{const dx=Rr[0]-Q[0],dy=Rr[1]-Q[1],t=((P[0]-Q[0])*dx+(P[1]-Q[1])*dy)/(dx*dx+dy*dy);return[Q[0]+t*dx,Q[1]+t*dy]};
- const add=(tag,at,txt)=>{const e=document.createElementNS(NS,tag);for(const k in at)e.setAttribute(k,at[k]);if(txt)e.textContent=txt;svg.insertBefore(e,svg.querySelector('circle[data-n]'));return e};
- const ln=(p,q,c)=>add('line',{x1:X(p),y1:Y(p),x2:X(q),y2:Y(q),stroke:c,'stroke-width':1.8,'stroke-dasharray':'6 4'}),dot=(p,n,c)=>{add('circle',{cx:X(p),cy:Y(p),r:5,fill:c,stroke:'#fff'});add('text',{x:X(p)+7,y:Y(p)+16,fill:c,'font-size':14,'font-weight':700},n)};
- const ov=()=>{const th=$('gMode').value=='tha';['gX1','gX2','gX3'].forEach(i=>$(i).style.display=th?'none':'');if(th)return;const p=pts(),A=p.A,B=p.B,C=p.C;if(!A||!B||!C)return;
-  const a=dd(B,C),b=dd(A,C),c=dd(A,B),G=[(A[0]+B[0]+C[0])/3,(A[1]+B[1]+C[1])/3],mid=(u,v)=>[(u[0]+v[0])/2,(u[1]+v[1])/2],D2=2*(A[0]*(B[1]-C[1])+B[0]*(C[1]-A[1])+C[0]*(A[1]-B[1]));let inf='';
-  if($('gMed').checked){[[A,B,C],[B,A,C],[C,A,B]].forEach(([P,Q,Rr])=>ln(P,mid(Q,Rr),'#facc15'));dot(G,'G','#facc15');inf+=` · G(${rd(G[0])}; ${rd(G[1])})`}
-  if($('gAlt').checked&&Math.abs(D2)>1e-6){[[A,B,C],[B,A,C],[C,A,B]].forEach(([P,Q,Rr])=>ln(P,ft(P,Q,Rr),'#f472b6'));const sq=q=>q[0]*q[0]+q[1]*q[1],Ox=(sq(A)*(B[1]-C[1])+sq(B)*(C[1]-A[1])+sq(C)*(A[1]-B[1]))/D2,Oy=(sq(A)*(C[0]-B[0])+sq(B)*(A[0]-C[0])+sq(C)*(B[0]-A[0]))/D2,Hh=[A[0]+B[0]+C[0]-2*Ox,A[1]+B[1]+C[1]-2*Oy];dot(Hh,'H','#f472b6');inf+=` · H(${rd(Hh[0])}; ${rd(Hh[1])})`}
-  if($('gBis').checked){[[A,B,C,b,c],[B,A,C,a,c],[C,A,B,a,b]].forEach(([P,Q,Rr,m,n])=>ln(P,[(m*Q[0]+n*Rr[0])/(m+n),(m*Q[1]+n*Rr[1])/(m+n)],'#a78bfa'))}
-  const s=[a*a,b*b,c*c].sort((x,y)=>x-y),e=1e-6*s[2],kind=Math.abs(s[0]+s[1]-s[2])<e?'vuông':s[0]+s[1]<s[2]?'tù':'nhọn',iso=Math.abs(a-b)<1e-6&&Math.abs(b-c)<1e-6?'đều':(Math.abs(a-b)<1e-6||Math.abs(b-c)<1e-6||Math.abs(a-c)<1e-6)?'cân':'';
-  if(D2&&Math.abs(D2)>1e-6)$('gInfo').innerHTML+=`<br><b>Loại tam giác:</b> ${kind}${iso?' '+iso:''} (so sánh a² + b² với c²: ${rd(s[0])} + ${rd(s[1])} ${Math.abs(s[0]+s[1]-s[2])<e?'=':s[0]+s[1]<s[2]?'<':'>'} ${rd(s[2])})`+(inf?'<br>'+inf.slice(3):'')};
- ['gCirc','gInc','gT'].forEach(i=>$(i).addEventListener('input',ov));['gMed','gAlt','gBis'].forEach(i=>$(i).addEventListener('input',()=>$('gT').dispatchEvent(new Event('input'))));$('gMode').addEventListener('change',ov);svg.addEventListener('pointermove',ov);svg.addEventListener('pointerup',ov);ov()})();
 
 /* ---------- G. Đếm giờ (chính xác theo đồng hồ, thanh tiến độ, toàn màn hình) & chia nhóm / gọi tên ---------- */
 if($('kDisp')){const st=document.createElement('style');st.textContent='#kDisp:fullscreen{background:#0b1220;display:flex;align-items:center;justify-content:center;font-size:28vw!important;margin:0!important}';document.head.appendChild(st);
@@ -435,11 +384,6 @@ const o4=$('kSplit').onclick;$('kSplit').onclick=()=>{if(!$('kMix').checked)retu
 $('kCopy').onclick=()=>cp($('kRes').innerText);
 
 
-/* Xuất hình học (SVG / PNG) */
-$('gMode').parentNode.insertAdjacentHTML('beforeend','<button class="sec sm" id="gSvgB" type="button">⬇ Lưu SVG</button><button class="orange sm" id="gPngB" type="button">📷 Lưu PNG</button>');
-const gs=()=>{const s=$('gSvg').cloneNode(true);s.setAttribute('xmlns','http://www.w3.org/2000/svg');s.setAttribute('width',640);s.setAttribute('height',420);s.removeAttribute('style');s.insertAdjacentHTML('afterbegin','<rect width="640" height="420" fill="#0f172a"/>');return new XMLSerializer().serializeToString(s)};
-on('gSvgB',()=>dl('hinh-hoc.svg',gs(),'image/svg+xml'));
-on('gPngB',()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=1280;c.height=840;c.getContext('2d').drawImage(im,0,0,1280,840);c.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='hinh-hoc.png';a.click()})};im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(gs())});
 
 /* Sao lưu / khôi phục dữ liệu, chữ lớn khi chiếu */
 $('mSel').parentNode.insertAdjacentHTML('beforeend','<button class="sec sm" id="tBak" type="button" title="Lưu toàn bộ dữ liệu (bảng điểm, ngân hàng câu hỏi...) ra file">💾 Sao lưu</button><button class="sec sm" id="tRes" type="button">📂 Khôi phục</button><button class="ghost sm" id="tBig" type="button">🔠 Chữ lớn</button><input type="file" id="tFile" accept=".json" style="display:none">');
@@ -453,7 +397,7 @@ on('tBig',()=>document.body.classList.toggle('tbig'));
 /* ===== v4: chữ to rõ · số thập phân kiểu Việt · biểu đồ rõ nét · sửa lỗi chính xác ===== */
 (function(){
 const $=id=>document.getElementById(id),ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),rd=x=>Math.round(x*1e4)/1e4;
-const RES='#sRes,#pRes,#gInfo,#nRes,#eRes,#rRes,#xRes';
+const RES='#sRes,#pRes,#nRes,#eRes,#rRes,#xRes';
 const st=document.createElement('style');
 st.textContent=`
 #t5 .mt{font-size:17px}
@@ -465,7 +409,6 @@ st.textContent=`
 #t5 :is(${RES}){font-size:17px!important;line-height:1.85!important;padding:12px 14px;margin-top:10px;background:var(--card2);border:1px solid var(--bd);border-left:4px solid var(--cy);border-radius:10px;color:#e6ebf5;overflow-wrap:anywhere}
 #t5 :is(${RES}):empty{display:none}
 #t5 .note{font-size:15px;line-height:1.6}
-#t5 #gSvg circle[data-n]{r:13px!important}#t5 #gSvg text{font-size:20px!important}
 body.tbig #t5 .mt,body.tbig #t5 :is(${RES}){font-size:22px!important}
 body.tbig #t5 input,body.tbig #t5 select,body.tbig #t5 textarea,body.tbig #t5 button,body.tbig #t5 label{font-size:21px!important}
 body.tbig #t5 input[type=number]{width:110px!important}`;
@@ -475,7 +418,7 @@ document.head.appendChild(st);
 const vn=el=>{const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),L=[];let n;while(n=w.nextNode())L.push(n);
  L.forEach(t=>{const s=t.nodeValue.replace(/(\d)\.(\d)/g,'$1,$2');if(s!==t.nodeValue)t.nodeValue=s})};
 RES.split(',').forEach(s=>{const el=$(s.slice(1));if(!el)return;
- new MutationObserver(()=>{if(s==='#gInfo'&&/NaN|Infinity/.test(el.textContent)){el.innerHTML='Ba điểm A, B, C đang thẳng hàng hoặc trùng nhau nên chưa tạo thành tam giác. Hãy kéo một điểm ra khỏi đường thẳng.';return}vn(el)}).observe(el,{childList:true,subtree:true,characterData:true})});
+ new MutationObserver(()=>{vn(el)}).observe(el,{childList:true,subtree:true,characterData:true})});
 
 /* Biểu đồ cột lớn, chữ rõ, có số trên cột */
 const chart=(cv,labs,ser,cols,names)=>{const W=cv.width=760,H=cv.height=420,c=cv.getContext('2d'),fm=x=>(x<=1?x.toFixed(2):String(Math.round(x))).replace('.',',');

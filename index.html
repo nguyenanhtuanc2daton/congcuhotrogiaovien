@@ -353,7 +353,7 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 <section class="panel" id="t5">
 <h2>🧮 Toán học — Bộ công cụ</h2>
 <div class="bar"><label for="mSel" style="font-weight:600">Chọn công cụ:</label>
-<select id="mSel"><option value="mA">📝 Bộ tạo đề ngẫu nhiên</option><option value="mB">📊 Thống kê &amp; Xác suất</option><option value="mC">📐 Hình học động</option><option value="mVeHinh">🖊️ Vẽ hình tương tác (kiểu Sketchpad)</option><option value="mD">🔢 Số học: ƯCLN, BCNN, phân tích</option><option value="mE">✏️ Giải phương trình từng bước</option><option value="mF">📏 Tam giác vuông &amp; hệ thức lượng</option><option value="mH">🔀 Trộn đề Word &amp; sinh mã đề</option><option value="mI">📈 Vẽ đồ thị hàm số</option></select></div>
+<select id="mSel"><option value="mA">📝 Bộ tạo đề ngẫu nhiên</option><option value="mB">📊 Thống kê &amp; Xác suất</option><option value="mVeHinh">🖊️ Vẽ hình tương tác (kiểu Sketchpad)</option><option value="mD">🔢 Số học: ƯCLN, BCNN, phân tích</option><option value="mE">✏️ Giải phương trình từng bước</option><option value="mF">📏 Tam giác vuông &amp; hệ thức lượng</option><option value="mH">🔀 Trộn đề Word &amp; sinh mã đề</option><option value="mI">📈 Vẽ đồ thị hàm số</option></select></div>
 
 <div class="mt on" id="mA">
 <div class="bar" id="qTopics"></div>
@@ -380,15 +380,6 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 <canvas id="mbCv" style="width:100%;margin-top:10px;background:var(--card2);border:1px solid var(--bd);border-radius:10px"></canvas>
 </div>
 
-<div class="mt" id="mC">
-<div class="bar"><select id="gMode"><option value="tri">Tam giác (cạnh, góc, diện tích)</option><option value="tha">Định lí Thalès (DE // BC)</option></select>
-<label id="gOpt"><input type="checkbox" id="gCirc"> Đường tròn ngoại tiếp</label>
-<label><input type="checkbox" id="gInc"> Nội tiếp</label>
-<label id="gTw" style="display:none">t = <input type="range" id="gT" min="0.1" max="0.9" step="0.05" value="0.5"></label></div>
-<svg id="gSvg" viewBox="0 0 640 420" style="width:100%;touch-action:none;background:var(--card2);border:1px solid var(--bd);border-radius:10px"></svg>
-<div id="gInfo" class="note" style="font-size:13px"></div>
-<div class="note">Kéo các điểm A, B, C để thay đổi hình. 1 ô lưới = 1 đơn vị.</div>
-</div>
 <div class="mt" id="mVeHinh"></div>
 <div class="mt" id="mD">
 <div class="bar"><label>Số a <input type="number" id="nA" value="84" style="width:110px"></label><label>Số b <input type="number" id="nB" value="126" style="width:110px"></label><button class="sm" id="nRun" type="button">Tính</button></div>
