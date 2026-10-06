@@ -267,10 +267,9 @@
     '<h2>📅 Lịch báo giảng tự động</h2>' +
     '<div class="note">Chọn file Excel lịch báo giảng của tuần hiện tại. Công cụ tự đổi dòng <b>Tuần … (từ ngày - đến ngày)</b> sang tuần kế tiếp, cộng số tiết PPCT cho môn Toán và Công nghệ (ô có nhiều tiết như “17,18” thì cộng cho từng số), giữ nguyên mọi thông tin và định dạng khác rồi xuất file Excel mới.</div>' +
     '<div class="cfg">' +
-    '<div><label for="lbgHk">Công nghệ mỗi tuần</label><select id="lbgHk"><option value="1">Cộng 1 tiết (mặc định)</option><option value="2">Cộng 2 tiết</option></select></div>' +
-    '<div><label for="lbgToan">Toán cộng thêm (tiết)</label><input type="number" id="lbgToan" value="4" min="0" step="1"></div>' +
     '<div><label for="lbgCn">Công nghệ cộng thêm (tiết)</label><input type="number" id="lbgCn" value="1" min="0" step="1"></div>' +
-    '<div><label for="lbgHt" title="Dòng môn ghi là Toán (HT) có bộ đếm tiết riêng">Toán học thêm (HT) mỗi tuần</label><select id="lbgHt"><option value="1">Cộng 1 tiết (mặc định)</option><option value="2">Cộng 2 tiết</option></select></div>' +
+    '<div><label for="lbgToan">Toán cộng thêm (tiết)</label><input type="number" id="lbgToan" value="4" min="0" step="1"></div>' +
+    '<div><label for="lbgHt" title="Dòng môn ghi là Toán (HT) có bộ đếm tiết riêng">Toán học thêm (HT) cộng thêm (tiết)</label><input type="number" id="lbgHt" value="1" min="0" step="1"></div>' +
     '</div>' +
     '<div class="bar"><button class="sm" id="lbgPick" type="button">📤 Chọn file Excel (.xlsx)</button>' +
     '<button class="green sm" id="lbgDl" type="button" disabled>📥 Tải file Excel mới</button>' +
@@ -321,10 +320,9 @@
     state.name = f.name; state.buf = await f.arrayBuffer(); this.value = '';
     run();
   });
-  $('lbgHk').addEventListener('change', function () { $('lbgCn').value = this.value === '2' ? 2 : 1; run(); });
   $('lbgToan').addEventListener('input', run);
   $('lbgCn').addEventListener('input', run);
-  $('lbgHt').addEventListener('change', run);
+  $('lbgHt').addEventListener('input', run);
   $('lbgDl').addEventListener('click', function () {
     if (!state.result) return;
     var blob = new Blob([state.result.out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
