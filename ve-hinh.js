@@ -1359,6 +1359,17 @@
         fn(tag); return ui.sel.slice();
       });
     }
+    /* ký hiệu góc bằng nhau: 1, 2 hoặc 3 cung (mỗi cặp góc bằng nhau dùng một số cung khác nhau) */
+    function arcChips(Aa, Bb, Cc) {
+      var same = function (m) { return m.p[1] === Bb.id && ((m.p[0] === Aa.id && m.p[2] === Cc.id) || (m.p[0] === Cc.id && m.p[2] === Aa.id)); };
+      var cur = M.marks.filter(function (m) { return m.type === 'arc' && same(m); })[0];
+      [['⌒ 1 cung', 1], ['⌒⌒ 2 cung', 2], ['⌒⌒⌒ 3 cung', 3]].forEach(function (c) {
+        add(c[0] + (cur && cur.n === c[1] ? ' ✓' : ''), act(function () { arcAt(Aa, Bb, Cc, c[1]); return ui.sel.slice(); }));
+      });
+      if (M.marks.some(function (m) { return (m.type === 'arc' || m.type === 'rt') && same(m); })) {
+        add('✂ Bỏ ký hiệu góc', act(function () { M.marks = M.marks.filter(function (m) { return !((m.type === 'arc' || m.type === 'rt') && same(m)); }); return ui.sel.slice(); }));
+      }
+    }
     /* gợi ý khi chọn một góc: phân giác, trung trực, trung tuyến, đường cao... */
     function angleActs(g) {
       var Aa = P(g.p[0]), Bb = P(g.p[1]), Cc = P(g.p[2]); if (!Aa || !Bb || !Cc) return;
@@ -1378,7 +1389,8 @@
       add('⊥ Vuông góc với ' + nB + nA + ' tại ' + nB, once(key + 'q1', function (tg) { addObj({ type: 'perpline', p: [Bb.id], o: [lineThrough(Bb, Aa)], tag: tg }); }));
       add('⊥ Vuông góc với ' + nB + nC + ' tại ' + nB, once(key + 'q2', function (tg) { addObj({ type: 'perpline', p: [Bb.id], o: [lineThrough(Bb, Cc)], tag: tg }); }));
       add('∥ Song song ' + nA + nC + ' qua ' + nB, once(key + 's', function (tg) { addObj({ type: 'parline', p: [Bb.id], o: [lineThrough(Aa, Cc)], tag: tg }); }));
-      add('⌒ Ký hiệu cung góc', act(function () { arcAt(Aa, Bb, Cc, 1); return ui.sel.slice(); }));
+      sep('Ký hiệu góc bằng nhau');
+      arcChips(Aa, Bb, Cc);
     }
     if (a.angs.length === 1 && !np && !nl && !nc && !ng) angleActs(a.angs[0]);
     /* góc tạo bởi hai cạnh/đoạn có chung đỉnh (có thể chọn kèm đỉnh đó), hoặc một đỉnh của đa giác */
@@ -1538,18 +1550,12 @@
     }
     /* ký hiệu góc cho 3 điểm đã chọn (đỉnh là điểm giữa) */
     if (np === 3 && onlyPts) {
-      add('⌒ Cung góc ' + A.name + B.name + C3.name, act(function () {
-        var ex = M.marks.filter(function (m) { return m.type === 'arc' && m.p[1] === B.id && ((m.p[0] === A.id && m.p[2] === C3.id) || (m.p[0] === C3.id && m.p[2] === A.id)); })[0];
-        if (ex) { if (ex.n >= 3) M.marks = M.marks.filter(function (m) { return m !== ex; }); else ex.n++; }
-        else addMark({ type: 'arc', p: [A.id, B.id, C3.id], n: 1 });
-        return ui.sel.slice();
-      }));
+      arcChips(A, B, C3);
       add('∟ Ký hiệu góc vuông tại ' + B.name, act(function () {
         var u = unit(V(B, A)), v = unit(V(B, C3));
         if (!u || !v || Math.abs(u.x * v.x + u.y * v.y) > 0.009) { say('Góc ' + A.name + B.name + C3.name + ' chưa phải góc vuông.'); return false; }
         addMark({ type: 'rt', p: [A.id, B.id, C3.id] }); return ui.sel.slice();
       }));
-      if (M.marks.some(function (m) { return (m.type === 'arc' || m.type === 'rt') && m.p[1] === B.id; })) add('✂ Bỏ ký hiệu góc', act(function () { removeMarksFor({ lines: [], pts: [B] }); return ui.sel.slice(); }));
     }
     /* đường tròn: tiếp tuyến, đường kính */
     if (np === 1 && nc === 1 && !nl && !ng) {
