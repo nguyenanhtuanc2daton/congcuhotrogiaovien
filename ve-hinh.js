@@ -906,7 +906,8 @@
     if (reflex) { sweep = 1 - sweep; large = 1; }
     return '<path d="M' + r2(sx) + ' ' + r2(sy) + 'A' + r + ' ' + r + ' 0 ' + large + ' ' + sweep + ' ' + r2(ex) + ' ' + r2(ey) + '" fill="none" stroke="' + col + '" stroke-width="1.8"/>';
   }
-  function dashStr(w) { return w > 3 ? ' stroke-dasharray="9 6"' : w < 1.6 ? ' stroke-dasharray="5 4"' : ' stroke-dasharray="7 5"'; }
+  var DW = 1.5, DR = 4;   /* độ dày nét và bán kính điểm mặc định (nét mảnh, điểm nhỏ) */
+  function dashStr(w) { return w >= 3 ? ' stroke-dasharray="9 6"' : w < 1.3 ? ' stroke-dasharray="4 3"' : ' stroke-dasharray="6 4"'; }
   /* đặt độ đậm / nét đứt cho đối tượng (w, d = null: về mặc định) */
   function setStroke(ref, w, d) {
     var o = O(ref.id); if (!o) return;
@@ -1064,11 +1065,11 @@
       if (!shownObj(o) || o.type !== 'poly') return;
       var col = CL[o.c || 0], fillA = hexA(col, exp ? 0.1 : 0.14);
       if (o.w === undefined && o.dash === undefined && !o.es) {
-        s += shapeStr({ id: o.id }, 'fill="' + fillA + '" stroke="' + col + '" stroke-width="2.2"');
+        s += shapeStr({ id: o.id }, 'fill="' + fillA + '" stroke="' + col + '" stroke-width="' + DW + '"');
       } else {   /* có kiểu nét riêng: tô nền rồi vẽ từng cạnh */
         s += shapeStr({ id: o.id }, 'fill="' + fillA + '" stroke="none"');
         for (var ei = 0; ei < o.p.length; ei++) {
-          var est = (o.es && o.es[ei]) || {}, ew = est.w !== undefined ? est.w : (o.w !== undefined ? o.w : 2.2), ed = est.d !== undefined ? est.d : (o.dash || 0);
+          var est = (o.es && o.es[ei]) || {}, ew = est.w != null ? est.w : (o.w != null ? o.w : DW), ed = est.d != null ? est.d : (o.dash || 0);
           s += shapeStr({ id: o.id, e: ei }, 'stroke="' + col + '" stroke-width="' + ew + '"' + (ed ? dashStr(ew) : ''));
         }
       }
@@ -1077,7 +1078,7 @@
       if (!shownObj(o) || o.type === 'poly') return;
       var col = CL[o.c || 0], dsh = (o.type === 'perpline' || o.type === 'parline' || o.type === 'pbis' || o.type === 'bis' || o.type === 'bisray');
       if (o.dash === 1) dsh = true; else if (o.dash === 0) dsh = false;
-      var lw = o.w || 2.2, dash = dsh ? dashStr(lw) : '';
+      var lw = o.w || DW, dash = dsh ? dashStr(lw) : '';
       if (o.type === 'locus') { s += shapeStr({ id: o.id }, 'stroke="' + (o.c ? col : C.trace) + '" stroke-width="2.4"'); return; }
       s += shapeStr({ id: o.id }, 'stroke="' + col + '" stroke-width="' + lw + '"' + dash);
     });
@@ -1118,7 +1119,7 @@
       if (!exp && selIndex({ t: 'p', id: p.id }) >= 0) s += '<circle cx="' + x + '" cy="' + y + '" r="13" fill="' + hexA('#ffd54f', 0.25) + '" stroke="' + C.sel + '" stroke-width="2"/>';
       if (p.anim) s += '<circle cx="' + x + '" cy="' + y + '" r="11" fill="none" stroke="' + C.glide + '" stroke-width="1.8" stroke-dasharray="3 3"/>';
       if (p.trace) s += '<circle cx="' + x + '" cy="' + y + '" r="9.5" fill="none" stroke="' + C.trace + '" stroke-width="1.5"/>';
-      s += '<circle cx="' + x + '" cy="' + y + '" r="' + (p.r || 6) + '" fill="' + col + '" stroke="' + C.bg + '" stroke-width="' + ((p.r || 6) < 4 ? 1 : 1.5) + '"/>';
+      s += '<circle cx="' + x + '" cy="' + y + '" r="' + (p.r || DR) + '" fill="' + col + '" stroke="' + C.bg + '" stroke-width="' + ((p.r || DR) < 4 ? 1 : 1.5) + '"/>';
       if (ui.names && LP && LP[p.id]) {
         s += '<text x="' + r2(LP[p.id].x) + '" y="' + r2(LP[p.id].y) + '" text-anchor="middle" font-size="15" font-weight="700" ' + FONT + ' fill="' + C.txt + '" stroke="' + C.bg + '" stroke-width="3" paint-order="stroke">' + String(p.name).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</text>';
       }
@@ -1592,17 +1593,17 @@
     var styleSel = ui.sel.filter(function (it) { var o2 = it.t === 'o' ? O(it.ref.id) : null; return o2 && o2.type !== 'locus'; });
     if (styleSel.length) {
       sep('Kiểu nét');
-      [['▬ Liền đậm', 3.8, 0], ['─ Liền mảnh', 1.2, 0], ['╍ Đứt đậm', 3.8, 1], ['╌ Đứt mảnh', 1.2, 1], ['━ Nét thường', null, null]].forEach(function (st) {
+      [['▬ Liền đậm', 3.2, 0], ['─ Liền mảnh', 1, 0], ['╍ Đứt đậm', 3.2, 1], ['╌ Đứt mảnh', 1, 1], ['━ Nét thường (liền)', null, 0]].forEach(function (st) {
         add(st[0], act(function () { styleSel.forEach(function (it) { setStroke(it.ref, st[1], st[2]); }); return ui.sel.slice(); }));
       });
     }
     /* cỡ điểm */
     if (np >= 1) {
       sep('Cỡ điểm');
-      [['· Rất nhỏ', 2.5], ['• Nhỏ', 4], ['● Vừa', 6], ['⬤ To', 8.5]].forEach(function (sz) {
-        add(sz[0], act(function () { a.pts.forEach(function (p) { if (sz[1] === 6) delete p.r; else p.r = sz[1]; }); return ui.sel.slice(); }));
+      [['· Rất nhỏ', 2.5], ['• Nhỏ (mặc định)', DR], ['● Vừa', 6], ['⬤ To', 8.5]].forEach(function (sz) {
+        add(sz[0], act(function () { a.pts.forEach(function (p) { if (sz[1] === DR) delete p.r; else p.r = sz[1]; }); return ui.sel.slice(); }));
       });
-      add('• Thu nhỏ mọi điểm', act(function () { M.pts.forEach(function (p) { p.r = 4; }); return ui.sel.slice(); }));
+      add('• Mọi điểm về cỡ nhỏ', act(function () { M.pts.forEach(function (p) { delete p.r; }); return ui.sel.slice(); }));
     }
     if (nc === 1 && !np && !nl && !ng) add('📏 Đo đường tròn', act(function () {
       var rf = a.circs[0]; M.meas.push({ id: M.nid++, type: 'rad', o: [rf] }, { id: M.nid++, type: 'circ', o: [rf] }, { id: M.nid++, type: 'carea', o: [rf] }); return ui.sel.slice();
