@@ -507,14 +507,45 @@
     }
     return null;
   }
+  /* các góc có thể chọn: góc trong đa giác, góc đã đo, cung góc / góc vuông đã ký hiệu */
+  function angCands() {
+    var out = [], seen = {};
+    function push(p, po) {
+      var k = p[1] + ':' + Math.min(p[0], p[2]) + '_' + Math.max(p[0], p[2]);
+      if (seen[k]) return; seen[k] = 1; out.push({ p: p, po: po });
+    }
+    M.objs.forEach(function (o) {
+      if (o.type !== 'poly' || !shownObj(o)) return;
+      var n = o.p.length;
+      for (var i = 0; i < n; i++) push([o.p[(i + n - 1) % n], o.p[i], o.p[(i + 1) % n]], o.id);
+    });
+    M.meas.forEach(function (m) { if (m.type === 'ang') push(m.p.slice(), m.o && m.o[0] ? m.o[0].id : undefined); });
+    M.marks.forEach(function (m) { if (m.type === 'arc' || m.type === 'rt') push(m.p.slice(0, 3)); });
+    return out;
+  }
+  function hitAngle(w) {
+    var R = (ui.touch ? 40 : 32) / S, best = null, bd = 1e9;
+    angCands().forEach(function (c) {
+      var ai = angInfo({ p: c.p, o: c.po ? [{ id: c.po }] : null }); if (!ai || !shownPt(ai.B)) return;
+      var uu = unit(ai.u), vv = unit(ai.v), t = V(ai.B, w), d = len(t); if (!uu || !vv || d > R || d < 1e-9) return;
+      var cuv = uu.x * vv.y - uu.y * vv.x; if (Math.abs(cuv) < 1e-6) return;
+      var cu = uu.x * t.y - uu.y * t.x, ct = t.x * vv.y - t.y * vv.x;
+      var conv = cu * cuv >= 0 && ct * cuv >= 0, inside = ai.reflex ? !conv : conv;
+      if (inside && d < bd) { bd = d; best = { t: 'g', p: c.p.slice(), po: c.po }; }
+    });
+    return best;
+  }
   function hitAny(w) {
     var p = hitPoint(w); if (p) return { t: 'p', id: p.id };
-    var h = hitObj(w, { interior: true }); if (h) return { t: 'o', ref: h.ref };
+    var h = hitObj(w, { interior: true });
+    if (h && !(h.o.type === 'poly' && h.ref.e === undefined)) return { t: 'o', ref: h.ref };
+    if (ui.tool === 'select') { var g = hitAngle(w); if (g) return g; }
+    if (h) return { t: 'o', ref: h.ref };
     return null;
   }
-  function itemKey(it) { return it.t === 'p' ? 'p' + it.id : 'o' + it.ref.id + '.' + (it.ref.e === undefined ? '' : it.ref.e); }
+  function itemKey(it) { if (it.t === 'g') return 'g' + it.p[1] + ':' + Math.min(it.p[0], it.p[2]) + '_' + Math.max(it.p[0], it.p[2]); return it.t === 'p' ? 'p' + it.id : 'o' + it.ref.id + '.' + (it.ref.e === undefined ? '' : it.ref.e); }
   function selIndex(it) { var k = itemKey(it); for (var i = 0; i < ui.sel.length; i++) if (itemKey(ui.sel[i]) === k) return i; return -1; }
-  function itemValid(it) { return it.t === 'p' ? !!P(it.id) : !!O(it.ref.id); }
+  function itemValid(it) { if (it.t === 'g') return it.p.every(function (i) { return !!P(i); }); return it.t === 'p' ? !!P(it.id) : !!O(it.ref.id); }
 
   function lineLabel(ref) {
     var o = O(ref.id); if (!o) return '?';
@@ -526,7 +557,7 @@
     if (o.type === 'locus') return 'quỹ tích ' + nm(o.p[1]);
     return { perpline: 'đường vuông góc', parline: 'đường song song', pbis: 'đường trung trực', bis: 'đường phân giác', bisray: 'tia phân giác' }[o.type] || 'đường';
   }
-  function itemName(it) { return it.t === 'p' ? (P(it.id) ? P(it.id).name : '?') : lineLabel(it.ref); }
+  function itemName(it) { if (it.t === 'g') return '∠' + it.p.map(function (i) { var q = P(i); return q ? q.name : '?'; }).join(''); return it.t === 'p' ? (P(it.id) ? P(it.id).name : '?') : lineLabel(it.ref); }
 
   /* ================= Xóa ================= */
   function cascade(dp, dobj) {
@@ -645,6 +676,7 @@
       if (isGlider(p)) { snap(); ui.drag = { kind: 'pt', p: p, ox: 0, oy: 0 }; return; }
       freeAnc(p.id, list, {});
     } else if (t && t.t === 'o') objAnc(t.ref.id, list, {});
+    else if (t && t.t === 'g' && t.po) objAnc(t.po, list, {});
     if (list.length) {
       snap();
       ui.drag = { kind: 'grp', list: list.map(function (q) { return { p: q, x: q.x, y: q.y }; }), sx: d.w.x, sy: d.w.y };
@@ -874,6 +906,13 @@
     if (reflex) { sweep = 1 - sweep; large = 1; }
     return '<path d="M' + r2(sx) + ' ' + r2(sy) + 'A' + r + ' ' + r + ' 0 ' + large + ' ' + sweep + ' ' + r2(ex) + ' ' + r2(ey) + '" fill="none" stroke="' + col + '" stroke-width="1.8"/>';
   }
+  function wedgeSel(it) {
+    var ai = angInfo({ p: it.p, o: it.po ? [{ id: it.po }] : null }); if (!ai) return '';
+    var u = unit(ai.u), v = unit(ai.v); if (!u || !v) return '';
+    var bx = X(ai.B.x), by = Y(ai.B.y), r = 36, cr = u.x * v.y - u.y * v.x, sweep = cr > 0 ? 1 : 0, large = 0;
+    if (ai.reflex) { sweep = 1 - sweep; large = 1; }
+    return '<path d="M' + r2(bx) + ' ' + r2(by) + 'L' + r2(bx + u.x * r) + ' ' + r2(by + u.y * r) + 'A' + r + ' ' + r + ' 0 ' + large + ' ' + sweep + ' ' + r2(bx + v.x * r) + ' ' + r2(by + v.y * r) + 'Z" fill="' + hexA('#ffd54f', 0.3) + '" stroke="#ffd54f" stroke-width="2" stroke-linejoin="round"/>';
+  }
   function rtSvg(bx, by, u, v, k, col) {
     return '<path d="M' + r2(bx + u.x * k) + ' ' + r2(by + u.y * k) + 'L' + r2(bx + (u.x + v.x) * k) + ' ' + r2(by + (u.y + v.y) * k) + 'L' + r2(bx + v.x * k) + ' ' + r2(by + v.y * k) + '" fill="none" stroke="' + col + '" stroke-width="1.6" stroke-linejoin="miter"/>';
   }
@@ -1021,6 +1060,7 @@
       s += shapeStr({ id: o.id }, 'stroke="' + col + '" stroke-width="2.2"' + dash);
     });
     if (!exp) ui.sel.forEach(function (it) {
+      if (it.t === 'g') s += wedgeSel(it);
       if (it.t === 'o') s += shapeStr(it.ref, 'stroke="' + C.sel + '" stroke-width="8" opacity=".35" fill="none"');
     });
     s += drawMarks(C);
@@ -1089,9 +1129,10 @@
 
   /* ================= Bảng lệnh dựng theo đối tượng đã chọn ================= */
   function analyze() {
-    var a = { pts: [], lines: [], circs: [], polys: [] };
+    var a = { pts: [], lines: [], circs: [], polys: [], angs: [] };
     ui.sel.forEach(function (it) {
       if (it.t === 'p') { var p = P(it.id); if (p) a.pts.push(p); return; }
+      if (it.t === 'g') { a.angs.push(it); return; }
       var o = O(it.ref.id); if (!o) return;
       if (o.type === 'poly' && it.ref.e === undefined) { a.polys.push(it.ref); return; }
       if (o.type === 'locus') return;
@@ -1287,9 +1328,37 @@
     function add(label, fn, cls) { L.push({ label: label, fn: fn, cls: cls || '' }); }
     function act(fn) { return function () { snap(); var r = fn(); if (r !== false) { ui.sel = r || []; } commit(); }; }
     var A = a.pts[0], B = a.pts[1], C3 = a.pts[2], line = nl ? a.lines[0] : null;
-    var onlyPts = !nl && !nc && !ng, last = a.pts[np - 1];
+    var onlyPts = !nl && !nc && !ng && !a.angs.length, last = a.pts[np - 1];
     function sep(t) { L.push({ sep: t }); }
     function keep(fn) { return act(function () { var b = count(); fn(); if (count() === b) { say('Các nét này đã được dựng rồi (xóa đi nếu muốn dựng lại).'); return false; } return ui.sel.slice(); }); }
+    function once(tag, fn) {
+      return act(function () {
+        if (hasTag(tag)) { say('Nét này đã được dựng rồi (xóa đi nếu muốn dựng lại).'); return false; }
+        fn(tag); return ui.sel.slice();
+      });
+    }
+    /* gợi ý khi chọn một góc: phân giác, trung trực, trung tuyến, đường cao... */
+    function angleActs(g) {
+      var Aa = P(g.p[0]), Bb = P(g.p[1]), Cc = P(g.p[2]); if (!Aa || !Bb || !Cc) return;
+      var po = g.po ? O(g.po) : null, t = null, pts3, vi;
+      if (po && po.p.length === 3) { pts3 = po.p.map(P); vi = po.p.indexOf(Bb.id); if (vi >= 0 && pts3.every(function (q) { return !!q; })) t = { pts: pts3, poly: po, i: vi }; }
+      if (!t) t = { pts: [Bb, Cc, Aa], poly: null, i: 0 };
+      var key = 'ag' + Bb.id + ':' + Math.min(Aa.id, Cc.id) + '_' + Math.max(Aa.id, Cc.id), nA = Aa.name, nB = Bb.name, nC = Cc.name;
+      sep('∠ Góc ' + nA + nB + nC + ' (đỉnh ' + nB + ')');
+      var hasM = M.meas.some(function (m) { return m.type === 'ang' && m.p[1] === Bb.id && ((m.p[0] === Aa.id && m.p[2] === Cc.id) || (m.p[0] === Cc.id && m.p[2] === Aa.id)); });
+      if (!hasM) add('📐 Đo góc ' + nA + nB + nC, act(function () { var m = { type: 'ang', p: g.p.slice() }; if (g.po) m.o = [{ id: g.po }]; pushMeas(m); return ui.sel.slice(); }));
+      add('∠ Phân giác ' + nB + ' (cắt ' + nA + nC + ')', keep(function () { mkBis(t, t.i); }), 'tri');
+      add('∠ Tia phân giác', once(key + 'r', function (tg) { addObj({ type: 'bisray', p: [Aa.id, Bb.id, Cc.id], tag: tg }); }));
+      add('∠ Đường phân giác (cả hai phía)', once(key + 'l', function (tg) { addObj({ type: 'bis', p: [Aa.id, Bb.id, Cc.id], tag: tg }); }));
+      add('⊥ Đường cao từ ' + nB + ' (xuống ' + nA + nC + ')', keep(function () { mkAlt(t, t.i); }), 'tri');
+      add('▽ Trung tuyến từ ' + nB, keep(function () { mkMed(t, t.i); }), 'tri');
+      add('⊣ Trung trực của ' + nA + nC, once(key + 'p', function (tg) { midAndTick(Aa, Cc); addObj({ type: 'pbis', p: [Aa.id, Cc.id], c: 4, tag: tg }); }));
+      add('⊥ Vuông góc với ' + nB + nA + ' tại ' + nB, once(key + 'q1', function (tg) { addObj({ type: 'perpline', p: [Bb.id], o: [lineThrough(Bb, Aa)], tag: tg }); }));
+      add('⊥ Vuông góc với ' + nB + nC + ' tại ' + nB, once(key + 'q2', function (tg) { addObj({ type: 'perpline', p: [Bb.id], o: [lineThrough(Bb, Cc)], tag: tg }); }));
+      add('∥ Song song ' + nA + nC + ' qua ' + nB, once(key + 's', function (tg) { addObj({ type: 'parline', p: [Bb.id], o: [lineThrough(Aa, Cc)], tag: tg }); }));
+      add('⌒ Ký hiệu cung góc', act(function () { arcAt(Aa, Bb, Cc, 1); return ui.sel.slice(); }));
+    }
+    if (a.angs.length === 1 && !np && !nl && !nc && !ng) angleActs(a.angs[0]);
     var tri = triOf(a);
     if (tri) {
       sep('△ Tam giác ' + triName(tri));
@@ -1544,12 +1613,19 @@
     });
     if (ui.sel.length) {
       add('🙈 Ẩn', act(function () {
-        ui.sel.forEach(function (it) { if (it.t === 'p') P(it.id).hid = true; else O(it.ref.id).hid = true; });
+        ui.sel.forEach(function (it) { if (it.t === 'p') P(it.id).hid = true; else if (it.t === 'o') O(it.ref.id).hid = true; });
         return [];
       }));
       add('🗑 Xóa', act(function () {
         var dp = {}, dobj = {};
-        ui.sel.forEach(function (it) { if (it.t === 'p') dp[it.id] = 1; else dobj[it.ref.id] = 1; });
+        ui.sel.forEach(function (it) {
+          if (it.t === 'p') dp[it.id] = 1; else if (it.t === 'o') dobj[it.ref.id] = 1;
+          else if (it.t === 'g') {   /* góc: xóa số đo và ký hiệu của góc đó */
+            var gk = itemKey(it), same = function (q) { return q.p && itemKey({ t: 'g', p: q.p.slice(0, 3) }) === gk; };
+            M.meas = M.meas.filter(function (m) { return !(m.type === 'ang' && same(m)); });
+            M.marks = M.marks.filter(function (m) { return !((m.type === 'arc' || m.type === 'rt') && same(m)); });
+          }
+        });
         cascade(dp, dobj); return [];
       }), 'red');
       add('✖ Bỏ chọn', function () { ui.sel = []; refresh(); });
@@ -1562,7 +1638,7 @@
   }
   function updSelPanel() {
     curActs = buildActs();
-    var names = ui.sel.map(itemName).join(', '), selTxt = ui.sel.length ? 'Đã chọn: ' + names : (ui.tool === 'select' ? 'Chạm vào điểm, đoạn, đường, đường tròn hoặc bên trong đa giác: các lệnh dựng và đo sẽ hiện ngay ở đây.' : '');
+    var names = ui.sel.map(itemName).join(', '), selTxt = ui.sel.length ? 'Đã chọn: ' + names : (ui.tool === 'select' ? 'Chạm vào điểm, đoạn, đường, đường tròn, góc (gần đỉnh, trong góc) hoặc bên trong đa giác: các lệnh dựng và đo sẽ hiện ngay ở đây.' : '');
     if (elSel.textContent !== selTxt) elSel.textContent = selTxt;
     var isTail = function (x) { return !!x.label && /^(〰|✏️|🙈|🗑|✖|👁|┄)/.test(x.label); };
     var chip = function (x, i) { return x.sep ? '<span class="vh-sep">' + x.sep + '</span>' : '<button type="button" class="vh-a ' + x.cls + '" data-a="' + i + '">' + x.label + '</button>'; };
@@ -1583,7 +1659,7 @@
   elCols.addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('[data-c]') : null; if (!b) return;
     var c = +b.getAttribute('data-c'); snap();
-    ui.sel.forEach(function (it) { if (it.t === 'p') P(it.id).c = c; else O(it.ref.id).c = c; });
+    ui.sel.forEach(function (it) { if (it.t === 'p') P(it.id).c = c; else if (it.t === 'o') O(it.ref.id).c = c; });
     commit();
   });
 
