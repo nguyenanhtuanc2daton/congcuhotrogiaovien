@@ -307,7 +307,7 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 <section class="panel" id="t8">
 <h2>🛠 Công cụ thường dùng</h2>
 <div class="bar"><label for="utSel" style="font-weight:600">Chọn công cụ:</label>
-<select id="utSel"><option value="utWheel" selected>🎯 Vòng Quay Gọi Tên</option><option value="utTimer">⏱ Đếm giờ &amp; chia nhóm</option></select></div>
+<select id="utSel"><option value="utWheel" selected>🎯 Vòng Quay Gọi Tên</option><option value="utTimer">⏱ Đếm giờ &amp; chia nhóm</option><option value="utLich">📅 Lịch báo giảng tự động</option></select></div>
 <div class="ut on" id="utWheel">
 <div id="t2">
 <h2>🎯 Vòng Quay Gọi Tên Học Sinh</h2>
@@ -335,6 +335,7 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 <div class="bar"><label>Số nhóm <input type="number" id="kN" value="4" min="1" max="20" style="width:70px"></label><button class="sm" id="kSplit" type="button">🎲 Chia nhóm</button><button class="sec sm" id="kPull" type="button">Lấy từ tab Công cụ Word</button></div>
 <div id="kRes" class="note" style="font-size:13px"></div></div></div>
 </div>
+<div class="ut" id="utLich"><div id="lbgRoot"></div></div>
 </section>
 
 <script>
@@ -432,6 +433,7 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 <script src="word-ui.js?v=20261005"></script>
 <script src="core.js?v=20261005"></script>
 <script src="goi-ten.js?v=20261005"></script>
+<script src="lich-bao-giang.js?v=20261006"></script>
 <script src="tinh-diem.js?v=20261005"></script>
 <script src="do-thi.js?v=20261005"></script>
 <script src="toan-hoc.js?v=20261005"></script>
