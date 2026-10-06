@@ -1,4 +1,4 @@
-/* Công cụ Word: Chuẩn hóa Word & Ghép file Word */
+/* Công cụ Word: Ghép file Word (công cụ "Chuẩn hóa Word" đã gộp vào "Rà soát Word toàn diện"; phần norm() giữ lại cho Ghép file) */
 
 
 /* ---- Tab 3 · Công cụ Word: Chuẩn hóa Word & Ghép file Word (IIFE riêng, tiền tố wt) ---- */
@@ -142,6 +142,8 @@ async function check(zip,full){
   }
   if(docXml){try{docxToBlocks(docXml)}catch(e){er.push('docxToBlocks lỗi: '+e.message)}}else er.push('thiếu word/document.xml');
   return {er:Array.from(new Set(er)),docXml}}
+
+window.WordPkgCheck=check;   /* dùng chung cho Rà soát Word: kiểm tra gói .docx đầy đủ */
 
 /* ===== Ghép ===== */
 async function merge(files,o,step){
@@ -287,41 +289,13 @@ function wire(box,inp,btn,clr,arr,rend,msg){
   clr.onclick=()=>{arr.length=0;rend()};
   ['dragover','drop'].forEach(ev=>box.addEventListener(ev,e=>{e.preventDefault();if(ev==='drop')addFiles(e.dataTransfer.files,arr,msg,rend)}));
 }
-const nq=[],mq=[];
-function rN(){g('wtNList').innerHTML=listHTML(nq,false)}
+const mq=[];
 function rM(){g('wtMList').innerHTML=listHTML(mq,true)}
-g('wtNList').onclick=e=>{const b=e.target.closest('button');if(b){nq.splice(+b.dataset.i,1);rN()}};
 g('wtMList').onclick=e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i,a=b.dataset.a;
   if(a==='x')mq.splice(i,1);else{const j=a==='u'?i-1:i+1;if(j<0||j>=mq.length)return;[mq[i],mq[j]]=[mq[j],mq[i]]}rM()};
-wire(g('wtNorm'),g('wtNIn'),g('wtNPick'),g('wtNClear'),nq,rN,'wtNSt');
 wire(g('wtMerge'),g('wtMIn'),g('wtMPick'),g('wtMClear'),mq,rM,'wtMSt');
 const PDFNOTE='PDF dựng dạng ảnh (không chọn/sao chép được chữ), chỉ giữ chữ đậm/nghiêng/gạch chân, căn lề, cỡ chữ và bảng; không giữ ảnh chèn trong file.';
 async function pdfOf(docXml,st){return blocksToPdfBytes(docxToBlocks(docXml).blocks,(p,n)=>setSt(st,'Đang tạo PDF, trang '+p+'/'+n+'...'))}
-g('wtNRun').onclick=async()=>{
-  const out=g('wtNOut'),btn=g('wtNRun');out.innerHTML='';
-  if(!nq.length)return setSt('wtNSt','Chưa chọn file .docx nào.','e');
-  if(typeof JSZip==='undefined')return setSt('wtNSt','Chưa tải được thư viện JSZip (cần mạng để tải từ cdnjs).','e');
-  let cfg;try{cfg=readCfg('wtN')}catch(e){return setSt('wtNSt',e.message,'e')}
-  const fm=g('wtNFmt').value,res=[];btn.disabled=true;let ok=0;
-  for(let k=0;k<nq.length;k++){const f=nq[k];setSt('wtNSt','('+(k+1)+'/'+nq.length+') Đang chuẩn hóa '+f.name+'...');await tick();
-    const row=document.createElement('div');row.className='note';
-    try{
-      const zip=await JSZip.loadAsync(f.buf);
-      if(!zip.file('word/document.xml'))throw new Error('không phải .docx hợp lệ');
-      const rep=await norm(zip,cfg),ck=await check(zip,false);
-      if(ck.er.length)throw new Error(ck.er[0]);
-      const base=f.name.replace(/\.docx$/i,'')+'_chuanhoa',mine=[];
-      if(fm!=='pdf')mine.push({name:base+'.docx',mime:MD,data:await zip.generateAsync({type:'uint8array',compression:'DEFLATE'})});
-      if(fm!=='docx')mine.push({name:base+'.pdf',mime:'application/pdf',data:await pdfOf(ck.docXml,'wtNSt')});
-      res.push.apply(res,mine);ok++;
-      row.innerHTML='✅ <b>'+hx(f.name)+'</b>: '+rep.paras+' đoạn, '+rep.tables+' bảng đã xử lý'+(rep.warn.length?'<br>⚠ '+rep.warn.map(hx).join('<br>⚠ '):'');
-      mine.forEach(m=>{const b=document.createElement('button');b.className='sec sm';b.type='button';b.textContent='⬇ '+m.name;b.onclick=()=>dl(m.name,m.data,m.mime);row.appendChild(document.createTextNode(' '));row.appendChild(b)});
-    }catch(e){row.innerHTML='❌ <b>'+hx(f.name)+'</b>: bỏ qua — '+hx(e.message)}
-    out.appendChild(row)}
-  btn.disabled=false;
-  if(res.length>1){const b=document.createElement('button');b.className='green sm';b.type='button';b.textContent='📦 Tải gộp .zip';
-    b.onclick=()=>dl('chuanhoa.zip',makeZip(res.map(r=>({name:r.name,data:r.data}))),'application/zip');out.appendChild(b)}
-  setSt('wtNSt','Xong: '+ok+'/'+nq.length+' file. '+(fm!=='docx'?PDFNOTE:''),ok?'o':'e')};
 g('wtMRun').onclick=async()=>{
   const out=g('wtMOut'),btn=g('wtMRun');out.innerHTML='';
   if(mq.length<2)return setSt('wtMSt','Cần ít nhất 2 file .docx để ghép.','e');

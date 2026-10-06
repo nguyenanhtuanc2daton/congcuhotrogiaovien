@@ -389,9 +389,13 @@ async function aiPass(body,o,rep,hooks){
   if(rejected)rep.warn('AI đề xuất '+rejected+' sửa đổi nhưng bị bỏ qua vì không an toàn (đụng số/công thức hoặc không khớp nguyên văn).')}
 
 /* ====================== HÀM CHÍNH ====================== */
-async function audit(buf,o,hooks){
+const PKG=()=>typeof window!=='undefined'&&typeof window.WordPkgCheck==='function'?window.WordPkgCheck:null;
+async function auditOnce(buf,o,hooks){
   hooks=hooks||{progress(){}};
   const zip=await JSZip.loadAsync(buf);
+  /* lỗi cấu trúc có sẵn trong file gốc (Word vẫn mở được) — chỉ chặn lỗi MỚI do công cụ gây ra */
+  let base=new Set();const pk=PKG();
+  if(pk){try{base=new Set((await pk(await JSZip.loadAsync(buf),true)).er)}catch(e){}}
   if(!zip.file('word/document.xml'))throw new Error('không phải file .docx hợp lệ (thiếu word/document.xml)');
   const rep=mkRep(),ctx={sz:28,rels:{},dims:{},missing:[],legacy:new Set(),hidden:0,hasToc:false};
   const step=(n,fn)=>{try{fn()}catch(e){rep.warn('Bước "'+n+'" gặp lỗi nên đã bỏ qua: '+e.message)}};
@@ -457,8 +461,24 @@ async function audit(buf,o,hooks){
   const er=[];
   for(const [n,d] of out){const s=ser(d);try{pX(s,n)}catch(e){er.push(e.message)}zip.file(n,s,{createFolders:false})}
   const rels=ctx.rels;all(doc,'blip',A).forEach(b=>{['embed','link'].forEach(a=>{const v=b.getAttributeNS(R,a);if(v&&!rels[v])er.push('hình trỏ tới r:id không tồn tại: '+v)})});
-  if(er.length)throw new Error('Kiểm tra cấu trúc thất bại, KHÔNG xuất file để tránh làm hỏng: '+er.slice(0,3).join('; '));
+  if(pk){const ck=await pk(zip,true);ck.er.forEach(x=>{if(!/^docxToBlocks/.test(x)&&!base.has(x))er.push(x)})}
+  if(er.length){const e=new Error('Kiểm tra cấu trúc thất bại, KHÔNG xuất file để tránh làm hỏng: '+er.slice(0,3).join('; '));e.validation=true;throw e}
   return{data:await zip.generateAsync({type:'uint8array',compression:'DEFLATE'}),rep}}
+
+/* Chế độ an toàn: nếu file kết quả không qua kiểm tra cấu trúc, tự tắt dần các bước rủi ro nhất rồi thử lại */
+const FALLBACK=[['chuyển công thức LaTeX',{latex:false}],['xử lý hình ảnh',{imgInline:false,imgFix:false}],['xử lý bảng',{tbl:false,tblborder:false}],
+  ['dọn dòng trống/ngắt trang/giữ đoạn',{blank:false,keep:false}],['dọn văn bản & đánh số lại Câu/Bài',{text:false,num:false,indent:false}]];
+async function audit(buf,o,hooks){
+  hooks=hooks||{progress(){}};
+  const off={},dis=[];
+  for(let i=0;i<=FALLBACK.length;i++){
+    try{
+      const r=await auditOnce(buf,Object.assign({},o,off),hooks);
+      if(dis.length)r.rep.warn('Để file xuất ra mở trong Word không báo lỗi, công cụ đã tự tắt: '+dis.join('; ')+'. Hãy xử lý tay các mục này nếu cần.');
+      return r}
+    catch(e){
+      if(!e.validation||i===FALLBACK.length)throw e;
+      dis.push(FALLBACK[i][0]);Object.assign(off,FALLBACK[i][1]);hooks.progress('Phát hiện lỗi cấu trúc, thử lại ở chế độ an toàn (bước '+(i+1)+')...')}}}
 
 function reportText(name,rep){
   const L=['BÁO CÁO RÀ SOÁT WORD — '+name,''];
@@ -477,7 +497,8 @@ function buildUI(){
   st.textContent='#wtAudit .raG{border:1px solid rgba(128,128,128,.35);border-radius:10px;margin:8px 0;padding:6px 10px}#wtAudit summary{cursor:pointer;font-weight:600;padding:4px 0}#wtAudit .raC{display:block;margin:5px 0;font-size:14px;line-height:1.4}#wtAudit .raR{margin:5px 0;font-size:14px}#wtAudit .raRes{border:1px solid rgba(128,128,128,.35);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:14px}#wtAudit .raRes ul{margin:4px 0 4px 18px;padding:0}#wtAudit .raRes li{margin:2px 0}';
   document.head.appendChild(st);
   const d=document.createElement('div');d.className='wtool';d.id='wtAudit';
-  d.innerHTML='<div class="note">Đưa file .docx lên → công cụ tự rà soát và sửa lỗi bố cục, định dạng, bảng, hình, công thức, đánh số… rồi xuất file mới kèm báo cáo. <b>File gốc không bị thay đổi.</b> Mặc định đã chọn các mục an toàn; mở từng nhóm để tinh chỉnh.</div>'
+  d.innerHTML='<div class="note">Đưa file .docx lên → công cụ tự rà soát và sửa lỗi bố cục, định dạng, bảng, hình, công thức, đánh số… rồi xuất file mới kèm báo cáo (đã gồm cả chức năng Chuẩn hóa Word). <b>File gốc không bị thay đổi.</b> File xuất ra được tự kiểm tra cấu trúc; nếu có nguy cơ lỗi, công cụ tự thử lại ở chế độ an toàn. Mặc định đã chọn các mục an toàn; mở từng nhóm để tinh chỉnh.</div>'
+  +'<div class="bar"><button class="ghost sm" id="ra_preset" type="button">⚡ Chuẩn hóa nhanh: Times New Roman 14, A4, lề chuẩn</button></div>'
   +'<div class="bar"><input type="file" id="ra_in" accept=".docx" multiple style="display:none"><button class="ghost" id="ra_pick" type="button">📁 Chọn file .docx (nhiều file / kéo thả vào đây)</button><button class="sec sm" id="ra_clear" type="button">🗑 Xóa danh sách</button></div><div id="ra_list"></div>'
   +'<details class="raG" open><summary>📝 Văn bản &amp; định dạng</summary>'
   +cb('text','Dọn khoảng trắng thừa, dấu cách trước dấu câu, ký tự ẩn, NBSP; chuẩn hóa dấu tiếng Việt (NFC)',1)+cb('indent','Bỏ Tab/dấu cách thụt đầu dòng thủ công',1)+cb('num','Đánh số lại “Câu/Bài” bị nhảy hoặc trùng (reset theo PHẦN/ĐỀ)',1)
@@ -496,11 +517,11 @@ function buildUI(){
   +cb('ai','AI (Gemini) soát chính tả/dấu/gõ nhầm — chỉ gửi chữ, <b>không gửi công thức/hình</b>; có thể mất vài phút',0)
   +'<div class="raR">Model: <select id="ra_model">'+MODELS.map(m=>'<option value="'+m[0]+'">'+m[1]+'</option>').join('')+'</select> <span class="note" style="margin:0">(dùng key Gemini đã nhập ở đầu trang)</span></div>'
   +cb('accept','Chấp nhận toàn bộ Track Changes (không thể hoàn tác trong file xuất)',0)+cb('nocmt','Xóa toàn bộ ghi chú (Comment)',0)+'</details>'
-  +'<div class="bar"><label class="note" style="margin:0"><input type="checkbox" id="ra_zip" checked> Nhiều file → nén .zip</label><button class="green" id="ra_run" type="button">🔍 Rà soát &amp; Xuất file hoàn thiện</button></div>'
+  +'<div class="bar"><label class="note" style="margin:0"><input type="checkbox" id="ra_zip" checked> Nhiều file → nén .zip</label><label class="note" style="margin:0"><input type="checkbox" id="ra_pdf"> Xuất thêm PDF (bản xem nhanh)</label><button class="green" id="ra_run" type="button">🔍 Rà soát &amp; Xuất file hoàn thiện</button></div>'
   +'<div id="ra_st" class="status"></div><div id="ra_out"></div>';
   const tools=Array.from(t3.querySelectorAll('.wtool')),last=tools[tools.length-1];
   if(last)last.insertAdjacentElement('afterend',d);else t3.appendChild(d);
-  const op=document.createElement('option');op.value='wtAudit';op.textContent='🔍 Rà soát Word toàn diện';sel.appendChild(op);
+  const op=document.createElement('option');op.value='wtAudit';op.textContent='🔍 Rà soát & Chuẩn hóa Word toàn diện';sel.insertBefore(op,sel.options[1]||null);
   wire()}
 
 const q=[];
@@ -532,17 +553,25 @@ async function run(){
     try{
       const r=await audit(f.buf,o,{progress:m=>setSt(pre+m)});
       const base=f.name.replace(/\.docx$/i,'')+'_rasoat',rt=reportText(f.name,r.rep),total=Array.from(r.rep.f.values()).reduce((a,b)=>a+b,0);
-      res.push({name:base+'.docx',data:r.data,mime:MD},{name:base+'_baocao.txt',data:new TextEncoder().encode('\ufeff'+rt),mime:'text/plain'});ok++;
+      let pdf=null;
+      if(g('ra_pdf').checked){try{
+        if(typeof docxToBlocks!=='function'||typeof blocksToPdfBytes!=='function')throw new Error('thiếu mô-đun xuất PDF');
+        const z=await JSZip.loadAsync(r.data),dx=await z.file('word/document.xml').async('string');
+        pdf=await blocksToPdfBytes(docxToBlocks(dx).blocks,(p,n)=>setSt(pre+'Đang tạo PDF, trang '+p+'/'+n+'...'));
+      }catch(e){r.rep.warn('Không tạo được PDF: '+e.message+' (file Word vẫn xuất bình thường).')}}
+      res.push({name:base+'.docx',data:r.data,mime:MD},{name:base+'_baocao.txt',data:new TextEncoder().encode('\ufeff'+rt),mime:'text/plain'});
+      if(pdf)res.push({name:base+'.pdf',data:pdf,mime:'application/pdf'});
+      ok++;
       let h='✅ <b>'+hx(f.name)+'</b> — đã sửa <b>'+total+'</b> chỗ ('+r.rep.f.size+' nhóm lỗi)';
       if(r.rep.f.size)h+='<ul>'+Array.from(r.rep.f).map(([t,n])=>'<li>'+hx(t)+': <b>'+n+'</b></li>').join('')+'</ul>';
       if(r.rep.notes.length)h+='<div class="note" style="margin:4px 0">'+r.rep.notes.slice(0,8).map(hx).join('<br>')+(r.rep.notes.length>8?'<br>… (xem đủ trong báo cáo .txt)':'')+'</div>';
       if(r.rep.w.length)h+='<div>⚠ <b>Cần kiểm tra tay:</b><ul>'+r.rep.w.map(x=>'<li>'+hx(x)+'</li>').join('')+'</ul></div>';
       card.innerHTML=h;
-      [[base+'.docx',r.data,MD,'⬇ Tải file Word đã rà soát','green sm'],[base+'_baocao.txt',new TextEncoder().encode('\ufeff'+rt),'text/plain','📋 Báo cáo (.txt)','sec sm']].forEach(a=>{
+      [[base+'.docx',r.data,MD,'⬇ Tải file Word đã rà soát','green sm'],].concat(pdf?[[base+'.pdf',pdf,'application/pdf','⬇ PDF (xem nhanh)','sec sm']]:[]).concat([[base+'_baocao.txt',new TextEncoder().encode('\ufeff'+rt),'text/plain','📋 Báo cáo (.txt)','sec sm']]).forEach(a=>{
         const b=document.createElement('button');b.type='button';b.className=a[4];b.textContent=a[3];b.onclick=()=>save(a[0],a[1],a[2]);card.appendChild(b);card.appendChild(document.createTextNode(' '))})
     }catch(e){card.innerHTML='❌ <b>'+hx(f.name)+'</b>: bỏ qua — '+hx(e.message)}
     out.appendChild(card);await tick()}
-  if(res.length>2&&g('ra_zip').checked&&typeof makeZip==='function'){const b=document.createElement('button');b.type='button';b.className='green';b.textContent='📦 Tải gộp tất cả (.zip)';
+  if(res.length>3&&g('ra_zip').checked&&typeof makeZip==='function'){const b=document.createElement('button');b.type='button';b.className='green';b.textContent='📦 Tải gộp tất cả (.zip)';
     b.onclick=()=>save('ra-soat-word.zip',makeZip(res.map(r=>({name:r.name,data:r.data}))),'application/zip');out.appendChild(b)}
   btn.disabled=false;setSt('Xong: '+ok+'/'+q.length+' file. Hãy mở file kết quả bằng Word, bấm Ctrl+A rồi F9 nếu có mục lục/số trang cần cập nhật.',ok?'o':'e')}
 function wire(){
@@ -551,6 +580,11 @@ function wire(){
   g('ra_list').onclick=e=>{const b=e.target.closest('button');if(b){q.splice(+b.dataset.i,1);renderList()}};
   g('ra_clear').onclick=()=>{q.length=0;renderList();g('ra_out').innerHTML='';setSt('')};
   ['dragover','drop'].forEach(ev=>g('wtAudit').addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'&&e.dataTransfer)addFiles(e.dataTransfer.files)}));
+  g('ra_preset').onclick=()=>{
+    g('ra_font').value='Times New Roman';g('ra_size').value='14';g('ra_line').value='1.15';g('ra_after').value='6';
+    ['justify','firstLine','page','text','indent','num','tbl','imgFix'].forEach(k=>g('ra_'+k).checked=true);
+    g('ra_mt').value=20;g('ra_mb').value=20;g('ra_ml').value=30;g('ra_mr').value=15;
+    setSt('Đã đặt: Times New Roman 14pt, giãn dòng 1,15, căn đều, thụt đầu dòng 1 cm, A4, lề 20/20/30/15 mm. Bấm “Rà soát & Xuất file” để chạy.','o')};
   g('ra_run').onclick=run}
 window.RaSoatWord={audit,reportText};
 buildUI();

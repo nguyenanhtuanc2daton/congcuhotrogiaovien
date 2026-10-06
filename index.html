@@ -243,7 +243,7 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 <section class="panel" id="t3">
 <h2>🧰 Công cụ Word</h2>
 <div class="bar"><label for="wtSel" style="font-weight:600">Chọn công cụ:</label>
-<select id="wtSel"><option value="wtGrade" selected>📊 Tính điểm TB &amp; xếp loại</option><option value="wtNorm">🧹 Chuẩn hóa Word</option><option value="wtMerge">🔗 Ghép file Word</option><option value="wtLatex">📝 Chuyển LaTeX → Word / PDF</option></select></div>
+<select id="wtSel"><option value="wtGrade" selected>📊 Tính điểm TB &amp; xếp loại</option><option value="wtMerge">🔗 Ghép file Word</option><option value="wtLatex">📝 Chuyển LaTeX → Word / PDF</option></select></div>
 <div class="wtool on" id="wtGrade">
 <div class="cfg">
 <div><label>Hệ số ĐĐGtx</label><input type="number" id="k1" value="1" min="0" step="0.5"></div>
@@ -265,15 +265,6 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 <textarea id="gPaste" placeholder="Nguyễn Văn A&#9;8&#9;7,5&#9;&#9;9&#9;8,5&#9;9"></textarea><div class="bar"><button class="sm" id="gPasteBtn" type="button">Thêm vào bảng</button></div></details>
 <div class="note">ĐĐGtx: điểm đánh giá thường xuyên · ĐĐGgk: giữa kì · ĐĐGck: cuối kì · ĐTBmhk1/2: điểm trung bình môn học kì 1/2 · ĐTBmcn: điểm trung bình môn cả năm = (ĐTBmhk1 + ĐTBmhk2 × 2) ÷ 3.</div>
 <div id="gMsg" class="status"></div>
-</div>
-<div class="wtool" id="wtNorm">
-<div class="bar"><input type="file" id="wtNIn" accept=".docx" multiple style="display:none"><button class="ghost" id="wtNPick" type="button">📁 Chọn file .docx (nhiều file / kéo thả vào đây)</button><button class="sec sm" id="wtNClear" type="button">🗑 Xóa danh sách</button></div>
-<div id="wtNList"></div>
-<div class="bar"><span class="note" style="margin:0">Lề (mm):</span><label class="note" style="margin:0">Trên <input type="number" id="wtNTop" value="20" min="0" max="100" step="1" style="width:64px"></label><label class="note" style="margin:0">Dưới <input type="number" id="wtNBot" value="20" min="0" max="100" step="1" style="width:64px"></label><label class="note" style="margin:0">Trái <input type="number" id="wtNLeft" value="30" min="0" max="100" step="1" style="width:64px"></label><label class="note" style="margin:0">Phải <input type="number" id="wtNRight" value="15" min="0" max="100" step="1" style="width:64px"></label></div>
-<div class="bar"><label class="note" style="margin:0">Xuất ra: <select id="wtNFmt"><option value="docx">Word (.docx)</option><option value="pdf">PDF (.pdf)</option><option value="both">Cả Word và PDF</option></select></label><button class="green" id="wtNRun" type="button">🧹 Chuẩn hóa &amp; Xuất File</button></div>
-<div id="wtNSt" class="status"></div>
-<div id="wtNOut"></div>
-<div class="note">Times New Roman 14pt (kể cả style, đánh số, header/footer; giữ nguyên công thức và ký tự Symbol/Wingdings), A4, lề mặc định theo Nghị định 30/2020/NĐ-CP, đoạn căn đều – thụt dòng đầu 1 cm – giãn dòng 1,15, bảng không tràn lề. Chỉ nhận .docx (file .doc cần lưu lại thành .docx). Xử lý 100% trong trình duyệt.</div>
 </div>
 <div class="wtool" id="wtMerge">
 <div class="bar"><input type="file" id="wtMIn" accept=".docx" multiple style="display:none"><button class="ghost" id="wtMPick" type="button">📁 Thêm file .docx (thêm dần / kéo thả vào đây)</button><button class="sec sm" id="wtMClear" type="button">🗑 Xóa tất cả</button></div>
@@ -448,8 +439,8 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 <script src="cham-trac-nghiem.js?v=20261005"></script>
 <script src="word-matran.js?v=20261005"></script>
 <script src="tron-de.js?v=20261005"></script>
-<script src="word-chuan-hoa.js?v=20261005"></script>
-<script src="word-ra-soat.js?v=20261005"></script>
+<script src="word-chuan-hoa.js?v=20261015"></script>
+<script src="word-ra-soat.js?v=20261015"></script>
 <script src="word-chuyen-doi.js?v=20261005"></script>
 <script src="prompt-data.js?v=20261005"></script>
 <script src="prompt-hub.js?v=20261005"></script>
