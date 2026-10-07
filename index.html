@@ -282,6 +282,7 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 <div class="grid2"><div>
 <div class="bar"><input type="file" id="fileInput" accept=".docx,.txt" multiple style="display:none">
 <button class="ghost" id="btnChoose" type="button">📁 Chọn file (.docx / .txt) — chọn được nhiều file</button>
+<button class="sec sm" id="btnCmdCopy" type="button">📋 Câu lệnh</button>
 <button class="sec sm" id="btnClearFiles" type="button" style="display:none">🗑 Xóa danh sách</button></div>
 <div id="fileList"></div>
 <div id="fileStatus" class="status"></div>
@@ -301,6 +302,15 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 </div>
 </section>
 <script>
+(function(){
+var CMD="Chuyển hình ảnh sau thành dạng văn bản phối hợp LaTeX tương thích với MathType trong Word (tách biệt chữ thường và công thức toán bằng dấu $, không dùng \\textbf hay \\qquad trong phần văn bản. Sau đó tạo file word";
+var b=document.getElementById('btnCmdCopy');if(!b)return;var t;
+function done(ok){clearTimeout(t);b.textContent=ok?'✅ Đã copy!':'❌ Không copy được';t=setTimeout(function(){b.textContent='📋 Câu lệnh'},1800)}
+function fallback(){var a=document.createElement('textarea');a.value=CMD;a.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(a);a.focus();a.select();a.setSelectionRange(0,CMD.length);var ok=false;try{ok=document.execCommand('copy')}catch(e){}document.body.removeChild(a);done(ok)}
+b.addEventListener('click',function(){
+if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CMD).then(function(){done(true)},fallback)}else fallback();
+});
+})();
 (function(){var s=document.getElementById('wtSel');s.addEventListener('change',function(){document.querySelectorAll('.wtool').forEach(function(m){m.classList.toggle('on',m.id===s.value)})})})();
 </script>
 
