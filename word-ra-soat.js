@@ -48,6 +48,7 @@ function pInfo(p){if(PI.has(p))return PI.get(p);
   const pPr=one(p,'pPr'),st=pPr&&one(pPr,'pStyle'),sv=st?ga(st,'val'):'';
   const r={list:!!(pPr&&one(pPr,'numPr'))||/list|bullet|number|danh/i.test(sv),head:/^(head|title|tiêu|tieu)/i.test(sv)||!!(pPr&&one(pPr,'outlineLvl'))||pseudoHead(p)};
   PI.set(p,r);return r}
+const ptextAll=e=>all(e,'t').filter(t=>!inMath(t)).map(t=>t.textContent).join('');
 const ptext=p=>all(p,'t').filter(t=>!inMath(t)).map(t=>t.textContent).join('');
 const KEEP=['drawing','pict','object','sym','fldChar','fldSimple','sectPr','footnoteReference','endnoteReference','commentReference','ptab','bookmarkStart'];
 const hasSect=p=>{const pp=one(p,'pPr');return !!(pp&&one(pp,'sectPr'))};
@@ -489,6 +490,7 @@ function keepPass(doc,body,rep){
   all(body,'p').forEach(p=>{
     let pPr=one(p,'pPr');
     const info=pInfo(p),kn=pPr&&one(pPr,'keepNext'),kl=pPr&&one(pPr,'keepLines'),t=ptext(p).trim(),nx=p.nextElementSibling;
+    if(anc(p,'tc')){if(kn){rm(kn);n++}if(kl){rm(kl);n++}return}
     const stem=/^(Câu|CÂU|Bài|BÀI)\s*\d+/.test(t),cap=nx&&nx.localName==='p'&&/^(Hình|HÌNH)\s*\d*/.test(ptext(nx).trim())&&!t&&all(p,'drawing').length;
     const want=info.head||stem||cap||(nx&&nx.localName==='tbl'&&t.length<150);
     if(!pPr){if(want&&nx&&nx.localName!=='sectPr'){pPr=mk(doc,'pPr');p.insertBefore(pPr,p.firstChild);sc(doc,pPr,'keepNext',ORD.pPr);n++}return}
@@ -551,7 +553,10 @@ function tablePass(doc,body,secs,o,rep){
     const rows=wk(tbl,'tr'),cells=rows.reduce((a,r)=>a+wk(r,'tc').length,0);
     rows.forEach((tr,ri)=>{
       let tp=one(tr,'trPr');if(!tp){tp=mk(doc,'trPr');const ex=one(tr,'tblPrEx');tr.insertBefore(tp,ex?ex.nextSibling:tr.firstChild)}
-      if(!one(tp,'cantSplit')){sc(doc,tp,'cantSplit',ORD.trPr);cs++}
+      const tcs=wk(tr,'tc'),rowTall=rows.length<=3&&rows.length>0&&tcs.some(tc=>wk(tc,'p').length>=6||ptextAll(tc).length>350)||tcs.some(tc=>wk(tc,'p').length>=10||ptextAll(tc).length>700||all(tc,'tbl').length>0||all(tc,'drawing').length>1||all(tc,'br').some(b=>ga(b,'type')==='page'));
+      const csE=one(tp,'cantSplit');
+      if(rowTall){if(csE){rm(csE);cs++}}
+      else if(!csE){sc(doc,tp,'cantSplit',ORD.trPr);cs++}
       if(ri===0&&!nested&&rows.length>=8&&!one(tp,'tblHeader')&&all(tr,'t').some(t=>t.textContent.trim())){sc(doc,tp,'tblHeader',ORD.trPr);hd++}
       if(rows.length>1)wk(tr,'tc').forEach(tc=>{
         let cp=one(tc,'tcPr');if(!cp){cp=mk(doc,'tcPr');tc.insertBefore(cp,tc.firstChild)}
@@ -561,7 +566,7 @@ function tablePass(doc,body,secs,o,rep){
           if(/^(\d[\d.,%+\-–−/ ]{0,11}|STT|TT)$/i.test(t)&&!one(pp,'jc')&&!all(ps[0],'br').length){sa(sc(doc,pp,'jc',ORD.pPr),'val','center');al++}}})});
     const hasB=(one(pr,'tblBorders')&&Array.from(one(pr,'tblBorders').children).some(b=>ga(b,'val')&&ga(b,'val')!=='nil'&&ga(b,'val')!=='none'))||all(tbl,'tcBorders').length||(one(pr,'tblStyle')&&!/^TableNormal$/i.test(ga(one(pr,'tblStyle'),'val')));
     if(!hasB&&rows.length>1&&cells>2){if(o.tblborder){const b=sc(doc,pr,'tblBorders',ORD.tblPr);['top','left','bottom','right','insideH','insideV'].forEach(n=>{const e=mk(doc,n);sa(e,'val','single');sa(e,'sz',4);sa(e,'space',0);sa(e,'color','auto');b.appendChild(e)});bd++}else nb++}});
-  rep.fix('Bảng: co về vừa lề/khổ giấy',fit);rep.fix('Bảng: không cho hàng bị cắt đôi giữa hai trang',cs);
+  rep.fix('Bảng: co về vừa lề/khổ giấy',fit);rep.fix('Bảng: hàng ngắn không bị cắt đôi giữa hai trang; hàng dài (nhiều nội dung) cho phép tràn trang để không chừa khoảng trống lớn',cs);
   rep.fix('Bảng dài: lặp hàng tiêu đề ở mỗi trang',hd);rep.fix('Bảng: căn giữa dọc ô và căn giữa ô số/STT',al);
   rep.fix('Bảng: gỡ chế độ bảng trôi (floating) khiến bảng nhảy vị trí',fl);rep.fix('Bảng: thêm đường viền cho bảng chưa có viền',bd);
   if(nb)rep.warn(nb+' bảng không có đường viền. Nếu là bảng dữ liệu, hãy bật tùy chọn "Thêm viền cho bảng chưa có viền" (bảng bố cục 1 hàng được bỏ qua).')}
