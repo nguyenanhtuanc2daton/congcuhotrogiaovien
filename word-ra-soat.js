@@ -19,7 +19,7 @@ sectPr:'headerReference footerReference footnotePr endnotePr type pgSz pgMar pap
 tcPr:'cnfStyle tcW gridSpan hMerge vMerge tcBorders shd noWrap tcMar textDirection tcFitText vAlign hideMark'.split(' '),
 tblPr:'tblStyle tblpPr tblOverlap bidiVisual tblStyleRowBandSize tblStyleColBandSize tblW jc tblCellSpacing tblInd tblBorders shd tblLayout tblCellMar tblLook'.split(' '),
 trPr:'cnfStyle divId gridBefore gridAfter wBefore wAfter cantSplit trHeight tblHeader tblCellSpacing jc hidden ins del trPrChange'.split(' ')};
-const SYM=/symbol|wingdings|webdings|cambria math/i;
+const SYM=/symbol|wingdings|webdings|math|mt extra|mt symbol|mt fences|euclid|stix|fences|monotype sorts|opensymbol|mtextra/i;
 const LEGACY_FONT=/^(\.vn|vni-|vn[a-z]|\.?tcvn|\.abc)/i;
 const g=id=>document.getElementById(id);
 const hx=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -59,6 +59,7 @@ const pbOnly=p=>p.localName==='p'&&p.namespaceURI===W&&hasPB(p)&&!all(p,'t').som
    NÂNG CẤP v2 — mô hình văn bản cấp ĐOẠN · sửa dấu câu · bắt lỗi gõ sai ·
    đánh dấu Comment tại chỗ · Track Changes · kiểm lại nhiều vòng
    ==================================================================== */
+const VERSION='v3-toan (giữ w:position công thức MathType, không đổi font ctrlPr)';
 const BAR='\u0001',MTH='\u0002',CTNS='http://schemas.openxmlformats.org/package/2006/content-types',RELNS='http://schemas.openxmlformats.org/package/2006/relationships';
 const TRK={on:false,id:900000,author:'Rà soát tự động',date:''};
 let PSEUDO=true;
@@ -279,8 +280,8 @@ function lintPara(S,c){
   if(!off.dup){
     const dup=[];for(m of txt.matchAll(/(?<![\p{L}\p{N}])(\p{L}{2,}) \1(?![\p{L}\p{N}])/giu))dup.push(m[1]);
     if(dup.length)out.push('lặp từ: '+Array.from(new Set(dup)).slice(0,4).map(x=>'“'+x+' '+x+'”').join(', '))}
-  if(!off.bracket){
-    const t2=txt.replace(/^\s*\(?[\p{L}\d]{1,3}[.)]\s*/u,'');
+  if(!off.bracket&&!/[\u0001\u0002]/.test(txt)){   /* đoạn có công thức: ngoặc có thể nằm bên trong MathType/Equation nên không kết luận */
+    const t2=txt.replace(/^\s*[+\-–•*]\s*\)?\s*/,'').replace(/^\s*\(?[\p{L}\d]{1,3}[.)]\s*/u,'');
     const op=(t2.match(/[(\[{]/g)||[]).length,cl=(t2.match(/[)\]}]/g)||[]).length;
     if(op!==cl)out.push('ngoặc không cân ('+op+' mở / '+cl+' đóng)')}
   if(!off.quote){
@@ -593,7 +594,7 @@ function imgPass(doc,secs,o,rep,ctx){
       const ah=geo.ah*635*0.95;let f=Math.min(1,av/cx,ah/cy);
       if(f<0.995){set(cx*f,cy*f);fit++}}
     if(o.imgFix){const p=anc(dr,'p');
-      if(p&&el.localName==='inline'&&!ptext(p).trim()&&all(p,'drawing').length===1&&!all(p,'tab').length){
+      if(p&&el.localName==='inline'&&!ptext(p).trim()&&all(p,'drawing').length===1&&!all(p,'tab').length&&!p.getElementsByTagNameNS(M,'oMath').length&&!all(p,'object').length){
         const pPr=one(p,'pPr')||(()=>{const x=mk(doc,'pPr');p.insertBefore(x,p.firstChild);return x})(),j=one(pPr,'jc');
         if(!j||/^(left|start)$/.test(ga(j,'val'))){sa(sc(doc,pPr,'jc',ORD.pPr),'val','center');const ind=one(pPr,'ind');if(ind)rm(ind);cen++}}}});
   rep.fix('Hình: chuyển hình "trôi" (anchor) thành hình cùng dòng (inline)',inl);rep.fix('Hình: sửa hình bị méo về đúng tỉ lệ gốc',dist);
@@ -601,15 +602,34 @@ function imgPass(doc,secs,o,rep,ctx){
   if(ext)rep.warn(ext+' hình là liên kết ngoài (không nhúng trong file) — sẽ mất khi mở trên máy khác. Hãy chèn lại hình bằng Insert → Pictures.');
   const pict=all(doc,'pict').length;if(pict)rep.warn(pict+' hình/đối tượng dạng cũ (VML) — chưa rà soát được, kiểm tra tay.')}
 
+/* Cỡ chữ đích cho công thức = cỡ của chữ trong cùng đoạn (không ép về cỡ thân bài nếu đoạn là tiêu đề / bảng chữ nhỏ) */
+function mathTargetSz(mr,ctx){
+  const p=anc(mr,'p');if(!p)return ctx.sz;
+  const c={};
+  all(p,'r').forEach(x=>{if(anc(x,'p')!==p)return;const n=all(x,'t').reduce((a,t)=>a+t.textContent.length,0);if(!n)return;
+    const pr=one(x,'rPr'),se=pr&&one(pr,'sz'),v=se?+ga(se,'val'):0;c[v]=(c[v]||0)+n});
+  let best=-1,bn=0;for(const k in c)if(c[k]>bn){bn=c[k];best=+k}
+  if(best>0)return best;
+  return pInfo(p).head?0:ctx.sz}
+
 function mathAndRunFmt(doc,rPr,o,ctx,rep,cnt,hf){
   const par=rPr.parentNode;if(!par||/Change$/.test(par.localName))return;
   if(par.namespaceURI===M&&par.localName==='r'){
-    if(!o.mathsz)return;
+    if(!o.mathsz||hf)return;
     const sig=()=>['ascii','hAnsi','cs','eastAsia'].map(a=>ga(one(rPr,'rFonts'),a)).concat([ga(one(rPr,'sz'),'val'),ga(one(rPr,'szCs'),'val')]).join('|'),was=sig();
-    const f=sc(doc,rPr,'rFonts',ORD.rPr);['ascii','hAnsi','cs','eastAsia'].forEach(a=>sa(f,a,'Cambria Math'));
-    sa(sc(doc,rPr,'sz',ORD.rPr),'val',ctx.sz);sa(sc(doc,rPr,'szCs',ORD.rPr),'val',ctx.sz);if(sig()!==was)cnt.m++;return}
+    /* m:nor = chữ thường trong công thức (vd "khi", "với") → dùng font văn bản; còn lại Cambria Math */
+    const nor=Array.from(par.children).some(c=>c.namespaceURI===M&&c.localName==='rPr'&&Array.from(c.children).some(x=>x.namespaceURI===M&&x.localName==='nor'&&!/^(0|off|false)$/.test(x.getAttributeNS(M,'val')||'')));
+    const fn=nor?o.font:'Cambria Math';
+    if(fn){const f=sc(doc,rPr,'rFonts',ORD.rPr);['asciiTheme','hAnsiTheme','eastAsiaTheme','cstheme'].forEach(a=>f.removeAttributeNS(W,a));['ascii','hAnsi','cs','eastAsia'].forEach(a=>sa(f,a,fn))}
+    const tg=mathTargetSz(par,ctx);
+    if(tg){sa(sc(doc,rPr,'sz',ORD.rPr),'val',tg);sa(sc(doc,rPr,'szCs',ORD.rPr),'val',tg)}
+    if(sig()!==was)cnt.m++;return}
+  /* w:rPr nằm trong m:ctrlPr (định dạng dấu ngoặc/căn/phân số/tổng...) — giữ nguyên, đổi font sẽ làm hỏng cấu trúc công thức */
+  if(par.namespaceURI===M)return;
   const p=par.localName==='pPr'?par.parentNode:anc(rPr,'p');
   const head=!hf&&p&&pInfo(p).head;
+  /* Run chứa công thức MathType/đối tượng/hình: giữ nguyên w:position & cỡ chữ để công thức thẳng hàng với dòng chữ */
+  const hasObj=par.localName==='r'&&['object','pict','drawing'].some(n=>par.getElementsByTagNameNS(W,n).length>0);
   let f=one(rPr,'rFonts');const fam=f?ga(f,'ascii')+ga(f,'hAnsi')+ga(f,'cs')+ga(f,'eastAsia'):'';
   if(fam&&LEGACY_FONT.test(ga(f,'ascii')||ga(f,'hAnsi')))ctx.legacy.add(ga(f,'ascii')||ga(f,'hAnsi'));
   if(!SYM.test(fam)&&o.font){
@@ -617,9 +637,9 @@ function mathAndRunFmt(doc,rPr,o,ctx,rep,cnt,hf){
     if(!same){if(!f)f=sc(doc,rPr,'rFonts',ORD.rPr);['asciiTheme','hAnsiTheme','eastAsiaTheme','cstheme'].forEach(a=>f.removeAttributeNS(W,a));['ascii','hAnsi','cs','eastAsia'].forEach(a=>sa(f,a,o.font));cnt.font++}}
   if(hf)return;
   const va=one(rPr,'vertAlign');
-  if(!head&&!va&&!SYM.test(fam)){const se=one(rPr,'sz'),cur=se?+ga(se,'val'):0;
+  if(!head&&!va&&!hasObj&&!SYM.test(fam)){const se=one(rPr,'sz'),cur=se?+ga(se,'val'):0;
     if(!cur||(cur!==ctx.sz&&Math.abs(cur-ctx.sz)<=6)){sa(sc(doc,rPr,'sz',ORD.rPr),'val',ctx.sz);sa(sc(doc,rPr,'szCs',ORD.rPr),'val',ctx.sz);if(cur)cnt.sz++}}
-  ['spacing','w','position','fitText'].forEach(n=>{const e=one(rPr,n);if(e){rm(e);cnt.odd++}});
+  (hasObj||SYM.test(fam)?['spacing','w','fitText']:['spacing','w','position','fitText']).forEach(n=>{const e=one(rPr,n);if(e){rm(e);cnt.odd++}});
   if(o.shd){const e=one(rPr,'shd');if(e){rm(e);cnt.shd++}}
   if(o.color){['color','highlight'].forEach(n=>{const e=one(rPr,n);if(e){rm(e);cnt.col++}})}
   if(one(rPr,'vanish'))ctx.hidden++}
@@ -629,18 +649,19 @@ function paraFmt(doc,body,o,ctx,rep){
   all(body,'p').forEach(p=>{
     let pPr=one(p,'pPr');if(!pPr){pPr=mk(doc,'pPr');p.insertBefore(pPr,p.firstChild)}
     const inTc=!!anc(p,'tc'),info=pInfo(p);
+    if(o.spacing!==false){
     const s=sc(doc,pPr,'spacing',ORD.pPr),old=[ga(s,'before'),ga(s,'after'),ga(s,'line'),ga(s,'lineRule')].join();
     ['beforeLines','afterLines','beforeAutospacing','afterAutospacing'].forEach(a=>s.removeAttributeNS(W,a));
     if(!info.head){sa(s,'before',0);sa(s,'after',inTc?0:after)}
     sa(s,'line',line);sa(s,'lineRule','auto');
-    if([ga(s,'before'),ga(s,'after'),ga(s,'line'),ga(s,'lineRule')].join()!==old)sp++;
+    if([ga(s,'before'),ga(s,'after'),ga(s,'line'),ga(s,'lineRule')].join()!==old)sp++}
     const je=one(pPr,'jc'),jc=je?ga(je,'val'):'',txt=ptext(p).trim();
     const plain=!inTc&&!info.list&&!info.head&&txt.length>=40&&!all(p,'br').length&&!all(p,'tab').length;
     if(o.justify&&plain&&(!jc||jc==='left'||jc==='start')){sa(sc(doc,pPr,'jc',ORD.pPr),'val','both');jf++}
     const ie=one(pPr,'ind');
     if(ie&&!info.list){const L=+ga(ie,'left')||+ga(ie,'start')||0,Rr=+ga(ie,'right')||+ga(ie,'end')||0,F=+ga(ie,'firstLine')||0;
       if(L<0||Rr<0||L>5000||Rr>3000||F>1134){rm(ie);ind++}}
-    if(o.firstLine&&plain){const j=ga(one(pPr,'jc'),'val');if(j==='both'){const x=sc(doc,pPr,'ind',ORD.pPr);['hanging','hangingChars','firstLineChars'].forEach(a=>x.removeAttributeNS(W,a));sa(x,'firstLine',567);fl++}}});
+    if(o.firstLine&&plain){const j=ga(one(pPr,'jc'),'val');if(j==='both'){const x=sc(doc,pPr,'ind',ORD.pPr),was=['hanging','hangingChars','firstLineChars','firstLine'].map(a=>ga(x,a)).join();['hanging','hangingChars','firstLineChars'].forEach(a=>x.removeAttributeNS(W,a));sa(x,'firstLine',567);if(was!==',,,567')fl++}}});
   rep.fix('Đồng nhất giãn dòng và khoảng cách đoạn (đoạn)',sp);rep.fix('Căn đều hai bên cho đoạn văn thường (đoạn)',jf);
   rep.fix('Gỡ thụt lề bất thường (âm/quá lớn)',ind);rep.fix('Thụt đầu dòng chuẩn 1 cm cho đoạn văn (đoạn)',fl)}
 
@@ -659,7 +680,8 @@ function numberingCheck(doc,numDoc,rep){
 function insBeforeAny(root,el,names){const ref=Array.from(root.children).find(c=>c.namespaceURI===W&&names.indexOf(c.localName)>=0);root.insertBefore(el,ref||null)}
 function settingsPass(sd,o,ctx,rep){
   const root=sd.documentElement;
-  if(o.compat){const cp=one(root,'compat');
+  if(o.compat&&ctx.hasMath){const cp0=one(root,'compat'),c0=cp0&&wk(cp0,'compatSetting').find(e=>ga(e,'name')==='compatibilityMode');if(!c0||(+ga(c0,'val')||0)<15)rep.warn('Giữ nguyên Compatibility Mode vì tài liệu có công thức (MathType/Equation): nâng lên Word 2013+ có thể làm công thức lệch dòng và đổi ngắt trang.')}
+  if(o.compat&&!ctx.hasMath){const cp=one(root,'compat');
     if(cp){let cs=wk(cp,'compatSetting').find(e=>ga(e,'name')==='compatibilityMode');
       if(!cs){cs=mk(sd,'compatSetting');sa(cs,'name','compatibilityMode');sa(cs,'uri','http://schemas.microsoft.com/office/word');sa(cs,'val','15');cp.appendChild(cs);rep.fix('Tắt chế độ Compatibility Mode (nâng lên Word 2013+)')}
       else if((+ga(cs,'val')||0)<15){sa(cs,'val','15');rep.fix('Tắt chế độ Compatibility Mode (nâng lên Word 2013+)')}}}
@@ -684,7 +706,8 @@ async function aiPass(body,o,rep,hooks){
   const walk=(n,out)=>{for(const c of Array.from(n.childNodes)){if(c.nodeType!==1)continue;
     if(c.namespaceURI===M){if(c.localName==='oMath'||c.localName==='oMathPara')out.push('⟦CT⟧');continue}
     if(c.namespaceURI===W&&c.localName==='t'){out.push(c.textContent);continue}
-    if(c.namespaceURI===W&&/^(drawing|pict|object|delText)$/.test(c.localName))continue;walk(c,out)}return out};
+    if(c.namespaceURI===W&&c.localName==='object'){out.push('⟦CT⟧');continue}
+    if(c.namespaceURI===W&&/^(drawing|pict|delText)$/.test(c.localName))continue;walk(c,out)}return out};
   const items=[];all(body,'p').forEach((p,i)=>{const t=walk(p,[]).join('');if(/\p{L}{2,}/u.test(t)&&t.length>=8)items.push({i,p,t})});
   const cap=o.aiMax||1500,list=items.slice(0,cap);if(items.length>cap)rep.warn('AI chỉ soát '+cap+' đoạn đầu (tài liệu có '+items.length+' đoạn có chữ).');
   const batches=[];let cur=[],len=0;list.forEach(x=>{if(cur.length>=40||len+x.t.length>6000){batches.push(cur);cur=[];len=0}cur.push(x);len+=x.t.length});if(cur.length)batches.push(cur);
@@ -761,6 +784,7 @@ async function auditOnce(buf,o,hooks){
   hooks.progress('Đang đọc kích thước hình...');
   for(const id in ctx.rels){const r=ctx.rels[id];if(!/\/image$/.test(r.ty)||r.m==='External')continue;
     const f=zip.file(rs('word/',r.t));if(!f){ctx.missing.push(id);continue}const d=imgDim(await f.async('uint8array'));if(d)ctx.dims[id]=d}
+  ctx.hasMath=!!(doc.getElementsByTagNameNS(M,'oMath').length||all(doc,'object').length||all(doc,'pict').length);
   ctx.hasToc=all(doc,'instrText').some(t=>/^\s*TOC\b/.test(t.textContent))||all(doc,'fldSimple').some(f=>/^\s*TOC\b/.test(ga(f,'instr')));
   let defSz=20;if(sd){const dr=one(one(sd.documentElement,'docDefaults'),'rPrDefault'),dz=dr&&one(one(dr,'rPr'),'sz');if(dz)defSz=+ga(dz,'val')||defSz;
     const nm=wk(sd.documentElement,'style').find(s=>ga(s,'type')==='paragraph'&&ga(s,'default')==='1'),nz=nm&&one(one(nm,'rPr'),'sz');if(nz)defSz=+ga(nz,'val')||defSz}
@@ -783,8 +807,8 @@ async function auditOnce(buf,o,hooks){
   ctx.sz=o.size==='auto'?dominantSize(body,defSz):(+o.size)*2;
   if(o.size==='auto'&&!dry)rep.notes.push('Cỡ chữ chính nhận diện của tài liệu: '+ctx.sz/2+' pt');
   const cnt={font:0,sz:0,odd:0,shd:0,col:0,m:0};
-  step('font/cỡ chữ',()=>{all(doc,'rPr').forEach(r=>mathAndRunFmt(doc,r,o,ctx,rep,cnt,false));
-    all(doc,'r',M).forEach(r=>{if(!one(r,'rPr')&&o.mathsz){const wr=mk(doc,'rPr'),mp=Array.from(r.children).find(c=>c.namespaceURI===M&&c.localName==='rPr');r.insertBefore(wr,mp?mp.nextSibling:r.firstChild);mathAndRunFmt(doc,wr,o,ctx,rep,cnt,false)}});
+  step('font/cỡ chữ',()=>{all(doc,'rPr').forEach(r=>{const pa=r.parentNode;if(pa&&pa.namespaceURI===M&&pa.localName==='r')return;mathAndRunFmt(doc,r,o,ctx,rep,cnt,false)});
+    all(doc,'r',M).forEach(r=>{if(!o.mathsz)return;let wr=one(r,'rPr');if(!wr){wr=mk(doc,'rPr');const mp=Array.from(r.children).find(c=>c.namespaceURI===M&&c.localName==='rPr');r.insertBefore(wr,mp?mp.nextSibling:r.firstChild)}mathAndRunFmt(doc,wr,o,ctx,rep,cnt,false)});
     step('định dạng đoạn',()=>paraFmt(doc,body,o,ctx,rep))});
   rep.fix('Đồng nhất font chữ (run)',cnt.font);rep.fix('Đồng nhất cỡ chữ lệch (run)',cnt.sz);
   rep.fix('Gỡ co giãn/giãn cách ký tự/nâng hạ chữ bất thường (dán từ PDF/web)',cnt.odd);rep.fix('Gỡ nền (shading) lạ trong chữ',cnt.shd);
@@ -874,7 +898,7 @@ async function audit(buf,o,hooks){
   return{data:cur.data,rep:first.rep}}
 
 function reportText(name,rep){
-  const L=['BÁO CÁO RÀ SOÁT WORD — '+name,''];
+  const L=['BÁO CÁO RÀ SOÁT WORD — '+name,'Phiên bản công cụ: '+VERSION,''];
   L.push('ĐÃ TỰ ĐỘNG SỬA:');if(!rep.f.size)L.push('  (không có thay đổi nào)');rep.f.forEach((n,k)=>L.push('  • '+k+': '+n));
   if(rep.notes.length){L.push('','GHI CHÚ / CHI TIẾT:');rep.notes.slice(0,200).forEach(x=>L.push('  - '+x))}
   if(rep.lint&&rep.lint.length){L.push('','CHỖ CẦN KIỂM TRA (đã đánh dấu bằng Comment trong file Word):');rep.lint.slice(0,400).forEach(x=>L.push('  • Đoạn '+x.n+' “'+x.snip+'”: '+x.issues.join('; ')));if(rep.lint.length>400)L.push('  … và '+(rep.lint.length-400)+' đoạn khác')}
@@ -899,7 +923,7 @@ function buildUI(){
   +cb('text','Dọn khoảng trắng thừa, dấu cách trước dấu câu, ký tự ẩn, NBSP; chuẩn hóa dấu tiếng Việt (NFC)',1)+cb('indent','Bỏ Tab/dấu cách thụt đầu dòng thủ công',1)+cb('num','Đánh số lại “Câu/Bài” bị nhảy hoặc trùng (reset theo PHẦN/ĐỀ)',1)+cb('spell','Sửa lỗi chính tả thường gặp chắc chắn sai (vd “xác xuất”→“xác suất”, “bổ xung”→“bổ sung”, “xử dụng”→“sử dụng”)',1)+cb('unify','Thống nhất kiểu nhãn theo kiểu đa số: đáp án “A.” hay “A)”, nhãn “Câu 1.” hay “Câu 1:”',1)+cb('decimal','Đổi số thập phân 3.5 → 3,5 (bỏ qua số mục/hình/bảng, ngày tháng) — chỉ bật nếu tài liệu dùng dấu phẩy',0)+cb('cap','Tự viết hoa chữ đầu câu / đầu đoạn (chỉ khi chắc chắn; mặc định chỉ đánh dấu Comment)',0)+cb('quotes','Đổi ngoặc kép thẳng (") thành ngoặc kép cong “ ” khi mở/đóng đúng cặp',1)+cb('phead','Nhận diện tiêu đề không dùng style Heading (dòng ngắn in đậm hoặc IN HOA) để không căn đều/thụt dòng nhầm',1)
   +'<div class="raR">Font: <select id="ra_font"><option>Times New Roman</option><option>Arial</option><option>Calibri</option><option>Cambria</option><option value="">Giữ nguyên font</option></select> &nbsp; Cỡ chữ: <select id="ra_size"><option value="auto">Tự nhận diện</option><option value="12">12</option><option value="13">13</option><option value="14">14</option></select></div>'
   +'<div class="raR">Giãn dòng: <select id="ra_line"><option value="1">1.0</option><option value="1.15" selected>1.15</option><option value="1.3">1.3</option><option value="1.5">1.5</option></select> &nbsp; Sau đoạn (pt): <select id="ra_after"><option value="0">0</option><option value="3">3</option><option value="6" selected>6</option><option value="8">8</option></select></div>'
-  +cb('justify','Căn đều hai bên cho đoạn văn dài (không đụng tiêu đề, danh sách, bảng, đoạn căn giữa/phải)',1)+cb('firstLine','Thụt đầu dòng 1 cm cho đoạn văn thường (tắt nếu là đề trắc nghiệm)',0)+cb('shd','Gỡ nền (shading) lạ khi dán từ web',1)+cb('color','Gỡ màu chữ và tô sáng (tắt nếu có đáp án tô màu)',0)+'</details>'
+  +cb('spacing','Đồng nhất giãn dòng và khoảng cách đoạn theo 2 giá trị trên (bỏ tick để giữ nguyên giãn dòng/khoảng cách của file gốc)',1)+cb('justify','Căn đều hai bên cho đoạn văn dài (không đụng tiêu đề, danh sách, bảng, đoạn căn giữa/phải)',1)+cb('firstLine','Thụt đầu dòng 1 cm cho đoạn văn thường (tắt nếu là đề trắc nghiệm)',0)+cb('shd','Gỡ nền (shading) lạ khi dán từ web',1)+cb('color','Gỡ màu chữ và tô sáng (tắt nếu có đáp án tô màu)',0)+'</details>'
   +'<details class="raG"><summary>📄 Trang, ngắt trang, tiêu đề</summary>'
   +cb('blank','Xóa dòng trống thừa và ngắt trang thừa (trang trắng)',1)+cb('keep','Giữ tiêu đề/câu hỏi/hình đi cùng đoạn sau; bỏ ràng buộc gây đẩy đoạn sang trang mới',1)
   +cb('page','Đưa khổ giấy về A4 và lề chuẩn:',1)+'<div class="raR">Lề (mm): Trên '+num('mt',20)+' Dưới '+num('mb',20)+' Trái '+num('ml',30)+' Phải '+num('mr',15)+'</div>'
@@ -938,7 +962,7 @@ async function addFiles(list){const bad=[];
   renderList();setSt(bad.length?'Bỏ qua: '+bad.join('; '):(q.length?'Đã chọn '+q.length+' file, sẵn sàng rà soát.':''),bad.length?'e':'')}
 function readOpts(){
   const c=id=>g('ra_'+id).checked,v=id=>g('ra_'+id).value,n=id=>parseFloat(String(v(id)).replace(',','.'));
-  const o={text:c('text'),indent:c('indent'),num:c('num'),font:v('font'),size:v('size'),line:+v('line'),after:+v('after'),justify:c('justify'),firstLine:c('firstLine'),shd:c('shd'),color:c('color'),
+  const o={text:c('text'),indent:c('indent'),num:c('num'),font:v('font'),size:v('size'),line:+v('line'),after:+v('after'),spacing:c('spacing'),justify:c('justify'),firstLine:c('firstLine'),shd:c('shd'),color:c('color'),
     blank:c('blank'),keep:c('keep'),page:c('page'),mt:n('mt'),mb:n('mb'),ml:n('ml'),mr:n('mr'),pgnum:c('pgnum'),fields:c('fields'),compat:c('compat'),
     tbl:c('tbl'),tblborder:c('tblborder'),imgInline:c('imgInline'),imgFix:c('imgFix'),latex:c('latex'),mathsz:c('mathsz'),ai:c('ai'),aiModel:v('model'),accept:c('accept'),nocmt:c('nocmt'),quotes:c('quotes'),phead:c('phead'),mark:c('mark'),verify:c('verify'),track:c('track'),aiMode:v('aimode'),spell:c('spell'),unify:c('unify'),decimal:c('decimal')?'comma':'',cap:c('cap'),dry:c('dry'),
     lintOff:{typo:!c('l_typo'),dup:!c('l_dup'),bracket:!c('l_bracket'),quote:!c('l_quote'),dollar:!c('l_dollar'),punct:!c('l_punct'),lower:!c('l_lower'),mid:!c('l_mid'),noend:!c('l_noend')}};
@@ -980,7 +1004,7 @@ async function run(){
     out.appendChild(card);await tick()}
   if(res.length>3&&g('ra_zip').checked&&typeof makeZip==='function'){const b=document.createElement('button');b.type='button';b.className='green';b.textContent='📦 Tải gộp tất cả (.zip)';
     b.onclick=()=>save('ra-soat-word.zip',makeZip(res.map(r=>({name:r.name,data:r.data}))),'application/zip');out.appendChild(b)}
-  btn.disabled=false;setSt('Xong: '+ok+'/'+q.length+' file. Hãy mở file kết quả bằng Word, bấm Ctrl+A rồi F9 nếu có mục lục/số trang cần cập nhật.',ok?'o':'e')}
+  btn.disabled=false;setSt('['+VERSION+'] Xong: '+ok+'/'+q.length+' file. Hãy mở file kết quả bằng Word, bấm Ctrl+A rồi F9 nếu có mục lục/số trang cần cập nhật.',ok?'o':'e')}
 function wire(){
   g('ra_pick').onclick=()=>g('ra_in').click();
   g('ra_in').onchange=e=>{const f=Array.from(e.target.files||[]);e.target.value='';if(f.length)addFiles(f)};
@@ -994,6 +1018,6 @@ function wire(){
     g('ra_mt').value=20;g('ra_mb').value=20;g('ra_ml').value=30;g('ra_mr').value=15;
     setSt('Đã đặt: Times New Roman 14pt, giãn dòng 1,15, căn đều, thụt đầu dòng 1 cm, A4, lề 20/20/30/15 mm. Bấm “Rà soát & Xuất file” để chạy.','o')};
   g('ra_run').onclick=run}
-window.RaSoatWord={audit,reportText,readOpts};
+window.RaSoatWord={audit,reportText,readOpts,version:VERSION};
 buildUI();
 })();
