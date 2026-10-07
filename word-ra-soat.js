@@ -610,6 +610,8 @@ function mathAndRunFmt(doc,rPr,o,ctx,rep,cnt,hf){
     sa(sc(doc,rPr,'sz',ORD.rPr),'val',ctx.sz);sa(sc(doc,rPr,'szCs',ORD.rPr),'val',ctx.sz);if(sig()!==was)cnt.m++;return}
   const p=par.localName==='pPr'?par.parentNode:anc(rPr,'p');
   const head=!hf&&p&&pInfo(p).head;
+  /* Run chứa công thức MathType/đối tượng/hình: giữ nguyên w:position & cỡ chữ để công thức thẳng hàng với dòng chữ */
+  const hasObj=par.localName==='r'&&['object','pict','drawing'].some(n=>par.getElementsByTagNameNS(W,n).length>0);
   let f=one(rPr,'rFonts');const fam=f?ga(f,'ascii')+ga(f,'hAnsi')+ga(f,'cs')+ga(f,'eastAsia'):'';
   if(fam&&LEGACY_FONT.test(ga(f,'ascii')||ga(f,'hAnsi')))ctx.legacy.add(ga(f,'ascii')||ga(f,'hAnsi'));
   if(!SYM.test(fam)&&o.font){
@@ -617,9 +619,9 @@ function mathAndRunFmt(doc,rPr,o,ctx,rep,cnt,hf){
     if(!same){if(!f)f=sc(doc,rPr,'rFonts',ORD.rPr);['asciiTheme','hAnsiTheme','eastAsiaTheme','cstheme'].forEach(a=>f.removeAttributeNS(W,a));['ascii','hAnsi','cs','eastAsia'].forEach(a=>sa(f,a,o.font));cnt.font++}}
   if(hf)return;
   const va=one(rPr,'vertAlign');
-  if(!head&&!va&&!SYM.test(fam)){const se=one(rPr,'sz'),cur=se?+ga(se,'val'):0;
+  if(!head&&!va&&!hasObj&&!SYM.test(fam)){const se=one(rPr,'sz'),cur=se?+ga(se,'val'):0;
     if(!cur||(cur!==ctx.sz&&Math.abs(cur-ctx.sz)<=6)){sa(sc(doc,rPr,'sz',ORD.rPr),'val',ctx.sz);sa(sc(doc,rPr,'szCs',ORD.rPr),'val',ctx.sz);if(cur)cnt.sz++}}
-  ['spacing','w','position','fitText'].forEach(n=>{const e=one(rPr,n);if(e){rm(e);cnt.odd++}});
+  (hasObj?['spacing','w','fitText']:['spacing','w','position','fitText']).forEach(n=>{const e=one(rPr,n);if(e){rm(e);cnt.odd++}});
   if(o.shd){const e=one(rPr,'shd');if(e){rm(e);cnt.shd++}}
   if(o.color){['color','highlight'].forEach(n=>{const e=one(rPr,n);if(e){rm(e);cnt.col++}})}
   if(one(rPr,'vanish'))ctx.hidden++}
