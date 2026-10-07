@@ -164,6 +164,9 @@ function strToTextNodes(s){ const o=[]; for(const ch of s) o.push({t:'text',v:ch
 
 /* Chuẩn hoá thô: bỏ chú thích %, đổi xuống dòng thành khoảng trắng, cân bằng ngoặc {} */
 function preprocessLatex(s){
+  /* \mathop{\rm lim} / \mathop{\mathrm{lim}} / \mathop{lim} (kiểu LaTeX cũ) → \lim để giới hạn nằm đúng dưới chữ lim */
+  s=s.replace(/\\mathop\s*\{\s*(?:\\rm\s+|\\mathrm\s*\{\s*)?(lim|max|min|sup|inf|log|ln|sin|cos|tan|cot|det|gcd)\s*\}?\s*\}/g,'\\$1 ');
+  s=s.replace(/\\limits(?![A-Za-z])/g,'');   /* \lim\limits_{x\to 0}, \sum\limits_{i=1}^n: Equation của Word tự đặt giới hạn dưới/trên đúng chỗ */
   let out='', depth=0, fixed=false;
   for(let i=0;i<s.length;i++){
     const ch=s[i];
@@ -300,6 +303,9 @@ function P_inner(str){
       const fmt={b:name==='textbf',i:name==='textit'||name==='emph'||name==='textsl'};
       return {t:'seq',c:rawTextNodes(readRawArg(),fmt)};
     }
+    if(name==='rm'||name==='sf'||name==='tt'||name==='normalfont'||name==='bf'||name==='it'){
+      const rest=str.slice(i); i=n; const c=P(rest);
+      return name==='bf'?{t:'styled',sty:'b',c}:name==='it'?{t:'styled',sty:'i',c}:{t:'upright',c}; }
     if(name==='mathrm'||name==='mathsf'||name==='mathtt'||name==='mathnormal'||name==='mathbf_'){ return {t:'upright',c:readArg()}; }
     if(name==='mathbf'||name==='boldsymbol'||name==='bm'||name==='pmb'||name==='textbf_'){ return {t:'styled',sty:(name==='mathbf'?'b':'bi'),c:readArg()}; }
     if(name==='mathit'){ return {t:'styled',sty:'i',c:readArg()}; }
