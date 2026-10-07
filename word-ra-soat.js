@@ -161,7 +161,7 @@ function paraRules(S,o){
   /* khoảng trắng TRƯỚC dấu đóng/dấu câu */
   for(m of S.matchAll(/(?<=[^\s\u0001(\[{“‘]) +(?=[,;!?)\]}%”])/g))if(!urlish(S,m.index+m[0].length))add(m.index,m.index+m[0].length,'','pu');
   for(m of S.matchAll(/(?<=[^\s\u0001\u0002]) +(?=:(?! *[\d\u0002]))/g))add(m.index,m.index+m[0].length,'','pu');
-  for(m of S.matchAll(/(?<=[^\s\u0001.]) +(?=\.(?!\.)(?! \.)(?:[ \u0001]|$))/g))add(m.index,m.index+m[0].length,'','pu');
+  for(m of S.matchAll(/(?<=[^\s\u0001.]) +(?=\.(?!\.)(?! \.)(?:[ \u0001]|$|\p{Lu}\p{Ll}))/gu))add(m.index,m.index+m[0].length,'','pu');
   /* khoảng trắng SAU dấu mở */
   for(m of S.matchAll(/(?<=[(\[{“‘]) +(?![\s\u0001)\]}”’])/g))add(m.index,m.index+m[0].length,'','pu');
   /* thiếu khoảng trắng SAU dấu câu */
@@ -171,7 +171,7 @@ function paraRules(S,o){
   for(m of S.matchAll(/(?<=\p{L}):(?=["“])/gu))add(m.index+1,m.index+1,' ','pu');
   for(m of S.matchAll(/:(?=\p{Lu}\p{Ll})/gu))if(!urlish(S,m.index))add(m.index+1,m.index+1,' ','pu');
   for(m of S.matchAll(/(?<=\p{Ll}{2}):(?=\p{Ll})/gu))if(!urlish(S,m.index))add(m.index+1,m.index+1,' ','pu');
-  for(m of S.matchAll(/(?<=[\p{Ll}\p{N})\]”])[.?!](?=\p{Lu}\p{Ll})/gu))if(!urlish(S,m.index))add(m.index+1,m.index+1,' ','pu');
+  for(m of S.matchAll(/(?<=[\p{Ll}\p{N})\]”\u0002])[.?!](?=\p{Lu}\p{Ll})/gu))if(!urlish(S,m.index))add(m.index+1,m.index+1,' ','pu');
   for(m of S.matchAll(/(?<=\p{Ll}[)\]”])(?=\p{Lu}\p{Ll})/gu))add(m.index,m.index,' ','pu');
   /* dấu lặp */
   for(m of S.matchAll(/,{2,}|;{2,}/g))add(m.index+1,m.index+m[0].length,'','dp');
@@ -745,6 +745,10 @@ async function auditOnce(buf,o,hooks){
       rep.fix('Công thức LaTeX ($...$, \\[...\\]) → Equation của Word',c.totalEq);
       const EL=typeof EQ_LOG!=='undefined'?EQ_LOG:{degraded:[],opaque:0,skipped:0};
       if(EL.degraded.length)rep.warn(EL.degraded.length+' công thức LaTeX không dựng được Equation (giữ nguyên chữ LaTeX): hãy kiểm tra tay.');
+      if(EL.warned&&EL.warned.length){const cut=t=>{t=String(t).replace(/\s+/g,' ');return t.length>60?t.slice(0,60)+'…':t};
+        rep.warn(EL.warned.length+' công thức LaTeX đã chuyển nhưng có phần được xử lý gần đúng (có thể sai ký hiệu) — hãy đối chiếu:');
+        EL.warned.slice(0,8).forEach(d=>rep.warn('   • “'+cut(d.latex)+'” — '+(d.warn||[]).join('; ')));
+        if(EL.warned.length>8)rep.warn('   … và '+(EL.warned.length-8)+' công thức khác')}
       if(EL.opaque)rep.warn(EL.opaque+' công thức dạng MathType/đối tượng nhúng — giữ nguyên, không chuyển được.');
       if(EL.skipped)rep.warn(EL.skipped+' công thức bị ngắt bởi ảnh/xuống dòng/trường đặc biệt nên chưa chuyển — hãy gõ liền trên một dòng.')}
     catch(e){rep.warn('Chuyển LaTeX → Equation gặp lỗi và đã bỏ qua: '+e.message)}}
