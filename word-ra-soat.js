@@ -490,7 +490,9 @@ function keepPass(doc,body,rep){
   all(body,'p').forEach(p=>{
     let pPr=one(p,'pPr');
     const info=pInfo(p),kn=pPr&&one(pPr,'keepNext'),kl=pPr&&one(pPr,'keepLines'),t=ptext(p).trim(),nx=p.nextElementSibling;
-    if(anc(p,'tc')){if(kn){rm(kn);n++}if(kl){rm(kl);n++}return}
+    if(anc(p,'tc')){const tr=anc(p,'tr'),tb=tr&&tr.parentNode;
+      if(tr&&tb&&tb.localName==='tbl'&&wk(tb,'tr')[0]===tr&&wk(tb,'tr').length>1)return; /* hàng tiêu đề: giữ keepNext do tablePass đặt */
+      if(kn){rm(kn);n++}if(kl){rm(kl);n++}return}
     const stem=/^(Câu|CÂU|Bài|BÀI)\s*\d+/.test(t),cap=nx&&nx.localName==='p'&&/^(Hình|HÌNH)\s*\d*/.test(ptext(nx).trim())&&!t&&all(p,'drawing').length;
     const want=info.head||stem||cap||(nx&&nx.localName==='tbl'&&t.length<150);
     if(!pPr){if(want&&nx&&nx.localName!=='sectPr'){pPr=mk(doc,'pPr');p.insertBefore(pPr,p.firstChild);sc(doc,pPr,'keepNext',ORD.pPr);n++}return}
@@ -553,10 +555,14 @@ function tablePass(doc,body,secs,o,rep){
     const rows=wk(tbl,'tr'),cells=rows.reduce((a,r)=>a+wk(r,'tc').length,0);
     rows.forEach((tr,ri)=>{
       let tp=one(tr,'trPr');if(!tp){tp=mk(doc,'trPr');const ex=one(tr,'tblPrEx');tr.insertBefore(tp,ex?ex.nextSibling:tr.firstChild)}
-      const tcs=wk(tr,'tc'),rowTall=rows.length<=3&&rows.length>0&&tcs.some(tc=>wk(tc,'p').length>=6||ptextAll(tc).length>350)||tcs.some(tc=>wk(tc,'p').length>=10||ptextAll(tc).length>700||all(tc,'tbl').length>0||all(tc,'drawing').length>1||all(tc,'br').some(b=>ga(b,'type')==='page'));
-      const csE=one(tp,'cantSplit');
-      if(rowTall){if(csE){rm(csE);cs++}}
+      /* Hàng chỉ được "không cắt đôi" khi thật sự NHỎ. Hàng nhiều nội dung/hình/công thức mà bị cấm cắt sẽ bị Word đẩy nguyên sang trang sau → trang trước chỉ còn dòng tiêu đề + khoảng trống lớn. */
+      const tcs=wk(tr,'tc'),
+        rowSmall=tcs.every(tc=>wk(tc,'p').length<=3&&ptextAll(tc).length<=250&&!all(tc,'tbl').length&&!all(tc,'drawing').length&&!all(tc,'pict').length&&!all(tc,'object').length&&!all(tc,'br').some(b=>ga(b,'type')==='page')),
+        csE=one(tp,'cantSplit');
+      if(!rowSmall){if(csE){rm(csE);cs++}}
       else if(!csE){sc(doc,tp,'cantSplit',ORD.trPr);cs++}
+      /* Hàng tiêu đề (hàng 1) luôn đi cùng hàng nội dung kế tiếp: không bị bỏ lẻ một mình ở cuối trang */
+      if(ri===0&&rows.length>1&&rowSmall&&!nested)tcs.forEach(tc=>wk(tc,'p').forEach(pp=>{let pr2=one(pp,'pPr');if(!pr2){pr2=mk(doc,'pPr');pp.insertBefore(pr2,pp.firstChild)}if(!one(pr2,'keepNext')){sc(doc,pr2,'keepNext',ORD.pPr);cs++}}));
       if(ri===0&&!nested&&rows.length>=8&&!one(tp,'tblHeader')&&all(tr,'t').some(t=>t.textContent.trim())){sc(doc,tp,'tblHeader',ORD.trPr);hd++}
       if(rows.length>1)wk(tr,'tc').forEach(tc=>{
         let cp=one(tc,'tcPr');if(!cp){cp=mk(doc,'tcPr');tc.insertBefore(cp,tc.firstChild)}
