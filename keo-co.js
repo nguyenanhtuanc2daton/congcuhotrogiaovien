@@ -127,10 +127,23 @@
     '@media(max-width:700px){.kc-stage.on.fs .kc-grid{grid-template-rows:auto minmax(0,1fr) minmax(0,1fr)}}',
     '.kc-stage.on.fs .kc-team{min-height:0;height:100%}',
     '.kc-stage.on.fs .kc-field{height:clamp(110px,21vh,230px)}',
-    '.kc-stage.on.fs .kc-q{min-height:0;overflow:hidden;font-size:calc(clamp(20px,min(3.4vw,6vh),60px)*var(--kc-fs,1))}',
+    '.kc-stage.on.fs .kc-q{min-height:0;overflow:hidden;font-size:calc(clamp(20px,min(3.4vw,6vh),110px)*var(--kc-fs,1))}',
     '.kc-stage.on.fs .kc-opts{flex:0 0 auto}',
-    '.kc-stage.on.fs .kc-opt{min-height:clamp(60px,14vh,160px);font-size:calc(clamp(16px,min(2.3vw,4.2vh),38px)*var(--kc-fs,1))}',
-    '.kc-stage.on.fs .kc-info{font-size:clamp(12px,2vh,20px)}',
+    '.kc-stage.on.fs .kc-opt{min-height:clamp(60px,14vh,160px);font-size:calc(clamp(16px,min(2.3vw,4.2vh),72px)*var(--kc-fs,1))}',
+    '.kc-stage.on.fs .kc-info{font-size:clamp(14px,2.6vh,34px)}',
+    '.kc-stage{user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}',
+    '.kc-opt i{font-size:13px;opacity:.75;font-weight:800;color:#334155}',
+    '.kc-stage.on.fs .kc-time{font-size:clamp(34px,6vh,72px);padding:2px 22px}',
+    '.kc-stage.on.fs .kc-chip{font-size:clamp(18px,2.8vh,34px);padding:4px 18px}',
+    '.kc-stage.on.fs .kc-btn{font-size:clamp(14px,2.2vh,24px);padding:8px 14px}',
+    '.kc-stage.on.fs .kc-th{font-size:clamp(20px,3.2vh,40px)}',
+    '.kc-stage.on.fs .kc-th small{font-size:clamp(14px,2.2vh,26px)}',
+    '.kc-stage.on.fs .kc-opt i{font-size:clamp(16px,2.6vh,30px);opacity:.85;left:12px;top:6px}',
+    '.kc-stage.on.fs .kc-cap{font-size:clamp(16px,2.6vh,30px)}',
+    '.kc-stage.on.fs .kc-ovbox{padding:clamp(26px,5vh,60px) clamp(34px,6vw,100px)}',
+    '.kc-stage.on.fs .kc-ovbox h2{font-size:clamp(34px,7vh,88px)}',
+    '.kc-stage.on.fs .kc-ovbox p,.kc-stage.on.fs .kc-bnew{font-size:clamp(20px,3.2vh,40px);line-height:1.5}',
+    '.kc-stage.on.fs .kc-mem{font-size:.8em}',
     '@media(max-width:700px){.kc-grid{grid-template-columns:1fr;grid-template-areas:"f" "b" "r"}.kc-team{min-height:0}}'
   ].join('\n');
   document.head.appendChild(st);
@@ -233,7 +246,7 @@
     return t;
   }
   function texHTML(t) {
-    t = String(t).trim();
+    t = String(t).trim().replace(/(^|[^\\])%/g, '$1\\%');
     if (window.katex) {
       var tries = [t, texFix(t)];
       for (var i = 0; i < tries.length; i++) {
@@ -313,7 +326,8 @@
     try {
       actx = actx || new (window.AudioContext || window.webkitAudioContext)();
       var o = actx.createOscillator(), g = actx.createGain();
-      o.type = type || 'sine'; o.frequency.value = f; g.gain.value = 0.08;
+      if (actx.state === 'suspended' && actx.resume) actx.resume();
+      o.type = type || 'sine'; o.frequency.value = f; g.gain.value = 0.16;
       o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + d);
     } catch (e) {}
   }
@@ -468,6 +482,30 @@
   el.bank.addEventListener('input', updCount);
 
   /* ---------- Nhập file ---------- */
+  /* Đọc CSV đúng chuẩn: tự nhận dấu phân cách (, ; Tab), hiểu ô đặt trong "..." có dấu phẩy / xuống dòng */
+  function csvRows(tx, d) {
+    var rows = [], row = [], f = '', q = false, i, c;
+    for (i = 0; i < tx.length; i++) {
+      c = tx.charAt(i);
+      if (q) { if (c === '"') { if (tx.charAt(i + 1) === '"') { f += '"'; i++; } else q = false; } else f += c; }
+      else if (c === '"') q = true;
+      else if (c === d) { row.push(f); f = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && tx.charAt(i + 1) === '\n') i++; row.push(f); rows.push(row); row = []; f = ''; }
+      else f += c;
+    }
+    row.push(f); rows.push(row);
+    return rows.filter(function (r) { return r.join('').trim(); });
+  }
+  function csvToBank(tx) {
+    tx = tx.replace(/^\uFEFF/, '');
+    var best = null, score = -1;
+    [',', ';', '\t'].forEach(function (d) {
+      var r = csvRows(tx, d), sc = r.filter(function (x) { return x.length >= 4; }).length;
+      if (sc > score) { score = sc; best = r; }
+    });
+    return (best || []).map(function (r) { return r.map(function (x) { return String(x).replace(/\s+/g, ' ').trim().replace(/\|/g, '/'); }).join(' | '); }).join('\n');
+  }
+
   $('kcFileBtn').onclick = function () { el.file.click(); };
   $('kcSample').onclick = function () { el.bank.value = SAMPLE; updCount(); };
   $('kcTpl').onclick = function () {
@@ -506,7 +544,14 @@
       };
       rd.readAsArrayBuffer(f);
     } else {
-      rd.onload = function () { var tx = String(rd.result); el.bank.value = (/\.csv$/i.test(f.name) && tx.indexOf('|') < 0) ? tx.replace(/\r?\n/g, '\n').split('\n').map(function (l) { return l.split(',').join(' | '); }).join('\n') : tx; updCount(); el.msg.textContent = 'Đã nhập từ ' + f.name; };
+      rd.onload = function () {
+        var tx = String(rd.result);
+        if (/\.csv$/i.test(f.name) && tx.indexOf('|') < 0) {
+          if (tx.indexOf('\uFFFD') >= 0) { el.msg.textContent = 'File CSV không phải mã hóa UTF-8 nên tiếng Việt bị lỗi. Hãy lưu lại bằng "CSV UTF-8" hoặc dùng file .xlsx.'; return; }
+          tx = csvToBank(tx);
+        }
+        el.bank.value = tx; updCount(); el.msg.textContent = 'Đã nhập từ ' + f.name;
+      };
       rd.readAsText(f, 'utf-8');
     }
     el.file.value = '';
@@ -572,7 +617,7 @@
       '<div class="kc-q"><span>' + mathHTML(T.q.q) + '</span></div>' +
       '<div class="kc-opts">' + T.opts.map(function (o, j) {
         var c = T.mark && T.mark.j === j ? (T.mark.ok ? ' ok' : ' bad') : (T.mark && !T.mark.ok && o === T.q.ans ? ' ok' : '');
-        return '<button type="button" class="kc-opt' + c + '" data-t="' + i + '" data-o="' + j + '" title="Phím tắt: ' + hot[j] + '">' + (keys[j] ? '<i>' + keys[j] + '</i>' : '') + '<span>' + mathHTML(o) + '</span></button>';
+        return '<button type="button" class="kc-opt' + c + '" data-t="' + i + '" data-o="' + j + '" title="Phím tắt: ' + hot[j] + '">' + (keys[j] ? '<i>' + keys[j] + ' · ' + hot[j] + '</i>' : '') + '<span>' + mathHTML(o) + '</span></button>';
       }).join('') + '</div>';
     fitSoon();
   }
@@ -667,7 +712,7 @@
       if (cfg.penalty) { pos = Math.max(-1, Math.min(1, pos - dir * step * 0.5)); popup('x', '−' + Math.round(step * 50) + '%'); }
     }
     renderTeam(t); renderRope(); renderScore();
-    if (Math.abs(pos) >= 1) { setTimeout(function () { finish(); }, 500); return; }
+    if (Math.abs(pos) >= 1 - 1e-9) { pos = pos < 0 ? -1 : 1; renderRope(); setTimeout(function () { finish(); }, 500); return; }
     setTimeout(function () {
       if (phase !== 'play') return;
       T.idx++; if (cfg.cap) T.turn++; loadQ(T); renderTeam(t);
@@ -745,14 +790,18 @@
 
   /* ---------- Sự kiện ---------- */
   $('kcStart').onclick = start;
-  $('kcRestart').onclick = start; $('kcAgain').onclick = start;
-  $('kcBack').onclick = toSetup; $('kcToSetup').onclick = toSetup;
-  el.pause.onclick = function () {
-    if (phase !== 'play') return;
-    paused = !paused;
+  function midGame() { return phase === 'play' || phase === 'count'; }
+  $('kcRestart').onclick = function () { if (midGame() && !confirm('Đang giữa ván. Chơi lại từ đầu và bỏ kết quả hiện tại?')) return; start(); };
+  $('kcAgain').onclick = start;
+  $('kcBack').onclick = function () { if (midGame() && !confirm('Đang giữa ván. Thoát về cài đặt và bỏ kết quả hiện tại?')) return; toSetup(); };
+  $('kcToSetup').onclick = toSetup;
+  function setPause(v) {
+    if (phase !== 'play' || paused === v) return;
+    paused = v;
     if (paused) remain = Math.max(0, endAt - Date.now()); else endAt = Date.now() + remain;
     el.pause.textContent = paused ? '▶ Tiếp tục' : '⏸ Tạm dừng';
-  };
+  }
+  el.pause.onclick = function () { setPause(!paused); };
   el.mute.onclick = function () { cfg.sound = !cfg.sound; el.snd.checked = cfg.sound; save(); el.mute.textContent = cfg.sound ? '🔊 Âm thanh' : '🔇 Tắt âm'; };
   function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
   function syncFs() { el.stage.classList.toggle('fs', fsEl() === el.stage); fitSoon(); setTimeout(fitAll, 250); }
@@ -770,7 +819,8 @@
     answer(+b.getAttribute('data-t'), +b.getAttribute('data-o'));
   });
   document.addEventListener('keydown', function (e) {
-    if (phase !== 'play' || !el.stage.classList.contains('on')) return;
+    if (phase !== 'play' || !el.stage.classList.contains('on') || !el.stage.getClientRects().length) return;
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     var tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
     var k = e.key.toLowerCase(), b = ['a', 's', 'd', 'f'].indexOf(k), r = ['j', 'k', 'l', ';'].indexOf(k);
     if (b >= 0) answer(0, b); else if (r >= 0) answer(1, r);
@@ -998,10 +1048,11 @@
       var t = ps.filter(function (x) { return !x.thought; }).map(function (x) { return x.text || ''; }).join('');
       if (!t) throw new Error('AI không trả về nội dung. Hãy thử lại.');
       t = t.replace(/^\s*```(?:json)?|```\s*$/g, '').trim();
-      var arr; try { arr = JSON.parse(t); } catch (e1) { arr = JSON.parse(fixJson(t)); }
+      var arr; try { arr = JSON.parse(fixJson(t)); } catch (e1) { arr = JSON.parse(t); }
+      if (arr && !Array.isArray(arr)) arr = arr.questions || arr.items || arr.data || [];
       var lines = [];
       arr.forEach(function (x) {
-        if (!x || !x.q || !x.options || x.options.length < 2 || x.answer == null) return;
+        if (!x || !x.q || !Array.isArray(x.options) || x.options.length < 2 || x.answer == null) return;
         if (aiDoc && /năm học\s*\d{4}|khảo sát tháng|theo (tài liệu|đề bài|đoạn văn|văn bản|bài đọc|bảng|hình)|(ở|trong) (ví dụ|đề|bài|bảng|hình|đoạn) (trên|này|sau)|(bài toán|ví dụ|bảng|hình vẽ|đoạn văn|đề bài) (trên|nêu trên)|tên (trường|giáo viên)/i.test(x.q)) return;
         var opts = x.options.slice(0, 4).map(cleanCell);
         var a = typeof x.answer === 'number' ? x.answer : (/^\d$/.test(String(x.answer).trim()) ? +String(x.answer).trim() : 'ABCD'.indexOf(String(x.answer).trim().toUpperCase()));
@@ -1018,5 +1069,7 @@
     }).then(function () { btn.disabled = false; });
   };
 
-  document.addEventListener('visibilitychange', function () { /* giữ nguyên đồng hồ khi chuyển tab */ });
+  /* Tự tạm dừng khi chuyển cửa sổ / ẩn tab, để đồng hồ không chạy ngầm (không tự tiếp tục: cô bấm ▶ khi sẵn sàng) */
+  document.addEventListener('visibilitychange', function () { if (document.hidden) setPause(true); });
+  setInterval(function () { if (phase === 'play' && !paused && !el.stage.getClientRects().length) setPause(true); }, 500);
 })();
