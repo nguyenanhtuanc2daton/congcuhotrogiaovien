@@ -55,20 +55,47 @@ function getItems(){
 }
 function baseName(name){ return name.replace(/\.[^.]+$/,'').replace(/[\\/:*?"<>|]+/g,'_') || 'van-ban'; }
 
-const TXT_CONTENT_TYPES='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>';
+const TXT_CONTENT_TYPES='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>';
 const TXT_ROOT_RELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
-const TXT_DOC_RELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>';
+const TXT_DOC_RELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+
+/* ======================= Ép font Times New Roman cho mọi file .docx xuất ra ======================= */
+const TNR_RF='<w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="Times New Roman" w:cs="Times New Roman"/>';
+/* Đổi mọi khai báo font sang Times New Roman (giữ Cambria Math của công thức Word) */
+function forceTNR(xml){ return xml.replace(/<w:rFonts\b[^>]*?\/>/g, m=>/Cambria Math/i.test(m)?m:TNR_RF); }
+function fixStylesXml(xml){
+  xml=forceTNR(xml);
+  const dd=/<w:docDefaults>[\s\S]*?<\/w:docDefaults>/.exec(xml);
+  if(!dd) return xml.replace(/(<w:styles\b[^>]*>)/,'$1<w:docDefaults><w:rPrDefault><w:rPr>'+TNR_RF+'</w:rPr></w:rPrDefault></w:docDefaults>');
+  if(/<w:rFonts\b/.test(dd[0])) return xml;
+  let n=dd[0];
+  if(/<w:rPrDefault>\s*<w:rPr>/.test(n)) n=n.replace(/(<w:rPrDefault>\s*<w:rPr>)/,'$1'+TNR_RF);
+  else if(/<w:rPrDefault>/.test(n)) n=n.replace(/<w:rPrDefault>/,'<w:rPrDefault><w:rPr>'+TNR_RF+'</w:rPr>');
+  else n=n.replace(/<w:docDefaults>/,'<w:docDefaults><w:rPrDefault><w:rPr>'+TNR_RF+'</w:rPr></w:rPrDefault>');
+  return xml.replace(dd[0],n);
+}
+const FONT_PARTS=/^word\/(document|styles|numbering|footnotes|endnotes|comments|header\d*|footer\d*)\.xml$/;
+function applyTNRToEntries(entries){
+  return entries.map(e=>{
+    if(!FONT_PARTS.test(e.name)) return e;
+    let x=new TextDecoder('utf-8').decode(e.data);
+    x = e.name==='word/styles.xml' ? fixStylesXml(x) : forceTNR(x);
+    return {name:e.name, data:strToBytes(x)};
+  });
+}
+const TXT_STYLES='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr>'+TNR_RF+'<w:sz w:val="26"/><w:szCs w:val="26"/><w:lang w:val="vi-VN" w:eastAsia="vi-VN" w:bidi="ar-SA"/></w:rPr></w:rPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style></w:styles>';
 function itemToDocxBytes(item){
   if(item.kind==='docx'){
     const {xml}=convertDocumentXML(item.docXml);
-    return makeZip(item.entries.map(e=>e.name==='word/document.xml' ? {name:e.name, data:strToBytes(xml)} : e));
+    return makeZip(applyTNRToEntries(item.entries.map(e=>e.name==='word/document.xml' ? {name:e.name, data:strToBytes(xml)} : e)));
   }
   if(!item.text.trim()) throw new Error('Không có nội dung để xuất.');
   return makeZip([
     {name:'[Content_Types].xml', data:strToBytes(TXT_CONTENT_TYPES)},
     {name:'_rels/.rels', data:strToBytes(TXT_ROOT_RELS)},
     {name:'word/_rels/document.xml.rels', data:strToBytes(TXT_DOC_RELS)},
-    {name:'word/document.xml', data:strToBytes(buildDocumentXMLFromPlainText(item.text))}
+    {name:'word/styles.xml', data:strToBytes(TXT_STYLES)},
+    {name:'word/document.xml', data:strToBytes(forceTNR(buildDocumentXMLFromPlainText(item.text)))}
   ]);
 }
 function itemToBlocks(item){

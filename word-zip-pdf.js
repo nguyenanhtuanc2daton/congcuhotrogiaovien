@@ -309,6 +309,18 @@ function docxToBlocks(xmlString){
 function blockHTML(b){ return '<div class="blk" style="padding-bottom:'+b.gap+'px;'+(b.mt?'margin-top:'+b.mt+'px;':'')+'">'+b.h+'</div>'; }
 
 /* ======================= Xuất PDF: dàn trang A4, dựng từng trang thành ảnh rồi ghép vào PDF ======================= */
+/* Font Times New Roman cho PDF (máy không có thì dùng Tinos / Liberation Serif - cùng kích thước, cùng kiểu chữ) */
+function ensurePdfFont(){
+  if(document.getElementById('pdfTnrStyle')) return;
+  const st=document.createElement('style'); st.id='pdfTnrStyle';
+  st.textContent="#pdfStage,#pdfStage *,#pdfHost,#pdfHost *,.pdfpage,.pdfpage *{font-family:'Times New Roman',Tinos,'Liberation Serif',Times,serif !important}";
+  document.head.appendChild(st);
+}
+async function loadPdfFonts(){
+  if(!(document.fonts && document.fonts.load)) return;
+  const t='Tiếng Việt ạảãáàâấầẩẫậăắằẳẵặêếềểễệôốồổỗộơớờởỡợưứừửữự';
+  try{ await Promise.all(['16px Tinos','bold 16px Tinos','italic 16px Tinos','bold italic 16px Tinos'].map(f=>document.fonts.load(f,t))); }catch(e){}
+}
 async function blocksToPdfBytes(blocks, onPage){
   if(!window.html2canvas || !(window.jspdf && window.jspdf.jsPDF))
     throw new Error('Chưa tải được thư viện tạo PDF (jsPDF/html2canvas từ cdnjs). Hãy kiểm tra Internet rồi tải lại trang.');
@@ -316,6 +328,7 @@ async function blocksToPdfBytes(blocks, onPage){
   const mk=(id,extra)=>{ const d=document.createElement('div'); d.id=id; d.className='doc'; d.style.cssText='position:fixed;left:-12000px;top:0;background:#fff;z-index:-1;'+extra; document.body.appendChild(d); return d; };
   const stageHost=mk('pdfStage','width:'+CW+'px;'), pageHost=mk('pdfHost','width:'+PW+'px;');
   try{
+    ensurePdfFont(); await loadPdfFonts();
     stageHost.innerHTML=blocks.map(blockHTML).join('');
     if(document.fonts && document.fonts.ready) await document.fonts.ready;
     const els=Array.from(stageHost.children);
