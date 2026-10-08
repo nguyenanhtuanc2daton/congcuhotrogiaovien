@@ -228,7 +228,7 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 <div class="lp-cards">
 <button type="button" class="lp-card" data-go="t6" style="--i:1"><span class="ic">🤖</span><b>Prompt AI</b><small>Tạo prompt để AI hỗ trợ soạn giáo án, đề bài</small></button>
 <button type="button" class="lp-card" data-go="t3" style="--i:2"><span class="ic">🧰</span><b>Công cụ Word</b><small>Chuyển LaTeX, bảng điểm, chuẩn hóa, ghép file</small></button>
-<button type="button" class="lp-card" data-go="t8" style="--i:3"><span class="ic">🛠</span><b>Công cụ thường dùng</b><small>Vòng quay gọi tên, đếm giờ, chia nhóm</small></button>
+<button type="button" class="lp-card" data-go="t8" style="--i:3"><span class="ic">🛠</span><b>Công cụ thường dùng</b><small>Vòng quay gọi tên, đếm giờ, chia nhóm, kéo co</small></button>
 <button type="button" class="lp-card" data-go="t5" style="--i:4"><span class="ic">🧮</span><b>Toán học</b><small>Máy tính, đồ thị và hình học</small></button>
 <button type="button" class="lp-card" data-go="t9" id="lpDocCard" style="--i:5"><span class="ic">📚</span><b>Tài liệu</b><small>Tài liệu Toán, PowerPoint, phần mềm, công nghệ</small></button>
 </div>
@@ -318,7 +318,7 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <section class="panel" id="t8">
 <h2>🛠 Công cụ thường dùng</h2>
 <div class="bar"><label for="utSel" style="font-weight:600">Chọn công cụ:</label>
-<select id="utSel"><option value="utWheel" selected>🎯 Vòng Quay Gọi Tên</option><option value="utTimer">⏱ Đếm giờ &amp; chia nhóm</option><option value="utLich">📅 Lịch báo giảng tự động</option></select></div>
+<select id="utSel"><option value="utWheel" selected>🎯 Vòng Quay Gọi Tên</option><option value="utTimer">⏱ Đếm giờ &amp; chia nhóm</option><option value="utLich">📅 Lịch báo giảng tự động</option><option value="utKeoCo">🪢 Kéo co kiến thức</option></select></div>
 <div class="ut on" id="utWheel">
 <div id="t2">
 <h2>🎯 Vòng Quay Gọi Tên Học Sinh</h2>
@@ -347,6 +347,7 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <div id="kRes" class="note" style="font-size:13px"></div></div></div>
 </div>
 <div class="ut" id="utLich"><div id="lbgRoot"></div></div>
+<div class="ut" id="utKeoCo"><div id="kcRoot"></div></div>
 </section>
 
 <script>
@@ -458,6 +459,7 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <script src="prompt-data.js?v=20261005"></script>
 <script src="prompt-hub.js?v=20261005"></script>
 <script src="games.js?v=20261005"></script>
+<script src="keo-co.js?v=20261020"></script>
 <script src="hieu-ung.js?v=20261005"></script>
 <script>
 /* Rèm cửa: tự mở khi trang tải xong */
