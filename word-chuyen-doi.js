@@ -1,5 +1,5 @@
-/* Công cụ Word · "Chuyển đổi định dạng" (không dùng AI)
-   Word/PDF/Excel/CSV/JSON/PowerPoint/TXT/Markdown/HTML/Ảnh — 37 kiểu chuyển, gồm ghép/tách/xoay/đánh số trang PDF và nén ảnh (chạy hoàn toàn trên trình duyệt, file không gửi đi đâu)
+/* Công cụ Word · "Chuyển đổi định dạng" (không dùng AI) — đọc được cả công thức MathType (OLE/MTEF) lẫn Equation của Word
+   Word/PDF/Excel/CSV/JSON/PowerPoint/TXT/Markdown/HTML/Ảnh — kiểu chuyển, gồm ghép/tách/xoay/đánh số trang PDF và nén ảnh (chạy hoàn toàn trên trình duyệt, file không gửi đi đâu)
    Cần sẵn trong index.html: JSZip, SheetJS (XLSX), jsPDF, html2canvas. Các thư viện còn lại (mammoth, pdf.js, PptxGenJS, pdf-lib, heic2any) tự tải khi cần (cần mạng).
    Tự chèn mục "🔄 Chuyển đổi định dạng" vào ô chọn công cụ #wtSel — chỉ cần thêm 1 thẻ <script>. */
 (function(){
@@ -74,6 +74,14 @@ const LIBS={
   h2c:{t:()=>window.html2canvas,u:['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js']},
   jspdf:{t:()=>window.jspdf&&window.jspdf.jsPDF,u:['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js']}};
 const loadScript=u=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=()=>no(new Error('load'));document.head.appendChild(s)});
+/* MathJax 3 (xuất SVG, không dùng font ngoài → html2canvas chụp được). Phải đặt cấu hình TRƯỚC khi nạp script. */
+async function mathjaxLib(){
+  if(window.MathJax&&window.MathJax.typesetPromise){await window.MathJax.startup.promise;return window.MathJax}
+  window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']],processEscapes:false},svg:{fontCache:'none'},startup:{typeset:false}};
+  const us=['https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js','https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js'];
+  for(const u of us){try{await loadScript(u)}catch(e){}if(window.MathJax&&window.MathJax.typesetPromise)break}
+  if(!(window.MathJax&&window.MathJax.typesetPromise))throw new Error('Không tải được MathJax để vẽ công thức (cần kết nối mạng). Kiểm tra mạng rồi thử lại.');
+  await window.MathJax.startup.promise;return window.MathJax}
 async function lib(k){const L=LIBS[k];if(L.t())return L.t();
   for(const u of L.u){try{await loadScript(u)}catch(e){}if(L.t())break}
   if(!L.t())throw new Error('Không tải được thư viện "'+k+'" (cần kết nối mạng). Kiểm tra mạng rồi thử lại.');return L.t()}
@@ -84,24 +92,414 @@ async function pdfLib(){const p=await lib('pdfjs');
 const needLibs=()=>{if(typeof JSZip==='undefined')throw new Error('Chưa tải được thư viện JSZip (cần mạng để tải từ cdnjs).')};
 
 /* ---------- Word → HTML (mammoth) ---------- */
+/* ---------- Công thức Word (Equation / OMML) → LaTeX ---------- */
+const RNS='http://schemas.openxmlformats.org/officeDocument/2006/relationships',MNS='http://schemas.openxmlformats.org/officeDocument/2006/math',WNS='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const PH=i=>'\uE000'+i+'\uE001',PHRE=/\uE000(\d+)\uE001/g;
+const LFUNCS=new Set('sin cos tan cot sec csc arcsin arccos arctan sinh cosh tanh coth log ln lg exp lim limsup liminf max min sup inf det gcd deg dim ker arg hom Pr'.split(' '));
+const LIMOPS=new Set('lim limsup liminf max min sup inf det gcd Pr'.split(' '));
+const SYM={'α':'\\alpha','β':'\\beta','γ':'\\gamma','δ':'\\delta','ε':'\\varepsilon','ϵ':'\\epsilon','ζ':'\\zeta','η':'\\eta','θ':'\\theta','ϑ':'\\vartheta','ι':'\\iota','κ':'\\kappa','λ':'\\lambda','μ':'\\mu','ν':'\\nu','ξ':'\\xi','π':'\\pi','ϖ':'\\varpi','ρ':'\\rho','ϱ':'\\varrho','σ':'\\sigma','ς':'\\varsigma','τ':'\\tau','υ':'\\upsilon','φ':'\\varphi','ϕ':'\\phi','χ':'\\chi','ψ':'\\psi','ω':'\\omega',
+'Γ':'\\Gamma','Δ':'\\Delta','Θ':'\\Theta','Λ':'\\Lambda','Ξ':'\\Xi','Π':'\\Pi','Σ':'\\Sigma','Υ':'\\Upsilon','Φ':'\\Phi','Ψ':'\\Psi','Ω':'\\Omega',
+'Α':'A','Β':'B','Ε':'E','Ζ':'Z','Η':'H','Ι':'I','Κ':'K','Μ':'M','Ν':'N','Ο':'O','Ρ':'P','Τ':'T','Χ':'X','ο':'o',
+'±':'\\pm','∓':'\\mp','×':'\\times','÷':'\\div','·':'\\cdot','⋅':'\\cdot','∙':'\\cdot','∗':'*','∘':'\\circ','•':'\\bullet','−':'-','–':'-','—':'-',
+'≤':'\\leq','⩽':'\\leq','≥':'\\geq','⩾':'\\geq','≠':'\\neq','≈':'\\approx','≡':'\\equiv','∼':'\\sim','≃':'\\simeq','≅':'\\cong','∝':'\\propto','≪':'\\ll','≫':'\\gg','≮':'\\nless','≯':'\\ngtr',
+'∞':'\\infty','∂':'\\partial','∇':'\\nabla','∅':'\\emptyset','∈':'\\in','∉':'\\notin','∋':'\\ni','⊂':'\\subset','⊃':'\\supset','⊆':'\\subseteq','⊇':'\\supseteq','⊄':'\\not\\subset','⊊':'\\subsetneq','∪':'\\cup','∩':'\\cap','∖':'\\setminus',
+'∀':'\\forall','∃':'\\exists','∄':'\\nexists','¬':'\\neg','∧':'\\wedge','∨':'\\vee','⊕':'\\oplus','⊗':'\\otimes','⊥':'\\perp','∥':'\\parallel','∦':'\\nparallel','∠':'\\angle','∡':'\\measuredangle','△':'\\triangle','°':'^{\\circ}','′':"'",'″':"''",
+'…':'\\ldots','⋯':'\\cdots','⋮':'\\vdots','⋱':'\\ddots','∴':'\\therefore','∵':'\\because','∣':'\\mid','∤':'\\nmid','‖':'\\|',
+'→':'\\to','←':'\\leftarrow','↔':'\\leftrightarrow','⇒':'\\Rightarrow','⇐':'\\Leftarrow','⇔':'\\Leftrightarrow','↦':'\\mapsto','↑':'\\uparrow','↓':'\\downarrow','⟶':'\\longrightarrow','⟹':'\\Longrightarrow','⟺':'\\Longleftrightarrow','⟵':'\\longleftarrow','⟸':'\\Longleftarrow',
+'ℝ':'\\mathbb{R}','ℕ':'\\mathbb{N}','ℤ':'\\mathbb{Z}','ℚ':'\\mathbb{Q}','ℂ':'\\mathbb{C}','ℙ':'\\mathbb{P}','ℓ':'\\ell','ℏ':'\\hbar','ℎ':'h','ℵ':'\\aleph',
+'√':'\\surd','∑':'\\sum','∏':'\\prod','∫':'\\int','∮':'\\oint','⌊':'\\lfloor','⌋':'\\rfloor','⌈':'\\lceil','⌉':'\\rceil','⟨':'\\langle','⟩':'\\rangle','〈':'\\langle','〉':'\\rangle','〈':'\\langle','〉':'\\rangle',
+'{':'\\{','}':'\\}','\\':'\\backslash','#':'\\#','%':'\\%','$':'\\$','_':'\\_','^':'\\^{}','~':'\\sim','²':'^{2}','³':'^{3}','¹':'^{1}',
+'\u2061':'','\u2062':'','\u2063':'','\u2064':'','\u200B':'','\u00A0':'\\ ','\u2009':'\\,','\u2002':'\\ ','\u2003':'\\quad '};
+const ALN=[['\\mathbf',0x1D400],['',0x1D434],['\\boldsymbol',0x1D468],['\\mathcal',0x1D49C],['\\mathcal',0x1D4D0],['\\mathfrak',0x1D504],['\\mathbb',0x1D538],['\\mathfrak',0x1D56C],['\\mathsf',0x1D5A0],['\\mathsf',0x1D5D4],['\\mathsf',0x1D608],['\\mathsf',0x1D63C],['\\mathtt',0x1D670]];
+function mAlnum(cp){for(const a of ALN){if(cp>=a[1]&&cp<a[1]+52){const k=cp-a[1],ch=String.fromCharCode(k<26?65+k:97+k-26);return a[0]?a[0]+'{'+ch+'}':ch}}
+  if(cp>=0x1D7CE&&cp<=0x1D7FF){const k=cp-0x1D7CE,d=k%10;return Math.floor(k/10)===0?'\\mathbf{'+d+'}':String(d)}return null}
+const NARY={'∑':'\\sum','∏':'\\prod','∐':'\\coprod','∫':'\\int','∬':'\\iint','∭':'\\iiint','∮':'\\oint','∯':'\\oint','∰':'\\oint','⋃':'\\bigcup','⋂':'\\bigcap','⋁':'\\bigvee','⋀':'\\bigwedge','⨁':'\\bigoplus','⨂':'\\bigotimes'};
+const DELIM={'(':'(',')':')','[':'[',']':']','{':'\\{','}':'\\}','|':'|','‖':'\\|','⟨':'\\langle','⟩':'\\rangle','〈':'\\langle','〉':'\\rangle','〈':'\\langle','〉':'\\rangle','⌊':'\\lfloor','⌋':'\\rfloor','⌈':'\\lceil','⌉':'\\rceil','/':'/','\\':'\\backslash','':'.'};
+const ACC={'\u0302':'hat','^':'hat','\u0303':'tilde','~':'tilde','\u0304':'bar','¯':'bar','\u0305':'overline','\u0307':'dot','˙':'dot','\u0308':'ddot','¨':'ddot','\u20DB':'dddot','\u20D7':'vec','→':'vec','\u0301':'acute','´':'acute','\u0300':'grave','`':'grave','\u0306':'breve','˘':'breve','\u030C':'check','ˇ':'check','\u20D6':'overleftarrow','←':'overleftarrow','\u20E1':'overleftrightarrow','↔':'overleftrightarrow'};
+const kids=(n,name)=>Array.from(n.childNodes).filter(c=>c.nodeType===1&&c.namespaceURI===MNS&&c.localName===name);
+const kid=(n,name)=>{if(!n)return null;const a=kids(n,name);return a.length?a[0]:null};
+const mval=e=>{if(!e)return null;let v=e.getAttributeNS(MNS,'val');if(v===null)v=e.getAttribute('m:val');if(v===null)v=e.getAttribute('val');return v};
+const mon=e=>{if(!e)return false;const v=mval(e);return !(v==='0'||v==='false'||v==='off')};
+const mprop=(n,pr,nm)=>kid(kid(n,pr),nm);
+const lcmd=s=>/[A-Za-z]$/.test(s)?s+' ':s;
+const escText=s=>String(s).replace(/([{}#%&$_])/g,'\\$1').replace(/\\(?![{}#%&$_\\])/g,'\\textbackslash{}').replace(/\^/g,'\\^{}').replace(/~/g,'\\sim ');
+function singleTex(s){s=s.trim();if(!s)return false;
+  if(/^(\\[A-Za-z]+|\\.|[^\\{}\s])$/.test(s)||/^\d+$/.test(s))return true;
+  const wrapped=()=>{let d=0;const re=/\\left(?![A-Za-z])\s*(?:\\[A-Za-z]+|\\.|.)|\\right(?![A-Za-z])\s*(?:\\[A-Za-z]+|\\.|.)|\\\\|\\[{}]|[{}]/g;let m;
+    while((m=re.exec(s))){const t=m[0];if(t.indexOf('\\left')===0||t==='{')d++;else if(t.indexOf('\\right')===0||t==='}')d--;
+      if(d===0&&re.lastIndex<s.length)return false}return d===0};
+  if(s[0]==='{'&&s[s.length-1]==='}')return wrapped();
+  if(/^\\left(?![A-Za-z])/.test(s))return wrapped();
+  return false}
+const baseTex=e=>{e=e.trim();return !e?'{}':(singleTex(e)?e:'{'+e+'}')};
+const funcTex=nm=>LFUNCS.has(nm)?'\\'+nm+' ':'\\operatorname{'+nm+'} ';
+function runTex(r,ctx){
+  const rp=kid(r,'rPr');let nor=false,sty='',scr='';
+  if(rp){nor=mon(kid(rp,'nor'));sty=mval(kid(rp,'sty'))||'';scr=mval(kid(rp,'scr'))||''}
+  const aln=rp&&mon(kid(rp,'aln')),t=Array.from(r.childNodes).filter(n=>n.nodeType===1&&n.localName==='t').map(n=>n.textContent).join('');
+  if(aln&&!t)return '&';
+  if(!t)return '';
+  if(nor)return '\\text{'+escText(t)+'} ';
+  if(/^[A-Za-z]+$/.test(t.trim())&&(ctx.fname||sty==='p')&&(ctx.fname||LFUNCS.has(t.trim())))return funcTex(t.trim());
+  const SC={'double-struck':'\\mathbb','script':'\\mathcal','fraktur':'\\mathfrak','sans-serif':'\\mathsf','monospace':'\\mathtt'};
+  const wrapCmd=SC[scr]||(sty==='p'?'\\mathrm':sty==='b'?'\\mathbf':sty==='bi'?'\\boldsymbol':'');
+  let out='',buf='';
+  const flush=()=>{if(!buf)return;if(/[^\x00-\x7f]/.test(buf))out+='\\text{'+buf+'} ';else out+=wrapCmd?wrapCmd+'{'+buf+'} ':buf;buf=''};
+  for(const ch of t){const cp=ch.codePointAt(0);
+    if(Object.prototype.hasOwnProperty.call(SYM,ch)){flush();out+=lcmd(SYM[ch]);continue}
+    const al=cp>=0x1D400?mAlnum(cp):null;if(al!==null){flush();out+=lcmd(al);continue}
+    if(/\p{L}/u.test(ch)){buf+=ch;continue}
+    flush();
+    if(ch==='&'){out+=ctx.eq?'&':'\\&';continue}
+    out+=ch}
+  flush();return out}
+function nodeTex(n,ctx){
+  if(n.namespaceURI!==MNS){const ln=n.localName;return /^(ins|smartTag|hyperlink|sdt|sdtContent|customXml)$/.test(ln)?childTex(n,ctx):''}
+  const nm=n.localName;if(/Pr$/.test(nm))return '';
+  const arg=k=>{const e=kid(n,k);return e?childTex(e,ctx).trim():''};
+  switch(nm){
+    case 'r':return runTex(n,ctx);
+    case 'f':{const ty=mval(mprop(n,'fPr','type'))||'bar',a=arg('num'),b=arg('den');
+      if(ty==='noBar')return '\\genfrac{}{}{0pt}{}{'+a+'}{'+b+'}';
+      if(ty==='lin'||ty==='skw')return '{'+a+'}/{'+b+'}';
+      return '\\frac{'+a+'}{'+b+'}'}
+    case 'rad':{const dg=arg('deg'),hide=mon(mprop(n,'radPr','degHide')),e=arg('e');return (hide||!dg)?'\\sqrt{'+e+'}':'\\sqrt['+dg+']{'+e+'}'}
+    case 'sSup':return baseTex(arg('e'))+'^{'+arg('sup')+'}';
+    case 'sSub':return baseTex(arg('e'))+'_{'+arg('sub')+'}';
+    case 'sSubSup':return baseTex(arg('e'))+'_{'+arg('sub')+'}^{'+arg('sup')+'}';
+    case 'sPre':return '{}_{'+arg('sub')+'}^{'+arg('sup')+'}'+baseTex(arg('e'));
+    case 'nary':{const pr=kid(n,'naryPr'),ce=pr&&kid(pr,'chr'),ch=ce?(mval(ce)||''):'∫';
+      const op=ch===''?'':(NARY[ch]||ch),ll=pr&&mval(kid(pr,'limLoc')),sh=pr&&mon(kid(pr,'subHide')),ph=pr&&mon(kid(pr,'supHide'));
+      const sb=sh?'':arg('sub'),sp=ph?'':arg('sup');
+      return op+(ll==='undOvr'?'\\limits':ll==='subSup'?'\\nolimits':'')+(sb?'_{'+sb+'}':'')+(sp?'^{'+sp+'}':'')+' '+arg('e')}
+    case 'd':{const pr=kid(n,'dPr');let b='(',e=')',sp='|';
+      if(pr){const x=kid(pr,'begChr'),y=kid(pr,'endChr'),z=kid(pr,'sepChr');if(x)b=mval(x)||'';if(y)e=mval(y)||'';if(z)sp=mval(z)||''}
+      const dl=(c,open)=>Object.prototype.hasOwnProperty.call(DELIM,c)?DELIM[c]:'.';
+      const sepT=sp===''?' ':(sp==='|'?' \\middle| ':' '+(Object.prototype.hasOwnProperty.call(SYM,sp)?lcmd(SYM[sp]):sp)+' ');
+      return '\\left'+dl(b,1)+' '+kids(n,'e').map(x=>childTex(x,ctx).trim()).join(sepT)+' \\right'+dl(e,0)}
+    case 'func':{const fn=kid(n,'fName'),f=fn?childTex(fn,Object.assign({},ctx,{fname:true})).trim():'';return f+' '+arg('e')}
+    case 'limLow':{const e=arg('e'),l=arg('lim'),op=e.replace(/^\\/,'').trim();
+      if(!l)return e;
+      if(/^\\underbrace\{/.test(e))return e+'_{'+l+'}';
+      return (LIMOPS.has(op)||/^\\operatorname\{/.test(e))?e+'\\limits_{'+l+'}':'\\underset{'+l+'}{'+e+'}'}
+    case 'limUpp':{const e=arg('e'),l=arg('lim');if(!l)return e;
+      if(/^\\overbrace\{/.test(e))return e+'^{'+l+'}';
+      const AR={'\\to':'\\overrightarrow','\\rightarrow':'\\overrightarrow','\\leftarrow':'\\overleftarrow','\\leftrightarrow':'\\overleftrightarrow'};
+      if(AR[l])return AR[l]+'{'+e+'}';
+      return '\\overset{'+l+'}{'+e+'}'}
+    case 'acc':{const pr=kid(n,'accPr'),ce=pr&&kid(pr,'chr'),ch=ce?(mval(ce)||''):'\u0302',e=arg('e'),
+        wide=e.replace(/\\[A-Za-z]+/g,'X').replace(/[{}\s]/g,'').length>1,k=ACC[ch];
+      if(!k)return '\\overset{'+(SYM[ch]||ch)+'}{'+e+'}';
+      if(k==='hat'&&wide)return '\\widehat{'+e+'}';if(k==='tilde'&&wide)return '\\widetilde{'+e+'}';
+      if(k==='vec'&&wide)return '\\overrightarrow{'+e+'}';
+      return '\\'+k+'{'+e+'}'}
+    case 'bar':{const p=mval(mprop(n,'barPr','pos'))||'bot',e=arg('e');return p==='top'?'\\overline{'+e+'}':'\\underline{'+e+'}'}
+    case 'groupChr':{const pr=kid(n,'groupChrPr'),ce=pr&&kid(pr,'chr'),ch=ce?(mval(ce)||''):'⏟',pos=(pr&&mval(kid(pr,'pos')))||'bot',e=arg('e');
+      if(ch==='⏞')return '\\overbrace{'+e+'}';if(ch==='⏟')return '\\underbrace{'+e+'}';
+      if(pos==='top'){if(ch==='→')return '\\overrightarrow{'+e+'}';if(ch==='←')return '\\overleftarrow{'+e+'}';if(ch==='↔')return '\\overleftrightarrow{'+e+'}'}
+      const c2=SYM[ch]||ch;return pos==='top'?'\\overset{'+c2+'}{'+e+'}':'\\underset{'+c2+'}{'+e+'}'}
+    case 'm':{const rows=kids(n,'mr').map(r=>kids(r,'e').map(e=>childTex(e,ctx).trim())),nc=Math.max.apply(null,[1].concat(rows.map(r=>r.length))),
+        js=Array.from(n.getElementsByTagNameNS(MNS,'mcJc')).map(mval),body=rows.map(r=>r.join(' & ')).join(' \\\\ ');
+      if(js.length&&js.every(j=>j==='left'||j==='right')){const L=js[0]==='left'?'l':'r';return '\\begin{array}{'+L.repeat(nc)+'} '+body+' \\end{array}'}
+      return '\\begin{matrix} '+body+' \\end{matrix}'}
+    case 'eqArr':{const rows=kids(n,'e').map(e=>childTex(e,Object.assign({},ctx,{eq:true})).trim()),al=rows.some(r=>/(^|[^\\])&/.test(r));
+      return al?'\\begin{aligned} '+rows.join(' \\\\ ')+' \\end{aligned}':'\\begin{array}{l} '+rows.join(' \\\\ ')+' \\end{array}'}
+    case 'borderBox':return '\\boxed{'+arg('e')+'}';
+    case 'box':case 'phant':return arg('e');
+    default:return childTex(n,ctx)}}
+function childTex(n,ctx){let s='';Array.from(n.childNodes).forEach(c=>{if(c.nodeType===1)s+=nodeTex(c,ctx)});return s}
+const tidyTex=s=>s.replace(/\s+/g,' ').replace(/\s+([}\]),;])/g,'$1').replace(/\^\{\^\{\\circ\}\}/g,'^{\\circ}').trim();
+function ommlToLatex(el){return tidyTex(childTex(el,{eq:false,fname:false}))}
+function ommlParaToLatex(el){const ms=kids(el,'oMath').map(ommlToLatex).filter(Boolean);
+  if(!ms.length)return ommlToLatex(el);return ms.length===1?ms[0]:'\\begin{gathered} '+ms.join(' \\\\ ')+' \\end{gathered}'}
+function texSane(s){let d=0,l=0;const re=/\\\\|\\[{}]|\\left\b|\\right\b|[{}]/g;let m;
+  while((m=re.exec(s))){const t=m[0];if(t==='{')d++;else if(t==='}')d--;else if(t==='\\left')l++;else if(t==='\\right')l--;if(d<0||l<0)return false}
+  return d===0&&l===0&&((s.match(/\\begin\{/g)||[]).length===(s.match(/\\end\{/g)||[]).length)}
+
+/* ---------- Đọc công thức MathType (đối tượng OLE "Equation Native", định dạng MTEF v5) → LaTeX ---------- */
+function oleStream(u8,name){
+  const dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
+  if(u8.length<512||dv.getUint32(0,true)!==0xE011CFD0||dv.getUint32(4,true)!==0xE11AB1A1)return null;
+  const ssz=1<<dv.getUint16(30,true),mssz=1<<dv.getUint16(32,true),nfat=dv.getUint32(44,true),dir0=dv.getUint32(48,true),
+    cut=dv.getUint32(56,true),mf0=dv.getUint32(60,true),dif0=dv.getUint32(68,true),ndif=dv.getUint32(72,true);
+  const off=s=>(s+1)*ssz,fs=[];
+  for(let i=0;i<109;i++){const v=dv.getUint32(76+i*4,true);if(v<0xFFFFFFFA)fs.push(v)}
+  let d=dif0;for(let k=0;k<ndif&&d<0xFFFFFFFA;k++){const o=off(d);for(let i=0;i<ssz/4-1;i++){const v=dv.getUint32(o+i*4,true);if(v<0xFFFFFFFA)fs.push(v)}d=dv.getUint32(o+ssz-4,true)}
+  const fat=[];fs.slice(0,nfat).forEach(s=>{const o=off(s);for(let i=0;i<ssz/4;i++)fat.push(dv.getUint32(o+i*4,true))});
+  const chain=(s,tab)=>{const r=[];let g=0;while(s<0xFFFFFFFA&&g++<100000){r.push(s);s=tab[s]}return r};
+  const rd=s=>{const ch=chain(s,fat),o=new Uint8Array(ch.length*ssz);ch.forEach((c,i)=>o.set(u8.subarray(off(c),off(c)+ssz),i*ssz));return o};
+  const dir=rd(dir0),ddv=new DataView(dir.buffer),ents=[];
+  for(let i=0;i<dir.length/128;i++){const b=i*128,nl=ddv.getUint16(b+64,true);if(!nl||dir[b+66]===0)continue;
+    let n='';for(let k=0;k<(nl-2)/2;k++)n+=String.fromCharCode(ddv.getUint16(b+k*2,true));
+    ents.push({n:n,t:dir[b+66],s:ddv.getUint32(b+116,true),z:ddv.getUint32(b+120,true)})}
+  const e=ents.find(x=>x.n===name&&x.t===2);if(!e)return null;
+  if(e.z>=cut)return rd(e.s).subarray(0,e.z);
+  const root=ents.find(x=>x.t===5);if(!root)return null;
+  const mini=rd(root.s),mfat=[];
+  for(const s of chain(mf0,fat)){const o=off(s);for(let i=0;i<ssz/4;i++)mfat.push(dv.getUint32(o+i*4,true))}
+  const ch=chain(e.s,mfat),o=new Uint8Array(ch.length*mssz);ch.forEach((c,i)=>o.set(mini.subarray(c*mssz,c*mssz+mssz),i*mssz));
+  return o.subarray(0,e.z)}
+
+function mtefRead(u8){
+  let p=28;const L=u8.length;
+  const b=()=>{if(p>=L)throw new Error('EOF');return u8[p++]};
+  const w=()=>{const x=b();return x|(b()<<8)};
+  const str=()=>{let s='';for(;;){const c=b();if(!c)break;s+=String.fromCharCode(c)}return s};
+  if(b()!==5)throw new Error('Không phải MTEF v5');
+  b();b();b();b();str();b();
+  const nudge=()=>{const x=b()<<24>>24,y=b()<<24>>24;if(x===-128&&y===-128){w();w()}};
+  const ruler=()=>{const n=b();for(let i=0;i<n;i++){b();w()}};
+  const nib=()=>{let hi=true,cb=0;return()=>{if(hi){cb=b();hi=false;return cb>>4}hi=true;return cb&15}};
+  const embells=()=>{const a=[];for(;;){const t=b();if(t===0)break;if(t!==6)throw new Error('embell '+t);const at=b();if(at&8)nudge();a.push(b())}return a};
+  function objs(){const o=[];
+    for(;;){const t=b();
+      if(t===0)return o;
+      if(t===1){const at=b();if(at&8)nudge();if(at&4)w();if(at&2)ruler();o.push(at&1?{k:'line',nul:true,c:[]}:{k:'line',c:objs()});continue}
+      if(t===2){const at=b();if(at&8)nudge();const tf=b();let mt=null,c8=null;
+        if(!(at&0x20))mt=w();if(at&4)c8=b();if(at&0x10)w();
+        const n={k:'char',tf:tf,mt:mt,c8:c8};if(at&2)n.emb=embells();o.push(n);continue}
+      if(t===3){const at=b();if(at&8)nudge();const sel=b();let v=b();if(v&0x80)v=(v&0x7f)|(b()<<8);b();o.push({k:'tmpl',sel:sel,v:v,c:objs()});continue}
+      if(t===4){const at=b();if(at&8)nudge();const ha=b();b();if(at&2)ruler();o.push({k:'pile',ha:ha,c:objs()});continue}
+      if(t===5){const at=b();if(at&8)nudge();b();b();b();const rows=b(),cols=b();p+=Math.ceil((rows+1)/4)+Math.ceil((cols+1)/4);o.push({k:'matrix',rows:rows,cols:cols,c:objs()});continue}
+      if(t===7){ruler();continue}
+      if(t===8){b();b();continue}
+      if(t===9){const l=b();if(l===101)w();else b();continue}
+      if(t>=10&&t<=14)continue;
+      if(t===15){b();continue}
+      if(t===16){const op=b();p+=(op&1)?4:3;if(op&4)str();continue}
+      if(t===17){b();str();continue}
+      if(t===18){b();for(let k=0;k<2;k++){const n=b(),nb=nib();let e=0;while(e<n)if(nb()===15)e++}const n=b();for(let i=0;i<n;i++){if(b())b()}continue}
+      if(t===19){str();continue}
+      throw new Error('record '+t)}}
+  const top=[];try{top.push.apply(top,objs())}catch(e){if(e.message!=='EOF')throw e}
+  return top}
+
+const MT_GREEK={0x391:'A',0x392:'B',0x393:'\\Gamma ',0x394:'\\Delta ',0x395:'E',0x396:'Z',0x397:'H',0x398:'\\Theta ',0x399:'I',0x39A:'K',0x39B:'\\Lambda ',0x39C:'M',0x39D:'N',0x39E:'\\Xi ',0x39F:'O',0x3A0:'\\Pi ',0x3A1:'P',0x3A3:'\\Sigma ',0x3A4:'T',0x3A5:'\\Upsilon ',0x3A6:'\\Phi ',0x3A7:'X',0x3A8:'\\Psi ',0x3A9:'\\Omega ',
+ 0x3B1:'\\alpha ',0x3B2:'\\beta ',0x3B3:'\\gamma ',0x3B4:'\\delta ',0x3B5:'\\varepsilon ',0x3B6:'\\zeta ',0x3B7:'\\eta ',0x3B8:'\\theta ',0x3B9:'\\iota ',0x3BA:'\\kappa ',0x3BB:'\\lambda ',0x3BC:'\\mu ',0x3BD:'\\nu ',0x3BE:'\\xi ',0x3BF:'o',0x3C0:'\\pi ',0x3C1:'\\rho ',0x3C2:'\\varsigma ',0x3C3:'\\sigma ',0x3C4:'\\tau ',0x3C5:'\\upsilon ',0x3C6:'\\varphi ',0x3C7:'\\chi ',0x3C8:'\\psi ',0x3C9:'\\omega ',
+ 0x3D1:'\\vartheta ',0x3D5:'\\phi ',0x3D6:'\\varpi ',0x3F1:'\\varrho ',0x3F5:'\\epsilon '};
+const MT_SYM={0x2212:'-',0xB1:'\\pm ',0x2213:'\\mp ',0xD7:'\\times ',0xF7:'\\div ',0xB7:'\\cdot ',0x22C5:'\\cdot ',0x2217:'*',0x2218:'\\circ ',0x2219:'\\cdot ',0x2022:'\\bullet ',
+ 0x2264:'\\le ',0x2265:'\\ge ',0x2260:'\\ne ',0x2248:'\\approx ',0x2261:'\\equiv ',0x2262:'\\not\\equiv ',0x2245:'\\cong ',0x223C:'\\sim ',0x223D:'\\backsim ',0x2243:'\\simeq ',0x221D:'\\propto ',0x226A:'\\ll ',0x226B:'\\gg ',
+ 0x221E:'\\infty ',0x2202:'\\partial ',0x2207:'\\nabla ',0x2208:'\\in ',0x2209:'\\notin ',0x220B:'\\ni ',0x2282:'\\subset ',0x2283:'\\supset ',0x2286:'\\subseteq ',0x2287:'\\supseteq ',0x2284:'\\not\\subset ',0x2288:'\\not\\subseteq ',
+ 0x222A:'\\cup ',0x2229:'\\cap ',0x2205:'\\emptyset ',0x2200:'\\forall ',0x2203:'\\exists ',0x2204:'\\nexists ',0x2227:'\\wedge ',0x2228:'\\vee ',0xAC:'\\neg ',
+ 0x2192:'\\to ',0x2190:'\\leftarrow ',0x2194:'\\leftrightarrow ',0x2191:'\\uparrow ',0x2193:'\\downarrow ',0x21D2:'\\Rightarrow ',0x21D0:'\\Leftarrow ',0x21D4:'\\Leftrightarrow ',0x21A6:'\\mapsto ',0x2197:'\\nearrow ',0x2198:'\\searrow ',
+ 0x22A5:'\\perp ',0x2225:'\\parallel ',0x2226:'\\nparallel ',0x2220:'\\angle ',0x2221:'\\measuredangle ',0x25B3:'\\triangle ',0x25A1:'\\square ',0xB0:'^{\\circ}',0x2032:"'",0x2033:"''",
+ 0x2026:'\\ldots ',0x22EF:'\\cdots ',0x22EE:'\\vdots ',0x22F1:'\\ddots ',0x2234:'\\therefore ',0x2235:'\\because ',0x221A:'\\surd ',0x2211:'\\sum ',0x220F:'\\prod ',
+ 0x222B:'\\int ',0x222C:'\\iint ',0x222D:'\\iiint ',0x222E:'\\oint ',0x2223:'|',0x2016:'\\| ',0x27E8:'\\langle ',0x27E9:'\\rangle ',0x2329:'\\langle ',0x232A:'\\rangle ',
+ 0x230A:'\\lfloor ',0x230B:'\\rfloor ',0x2308:'\\lceil ',0x2309:'\\rceil ',0x2102:'\\mathbb{C}',0x2115:'\\mathbb{N}',0x211A:'\\mathbb{Q}',0x211D:'\\mathbb{R}',0x2124:'\\mathbb{Z}',0x2113:'\\ell ',0x210F:'\\hbar ',
+ 0xB2:'^{2}',0xB3:'^{3}',0xB9:'^{1}',0xBD:'\\frac{1}{2}',0xBC:'\\frac{1}{4}',0xBE:'\\frac{3}{4}',0x2190:'\\leftarrow ',0x21CC:'\\rightleftharpoons ',0x2020:'\\dagger ',0x2021:'\\ddagger ',0x2605:'\\star ',0x22C6:'\\star ',0x2295:'\\oplus ',0x2297:'\\otimes ',0x2299:'\\odot ',0x2216:'\\setminus ',0x22A4:'\\top ',0x22A2:'\\vdash ',0x22A8:'\\models ',0x2040:'\\frown ',0x2312:'\\frown ',0x2322:'\\frown ',0x2323:'\\smile '};
+const MT_ASCII={'\\':'\\backslash ','^':'\\^{}','~':'\\sim ','#':'\\#','$':'\\$','%':'\\%','&':'\\&','_':'\\_','{':'\\{','}':'\\}'};
+const MT_FUNCS=new Set(['sin','cos','tan','cot','sec','csc','arcsin','arccos','arctan','sinh','cosh','tanh','coth','log','ln','lg','lim','liminf','limsup','max','min','sup','inf','det','dim','exp','gcd','deg','ker','arg','hom','Pr']);
+const MT_DELIM={0x28:'(',0x29:')',0x5B:'[',0x5D:']',0x7B:'\\{ ',0x7D:'\\} ',0x7C:'|',0x2223:'|',0x2016:'\\| ',0x2225:'\\| ',0x27E8:'\\langle ',0x27E9:'\\rangle ',0x2329:'\\langle ',0x232A:'\\rangle ',0x230A:'\\lfloor ',0x230B:'\\rfloor ',0x2308:'\\lceil ',0x2309:'\\rceil ',0x3008:'\\langle ',0x3009:'\\rangle '};
+const MT_FENCE=[['\\langle ','\\rangle '],['(',')'],['\\{ ','\\} '],['[',']'],['|','|'],['\\| ','\\| '],['\\lfloor ','\\rfloor '],['\\lceil ','\\rceil '],['[',')'],['(',']']];
+const mtSingle=s=>{s=s.trim();return /^(\\[A-Za-z]+|\\.|[^\\{}\s])$/.test(s)||/^\d+$/.test(s)};
+const mtBase=s=>{s=s.trim();return !s?'{}':(mtSingle(s)||/^\\left[\s\S]*\\right.$/.test(s)&&false?s:'{'+s+'}')};
+
+function mtefTex(top,st){
+  st=st||{unk:0};
+  const fail=m=>{throw new Error(m)};
+  const code=n=>n.mt!==null?n.mt:(n.c8!==null?n.c8:fail('Ký tự không có mã'));
+  const escT=s=>s.replace(/([{}#%&$_])/g,'\\$1').replace(/\\(?![{}#%&$_\\])/g,'\\textbackslash{}').replace(/\^/g,'\\^{}').replace(/~/g,'\\sim ');
+  // một ký tự → {t:'t'|'f'|'x', s}
+  function charAtom(n){
+    const cp=code(n),id=n.tf>=128?n.tf-128:n.tf;let ch=String.fromCodePoint(cp),s;
+    if(cp===0xEF00||cp===0xEF01||cp===0xEF02||cp===0xEF03||cp===0xEF04||cp===0xEF05||cp===0xEF06||cp===0xEF07||cp===0xEF08||cp===0xEF09||cp===0xEF0A||cp===0x200B||cp===0xFEFF)return {t:'x',s:'',sp:true};
+    if(id===1&&cp>=0x20)return {t:'t',ch:ch};              // kiểu chữ Text
+    if(id===2&&/[A-Za-z]/.test(ch))return {t:'f',ch:ch};    // kiểu chữ Function (sin, cos, lim…)
+    if(cp===0x20||cp===0xA0)return {t:'x',s:'',sp:true};
+    if(MT_GREEK[cp]!==undefined)s=MT_GREEK[cp];
+    else if(MT_SYM[cp]!==undefined)s=MT_SYM[cp];
+    else if(cp<0x80){s=MT_ASCII[ch]!==undefined?MT_ASCII[ch]:ch;if(id===7&&/[A-Za-z]/.test(ch))s='\\mathbf{'+ch+'}'}
+    else{st.unk++;s=ch}
+    return {t:'x',s:s,cp:cp,rel:cp===0x3D}}
+  const embl=(e,s)=>{const one=mtSingle(s);
+    switch(e){
+      case 2:return '\\dot{'+s+'}';case 3:return '\\ddot{'+s+'}';case 4:return '\\dddot{'+s+'}';
+      case 5:return mtBase(s)+"'";case 6:return mtBase(s)+"''";case 7:return mtBase(s)+'^{\\backprime}';
+      case 8:return one?'\\tilde{'+s+'}':'\\widetilde{'+s+'}';case 9:return one?'\\hat{'+s+'}':'\\widehat{'+s+'}';
+      case 11:case 14:return '\\overrightarrow{'+s+'}';case 12:case 15:return '\\overleftarrow{'+s+'}';case 13:return '\\overleftrightarrow{'+s+'}';
+      case 17:return one?'\\bar{'+s+'}':'\\overline{'+s+'}';case 18:return '\\overset{\\frown}{'+s+'}';case 19:return '\\overset{\\smile}{'+s+'}';
+      default:fail('Dấu phụ '+e)}};
+  const txt=s=>/^[A-Za-z0-9.,]+$/.test(s)?'\\mathrm{'+s+'}':'\\text{'+escT(s)+'}';
+  const atomStr=a=>a.t==='t'?txt(a.ch):a.t==='f'?'\\operatorname{'+a.ch+'}':a.s;
+  function seq(list,cx){
+    cx=cx||{};const at=[];let eqDone=false;
+    for(const n of list){
+      if(n.k==='char'){const a=charAtom(n);
+        if(n.emb&&n.emb.length){let s=atomStr(a);n.emb.forEach(e=>{s=embl(e,s)});at.push({t:'x',s:s});continue}
+        if(cx.eq&&a.rel&&!eqDone){eqDone=true;at.push({t:'x',s:'&'})}
+        at.push(a);continue}
+      if(n.k==='line'){at.push({t:'x',s:seq(n.c,cx)});continue}
+      if(n.k==='tmpl'){
+        const sel=n.sel;
+        if(sel===27||sel===28||sel===29){ // chỉ số dưới / trên: gắn vào đối tượng đứng ngay trước
+          const ls=n.c.filter(c=>c.k==='line'),r=ls.map(l=>l.nul?'':seq(l.c,{}).trim());
+          let sub='',sup='';
+          if(sel===27)sub=r.find(x=>x)||'';else if(sel===28)sup=r.find(x=>x)||'';else{sub=r[0]||'';sup=r[1]||''}
+          const prev=at.pop();const b=prev?atomStr(prev).trim():'';
+          const bs=!b?'{}':(prev&&prev.t!=='x'||mtSingle(b)||/^\\(left|operatorname|text|mathbf|overline|bar|hat|widehat)/.test(b)||/\\right.$/.test(b)?b:'{'+b+'}');
+          // nếu đối tượng trước đã có chỉ số cùng loại thì bọc nhóm để không lỗi "double superscript"
+          let base=bs;if(prev&&prev.sc&&((sub&&/_\{/.test(prev.sc))||(sup&&/\^\{/.test(prev.sc))))base='{'+b+'}';
+          let sc=(sub?'_{'+sub+'}':'')+(sup?'^{'+sup+'}':'');
+          at.push({t:'x',s:base+sc,sc:(prev&&prev.sc?prev.sc:'')+sc});continue}
+        at.push({t:'x',s:tmpl(n,cx)});continue}
+      if(n.k==='pile'){at.push({t:'x',s:pile(n,cx.cases)});continue}
+      if(n.k==='matrix'){at.push({t:'x',s:matrix(n)});continue}
+    }
+    // gộp: chuỗi chữ Text → \text{…}, chuỗi chữ Function → tên hàm
+    let out='',i=0;
+    while(i<at.length){const a=at[i];
+      if(a.t==='t'){let s='';while(i<at.length&&at[i].t==='t'){s+=at[i].ch;i++}out+=txt(s);continue}
+      if(a.t==='f'){let s='';while(i<at.length&&at[i].t==='f'){s+=at[i].ch;i++}out+=MT_FUNCS.has(s)?'\\'+s+' ':'\\operatorname{'+s+'} ';continue}
+      out+=a.s;if(a.s&&/[A-Za-z]$/.test(a.s)&&a.s[0]==='\\')out+=' ';i++}
+    return out}
+  const lines=(n)=>n.c.filter(c=>c.k==='line');
+  const ln=(l,cx)=>(!l||l.nul)?'':seq(l.c,cx||{}).trim();
+  function pile(n,cases){
+    const rows=lines(n).map(l=>seq(l.c,{eq:n.ha===4&&!cases}).trim());
+    if(cases)return rows.join(' \\\\ ');
+    if(n.ha===4)return '\\begin{aligned} '+rows.join(' \\\\ ')+' \\end{aligned}';
+    return '\\begin{array}{'+(n.ha===1?'l':n.ha===3?'r':'c')+'} '+rows.join(' \\\\ ')+' \\end{array}'}
+  function matrix(n){
+    const ls=lines(n),rows=[];
+    if(ls.length!==n.rows*n.cols)fail('Ma trận không khớp');
+    for(let r=0;r<n.rows;r++)rows.push(ls.slice(r*n.cols,(r+1)*n.cols).map(l=>ln(l)).join(' & '));
+    return '\\begin{matrix} '+rows.join(' \\\\ ')+' \\end{matrix}'}
+  function tmpl(n,cx){
+    const sel=n.sel,v=n.v,ls=lines(n),chars=n.c.filter(c=>c.k==='char'),l=i=>ln(ls[i]);
+    if(sel<=9){ // ngoặc / dấu rào
+      const dl=chars.map(c=>MT_DELIM[code(c)]);
+      let lf=(v&1)?(dl[0]!==undefined?dl[0]:MT_FENCE[sel][0]):'.',rt=(v&2)?(dl[(v&1)?1:0]!==undefined?dl[(v&1)?1:0]:MT_FENCE[sel][1]):'.';
+      const main=ls[0],kids=main?main.c:[];
+      if(kids.length===1&&kids[0].k==='matrix'&&lf!=='.'&&rt!=='.'){
+        const env={'(|)':'pmatrix','[|]':'bmatrix','|||':'vmatrix','\\{ |\\} ':'Bmatrix','\\| |\\| ':'Vmatrix'}[lf+'|'+rt];
+        if(env){const m=matrix(kids[0]);return m.replace('{matrix}','{'+env+'}').replace('{matrix}','{'+env+'}')}}
+      if(kids.length===1&&kids[0].k==='pile'&&lf==='\\{ '&&rt==='.')return '\\begin{cases} '+pile(kids[0],true)+' \\end{cases}';
+      if(kids.length===1&&kids[0].k==='pile'&&lf==='.'&&rt==='\\} ')return '\\begin{rcases} '+pile(kids[0],true)+' \\end{rcases}';
+      return '\\left'+lf.trim()+' '+l(0)+' \\right'+rt.trim()}
+    switch(sel){
+      case 10:{const idx=ls[1]&&!ls[1].nul?l(1):'';return idx?'\\sqrt['+idx+']{'+l(0)+'}':'\\sqrt{'+l(0)+'}'}
+      case 11:return '\\frac{'+l(0)+'}{'+l(1)+'}';
+      case 12:return '\\underline{'+l(0)+'}';
+      case 13:return '\\overline{'+l(0)+'}';
+      case 14:{ // mũi tên có chữ trên/dưới
+        if(chars.length!==1)fail('Mũi tên');const a=code(chars[0]),top=l(0),bot=l(1);
+        const R={0x2192:'\\xrightarrow',0x2190:'\\xleftarrow',0x21D2:'\\xRightarrow',0x21D0:'\\xLeftarrow',0x2194:'\\xleftrightarrow',0x21CC:'\\xrightleftharpoons'};
+        const arr=MT_SYM[a];if(!arr)fail('Mũi tên lạ');
+        if(!top&&!bot)return arr;
+        if(R[a]&&(a===0x2192||a===0x2190||a===0x2194||a===0x21CC)){return R[a]+(bot?'['+bot+']':'')+'{'+top+'}'}
+        return '\\overset{'+top+'}{\\underset{'+bot+'}{'+arr.trim()+'}}'}
+      case 15:case 16:case 17:case 18:case 19:case 20:{
+        const defs={15:'\\int ',16:'\\sum ',17:'\\prod ',18:'\\coprod ',19:'\\bigcup ',20:'\\bigcap '};
+        let op=defs[sel];const c0=chars.find(c=>code(c)>=0x222B&&code(c)<=0x2230);
+        if(sel===15&&c0)op={0x222B:'\\int ',0x222C:'\\iint ',0x222D:'\\iiint ',0x222E:'\\oint ',0x222F:'\\oiint ',0x2230:'\\oiiint '}[code(c0)];
+        const lo=ls[1]&&!ls[1].nul?l(1):'',up=ls[2]&&!ls[2].nul?l(2):'';
+        return op.trim()+(lo?'_{'+lo+'}':'')+(up?'^{'+up+'}':'')+' '+l(0)}
+      case 23:{const nm=l(0),lo=ls[1]&&!ls[1].nul?l(1):'',up=ls[2]&&!ls[2].nul?l(2):'';return nm+(lo?'_{'+lo+'}':'')+(up?'^{'+up+'}':'')+' '}
+      case 31:{ // vectơ
+        const e=l(0),c=chars[0]?code(chars[0]):0;let L=!!(v&1),R=!!(v&2);
+        if(c===0x2190||c===0x20D6)L=true,R=false;else if(c===0x2192||c===0x20D7)R=true,L=false;else if(c===0x2194||c===0x20E1)L=R=true;
+        if(!L&&!R)R=true;
+        const un=!!(v&4);return (un?(L&&R?'\\underleftrightarrow':L?'\\underleftarrow':'\\underrightarrow'):(L&&R?'\\overleftrightarrow':L?'\\overleftarrow':'\\overrightarrow'))+'{'+e+'}'}
+      case 32:{const e=l(0);return mtSingle(e)?'\\tilde{'+e+'}':'\\widetilde{'+e+'}'}
+      case 33:{const e=l(0);return mtSingle(e)?'\\hat{'+e+'}':'\\widehat{'+e+'}'}
+      case 34:return '\\overset{\\frown}{'+l(0)+'}';
+      case 35:return l(0);
+      case 36:return '\\cancel{'+l(0)+'}';
+      case 37:return '\\boxed{'+l(0)+'}';
+      default:fail('Mẫu '+sel+'/'+v+' chưa hỗ trợ')}}
+  const s=seq(top,{}).replace(/\s+/g,' ').replace(/\s+([}\]),;])/g,'$1').replace(/\{\s+/g,'{').trim();
+  return s}
+
+function mathtypeToLatex(bin){
+  const st={unk:0};
+  try{const s=oleStream(bin,'Equation Native');if(!s)return {tex:null,why:'Không phải OLE MathType'};
+    const t=mtefRead(s),tex=mtefTex(t,st);return {tex:tex,unk:st.unk}}
+  catch(e){return {tex:null,why:e.message}}}
+
+/* Đổi công thức Equation trong .docx thành ký hiệu giữ chỗ để thư viện đọc Word (mammoth) không làm mất */
+async function texifyDocx(buf){
+  const res={buf,maths:[],mt:0,mtOk:0,mtUnk:0,mtWhy:[],hf:0,fail:0,bad:0};
+  let z;try{z=await JSZip.loadAsync(buf)}catch(e){return res}
+  let changed=false;
+  for(const p of ['word/document.xml','word/footnotes.xml','word/endnotes.xml']){
+    const f=z.file(p);if(!f)continue;const xml=await f.async('string');
+    if(xml.indexOf('officeDocument/2006/math')<0&&xml.indexOf('<w:object')<0)continue;
+    const doc=new DOMParser().parseFromString(xml,'application/xml');
+    if(doc.getElementsByTagName('parsererror').length){res.fail+=(xml.match(/<m:oMath[ >]/g)||[]).length;continue}
+    const mkRun=txt=>{const r=doc.createElementNS(WNS,'w:r'),t=doc.createElementNS(WNS,'w:t');t.setAttributeNS('http://www.w3.org/XML/1998/namespace','xml:space','preserve');t.textContent=txt;r.appendChild(t);return r};
+    const paras=Array.from(doc.getElementsByTagNameNS(MNS,'oMathPara')),
+      inl=Array.from(doc.getElementsByTagNameNS(MNS,'oMath')).filter(o=>!(o.parentNode&&o.parentNode.namespaceURI===MNS&&o.parentNode.localName==='oMathPara')),
+      items=paras.map(e=>({e,d:true})).concat(inl.map(e=>({e,d:false})));
+    const objs=Array.from(doc.getElementsByTagNameNS(WNS,'object')).filter(o=>o.parentNode&&Array.from(o.getElementsByTagName('*')).some(e=>e.localName==='OLEObject'&&/Equation|MathType/i.test(e.getAttribute('ProgID')||''))).map(e=>({e,o:true}));
+    if(objs.length){ // đọc dữ liệu MathType (file .bin nhúng) cho từng đối tượng
+      const rf=z.file(p.replace(/^word\//,'word/_rels/')+'.rels'),rels={};
+      if(rf){const rd=new DOMParser().parseFromString(await rf.async('string'),'application/xml');Array.from(rd.getElementsByTagName('Relationship')).forEach(r=>{rels[r.getAttribute('Id')]=r.getAttribute('Target')})}
+      for(const it of objs){it.mt=null;
+        try{const ole=Array.from(it.e.getElementsByTagName('*')).find(e=>e.localName==='OLEObject'),
+            rid=ole&&(ole.getAttributeNS(RNS,'id')||ole.getAttribute('r:id')),tg=rid&&rels[rid];
+          if(tg){const path=tg.charAt(0)==='/'?tg.slice(1):'word/'+tg.replace(/^\.\//,''),bf=z.file(path);
+            if(bf)it.mt=mathtypeToLatex(new Uint8Array(await bf.async('arraybuffer')))}
+        }catch(er){it.mt=null}}}
+    const all=items.concat(objs).sort((x,y)=>x.e.compareDocumentPosition(y.e)&4?-1:1);
+    all.forEach(it=>{
+      if(it.o){const i=res.maths.length,m=it.mt;
+        if(m&&m.tex){res.maths.push({tex:m.tex,d:false,fromMt:true});res.mtOk++;if(m.unk)res.mtUnk++;if(!texSane(m.tex))res.bad++}
+        else{res.maths.push({tex:null,mt:true});res.mt++;if(m&&m.why)res.mtWhy.push(m.why)}
+        it.e.parentNode.replaceChild(mkRun(PH(i)),it.e);return}
+      let tex=null;
+      try{tex=it.d?ommlParaToLatex(it.e):ommlToLatex(it.e);if(tex&&!texSane(tex)){res.bad++}}catch(er){tex=null}
+      const i=res.maths.length;res.maths.push({tex,d:it.d});if(it.e.parentNode)it.e.parentNode.replaceChild(mkRun(PH(i)),it.e)});
+    if(all.length){z.file(p,new XMLSerializer().serializeToString(doc));changed=true}}
+  for(const nm of Object.keys(z.files)){if(/^word\/(header|footer)\d*\.xml$/.test(nm)){const x=await z.file(nm).async('string');res.hf+=(x.match(/<m:oMath[ >]/g)||[]).length}}
+  if(changed)res.buf=await z.generateAsync({type:'arraybuffer'});
+  return res}
+/* Thay ký hiệu giữ chỗ bằng công thức LaTeX. mode: html (\(..\)), cell (HTML, $..$), md/txt ($..$) */
+function fillTex(s,maths,mode){
+  const isH=mode==='html'||mode==='cell';
+  return s.replace(PHRE,(m,i)=>{const x=maths[+i];if(!x)return '';
+    if(x.mt||x.tex===null)return '[⚠ công thức '+(x.mt?'MathType ':'')+'#'+(+i+1)+' chưa chuyển được]';
+    if(!x.tex)return '';
+    if(mode==='html')return (x.d?'\\[':'\\(')+hx(x.tex)+(x.d?'\\]':'\\)');
+    if(mode==='cell')return '$'+hx(x.tex)+'$';
+    return x.d?'$$'+x.tex+'$$':'$'+x.tex+'$'})}
+function texNotes(c,tx,target){
+  const n=tx.maths.filter(x=>x.tex&&!x.fromMt).length;
+  if(n)c.note(n+' công thức Word (Equation) đã được đổi sang LaTeX '+target+'.');
+  if(tx.mtOk)c.note(tx.mtOk+' công thức MathType đã được đọc trực tiếp và đổi sang LaTeX '+target+'.');
+  if(tx.mtUnk)c.warn(tx.mtUnk+' công thức MathType có ký hiệu hiếm (giữ nguyên ký tự gốc) — hãy đối chiếu với file gốc.');
+  if(tx.mt)c.warn(tx.mt+' công thức MathType chưa đọc được'+(tx.mtWhy.length?' ('+Array.from(new Set(tx.mtWhy)).slice(0,3).join('; ')+')':'')+' — đã đánh dấu [⚠ …] trong kết quả. Cách khắc phục: trong Word chọn tab MathType → Convert Equations → Word equations (OMML), lưu lại rồi chuyển lại.');
+  const nf=tx.maths.filter(x=>!x.mt&&x.tex===null).length+tx.fail;
+  if(nf)c.warn(nf+' công thức không đọc được — đã đánh dấu [⚠ …], hãy đối chiếu với file gốc.');
+  if(tx.bad)c.warn(tx.bad+' công thức có cấu trúc lạ (ngoặc/nhóm không cân) — hãy kiểm tra lại.');
+  if(tx.hf)c.warn(tx.hf+' công thức trong header/footer không được chuyển.');
+  c.warn('Công thức dạng ảnh chụp, hộp văn bản (text box) và ghi chú trong header/footer không được nhận dạng — hãy đối chiếu với file gốc.')}
+async function guardNoMath(f,what){const tx=await texifyDocx(f.buf),n=tx.maths.length+tx.fail;if(n)throw new Error('File có '+n+' công thức (Equation/MathType) — kiểu chuyển "'+what+'" không giữ được công thức. Hãy dùng Word → HTML/Markdown/TXT (công thức dạng LaTeX) hoặc Lưu thành PDF ngay trong Microsoft Word.')}
+
 async function mathCount(buf){try{const z=await JSZip.loadAsync(buf),f=z.file('word/document.xml');if(!f)return 0;return((await f.async('string')).match(/<m:oMath[ >]/g)||[]).length}catch(e){return 0}}
-async function wordHtml(f,c,imgs){
+async function wordHtml(f,c,imgs,mode){
+  if(mode===undefined)mode='cell';
   const m=await lib('mammoth'),opt={};
   if(imgs){let n=0;opt.convertImage=m.images.imgElement(im=>im.read('base64').then(d=>{const ext=(im.contentType.split('/')[1]||'png').replace('jpeg','jpg').replace(/\+.*/,'');const name='image-'+(++n)+'.'+ext;imgs.push({name:'images/'+name,data:d});return{src:'images/'+name}}))}
-  let r;try{r=await m.convertToHtml({arrayBuffer:f.buf},opt)}catch(e){throw new Error('Không đọc được file Word (file hỏng hoặc có mật khẩu): '+e.message)}
-  const n=await mathCount(f.buf);if(n)c.warn(n+' công thức Equation của Word không được chuyển (bị bỏ qua) — hãy kiểm tra lại kết quả.');
+  const tx=await texifyDocx(f.buf);
+  let r;try{r=await m.convertToHtml({arrayBuffer:tx.buf},opt)}catch(e){throw new Error('Không đọc được file Word (file hỏng hoặc có mật khẩu): '+e.message)}
+  c.maths=tx.maths;texNotes(c,tx,c.texTarget||(mode==='html'?'(hiển thị bằng MathJax khi mở file HTML, cần mạng)':'($…$)'));
   c.warn('Hộp văn bản (text box), header/footer và định dạng phức tạp có thể không được giữ nguyên.');
-  return r.value}
+  return mode?fillTex(r.value,tx.maths,mode):r.value}
 
 /* ---------- Dựng trang A4 từ HTML (cho Word → PDF / Ảnh) ---------- */
-async function renderPages(html,c,kind){
+async function renderPages(html,c,kind,math){
   const h2c=await lib('h2c'),PW=794,PH=1123,PAD=60,S=2,Hc=PH-2*PAD;
   const box=document.createElement('div');box.id='raRender';box.className='rcBox';
   box.style.cssText='position:fixed;left:-12000px;top:0;width:'+PW+'px;box-sizing:border-box;padding:0 76px;background:#fff;color:#000;font:14.5px/1.5 "Times New Roman",Times,serif';
-  box.innerHTML='<style>#raRender p{margin:0 0 8px}#raRender h1,#raRender h2,#raRender h3,#raRender h4{margin:14px 0 8px;line-height:1.3}#raRender h1{font-size:22px}#raRender h2{font-size:19px}#raRender h3{font-size:17px}#raRender table{border-collapse:collapse;max-width:100%;margin:6px 0}#raRender td,#raRender th{border:1px solid #444;padding:3px 6px;vertical-align:top}#raRender img{max-width:100%;max-height:940px}#raRender ul,#raRender ol{margin:0 0 8px;padding-left:28px}</style>'+html;
+  box.innerHTML='<style>#raRender p{margin:0 0 8px}#raRender h1,#raRender h2,#raRender h3,#raRender h4{margin:14px 0 8px;line-height:1.3}#raRender h1{font-size:22px}#raRender h2{font-size:19px}#raRender h3{font-size:17px}#raRender table{border-collapse:collapse;max-width:100%;margin:6px 0}#raRender td,#raRender th{border:1px solid #444;padding:3px 6px;vertical-align:top}#raRender img{max-width:100%;max-height:940px}#raRender ul,#raRender ol{margin:0 0 8px;padding-left:28px}#raRender mjx-container{margin:0!important;color:#000}#raRender mjx-container[display="true"]{display:block;text-align:center;margin:6px 0!important}#raRender mjx-container svg{max-width:100%}</style>'+html;
   document.body.appendChild(box);
   try{
     await Promise.all(Array.from(box.querySelectorAll('img')).map(i=>i.complete?0:new Promise(r=>{i.onload=i.onerror=r})));
+    if(math){c.prog('Đang vẽ công thức...');await tick();const MJ=await mathjaxLib();
+      try{await MJ.typesetPromise([box])}catch(e){throw new Error('MathJax không vẽ được công thức: '+(e&&e.message||e))}
+      const er=box.querySelectorAll('mjx-merror,[data-mjx-error]').length;
+      if(er)c.warn(er+' công thức bị MathJax báo lỗi cú pháp — hãy đối chiếu với file gốc.');
+      await tick()}
     await tick();
     const kids=Array.from(box.children).filter(e=>e.tagName!=='STYLE'),total=box.scrollHeight,pages=[];let top=0;
     kids.forEach(k=>{const t=k.offsetTop,b=t+k.offsetHeight;
@@ -178,30 +576,30 @@ const cvPng=cv=>new Promise(r=>cv.toBlob(b=>b.arrayBuffer().then(a=>r(new Uint8A
 
 /* ====================== CÁC PHÉP CHUYỂN ====================== */
 const RUN={
-  async w2pdf(fs,c){const f=fs[0],html=await wordHtml(f,c,null);const pages=await renderPages(html,c,'jpg'),J=await lib('jspdf');
+  async w2pdf(fs,c){const f=fs[0];c.texTarget='(đã vẽ thành công thức trong PDF bằng MathJax)';const html=await wordHtml(f,c,null,'html');const pages=await renderPages(html,c,'jpg',!!(c.maths&&c.maths.some(x=>x.tex))),J=await lib('jspdf');
     const pdf=new J({unit:'mm',format:'a4'});pages.forEach((d,i)=>{if(i)pdf.addPage();pdf.addImage(d,'JPEG',0,0,210,297)});
-    c.warn('PDF dựng từ ảnh trang: hiển thị đúng chữ Việt nhưng không bôi chọn/copy chữ được.');
+    c.warn('PDF dựng từ ảnh trang: hiển thị đúng chữ Việt và công thức nhưng không bôi chọn/copy chữ được. Bố cục có thể khác Word gốc; muốn giống 100% hãy dùng File → Save As → PDF trong Word.');
     return[{name:c.base+'.pdf',data:new Uint8Array(pdf.output('arraybuffer'))}]},
-  async w2img(fs,c){const f=fs[0],html=await wordHtml(f,c,null),pages=await renderPages(html,c,'png');
+  async w2img(fs,c){const f=fs[0];c.texTarget='(đã vẽ thành công thức trong ảnh bằng MathJax)';const html=await wordHtml(f,c,null,'html'),pages=await renderPages(html,c,'png',!!(c.maths&&c.maths.some(x=>x.tex)));
     return pages.map((d,i)=>({name:c.base+'_trang'+String(i+1).padStart(2,'0')+'.png',data:d}))},
-  async w2txt(fs,c){const m=await lib('mammoth'),f=fs[0];let r;try{r=await m.extractRawText({arrayBuffer:f.buf})}catch(e){throw new Error('Không đọc được file Word: '+e.message)}
-    const n=await mathCount(f.buf);if(n)c.warn(n+' công thức Equation không được chuyển sang TXT.');
+  async w2txt(fs,c){const m=await lib('mammoth'),f=fs[0],tx=await texifyDocx(f.buf);let r;try{r=await m.extractRawText({arrayBuffer:tx.buf})}catch(e){throw new Error('Không đọc được file Word: '+e.message)}
+    texNotes(c,tx,'($…$)');r.value=fillTex(r.value,tx.maths,'txt');
     return[{name:c.base+'.txt',data:new TextEncoder().encode('\ufeff'+r.value.replace(/\n{3,}/g,'\n\n').trim()+'\n')}]},
-  async w2html(fs,c){const html=await wordHtml(fs[0],c,null);
-    const doc='<!DOCTYPE html>\n<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+hx(c.base)+'</title><style>body{font-family:"Times New Roman",serif;max-width:820px;margin:0 auto;padding:16px;line-height:1.6}table{border-collapse:collapse;max-width:100%}td,th{border:1px solid #888;padding:4px 8px;vertical-align:top}img{max-width:100%;height:auto}</style></head><body>\n'+html+'\n</body></html>';
+  async w2html(fs,c){const html=await wordHtml(fs[0],c,null,'html');
+    const doc='<!DOCTYPE html>\n<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+hx(c.base)+'</title><style>body{font-family:"Times New Roman",serif;max-width:820px;margin:0 auto;padding:16px;line-height:1.6}table{border-collapse:collapse;max-width:100%}td,th{border:1px solid #888;padding:4px 8px;vertical-align:top}img{max-width:100%;height:auto}</style>'+(c.maths&&c.maths.some(x=>x.tex)?'<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.js"></script>':'')+'</head><body>\n'+html+'\n</body></html>';
     return[{name:c.base+'.html',data:new TextEncoder().encode(doc)}]},
-  async w2md(fs,c){const imgs=[],html=await wordHtml(fs[0],c,imgs),md=htmlToMd(parseHtml(html));
+  async w2md(fs,c){const imgs=[],html=await wordHtml(fs[0],c,imgs,null),md=fillTex(htmlToMd(parseHtml(html)),c.maths,'md');
     if(!imgs.length)return[{name:c.base+'.md',data:new TextEncoder().encode(md)}];
     const z=new JSZip();z.file(c.base+'.md',md);imgs.forEach(i=>z.file(i.name,i.data,{base64:true}));
     c.warn('Tài liệu có hình: kết quả là file .zip gồm '+c.base+'.md và thư mục images/.');
     return[{name:c.base+'_markdown.zip',data:await z.generateAsync({type:'uint8array',compression:'DEFLATE'})}]},
-  async w2xlsx(fs,c){const html=await wordHtml(fs[0],c,null),body=parseHtml(html),sheets=[];
+  async w2xlsx(fs,c){const html=await wordHtml(fs[0],c,null,'cell'),body=parseHtml(html),sheets=[];
     Array.from(body.querySelectorAll('table')).filter(t=>!t.parentElement.closest('table')).forEach((t,i)=>{const r=tblAoa(t);if(r.aoa.length)sheets.push({name:'Bảng '+(i+1),aoa:r.aoa,merges:r.merges})});
     if(!sheets.length){const rows=Array.from(body.children).map(e=>[e.textContent.replace(/\s+/g,' ').trim()]).filter(r=>r[0]);if(!rows.length)throw new Error('Tài liệu không có nội dung để chuyển.');
       sheets.push({name:'Văn bản',aoa:rows});c.warn('Không có bảng nào trong file — mỗi đoạn văn được đặt vào một dòng của sheet "Văn bản".')}
     else c.warn('Chỉ chuyển các bảng ('+sheets.length+' bảng, mỗi bảng một sheet); văn bản ngoài bảng không được đưa vào Excel.');
     return[{name:c.base+'.xlsx',data:xlsxBytes(sheets)}]},
-  async w2pptx(fs,c){const html=await wordHtml(fs[0],c,null),body=parseHtml(html),P=await lib('pptx'),pp=new P();pp.layout='LAYOUT_16x9';
+  async w2pptx(fs,c){await guardNoMath(fs[0],'Word → PPTX');const html=await wordHtml(fs[0],c,null),body=parseHtml(html),P=await lib('pptx'),pp=new P();pp.layout='LAYOUT_16x9';
     const F='Arial',TC='1F3864';let cur={title:'',items:[]};
     const head=(s,t)=>s.addText(t,{x:0.5,y:0.3,w:9,h:0.8,fontSize:26,bold:true,fontFace:F,color:TC,fit:'shrink'});
     const t0=pp.addSlide();t0.addText(c.base,{x:0.7,y:1.8,w:8.6,h:1.6,fontSize:36,bold:true,fontFace:F,color:TC,align:'center',valign:'middle',fit:'shrink'});
@@ -485,13 +883,13 @@ Object.assign(RUN,{
 });
 
 /* ====================== GIAO DIỆN ====================== */
-window.ChuyenDoiWord={docxParts,toLines,lineText,lineCells,toParas,htmlToMd,tblAoa,parseHtml,mdBlocks,mdInline,parseRange};
+window.ChuyenDoiWord={mathtypeToLatex,ommlToLatex,ommlParaToLatex,texifyDocx,fillTex,docxParts,toLines,lineText,lineCells,toParas,htmlToMd,tblAoa,parseHtml,mdBlocks,mdInline,parseRange};
 const sel=document.getElementById('wtSel'),t3=document.getElementById('t3');
 if(!sel||!t3)return;
 const g=id=>document.getElementById(id);
 const GROUPS=[
-  ['📝 Word →',[['w2pdf','Word → PDF','doc'],['w2pptx','Word → PowerPoint (PPTX)','doc'],['w2xlsx','Word → Excel (bảng)','doc'],['w2txt','Word → TXT','doc'],['w2md','Word → Markdown','doc'],['w2html','Word → HTML','doc'],['w2img','Word → Ảnh (PNG, mỗi trang 1 ảnh)','doc'],['w2imgs','Trích hình ảnh trong Word (.zip)','doc']]],
-  ['📕 PDF',[['p2docx','PDF → Word','pdf'],['p2xlsx','PDF → Excel','pdf'],['p2txt','PDF → TXT','pdf'],['p2img','PDF → Ảnh (PNG, mỗi trang 1 ảnh)','pdf'],['pdfmerge','Ghép nhiều PDF thành 1','pdf'],['pdfsplit','Tách PDF (mỗi trang 1 file)','pdf'],['pdfextract','Trích trang PDF (nhập số trang)','pdf'],['pdfrotate','Xoay trang PDF','pdf'],['pdfnum','Đánh số trang PDF','pdf']]],
+  ['📝 Word →',[['w2imgs','Trích hình ảnh trong Word (.zip)','doc'],['w2html','Word → HTML (công thức → LaTeX/MathJax)','doc'],['w2md','Word → Markdown (công thức $…$)','doc'],['w2txt','Word → TXT (công thức $…$)','doc'],['w2xlsx','Word → Excel (bảng)','doc']]],
+  ['📕 PDF',[['p2img','PDF → Ảnh (PNG, mỗi trang 1 ảnh)','pdf'],['pdfmerge','Ghép nhiều PDF thành 1','pdf'],['pdfsplit','Tách PDF (mỗi trang 1 file)','pdf'],['pdfextract','Trích trang PDF (nhập số trang)','pdf'],['pdfrotate','Xoay trang PDF','pdf'],['pdfnum','Đánh số trang PDF','pdf']]],
   ['📊 Excel / CSV / JSON',[['x2docx','Excel → Word','xls'],['x2pdf','Excel → PDF','xls'],['x2csv','Excel → CSV','xls'],['x2html','Excel → HTML','xls'],['x2json','Excel → JSON','xls'],['csv2xlsx','CSV → Excel','csv'],['json2xlsx','JSON → Excel','json']]],
   ['📽 PowerPoint',[['pp2txt','PowerPoint → TXT','ppt'],['pp2docx','PowerPoint → Word','ppt'],['pp2img','Trích hình ảnh trong PowerPoint (.zip)','ppt']]],
   ['🔤 Văn bản → Word',[['t2docx','TXT → Word','txt'],['m2docx','Markdown → Word','md'],['h2docx','HTML → Word','html']]],
@@ -547,7 +945,7 @@ function buildUI(){
   if(g('wtConv'))return;
   const d=document.createElement('div');d.className='wtool';d.id='wtConv';
   const so=(id,arr,def)=>'<select id="'+id+'">'+arr.map(a=>'<option value="'+a[0]+'"'+(a[0]===def?' selected':'')+'>'+a[1]+'</option>').join('')+'</select>';
-  d.innerHTML='<div class="note">Chuyển đổi định dạng ngay trên máy bạn — file <b>không được gửi đi đâu</b>. Chọn kiểu chuyển, chọn file (nhiều file / kéo thả), rồi bấm Chuyển đổi. Lần đầu dùng một số kiểu cần mạng để tải thư viện.</div>'
+  d.innerHTML='<div class="note">Chuyển đổi định dạng ngay trên máy bạn — file <b>không được gửi đi đâu</b>. Chọn kiểu chuyển, chọn file (nhiều file / kéo thả), rồi bấm Chuyển đổi. Lần đầu dùng một số kiểu cần mạng để tải thư viện. Với file Word có công thức, chỉ dùng các kiểu <b>Word → HTML / Markdown / TXT / Excel</b> (công thức Equation được đổi sang LaTeX); muốn PDF giữ nguyên công thức hãy dùng <i>Lưu thành PDF</i> trong Word.</div>'
   +'<div class="bar"><label for="cv_type" style="font-weight:600">Kiểu chuyển:</label><select id="cv_type">'+GROUPS.map(gr=>'<optgroup label="'+gr[0].trim()+'">'+gr[1].map(x=>'<option value="'+x[0]+'">'+x[1]+'</option>').join('')+'</optgroup>').join('')+'</select></div>'
   +'<div class="bar"><input type="file" id="cv_in" multiple style="display:none"><button class="ghost" id="cv_pick" type="button">📁 Chọn file (nhiều file / kéo thả vào đây)</button><button class="sec sm" id="cv_clear" type="button">🗑 Xóa danh sách</button></div><div id="cv_list"></div>'
   +'<label class="note" id="cv_mergeW" style="display:none;margin:6px 0"><input type="checkbox" id="cv_merge" checked> Gộp nhiều ảnh thành 1 file (theo thứ tự trong danh sách)</label>'
