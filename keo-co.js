@@ -6,13 +6,26 @@
   if (!root) return;
 
   var LS = 'kc_cfg_v1';
-  var SAMPLE = [
-    'Số nguyên tố nhỏ nhất là số nào? | 0 | 1 | 2 | 3 | 2',
-    'Việt Nam nằm ở khu vực nào của Châu Á? | Đông Á | Đông Nam Á | Nam Á | Tây Nam Á | B',
-    'Thủ đô của Việt Nam là? | Huế | Đà Nẵng | Hà Nội | TP. Hồ Chí Minh | C',
-    '5 × 6 bằng bao nhiêu? | 25 | 30 | 35 | 40 | B',
-    'Nước nào có diện tích lớn nhất thế giới? | Canada | Trung Quốc | Mỹ | Nga | D'
-  ].join('\n');
+  /* Bộ mẫu: [câu hỏi, A, B, C, D, đáp án đúng]. Công thức Toán viết LaTeX trong $...$ */
+  var SAMPLE_HEAD = ['Câu hỏi', 'Đáp án A', 'Đáp án B', 'Đáp án C', 'Đáp án D', 'Đáp án đúng (A/B/C/D)'];
+  var SAMPLE_ROWS = [
+    ['Khai triển $(a+b)^2$ bằng gì?', '$a^2+2ab+b^2$', '$a^2+b^2$', '$a^2-2ab+b^2$', '$a^2+ab+b^2$', 'A'],
+    ['Hằng đẳng thức hiệu hai bình phương là?', '$(a-b)^2$', '$(a+b)(a-b)$', '$a^2+b^2$', '$(a+b)^2$', 'B'],
+    ['Căn bậc hai số học của 49 là?', '5', '6', '8', '7', 'D'],
+    ['Nghiệm của phương trình $2x-6=0$ là?', '$x=-3$', '$x=3$', '$x=6$', '$x=12$', 'B'],
+    ['Biệt thức $\\Delta$ của $x^2-5x+6=0$ bằng?', '$1$', '$25$', '$49$', '$11$', 'A'],
+    ['Nghiệm của $x^2-5x+6=0$ là?', '$x=1$ hoặc $x=6$', '$x=-2$ hoặc $x=-3$', '$x=2$ hoặc $x=3$', '$x=5$ hoặc $x=6$', 'C'],
+    ['Rút gọn phân số $\\frac{6}{8}$ được?', '$\\frac{2}{3}$', '$\\frac{3}{4}$', '$\\frac{4}{3}$', '$\\frac{1}{2}$', 'B'],
+    ['Tính $\\frac{1}{2}+\\frac{1}{3}$', '$\\frac{2}{5}$', '$\\frac{1}{5}$', '$\\frac{5}{6}$', '$\\frac{1}{6}$', 'C'],
+    ['Tam giác vuông có hai cạnh góc vuông 3 và 4. Cạnh huyền bằng?', '5', '6', '7', '12', 'A'],
+    ['Giá trị của $\\sin 30^\\circ$ là?', '$\\frac{\\sqrt{3}}{2}$', '$\\frac{1}{2}$', '$1$', '$\\frac{\\sqrt{2}}{2}$', 'B'],
+    ['Hàm số $y=2x-1$ có giá trị bao nhiêu khi $x=3$?', '5', '6', '7', '4', 'A'],
+    ['Diện tích hình tròn bán kính $r$ là?', '$2\\pi r$', '$\\pi r^2$', '$\\pi r$', '$2\\pi r^2$', 'B'],
+    ['Tổng ba góc của một tam giác bằng?', '$360^\\circ$', '$90^\\circ$', '$270^\\circ$', '$180^\\circ$', 'D'],
+    ['Giá trị của $2^3$ là?', '6', '9', '8', '5', 'C'],
+    ['Giá trị của $\\lvert -5 \\rvert$ là?', '$-5$', '$5$', '$0$', '$\\frac{1}{5}$', 'B']
+  ];
+  var SAMPLE = SAMPLE_ROWS.map(function (r) { return r.join(' | '); }).join('\n');
 
   /* ---------- CSS ---------- */
   var st = document.createElement('style');
@@ -68,6 +81,18 @@
     '.kc-ovbox h2{margin:0 0 6px;font-size:clamp(22px,4vw,40px)}',
     '.kc-ovbox .bar{justify-content:center}',
     '.kc-setup textarea{width:100%;min-height:210px;font-family:inherit}',
+    '.kc-fire{background:#f59e0b!important;color:#111!important;font-weight:800}',
+    '.kc-time.gold{color:#fbbf24;animation:kcPulse .7s ease-in-out infinite alternate}',
+    '.kc-field.gold{box-shadow:inset 0 0 0 3px #fbbf24,inset 0 0 22px #fbbf2488}',
+    '@keyframes kcPulse{from{transform:scale(1)}to{transform:scale(1.1)}}',
+    '.kc-pop{position:absolute;top:24%;transform:translateX(-50%);font-weight:900;font-size:clamp(15px,3vh,30px);color:#fff;padding:2px 12px;border-radius:999px;pointer-events:none;z-index:3;animation:kcPop .95s ease-out forwards;white-space:nowrap}',
+    '.kc-pop.b{background:#2563eb}.kc-pop.r{background:#dc2626}.kc-pop.x{background:#475569}',
+    '@keyframes kcPop{0%{opacity:0;transform:translate(-50%,12px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.12)}100%{opacity:0;transform:translate(-50%,-28px) scale(1)}}',
+    '.kc-cd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#000a;border-radius:14px;z-index:6;font-weight:900;color:#fff;font-size:clamp(70px,24vh,220px);text-shadow:0 6px 30px #000}',
+    '.kc-cd.on{display:flex}.kc-cd span{animation:kcCd .7s ease-out}',
+    '@keyframes kcCd{from{transform:scale(2);opacity:0}to{transform:scale(1);opacity:1}}',
+    '.kc-cf{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;border-radius:14px}',
+    '.kc-ovbox{position:relative;z-index:1}',
     /* Công thức KaTeX trong câu hỏi / đáp án */
     '.kc-q .katex{font-size:1.12em}.kc-opt .katex{font-size:1.1em}',
     '.kc-opt{line-height:1.25;overflow-wrap:anywhere;font-family:inherit}',
@@ -88,7 +113,7 @@
   document.head.appendChild(st);
 
   /* ---------- Trạng thái ---------- */
-  var cfg = { bank: SAMPLE, secs: 120, nameB: 'Đội Xanh', nameR: 'Đội Đỏ', sound: true };
+  var cfg = { bank: SAMPLE, secs: 120, nameB: 'Đội Xanh', nameR: 'Đội Đỏ', sound: true, combo: true, gold: true, penalty: false };
   try { var saved = JSON.parse(localStorage.getItem(LS) || 'null'); if (saved) for (var k in saved) cfg[k] = saved[k]; } catch (e) {}
   function save() { try { localStorage.setItem(LS, JSON.stringify(cfg)); } catch (e) {} }
 
@@ -240,6 +265,7 @@
     '<textarea id="kcBank" spellcheck="false" placeholder="Câu hỏi | Đáp án A | Đáp án B | Đáp án C | Đáp án D | Đáp án đúng (A/B/C/D)"></textarea>' +
     '<div class="bar"><button class="ghost sm" id="kcFileBtn" type="button">⬆ Nhập file câu hỏi (.txt, .csv, .xlsx)</button>' +
     '<button class="sec sm" id="kcSample" type="button">Dùng bộ mẫu</button>' +
+    '<button class="sec sm" id="kcTpl" type="button" title="Tải file Excel mẫu để chỉnh sửa rồi nhập lại, dùng khi AI chưa hoạt động">⬇ Tải file mẫu (.xlsx)</button>' +
     '<input type="file" id="kcFile" accept=".txt,.csv,.tsv,.xlsx,.xls" hidden></div>' +
     '<div class="bar" style="margin-top:6px"><b>✨ Tạo câu hỏi bằng AI</b></div>' +
     '<div class="bar"><button class="ghost sm" id="kcAiDocBtn" type="button">📄 Chọn giáo án / tài liệu (.docx, .pdf, .pptx, .txt, ảnh)</button>' +
@@ -259,8 +285,11 @@
     '<div class="bar"><label>Tên đội 2 (Đỏ) <input id="kcNR" style="width:150px"></label></div>' +
     '<div class="bar"><label>Thời gian (giây) <input type="number" id="kcSecs" min="20" max="3600" style="width:90px"></label></div>' +
     '<div class="bar"><label><input type="checkbox" id="kcSnd"> Bật âm thanh</label></div>' +
+    '<div class="bar"><label><input type="checkbox" id="kcCombo"> 🔥 Combo: đúng liên tiếp 3 câu thì mỗi câu kéo mạnh thêm 50%</label></div>' +
+    '<div class="bar"><label><input type="checkbox" id="kcGold"> ⚡ Giờ vàng: 15 giây cuối mỗi câu đúng kéo gấp đôi</label></div>' +
+    '<div class="bar"><label><input type="checkbox" id="kcPen"> 😬 Trả lời sai thì dây bị kéo lùi nửa bước</label></div>' +
     '<div class="bar"><button class="red" id="kcStart" type="button" style="font-size:18px;padding:12px 26px">▶ BẮT ĐẦU / TRÌNH CHIẾU</button></div>' +
-    '<div class="note">Phím tắt cho 2 đội dùng chung bàn phím: đội Xanh bấm <b>A S D F</b>, đội Đỏ bấm <b>J K L ;</b> (tương ứng 4 đáp án).</div>' +
+    '<div class="note">Cả hai đội đều thấy đáp án <b>A B C D</b>. Chạm / bấm chuột để chọn, hoặc dùng chung một bàn phím: đội Xanh bấm <b>A S D F</b> (= A B C D), đội Đỏ bấm <b>J K L ;</b> (= A B C D).</div>' +
     '<div id="kcMsg" class="status info"></div>' +
     '</div></div></div>' +
 
@@ -283,7 +312,8 @@
     '<div class="kc-info" id="kcInfo"></div></div>' +
     '<div class="kc-team r" id="kcTR"></div>' +
     '</div>' +
-    '<div class="kc-ov" id="kcOv"><div class="kc-ovbox"><div style="font-size:54px">🏆</div><h2 id="kcWin"></h2><p id="kcWinSub"></p>' +
+    '<div class="kc-cd" id="kcCd"></div>' +
+    '<div class="kc-ov" id="kcOv"><canvas class="kc-cf" id="kcCf"></canvas><div class="kc-ovbox"><div style="font-size:54px">🏆</div><h2 id="kcWin"></h2><p id="kcWinSub"></p>' +
     '<div class="bar"><button class="red" id="kcAgain" type="button">↻ Chơi lại</button><button class="sec" id="kcToSetup" type="button">Về cài đặt</button></div></div></div>' +
     '</div>';
 
@@ -292,11 +322,12 @@
     setup: $('kcSetup'), stage: $('kcStage'), bank: $('kcBank'), count: $('kcCount'), msg: $('kcMsg'),
     nb: $('kcNB'), nr: $('kcNR'), secs: $('kcSecs'), snd: $('kcSnd'), file: $('kcFile'),
     time: $('kcTime'), sb: $('kcSB'), sr: $('kcSR'), tb: $('kcTB'), tr: $('kcTR'),
-    mover: $('kcMover'), info: $('kcInfo'), ov: $('kcOv'), win: $('kcWin'), winSub: $('kcWinSub'),
+    field: $('kcField'), mover: $('kcMover'), info: $('kcInfo'), ov: $('kcOv'), win: $('kcWin'), winSub: $('kcWinSub'),
     pause: $('kcPause'), mute: $('kcMute')
   };
 
   el.bank.value = cfg.bank; el.nb.value = cfg.nameB; el.nr.value = cfg.nameR; el.secs.value = cfg.secs; el.snd.checked = !!cfg.sound;
+  $('kcCombo').checked = !!cfg.combo; $('kcGold').checked = !!cfg.gold; $('kcPen').checked = !!cfg.penalty;
   function updCount() { el.count.textContent = '(' + parse(el.bank.value).length + ' câu hợp lệ)'; }
   updCount();
   el.bank.addEventListener('input', updCount);
@@ -304,6 +335,27 @@
   /* ---------- Nhập file ---------- */
   $('kcFileBtn').onclick = function () { el.file.click(); };
   $('kcSample').onclick = function () { el.bank.value = SAMPLE; updCount(); };
+  $('kcTpl').onclick = function () {
+    var rows = [SAMPLE_HEAD].concat(SAMPLE_ROWS);
+    var guide = [['HƯỚNG DẪN DÙNG FILE MẪU'], [''],
+      ['1. Sheet "Câu hỏi": mỗi dòng là một câu. Cột A = câu hỏi; cột B–E = 4 đáp án; cột F = đáp án đúng (chữ A, B, C hoặc D).'],
+      ['2. Sửa trực tiếp hoặc xóa các dòng mẫu rồi nhập câu của bạn. Dòng tiêu đề (dòng 1) có thể giữ nguyên, phần mềm tự bỏ qua.'],
+      ['3. Công thức Toán viết bằng LaTeX đặt trong dấu $...$, ví dụ $x^2$, $\\frac{a}{b}$, $\\sqrt{3}$, $\\leq$, $\\pi$.'],
+      ['4. Không dùng ký tự | (gạch đứng) trong ô; với giá trị tuyệt đối hãy viết $\\lvert x \\rvert$.'],
+      ['5. Lưu file, vào Kéo co kiến thức > "Nhập file câu hỏi" > chọn file này > Bắt đầu.'],
+      ['6. Chỉ sheet đầu tiên ("Câu hỏi") được đọc. Nên có từ 10 câu trở lên để trò chơi hay hơn.']];
+    if (window.XLSX) {
+      var wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows), wg = XLSX.utils.aoa_to_sheet(guide);
+      ws['!cols'] = [{ wch: 58 }, { wch: 26 }, { wch: 26 }, { wch: 26 }, { wch: 26 }, { wch: 22 }]; wg['!cols'] = [{ wch: 120 }];
+      XLSX.utils.book_append_sheet(wb, ws, 'Câu hỏi'); XLSX.utils.book_append_sheet(wb, wg, 'Hướng dẫn');
+      XLSX.writeFile(wb, 'keo-co-mau.xlsx');
+    } else {
+      var csv = '\uFEFF' + rows.map(function (r) { return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n');
+      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'keo-co-mau.csv';
+      document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    }
+    el.msg.textContent = 'Đã tải file mẫu. Chỉnh sửa rồi bấm "Nhập file câu hỏi" để dùng.';
+  };
   el.file.addEventListener('change', function () {
     var f = el.file.files[0]; if (!f) return;
     var rd = new FileReader();
@@ -327,37 +379,51 @@
 
   /* ---------- Vòng chơi ---------- */
   function newTeam(name, cls) {
-    return { name: name, cls: cls, order: shuffle(bank.map(function (_, i) { return i; })), idx: 0, locked: false, ok: 0, bad: 0, opts: [] };
+    return { name: name, cls: cls, order: shuffle(bank.map(function (_, i) { return i; })), idx: 0, locked: false, ok: 0, bad: 0, streak: 0, best: 0, opts: [] };
   }
   function loadQ(T) {
     var q = bank[T.order[T.idx % T.order.length]];
     T.q = q; T.opts = shuffle(q.opts); T.locked = false; T.mark = null;
   }
 
+  var cdTimers = [], goldOn = false, lastSec = -1, cfRaf = 0;
+  function clearCd() { cdTimers.forEach(clearTimeout); cdTimers = []; $('kcCd').classList.remove('on'); cancelAnimationFrame(cfRaf); }
   function start() {
     bank = parse(el.bank.value);
     if (bank.length < 1) { el.msg.textContent = 'Chưa có câu hỏi hợp lệ. Mỗi dòng cần: Câu hỏi | các đáp án | đáp án đúng.'; return; }
+    clearCd(); clearInterval(timer);
     cfg.bank = el.bank.value; cfg.nameB = el.nb.value.trim() || 'Đội Xanh'; cfg.nameR = el.nr.value.trim() || 'Đội Đỏ';
-    cfg.secs = Math.max(20, +el.secs.value || 120); cfg.sound = el.snd.checked; save();
+    cfg.secs = Math.max(20, +el.secs.value || 120); cfg.sound = el.snd.checked;
+    cfg.combo = $('kcCombo').checked; cfg.gold = $('kcGold').checked; cfg.penalty = $('kcPen').checked; save();
     teams = [newTeam(cfg.nameB, 'b'), newTeam(cfg.nameR, 'r')];
     teams.forEach(loadQ);
-    pos = 0; step = 1 / bank.length; paused = false; phase = 'play';
-    remain = cfg.secs * 1000; endAt = Date.now() + remain;
+    pos = 0; step = 1 / bank.length; paused = false; phase = 'count'; goldOn = false; lastSec = -1;
+    remain = cfg.secs * 1000;
     el.setup.style.display = 'none'; el.stage.classList.add('on'); el.ov.classList.remove('on');
     el.pause.textContent = '⏸ Tạm dừng';
+    el.time.classList.remove('gold'); el.field.classList.remove('gold');
     renderAll();
-    clearInterval(timer); timer = setInterval(tick, 200);
+    /* đếm ngược 3 - 2 - 1 - KÉO! rồi mới tính giờ */
+    var cd = $('kcCd'), seq = ['3', '2', '1', 'KÉO!'];
+    cd.classList.add('on');
+    seq.forEach(function (t, i) {
+      cdTimers.push(setTimeout(function () { cd.innerHTML = '<span>' + t + '</span>'; beep(i === 3 ? 988 : 520, i === 3 ? 0.3 : 0.12); }, i * 750));
+    });
+    cdTimers.push(setTimeout(function () {
+      cd.classList.remove('on'); phase = 'play'; endAt = Date.now() + remain;
+      clearInterval(timer); timer = setInterval(tick, 200);
+    }, 3 * 750 + 650));
   }
 
   function renderTeam(i) {
-    var T = teams[i], box = i ? el.tr : el.tb, keys = i ? ['J', 'K', 'L', ';'] : ['A', 'S', 'D', 'F'];
+    var T = teams[i], box = i ? el.tr : el.tb, keys = ['A', 'B', 'C', 'D'], hot = i ? ['J', 'K', 'L', ';'] : ['A', 'S', 'D', 'F'];
     box.className = 'kc-team ' + T.cls + (T.locked ? ' lock' : '');
     box.innerHTML =
-      '<div class="kc-th"><span>' + (i ? '🔴 ' : '🔵 ') + esc(T.name) + '</span><small>Câu #' + (T.ok + T.bad + 1) + '</small></div>' +
+      '<div class="kc-th"><span>' + (i ? '🔴 ' : '🔵 ') + esc(T.name) + '</span>' + (T.streak >= 2 ? '<small class="kc-fire">🔥 ' + T.streak + ' liên tiếp</small>' : '') + '<small>Câu #' + (T.ok + T.bad + 1) + '</small></div>' +
       '<div class="kc-q"><span>' + mathHTML(T.q.q) + '</span></div>' +
       '<div class="kc-opts">' + T.opts.map(function (o, j) {
         var c = T.mark && T.mark.j === j ? (T.mark.ok ? ' ok' : ' bad') : (T.mark && !T.mark.ok && o === T.q.ans ? ' ok' : '');
-        return '<button type="button" class="kc-opt' + c + '" data-t="' + i + '" data-o="' + j + '">' + (keys[j] ? '<i>' + keys[j] + '</i>' : '') + '<span>' + mathHTML(o) + '</span></button>';
+        return '<button type="button" class="kc-opt' + c + '" data-t="' + i + '" data-o="' + j + '" title="Phím tắt: ' + hot[j] + '">' + (keys[j] ? '<i>' + keys[j] + '</i>' : '') + '<span>' + mathHTML(o) + '</span></button>';
       }).join('') + '</div>';
     fitSoon();
   }
@@ -387,8 +453,9 @@
     el.mover.style.left = (50 + pos * 32) + '%';
     $('kcPB').style.width = (50 - pos * 50) + '%'; $('kcPR').style.width = (50 + pos * 50) + '%';
     var pct = Math.round(Math.abs(pos) * 100);
-    el.info.textContent = (pos === 0 ? '⚖ Cân bằng' : (pos < 0 ? '🔵 ' + teams[0].name : '🔴 ' + teams[1].name) + ' dẫn ' + pct + '%') +
-      ' · mỗi câu đúng kéo ' + (step * 100).toFixed(0) + '% · kéo tới đích để thắng';
+    var lead = pos === 0 ? '⚖ Cân bằng' : (pos < 0 ? '🔵 ' + teams[0].name : '🔴 ' + teams[1].name) + ' dẫn ' + pct + '%';
+    el.info.textContent = goldOn ? '⚡ GIỜ VÀNG: kéo gấp đôi · ' + lead
+      : lead + ' · mỗi câu đúng kéo ' + (step * 100).toFixed(0) + '% · kéo tới đích để thắng';
   }
   function renderScore() {
     el.sb.textContent = teams[0].name + ': ' + teams[0].ok + ' đúng';
@@ -400,13 +467,28 @@
     el.mute.textContent = cfg.sound ? '🔊 Âm thanh' : '🔇 Tắt âm';
   }
 
+  function pull(T) {            /* hệ số kéo: combo +50%, giờ vàng +100% */
+    var m = 1; if (cfg.combo && T.streak >= 3) m += 0.5; if (goldOn) m += 1; return m;
+  }
+  function popup(cls, text) {
+    var d = document.createElement('div'); d.className = 'kc-pop ' + cls; d.textContent = text;
+    d.style.left = (50 + pos * 32) + '%'; el.field.appendChild(d); setTimeout(function () { d.remove(); }, 1000);
+  }
   function answer(t, o) {
     if (phase !== 'play' || paused) return;
     var T = teams[t]; if (T.locked || o >= T.opts.length) return;
-    var ok = T.opts[o] === T.q.ans;
+    var ok = T.opts[o] === T.q.ans, dir = t ? 1 : -1;
     T.locked = true; T.mark = { j: o, ok: ok };
-    if (ok) { T.ok++; pos += (t ? 1 : -1) * step; pos = Math.max(-1, Math.min(1, pos)); beep(880, 0.15); }
-    else { T.bad++; beep(200, 0.3, 'square'); }
+    if (ok) {
+      T.ok++; T.streak++; T.best = Math.max(T.best, T.streak);
+      var m = pull(T), d = step * m;
+      pos = Math.max(-1, Math.min(1, pos + dir * d)); beep(880, 0.15);
+      if (T.streak === 3 && cfg.combo) setTimeout(function () { beep(1175, 0.12); }, 120);
+      popup(T.cls, '+' + Math.round(d * 100) + '%' + (m > 1 ? ' 🔥' : ''));
+    } else {
+      T.bad++; T.streak = 0; beep(200, 0.3, 'square');
+      if (cfg.penalty) { pos = Math.max(-1, Math.min(1, pos - dir * step * 0.5)); popup('x', '−' + Math.round(step * 50) + '%'); }
+    }
     renderTeam(t); renderRope(); renderScore();
     if (Math.abs(pos) >= 1) { setTimeout(function () { finish(); }, 500); return; }
     setTimeout(function () {
@@ -419,21 +501,47 @@
     if (phase !== 'play' || paused) return;
     remain = Math.max(0, endAt - Date.now());
     el.time.textContent = fmt(remain); el.time.classList.toggle('low', remain <= 10000);
+    var g = !!cfg.gold && cfg.secs >= 45 && remain <= 15000 && remain > 0;
+    if (g !== goldOn) {
+      goldOn = g; el.time.classList.toggle('gold', g); el.field.classList.toggle('gold', g); renderRope();
+      if (g) { beep(740, 0.12); setTimeout(function () { beep(988, 0.2); }, 140); }
+    }
+    var sc = Math.ceil(remain / 1000);
+    if (sc <= 5 && sc > 0 && sc !== lastSec) beep(520, 0.05);
+    lastSec = sc;
     if (remain <= 0) finish();
   }
 
+  function confetti(colors) {
+    var cv = $('kcCf'), ctx = cv.getContext('2d'); cv.width = cv.clientWidth || 600; cv.height = cv.clientHeight || 400;
+    var P = [], i; for (i = 0; i < 140; i++) P.push({ x: Math.random() * cv.width, y: -Math.random() * cv.height * 0.6, vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 4,
+      s: 6 + Math.random() * 8, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3, c: colors[i % colors.length] });
+    var t0 = performance.now(); cancelAnimationFrame(cfRaf);
+    (function f(t) {
+      ctx.clearRect(0, 0, cv.width, cv.height); var live = false;
+      P.forEach(function (p) {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += 0.02; if (p.y < cv.height + 20) live = true;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * 0.6); ctx.restore();
+      });
+      if (live && t - t0 < 7000) cfRaf = requestAnimationFrame(f); else ctx.clearRect(0, 0, cv.width, cv.height);
+    })(t0);
+  }
   function finish() {
     if (phase !== 'play') return;
-    phase = 'done'; clearInterval(timer);
+    phase = 'done'; clearInterval(timer); goldOn = false; el.time.classList.remove('gold'); el.field.classList.remove('gold');
     var w = pos < -1e-9 ? 0 : pos > 1e-9 ? 1 : -1;
     el.win.textContent = w < 0 ? 'Hòa nhau!' : teams[w].name + ' chiến thắng!';
-    el.winSub.textContent = teams[0].name + ' ' + teams[0].ok + ' đúng – ' + teams[1].name + ' ' + teams[1].ok + ' đúng';
+    el.winSub.innerHTML = teams.map(function (T, i) {
+      var n = T.ok + T.bad, pc = n ? Math.round(T.ok * 100 / n) : 0;
+      return (i ? '🔴 ' : '🔵 ') + esc(T.name) + ': ' + T.ok + '/' + n + ' câu đúng (' + pc + '%) · chuỗi đúng dài nhất ' + T.best;
+    }).join('<br>');
     el.ov.classList.add('on');
+    confetti(w === 0 ? ['#3b82f6', '#93c5fd', '#fbbf24', '#fff'] : w === 1 ? ['#ef4444', '#fca5a5', '#fbbf24', '#fff'] : ['#3b82f6', '#ef4444', '#fbbf24', '#22c55e']);
     beep(660, 0.15); setTimeout(function () { beep(880, 0.15); }, 160); setTimeout(function () { beep(1100, 0.3); }, 320);
   }
 
   function toSetup() {
-    phase = 'setup'; clearInterval(timer);
+    phase = 'setup'; clearInterval(timer); clearCd(); goldOn = false; el.time.classList.remove('gold'); el.field.classList.remove('gold');
     if (fsEl()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
     el.stage.classList.remove('fs'); el.stage.classList.remove('on'); el.setup.style.display = '';
   }
