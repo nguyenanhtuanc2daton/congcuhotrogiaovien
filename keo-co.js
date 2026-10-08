@@ -28,13 +28,14 @@
     '.kc-chip.r{background:#4a1018;border-color:#ef4444;color:#ffc4c4}',
     '.kc-btn{background:#1b2347;color:#fff;border:1px solid #333f77;border-radius:10px;padding:7px 12px;font-size:14px;cursor:pointer}',
     '.kc-btn:hover{background:#26305f}',
-    '.kc-grid{display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:10px}',
-    '.kc-team{border-radius:14px;padding:10px;border:2px solid;display:flex;flex-direction:column;gap:8px;min-height:380px}',
+    '.kc-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"f f" "b r";gap:10px}',
+    '.kc-team{border-radius:14px;padding:10px;border:2px solid;display:flex;flex-direction:column;gap:8px;min-height:300px;box-sizing:border-box}',
+    '.kc-team.b{grid-area:b}.kc-team.r{grid-area:r}',
     '.kc-team.b{border-color:#2563eb;background:#0f1a3d}',
     '.kc-team.r{border-color:#dc2626;background:#2a0f16}',
     '.kc-th{display:flex;justify-content:space-between;align-items:center;font-weight:800}',
     '.kc-th small{background:#ffffff1f;border-radius:8px;padding:2px 8px;font-size:12px}',
-    '.kc-q{flex:1;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px;font-weight:800;font-size:clamp(18px,2.4vw,34px);line-height:1.3;min-height:140px}',
+    '.kc-q{flex:1;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;font-weight:800;font-size:clamp(18px,2.6vw,36px);line-height:1.45;min-height:110px;overflow-wrap:anywhere}',
     '.b .kc-q{background:linear-gradient(160deg,#1e3a9f,#1d4ed8)}',
     '.r .kc-q{background:linear-gradient(160deg,#9f1d1d,#dc2626)}',
     '.kc-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}',
@@ -44,16 +45,23 @@
     '.kc-opt.ok{background:#22c55e;color:#fff}',
     '.kc-opt.bad{background:#ef4444;color:#fff}',
     '.kc-team.lock .kc-opt{pointer-events:none}',
-    '.kc-field{background:#fff;border-radius:14px;position:relative;overflow:hidden;min-height:380px;color:#222}',
-    '.kc-mid{position:absolute;left:50%;top:0;bottom:0;border-left:4px dashed #16a34a;transform:translateX(-2px)}',
-    '.kc-end{position:absolute;top:0;bottom:0;width:6px;opacity:.5}',
-    '.kc-end.b{left:8%;background:#2563eb}.kc-end.r{right:8%;background:#dc2626}',
-    '.kc-mover{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;transition:left .45s cubic-bezier(.3,1.4,.5,1)}',
-    '.kc-grp{font-size:clamp(28px,5vw,56px);letter-spacing:-6px;white-space:nowrap}',
-    '.kc-rope{height:10px;width:clamp(60px,12vw,140px);background:repeating-linear-gradient(90deg,#b08a4e 0 8px,#8a6a36 8px 16px);border-radius:6px}',
-    '.kc-knot{width:26px;height:40px;background:#ef4444;border:3px solid #7f1d1d;border-radius:8px}',
-    '.kc-info{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);background:#0f172a;color:#d1fae5;border-radius:12px;padding:6px 14px;font-size:13px;text-align:center;white-space:nowrap}',
-    '.kc-bar{position:absolute;left:0;right:0;top:0;height:8px;background:linear-gradient(90deg,#2563eb 50%,#dc2626 50%)}',
+    /* Sân kéo co: dải ngang thấp ở trên cùng, nhường chỗ cho câu hỏi */
+    '.kc-field{grid-area:f;background:linear-gradient(180deg,#dbeafe 0,#eff6ff 58%,#cdb98c 58%,#b79f6f 100%);border-radius:14px;position:relative;overflow:hidden;height:clamp(124px,22vh,200px);color:#222;border:2px solid #334155;box-sizing:border-box}',
+    '.kc-prog{position:absolute;left:0;right:0;top:0;height:9px;display:flex;background:#0003;z-index:2}',
+    '.kc-prog i{display:block;height:100%;transition:width .45s ease}',
+    '.kc-pb{background:#2563eb;width:50%}.kc-pr{background:#dc2626;width:50%}',
+    '.kc-mid{position:absolute;left:50%;top:9px;bottom:0;border-left:3px dashed #16a34a;transform:translateX(-1.5px);opacity:.8}',
+    '.kc-win{position:absolute;top:9px;bottom:0;width:0;border-left:4px solid}',
+    '.kc-win.b{left:18%;border-color:#2563eb}.kc-win.r{left:82%;border-color:#dc2626}',
+    '.kc-win small{position:absolute;top:4px;left:50%;transform:translateX(-50%);color:#fff;font-weight:800;font-size:11px;border-radius:6px;padding:1px 7px;white-space:nowrap}',
+    '.kc-win.b small{background:#2563eb}.kc-win.r small{background:#dc2626}',
+    '.kc-mover{position:absolute;top:47%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;transition:left .45s cubic-bezier(.3,1.4,.5,1);z-index:1}',
+    '.kc-grp{font-size:clamp(22px,min(4.4vw,8vh),72px);letter-spacing:-5px;white-space:nowrap;line-height:1}',
+    '.kc-grp.b{filter:drop-shadow(0 0 5px #2563eb)}',
+    '.kc-grp.r{transform:scaleX(-1);filter:drop-shadow(0 0 5px #dc2626)}',
+    '.kc-rope{height:8px;width:clamp(20px,5vw,90px);background:repeating-linear-gradient(90deg,#b08a4e 0 7px,#8a6a36 7px 14px);border-radius:6px}',
+    '.kc-knot{width:18px;height:30px;background:#ef4444;border:3px solid #7f1d1d;border-radius:8px;box-shadow:0 2px 6px #0005;flex:none}',
+    '.kc-info{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);background:#0f172ae6;color:#d1fae5;border-radius:999px;padding:3px 12px;font-size:12px;text-align:center;white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis;z-index:2}',
     '.kc-ov{position:absolute;inset:0;background:#000b;border-radius:14px;display:none;align-items:center;justify-content:center;z-index:5}',
     '.kc-ov.on{display:flex}',
     '.kc-ovbox{background:#fff;color:#111;border-radius:20px;padding:26px 34px;text-align:center;max-width:90%}',
@@ -61,22 +69,21 @@
     '.kc-ovbox .bar{justify-content:center}',
     '.kc-setup textarea{width:100%;min-height:210px;font-family:inherit}',
     /* Công thức KaTeX trong câu hỏi / đáp án */
-    '.kc-q .katex,.kc-opt .katex{font-size:1.08em}',
+    '.kc-q .katex{font-size:1.12em}.kc-opt .katex{font-size:1.1em}',
     '.kc-opt{line-height:1.25;overflow-wrap:anywhere;font-family:inherit}',
     '.kc-sup{font-size:.75em;vertical-align:super}.kc-sub{font-size:.75em;vertical-align:sub}',
     /* Toàn màn hình: lấp đầy 100% khung hình, không để thừa nền đen phía dưới */
     '.kc-stage.on.fs{border-radius:0;padding:12px;width:100vw;height:100vh;height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden}',
     '.kc-stage.on.fs .kc-top{flex:0 0 auto}',
-    '.kc-stage.on.fs .kc-grid{flex:1 1 auto;min-height:0;grid-template-rows:minmax(0,1fr)}',
-    '.kc-stage.on.fs .kc-team,.kc-stage.on.fs .kc-field{min-height:0;height:100%;box-sizing:border-box}',
-    '.kc-stage.on.fs .kc-field{display:block}',
-    '.kc-stage.on.fs .kc-q{min-height:0;overflow:auto;font-size:clamp(20px,min(3vw,5.5vh),56px)}',
+    '.kc-stage.on.fs .kc-grid{flex:1 1 auto;min-height:0;grid-template-rows:auto minmax(0,1fr)}',
+    '@media(max-width:700px){.kc-stage.on.fs .kc-grid{grid-template-rows:auto minmax(0,1fr) minmax(0,1fr)}}',
+    '.kc-stage.on.fs .kc-team{min-height:0;height:100%}',
+    '.kc-stage.on.fs .kc-field{height:clamp(110px,21vh,230px)}',
+    '.kc-stage.on.fs .kc-q{min-height:0;overflow:hidden;font-size:clamp(20px,min(3.4vw,6vh),60px)}',
     '.kc-stage.on.fs .kc-opts{flex:0 0 auto}',
     '.kc-stage.on.fs .kc-opt{min-height:clamp(60px,14vh,160px);font-size:clamp(16px,min(2.3vw,4.2vh),38px)}',
-    '.kc-stage.on.fs .kc-grp{font-size:clamp(32px,min(6vw,11vh),96px)}',
-    '.kc-stage.on.fs .kc-info{font-size:clamp(13px,2vh,22px)}',
-    '@media(max-width:820px){.kc-grid{grid-template-columns:1fr 1fr}.kc-field{grid-column:1/-1;order:-1;min-height:230px}.kc-team{min-height:0}}',
-    '@media(max-width:520px){.kc-grid{grid-template-columns:1fr}}'
+    '.kc-stage.on.fs .kc-info{font-size:clamp(12px,2vh,20px)}',
+    '@media(max-width:700px){.kc-grid{grid-template-columns:1fr;grid-template-areas:"f" "b" "r"}.kc-team{min-height:0}}'
   ].join('\n');
   document.head.appendChild(st);
 
@@ -126,13 +133,66 @@
   function texHTML(t) {
     t = String(t).trim();
     if (window.katex) {
-      try { return window.katex.renderToString(t, { throwOnError: false, output: 'html', displayMode: false, strict: false, trust: false }); } catch (e) {}
+      try { return window.katex.renderToString('\\displaystyle ' + t, { throwOnError: false, output: 'html', displayMode: false, strict: false, trust: false }); } catch (e) {}
     }
     return texFallback(t);
   }
-  function mathHTML(s) {
+  var DELIM = '\\$\\$([\\s\\S]+?)\\$\\$|\\$([^$\\n]+?)\\$|\\\\\\(([\\s\\S]+?)\\\\\\)|\\\\\\[([\\s\\S]+?)\\\\\\]';
+  var SUPC = { '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '¹': '1' };
+  function scanArgs(t, j) {           /* đọc phần đối số sau lệnh LaTeX: {..}{..} [..] ^x _x */
+    var n = t.length;
+    for (;;) {
+      var c = t.charAt(j);
+      if (c === '{' || c === '[') {
+        var open = c, close = c === '{' ? '}' : ']', d = 0, k = j;
+        for (; k < n; k++) { if (t.charAt(k) === open) d++; else if (t.charAt(k) === close) { d--; if (d === 0) break; } }
+        if (k >= n) return j; j = k + 1;
+      } else if ((c === '^' || c === '_') && j + 1 < n) {
+        if (t.charAt(j + 1) === '{') { j++; continue; }
+        j += 2;
+      } else return j;
+    }
+  }
+  /* Đoạn chữ nằm ngoài $...$ mà có mã LaTeX (AI hay quên bọc $) → tự bọc */
+  function fixGap(g) {
+    if (g.indexOf('$') >= 0) return g;
+    var hasCmd = /\\[a-zA-Z]{2,}/.test(g), hasCaret = /[A-Za-z0-9)\]]\s*\^\s*[-+{(\w]|[A-Za-z]_[{\d]/.test(g), hasUni = /[²³⁴⁵⁶⁷⁸⁹¹√]/.test(g);
+    if (!hasCmd && !hasCaret && !hasUni) return g;
+    var lead = g.match(/^\s*/)[0], trail = g.match(/\s*$/)[0], core = g.trim();
+    if (!core) return g;
+    var words = core.replace(/\\[a-zA-Z]+/g, '').replace(/[{}]/g, ' ');
+    if (!/[A-Za-z]{3,}/.test(words) && !/[\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u1EF9]/.test(words)) {               /* toàn công thức → bọc cả đoạn */
+      core = core.replace(/√\s*(\d+|\([^()]*\)|[A-Za-z])/g, function (_, a) { return '\\sqrt{' + a.replace(/^\(|\)$/g, '') + '}'; })
+                 .replace(/([A-Za-z0-9)])([²³⁴⁵⁶⁷⁸⁹¹])/g, function (_, a, b) { return a + '^{' + SUPC[b] + '}'; });
+      return lead + '$' + core + '$' + trail;
+    }
+    /* lẫn chữ và công thức → chỉ bọc từng cụm công thức */
+    var o = '', i = 0, n = core.length, m;
+    while (i < n) {
+      var c = core.charAt(i);
+      if (c === '\\' && /[a-zA-Z]/.test(core.charAt(i + 1))) {
+        var j = i + 1; while (j < n && /[a-zA-Z]/.test(core.charAt(j))) j++;
+        j = scanArgs(core, j); o += '$' + core.slice(i, j) + '$'; i = j; continue;
+      }
+      m = /^(?:[A-Za-z0-9]+|\([^()]*\))(?:\^\s*(?:\{[^{}]*\}|[-+]?\w+)|_\s*(?:\{[^{}]*\}|\w))+/.exec(core.slice(i));
+      if (m && (i === 0 || !/[A-Za-z0-9]/.test(core.charAt(i - 1)))) { o += '$' + m[0] + '$'; i += m[0].length; continue; }
+      m = /^[A-Za-z0-9]*[²³⁴⁵⁶⁷⁸⁹¹]/.exec(core.slice(i));
+      if (m) { o += '$' + m[0].replace(/[²³⁴⁵⁶⁷⁸⁹¹]/, function (u) { return '^{' + SUPC[u] + '}'; }) + '$'; i += m[0].length; continue; }
+      o += c; i++;
+    }
+    return lead + o.replace(/\$\$/g, '') + trail;
+  }
+  function autoMath(s) {
     s = String(s);
-    var out = '', last = 0, m, re = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$|\\\(([\s\S]+?)\\\)|\\\[([\s\S]+?)\\\]/g;
+    var out = '', last = 0, m, re = new RegExp(DELIM, 'g');
+    function add(piece) { if (out.slice(-1) === '$' && piece.charAt(0) === '$') out += ' '; out += piece; }
+    while ((m = re.exec(s))) { add(fixGap(s.slice(last, m.index))); add(m[0]); last = re.lastIndex; }
+    add(fixGap(s.slice(last)));
+    return out;
+  }
+  function mathHTML(s) {
+    s = autoMath(s);
+    var out = '', last = 0, m, re = new RegExp(DELIM, 'g');
     while ((m = re.exec(s))) {
       out += esc(s.slice(last, m.index)) + texHTML(m[1] || m[2] || m[3] || m[4]);
       last = re.lastIndex;
@@ -217,8 +277,9 @@
     '</div>' +
     '<div class="kc-grid">' +
     '<div class="kc-team b" id="kcTB"></div>' +
-    '<div class="kc-field"><div class="kc-bar"></div><div class="kc-mid"></div><div class="kc-end b"></div><div class="kc-end r"></div>' +
-    '<div class="kc-mover" id="kcMover"><span class="kc-grp">🧑‍🎓🧑‍🎓🧑‍🎓</span><span class="kc-rope"></span><span class="kc-knot"></span><span class="kc-rope"></span><span class="kc-grp" style="transform:scaleX(-1)">🧑‍🎓🧑‍🎓🧑‍🎓</span></div>' +
+    '<div class="kc-field" id="kcField"><div class="kc-prog"><i class="kc-pb" id="kcPB"></i><i class="kc-pr" id="kcPR"></i></div>' +
+    '<div class="kc-mid"></div><div class="kc-win b"><small>🏁 ĐÍCH</small></div><div class="kc-win r"><small>ĐÍCH 🏁</small></div>' +
+    '<div class="kc-mover" id="kcMover"><span class="kc-grp b">🧑‍🎓🧑‍🎓</span><span class="kc-rope"></span><span class="kc-knot"></span><span class="kc-rope"></span><span class="kc-grp r">🧑‍🎓🧑‍🎓</span></div>' +
     '<div class="kc-info" id="kcInfo"></div></div>' +
     '<div class="kc-team r" id="kcTR"></div>' +
     '</div>' +
@@ -298,12 +359,36 @@
         var c = T.mark && T.mark.j === j ? (T.mark.ok ? ' ok' : ' bad') : (T.mark && !T.mark.ok && o === T.q.ans ? ' ok' : '');
         return '<button type="button" class="kc-opt' + c + '" data-t="' + i + '" data-o="' + j + '">' + (keys[j] ? '<i>' + keys[j] + '</i>' : '') + '<span>' + mathHTML(o) + '</span></button>';
       }).join('') + '</div>';
+    fitSoon();
   }
+  /* Co chữ câu hỏi / đáp án dần cho tới khi hiện đủ trong khung (không bị cắt, không tràn) */
+  function fit(box) {
+    var q = box.querySelector('.kc-q'), btns = box.querySelectorAll('.kc-opt');
+    if (!q || !btns.length) return;
+    q.style.fontSize = ''; for (var i = 0; i < btns.length; i++) btns[i].style.fontSize = '';
+    function over() {
+      if (q.scrollHeight > q.clientHeight + 1 || q.scrollWidth > q.clientWidth + 1 || box.scrollHeight > box.clientHeight + 1) return true;
+      for (var k = 0; k < btns.length; k++) if (btns[k].scrollWidth > btns[k].clientWidth + 1 || btns[k].scrollHeight > btns[k].clientHeight + 1) return true;
+      return false;
+    }
+    var qf = parseFloat(getComputedStyle(q).fontSize), of = parseFloat(getComputedStyle(btns[0]).fontSize);
+    for (var n = 0; n < 16 && over(); n++) {
+      qf = Math.max(12, qf * 0.9); of = Math.max(11, of * 0.92);
+      q.style.fontSize = qf + 'px'; for (var j = 0; j < btns.length; j++) btns[j].style.fontSize = of + 'px';
+      if (qf <= 12 && of <= 11) break;
+    }
+  }
+  function fitAll() { if (phase === 'setup' || !el.stage.classList.contains('on')) return; fit(el.tb); fit(el.tr); }
+  var fitTick = 0;
+  function fitSoon() { cancelAnimationFrame(fitTick); fitTick = requestAnimationFrame(function () { fitTick = requestAnimationFrame(fitAll); }); }
+  window.addEventListener('resize', fitSoon);
+
   function renderRope() {
-    el.mover.style.left = (50 + pos * 34) + '%';
+    el.mover.style.left = (50 + pos * 32) + '%';
+    $('kcPB').style.width = (50 - pos * 50) + '%'; $('kcPR').style.width = (50 + pos * 50) + '%';
     var pct = Math.round(Math.abs(pos) * 100);
-    el.info.innerHTML = pos === 0 ? '⚖ Đang cân bằng ở vạch giữa' : (pos < 0 ? '🔵 ' + esc(teams[0].name) : '🔴 ' + esc(teams[1].name)) + ' đang dẫn ' + pct + '%';
-    el.info.innerHTML += '<br><small>Mỗi câu đúng kéo ' + (step * 100).toFixed(1) + '% (' + bank.length + ' câu)</small>';
+    el.info.textContent = (pos === 0 ? '⚖ Cân bằng' : (pos < 0 ? '🔵 ' + teams[0].name : '🔴 ' + teams[1].name) + ' dẫn ' + pct + '%') +
+      ' · mỗi câu đúng kéo ' + (step * 100).toFixed(0) + '% · kéo tới đích để thắng';
   }
   function renderScore() {
     el.sb.textContent = teams[0].name + ': ' + teams[0].ok + ' đúng';
@@ -365,7 +450,7 @@
   };
   el.mute.onclick = function () { cfg.sound = !cfg.sound; el.snd.checked = cfg.sound; save(); el.mute.textContent = cfg.sound ? '🔊 Âm thanh' : '🔇 Tắt âm'; };
   function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
-  function syncFs() { el.stage.classList.toggle('fs', fsEl() === el.stage); }
+  function syncFs() { el.stage.classList.toggle('fs', fsEl() === el.stage); fitSoon(); setTimeout(fitAll, 250); }
   document.addEventListener('fullscreenchange', syncFs);
   document.addEventListener('webkitfullscreenchange', syncFs);
   $('kcFull').onclick = function () {
@@ -561,7 +646,7 @@
   }
   /* làm sạch 1 chuỗi; ký tự | là dấu ngăn cột nên trong công thức đổi thành \vert */
   function cleanCell(v) {
-    v = String(v).replace(/\s+/g, ' ').trim();
+    v = autoMath(String(v).replace(/\s+/g, ' ').trim());
     return v.split('$').map(function (seg, i) { return seg.replace(/\|/g, i % 2 ? '\\vert ' : '/'); }).join('$');
   }
 
@@ -576,13 +661,18 @@
     }
     var first = $('kcAiModel').value;
     var models = [first].concat(AI_MODELS.filter(function (x) { return x !== first; }));
-    var prompt = 'Bạn là giáo viên Việt Nam giàu kinh nghiệm. Hãy soạn đúng ' + n + ' câu hỏi trắc nghiệm ngắn gọn ' +
-      (aiDoc ? 'dựa trên nội dung giáo án / tài liệu được cung cấp' + (topic ? ', tập trung vào: "' + topic + '"' : '') +
-               '. Chỉ hỏi kiến thức có trong tài liệu, trải đều các phần của tài liệu, tuyệt đối không bịa thêm ngoài tài liệu. ' :
-               'về: "' + topic + '". ') +
-      'Câu hỏi dưới 25 từ, mỗi đáp án ngắn gọn. Mỗi câu có đúng 4 đáp án, chỉ 1 đáp án đúng, các đáp án nhiễu hợp lý (là những lỗi học sinh hay mắc), vị trí đáp án đúng phân bố đều. Viết bằng tiếng Việt. ' +
-      'QUY TẮC TOÁN HỌC: mọi công thức, biểu thức, số mũ, phân số, căn, phương trình, ký hiệu toán (kể cả trong đáp án) phải viết bằng LaTeX đặt trong cặp dấu $...$, ví dụ $x^2$, $\\frac{a}{b}$, $\\sqrt{3}$, $(a+b)^2$, $x \\leq 5$. ' +
-      'Không dùng ký tự Unicode như ², √, ≤ trong công thức. Không dùng ký tự | trong công thức (dùng \\lvert, \\rvert). Chỉ đặt $...$ quanh phần công thức, không đặt quanh cả câu chữ. Phần chữ thường nằm ngoài dấu $. ' +
+    var prompt = 'Bạn là giáo viên Việt Nam giàu kinh nghiệm. Hãy soạn đúng ' + n + ' câu hỏi trắc nghiệm ' +
+      (aiDoc ? 'để ôn tập KIẾN THỨC TRỌNG TÂM của giáo án / tài liệu được cung cấp' + (topic ? ' (ưu tiên: "' + topic + '")' : '') + '. ' +
+               'Trước hết tự xác định mục tiêu bài học và các kiến thức cốt lõi: khái niệm, định nghĩa, tính chất, công thức, quy tắc, định lí, phương pháp giải, dạng bài tiêu biểu. ' +
+               'Chỉ ra câu hỏi về những kiến thức cốt lõi đó; nội dung nào được nhấn mạnh hoặc lặp lại nhiều thì ra nhiều câu hơn; các câu phải bao quát các phần chính, không dồn vào một chỗ. ' +
+               'TUYỆT ĐỐI KHÔNG hỏi: thông tin hành chính (tên trường, lớp, năm học, ngày giờ, thời lượng, tên giáo viên, tên tác giả, tiêu đề đề thi), số liệu hoặc tên riêng chỉ là bối cảnh của ví dụ, chi tiết phụ, câu đố mẹo. ' +
+               'Nếu tài liệu là đề thi / đề kiểm tra / bài tập thì hãy ra câu hỏi về chính kiến thức và kĩ năng mà các bài đó cần (không hỏi về bản thân đề). ' +
+               'Mỗi câu phải tự đủ dữ kiện, không viết "theo tài liệu", "trong ví dụ trên". ' :
+               'về chủ đề: "' + topic + '", tập trung vào kiến thức cốt lõi, không hỏi chi tiết lan man. ') +
+      'YÊU CẦU NGẮN GỌN: câu hỏi tối đa 18 từ nhưng vẫn đủ ý; mỗi đáp án tối đa 6 từ hoặc một biểu thức ngắn. ' +
+      'Mỗi câu có đúng 4 đáp án, chỉ 1 đáp án đúng, 3 đáp án nhiễu hợp lý (là lỗi học sinh hay mắc), vị trí đáp án đúng phân bố đều. Viết bằng tiếng Việt. ' +
+      'QUY TẮC TOÁN HỌC: mọi công thức, biểu thức, số mũ, phân số, căn, phương trình, ký hiệu toán PHẢI viết bằng LaTeX đặt trong cặp dấu $...$ — KỂ CẢ trong từng đáp án (ví dụ đáp án phân số viết $\\frac{7}{6}$, không viết \\frac{7}{6} trần). ' +
+      'Ví dụ: $x^2$, $\\frac{a}{b}$, $\\sqrt{3}$, $(a+b)^2$, $x \\leq 5$. Không dùng ký tự Unicode như ², √, ≤ trong công thức. Không dùng ký tự | trong công thức (dùng \\lvert, \\rvert). Phần chữ thường nằm ngoài dấu $. ' +
       'Vì kết quả là JSON nên mọi dấu gạch chéo ngược phải viết đôi (\\\\frac, \\\\sqrt, \\\\leq). ' +
       'Chỉ trả về một mảng JSON, mỗi phần tử có dạng {"q":"...","options":["...","...","...","..."],"answer":0} với answer là chỉ số (0-3) của đáp án đúng.';
     var parts;
@@ -599,6 +689,7 @@
       var lines = [];
       arr.forEach(function (x) {
         if (!x || !x.q || !x.options || x.options.length < 2 || x.answer == null) return;
+        if (aiDoc && /năm học\s*\d{4}|khảo sát tháng|theo (tài liệu|đoạn văn|văn bản|bài đọc)|trong (ví dụ|đề|bài) (trên|này)|tên (trường|giáo viên)/i.test(x.q)) return;
         var opts = x.options.slice(0, 4).map(cleanCell);
         var a = typeof x.answer === 'number' ? x.answer : (/^\d$/.test(String(x.answer).trim()) ? +String(x.answer).trim() : 'ABCD'.indexOf(String(x.answer).trim().toUpperCase()));
         if (!(a >= 0 && a < opts.length)) return;
