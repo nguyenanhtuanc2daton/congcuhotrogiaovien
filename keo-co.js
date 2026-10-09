@@ -48,11 +48,11 @@
     '.kc-team.r{border-color:var(--kr1);background:var(--kr2)}',
     '.kc-th{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px 8px;font-weight:800}',
     '.kc-th small{background:#ffffff1f;border-radius:8px;padding:2px 8px;font-size:12px}',
-    '.kc-q{flex:1;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;font-weight:800;font-size:calc(clamp(18px,2.6vw,36px)*var(--kc-fs,1));line-height:1.45;min-height:110px;overflow-wrap:anywhere}',
+    '.kc-q{flex:1;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;font-weight:800;font-size:calc(clamp(22px,3.4vw,52px)*var(--kc-fs,1));line-height:1.4;min-height:110px;overflow-wrap:anywhere}',
     '.b .kc-q{background:linear-gradient(160deg,var(--kb3),var(--kb1))}',
     '.r .kc-q{background:linear-gradient(160deg,var(--kr3),var(--kr1))}',
     '.kc-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}',
-    '.kc-opt{background:#fff;color:#111;border:0;border-radius:12px;padding:12px 6px;font-weight:800;font-size:calc(clamp(15px,1.8vw,24px)*var(--kc-fs,1));cursor:pointer;min-height:56px;position:relative}',
+    '.kc-opt{background:#fff;color:#111;border:0;border-radius:12px;padding:12px 6px;font-weight:800;font-size:calc(clamp(18px,2.4vw,34px)*var(--kc-fs,1));cursor:pointer;min-height:64px;position:relative}',
     '.kc-opt:active{transform:scale(.97)}',
     '.kc-opt i{position:absolute;left:8px;top:5px;font-size:11px;font-style:normal;opacity:.45}',
     '.kc-opt.ok{background:#22c55e;color:#fff}',
@@ -94,7 +94,7 @@
     '.kc-cf{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;border-radius:14px}',
     '.kc-ovbox{position:relative;z-index:1}',
     /* Công thức KaTeX trong câu hỏi / đáp án */
-    '.kc-q .katex{font-size:1.12em}.kc-opt .katex{font-size:1.1em}',
+    '.kc-q .katex{font-size:1.15em}.kc-opt .katex{font-size:1.15em}',
     '.kc-opt{line-height:1.25;overflow-wrap:anywhere;font-family:inherit}',
     '.kc-q>span{display:block;min-width:0;max-width:100%}.kc-opt>span{display:block;max-width:100%}',
     '.kc-tn{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto}',
@@ -127,9 +127,9 @@
     '@media(max-width:700px){.kc-stage.on.fs .kc-grid{grid-template-rows:auto minmax(0,1fr) minmax(0,1fr)}}',
     '.kc-stage.on.fs .kc-team{min-height:0;height:100%}',
     '.kc-stage.on.fs .kc-field{height:clamp(110px,21vh,230px)}',
-    '.kc-stage.on.fs .kc-q{min-height:0;overflow:hidden;font-size:calc(clamp(20px,min(3.4vw,6vh),110px)*var(--kc-fs,1))}',
+    '.kc-stage.on.fs .kc-q{min-height:0;overflow:hidden;font-size:calc(clamp(26px,min(5.6vw,10vh),170px)*var(--kc-fs,1))}',
     '.kc-stage.on.fs .kc-opts{flex:0 0 auto}',
-    '.kc-stage.on.fs .kc-opt{min-height:clamp(60px,14vh,160px);font-size:calc(clamp(16px,min(2.3vw,4.2vh),72px)*var(--kc-fs,1))}',
+    '.kc-stage.on.fs .kc-opt{min-height:clamp(64px,15vh,170px);font-size:calc(clamp(20px,min(3.6vw,7vh),120px)*var(--kc-fs,1))}',
     '.kc-stage.on.fs .kc-info{font-size:clamp(14px,2.6vh,34px)}',
     '.kc-stage{user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}',
     '.kc-opt i{font-size:13px;opacity:.75;font-weight:800;color:#334155}',
@@ -628,28 +628,40 @@
     var qs = q.firstElementChild, fsMode = el.stage.classList.contains('fs'), maxH = Math.max(260, window.innerHeight * 0.92), i;
     box.classList.remove('tight'); q.style.fontSize = ''; q.style.overflowY = '';
     for (i = 0; i < btns.length; i++) btns[i].style.fontSize = '';
-    function clip(n) { return n.scrollWidth > n.clientWidth + 1 || n.scrollHeight > n.clientHeight + 1; }
+    /* Chỉ so sánh kích thước hộp thật (getBoundingClientRect), KHÔNG dùng scrollHeight của vùng chứa công thức:
+       KaTeX có phần tử tràn vài px nên scrollHeight luôn "dư" → trước đây thuật toán tưởng chữ không vừa và co về cỡ nhỏ nhất. */
+    function wideClip(n) { return n.scrollWidth > n.clientWidth + 2; }
     function ok() {
-      if (clip(q) || (qs && clip(qs))) return false;
-      if (box.scrollHeight > box.clientHeight + 1 || box.scrollWidth > box.clientWidth + 1) return false;
+      var cs = getComputedStyle(q), padV = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+      if (qs && (wideClip(qs) || wideClip(q) || qs.getBoundingClientRect().height > q.clientHeight - padV + 1)) return false;
+      if (box.scrollHeight > box.clientHeight + 6 || box.scrollWidth > box.clientWidth + 2) return false;
       if (!fsMode && box.offsetHeight > maxH) return false;
-      for (var k = 0; k < btns.length; k++) { var sp = btns[k].firstElementChild; if (clip(btns[k]) || (sp && clip(sp))) return false; }
+      for (var k = 0; k < btns.length; k++) { var sp = btns[k].firstElementChild; if (sp && wideClip(sp)) return false; }
       return true;
     }
     if (ok()) return;
     var q0 = parseFloat(getComputedStyle(q).fontSize) || 20, o0 = parseFloat(getComputedStyle(btns[0]).fontSize) || 16;
-    function apply(s, tight) {
+    function apply(sq, so, tight) {
       box.classList.toggle('tight', !!tight);
-      q.style.fontSize = Math.max(10, q0 * s) + 'px';
-      var of = Math.max(10, o0 * Math.max(0.6, s)) + 'px';
+      q.style.fontSize = Math.max(10, q0 * sq) + 'px';
+      var of = Math.max(10, o0 * so) + 'px';
       for (var k = 0; k < btns.length; k++) btns[k].style.fontSize = of;
     }
     for (var pass = 0; pass < 2; pass++) {
-      var tight = pass === 1, lo = 0.2, hi = 1;
-      apply(lo, tight);
-      if (!ok()) continue;                       /* cỡ nhỏ nhất vẫn chưa vừa: thử chế độ gọn */
-      for (var n = 0; n < 9; n++) { var mid = (lo + hi) / 2; apply(mid, tight); if (ok()) lo = mid; else hi = mid; }
-      apply(lo, tight); return;
+      var tight = pass === 1, n, lo, hi, mid, so;
+      /* Bước 1: chữ câu hỏi ở cỡ nhỏ nhất, tìm cỡ chữ đáp án LỚN NHẤT còn vừa */
+      apply(0.2, 0.3, tight);
+      if (!ok()) continue;                       /* vẫn chưa vừa: thử chế độ gọn */
+      lo = 0.3; hi = 1;
+      apply(0.2, hi, tight);
+      if (ok()) lo = hi; else for (n = 0; n < 8; n++) { mid = (lo + hi) / 2; apply(0.2, mid, tight); if (ok()) lo = mid; else hi = mid; }
+      so = lo;
+      /* Bước 2: giữ cỡ đáp án, tìm cỡ chữ câu hỏi LỚN NHẤT còn vừa (phần còn lại của khung dành cho câu hỏi) */
+      lo = 0.2; hi = 1;
+      apply(hi, so, tight);
+      if (ok()) return;
+      for (n = 0; n < 9; n++) { mid = (lo + hi) / 2; apply(mid, so, tight); if (ok()) lo = mid; else hi = mid; }
+      apply(lo, so, tight); return;
     }
     q.style.overflowY = 'auto';                  /* hết cách: cho cuộn riêng phần câu hỏi, không bao giờ bị cắt cụt */
   }
