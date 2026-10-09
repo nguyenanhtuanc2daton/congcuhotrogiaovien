@@ -617,7 +617,7 @@
       '<div class="kc-q"><span>' + mathHTML(T.q.q) + '</span></div>' +
       '<div class="kc-opts">' + T.opts.map(function (o, j) {
         var c = T.mark && T.mark.j === j ? (T.mark.ok ? ' ok' : ' bad') : (T.mark && !T.mark.ok && o === T.q.ans ? ' ok' : '');
-        return '<button type="button" class="kc-opt' + c + '" data-t="' + i + '" data-o="' + j + '" title="Phím tắt: ' + hot[j] + '">' + (keys[j] ? '<i>' + keys[j] + ' · ' + hot[j] + '</i>' : '') + '<span>' + mathHTML(o) + '</span></button>';
+        return '<button type="button" class="kc-opt' + c + '" data-t="' + i + '" data-o="' + j + '" title="Phím tắt: ' + hot[j] + '">' + (keys[j] ? '<i>' + keys[j] + '</i>' : '') + '<span>' + mathHTML(o) + '</span></button>';
       }).join('') + '</div>';
     fitSoon();
   }
