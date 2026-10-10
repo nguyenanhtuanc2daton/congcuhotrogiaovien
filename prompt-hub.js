@@ -370,14 +370,18 @@
   DATA.tasks.forEach(function (t) { TASK_LABEL[t.id] = t.label; });
 
   /* ---------- Hằng số ---------- */
+  /* Danh sách dự phòng khi chưa có key/chưa tải được ListModels. Dùng alias "-latest":
+     Google tự trỏ về bản ổn định mới nhất nên không cần sửa tay khi có model mới. */
   var MODELS_STATIC = [
-    { id: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash Lite' },
-    { id: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash Lite' },
-    { id: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash' },
-    { id: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite' },
-    { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' }
+    { id: 'gemini-flash-lite-latest', label: 'Gemini Flash Lite (mới nhất)' },
+    { id: 'gemini-flash-latest', label: 'Gemini Flash (mới nhất)' }
   ];
+  var MODELS_CACHE_KEY = 'ph_models_cache_v2', MODELS_TTL = 12 * 3600 * 1000;
   var models = MODELS_STATIC.slice();
+  try {
+    var mc = JSON.parse(localStorage.getItem(MODELS_CACHE_KEY) || 'null');
+    if (mc && mc.list && mc.list.length && Date.now() - mc.t < 7 * 24 * 3600 * 1000) models = mc.list;
+  } catch (e) { /* bỏ qua */ }
   var TARGET_ORDER = ['chatgpt', 'claude', 'gemini', 'neutral', 'copilot', 'deepseek', 'perplexity', 'notebooklm', 'image', 'code'];
   var MODEL_KEY = 'ph_model_v1', TARGET_KEY = 'ph_target_v1', CTX_KEY = 'ph_ctx_v2', OPT_KEY = 'ph_opts_v2';
   var BASE = 'https://generativelanguage.googleapis.com/v1beta/';
@@ -386,7 +390,7 @@
   var MIME = { pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp' };
   var KEY_STORE = window.sessionStorage, K = 'ph_gemini_key_s';
 
-  var MODEL = MODELS_STATIC[0].id, TARGET = 'chatgpt';
+  var MODEL = models[0].id, TARGET = 'chatgpt';
   var apiKey = '', hist = [], lastText = '', lastRoute = null, firstReq = '', running = false, userStop = false, currentCtl = null;
   var files = [], fillMap = {}, noThink = {}, reqLog = [], lastScore = null, TARGET_SCORE = U.TARGET_SCORE || 9.5, MAX_ROUNDS = 2;
 
@@ -597,8 +601,47 @@
   $('phModel').addEventListener('change', function () { selectModel($('phModel').value); });
   $('phTarget').addEventListener('change', function () { TARGET = $('phTarget').value; try { localStorage.setItem(TARGET_KEY, TARGET); } catch (e) { /* bỏ qua */ } });
 
-  /* Kiểm tra danh sách model thật sự khả dụng với key (ListModels) */
-  var BAD_MODEL = /embedding|aqa|imagen|veo|tts|image|live|audio|robotics|computer-use|learnlm|gemma|vision|exp-/i;
+  /* Tự cập nhật danh sách model từ ListModels của Google (mỗi lần mở trang/nhập key).
+     - Chỉ giữ model Gemini có generateContent, bỏ preview/exp/bản ngày (-001...) khi đã có bản ổn định.
+     - Mỗi nhóm lấy phiên bản MỚI NHẤT (so sánh số đúng: 3.10 > 3.9). Model bị Google gỡ sẽ tự biến mất. */
+  var BAD_MODEL = /embedding|aqa|imagen|veo|tts|image|live|audio|robotics|computer-use|learnlm|gemma|vision|exp-|-exp|customtools|deep-research/i;
+  var UNSTABLE = /preview|experimental|-exp|-\d{3}$|-\d{2}-\d{2}$/i;
+  function parseModel(id) {
+    var m = /^gemini-(\d+(?:\.\d+)?)-(flash-lite|flash|pro)/.exec(id);
+    if (!m) return null;
+    return { ver: m[1].split('.').map(Number), tier: m[2] };
+  }
+  function cmpVer(a, b) { for (var i = 0; i < 3; i++) { var d = (a[i] || 0) - (b[i] || 0); if (d) return d; } return 0; }
+  function pickModels(list) {
+    var byTier = { 'flash-lite': [], 'flash': [], 'pro': [] }, latest = [];
+    list.forEach(function (m) {
+      if (/-latest$/.test(m.id)) { if (/^gemini-(flash-lite|flash|pro)-latest$/.test(m.id)) latest.push(m); return; }
+      var p = parseModel(m.id); if (!p) return;
+      m.p = p; m.stable = !UNSTABLE.test(m.id); byTier[p.tier].push(m);
+    });
+    var out = [];
+    ['flash-lite', 'flash', 'pro'].forEach(function (t) {
+      var arr = byTier[t], st = arr.filter(function (m) { return m.stable; });
+      if (!st.length) st = arr;                         /* chưa có bản ổn định nào thì mới dùng preview */
+      st.sort(function (a, b) { return cmpVer(b.p.ver, a.p.ver) || (a.id.length - b.id.length); });
+      var seen = {}, n = 0;
+      st.forEach(function (m) { var k = m.p.ver.join('.'); if (seen[k] || n >= (t === 'pro' ? 1 : 2)) return; seen[k] = 1; n++; out.push({ id: m.id, label: m.label }); });
+    });
+    ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-pro-latest'].forEach(function (id) {
+      var m = latest.filter(function (x) { return x.id === id; })[0];
+      if (m) out.push({ id: id, label: id.indexOf('lite') >= 0 ? 'Gemini Flash Lite (mới nhất)' : id.indexOf('pro') >= 0 ? 'Gemini Pro (mới nhất)' : 'Gemini Flash (mới nhất)' });
+    });
+    return out;
+  }
+  function applyModels(list, msg) {
+    models = list;
+    if (!models.some(function (m) { return m.id === MODEL; })) {
+      var pick = models.filter(function (m) { return /flash-lite/.test(m.id); })[0] || models.filter(function (m) { return /flash/.test(m.id); })[0] || models[0];
+      MODEL = pick.id;
+    }
+    rebuildModelSelect(); lockModel();
+    if (msg) setSt(msg, 'ok');
+  }
   async function loadModels() {
     if (!apiKey) return;
     try {
@@ -609,25 +652,14 @@
         var j = await res.json();
         (j.models || []).forEach(function (m) { all.push(m); });
         token = j.nextPageToken || ''; n++;
-      } while (token && n < 3);
+      } while (token && n < 5);
       var ok = all.filter(function (m) { return /^models\/gemini-/.test(m.name) && (m.supportedGenerationMethods || []).indexOf('generateContent') >= 0 && !BAD_MODEL.test(m.name); })
         .map(function (m) { return { id: m.name.replace(/^models\//, ''), label: m.displayName || m.name.replace(/^models\//, '') }; });
-      if (!ok.length) return;
-      var pref = MODELS_STATIC.map(function (m) { return m.id; });
-      ok.sort(function (a, b) {
-        var pa = pref.indexOf(a.id), pb = pref.indexOf(b.id);
-        if (pa >= 0 || pb >= 0) return (pa < 0 ? 99 : pa) - (pb < 0 ? 99 : pb);
-        var la = /lite/.test(a.id) ? 0 : 1, lb = /lite/.test(b.id) ? 0 : 1;
-        return la - lb || (a.id < b.id ? 1 : -1);
-      });
-      models = ok.slice(0, 14);
-      if (!models.some(function (m) { return m.id === MODEL; })) {
-        var pick = models.filter(function (m) { return /flash-lite/.test(m.id); })[0] || models.filter(function (m) { return /flash/.test(m.id); })[0] || models[0];
-        MODEL = pick.id;
-      }
-      rebuildModelSelect(); lockModel();
-      setSt('✅ Key hợp lệ. Có ' + ok.length + ' model khả dụng; đang dùng ' + modelLabel(MODEL) + '.', 'ok');
-    } catch (e) { /* không kiểm tra được: giữ danh sách mặc định, sẽ tự dự phòng nếu gặp 404 */ }
+      var picked = pickModels(ok);
+      if (!picked.length) return;
+      try { localStorage.setItem(MODELS_CACHE_KEY, JSON.stringify({ t: Date.now(), list: picked })); } catch (e) { /* bỏ qua */ }
+      applyModels(picked, '✅ Key hợp lệ. Đã cập nhật danh sách model mới nhất; đang dùng ' + modelLabel(MODEL) + '.');
+    } catch (e) { /* không kiểm tra được: giữ danh sách hiện có, sẽ tự dự phòng nếu gặp 404 */ }
   }
 
   /* ---------- Lựa chọn người dùng ---------- */
@@ -684,13 +716,14 @@
   /* ---------- Gọi Gemini ---------- */
   function thinkCfg(model, mode) {
     if (noThink[model]) return null;
+    var NEW = /gemini-(?:[3-9]|\d{2,})(?:[.-])|-latest$/.test(model);   /* 3.x trở lên + alias -latest */
     if (mode === 'on') {
-      if (/gemini-3/.test(model)) return { thinkingLevel: 'medium' };
+      if (NEW) return { thinkingLevel: 'medium' };
       if (/gemini-2\.5/.test(model)) return { thinkingBudget: 2048 };
       return null;
     }
     if (mode === 'off') {
-      if (/gemini-3/.test(model)) return { thinkingLevel: 'low' };
+      if (NEW) return { thinkingLevel: 'low' };
       if (/gemini-2\.5-flash/.test(model)) return { thinkingBudget: 0 };
     }
     return null;
@@ -798,7 +831,7 @@
   }
 
   function fallbackModels(model) {
-    var ids = models.map(function (m) { return m.id; }).concat(MODELS_STATIC.map(function (m) { return m.id; })), out = [];
+    var ids = models.map(function (m) { return m.id; }).concat(MODELS_STATIC.map(function (m) { return m.id; }), ['gemini-flash-latest', 'gemini-flash-lite-latest']), out = [];
     ids.forEach(function (id) { if (id !== model && out.indexOf(id) < 0 && /flash/.test(id)) out.push(id); });
     out.sort(function (a, b) { return (/lite/.test(a) ? 0 : 1) - (/lite/.test(b) ? 0 : 1); });
     return out.slice(0, 3);

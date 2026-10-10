@@ -99,7 +99,13 @@
   (()=>{
     const AK='ph_gemini_key_s',MILE=[5,8,9],SLOT=['ĐĐGtx1','ĐĐGtx2','ĐĐGtx3','ĐĐGtx4','ĐĐGtx5','ĐĐGgk','ĐĐGck'];
     const gk=()=>GKEY.get(),sk=v=>GKEY.set(v),dk=()=>GKEY.clear();
-    const model=()=>{let m='';try{m=localStorage.getItem('ph_model_v1')||'';}catch(e){}return /^gemini-[\w.\-]+$/.test(m)?m:'gemini-3.8-flash';};
+    /* Model tự cập nhật: dùng danh sách mới nhất do tab Prompt AI lưu (ph_models_cache_v2); model đã lưu không còn trong danh sách thì bỏ qua */
+    const cachedModels=()=>{try{const c=JSON.parse(localStorage.getItem('ph_models_cache_v2')||'null');return c&&c.list?c.list.map(x=>x.id):[];}catch(e){return [];}};
+    const models=()=>{let m='';try{m=localStorage.getItem('ph_model_v1')||'';}catch(e){}
+      const L=cachedModels(),out=[];
+      if(/^gemini-[\w.\-]+$/.test(m)&&(!L.length||L.includes(m)))out.push(m);
+      L.filter(x=>/flash/.test(x)&&!/lite/.test(x)).concat(['gemini-flash-latest','gemini-flash-lite-latest']).forEach(x=>{if(!out.includes(x))out.push(x);});
+      return out.slice(0,4);};
     const fv=x=>x.toFixed(1).replace('.',',');
     const hasData=s=>rows.some(r=>anyv(r)&&FL.some(f=>String(r[fld(f,s)]||'').trim()!==''));
     // điểm x nhỏ nhất (bước 0,1) để nếu mọi ô còn thiếu (tổng hệ số km) đều đạt x thì ĐTB làm tròn ≥ T
@@ -158,8 +164,9 @@
     const wait=ms=>new Promise(r=>setTimeout(r,ms));
     async function gem(key,prompt){
       const body=JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],systemInstruction:{parts:[{text:SYS}]},generationConfig:{maxOutputTokens:16384,temperature:0.4,responseMimeType:'application/json'}});
-      const M=model(),url='https://generativelanguage.googleapis.com/v1beta/models/'+M+':generateContent';
-      let res,data;
+      const chain=models();let res,data,M;
+      for(let ci=0;ci<chain.length;ci++){
+      M=chain[ci];const url='https://generativelanguage.googleapis.com/v1beta/models/'+M+':generateContent';
       for(let a=0;a<3;a++){
         const ctl=typeof AbortController==='function'?new AbortController():null,tm=ctl?setTimeout(()=>ctl.abort(),180000):0;
         try{res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body,signal:ctl?ctl.signal:undefined});}
@@ -167,11 +174,13 @@
         if(tm)clearTimeout(tm);
         if((res.status===500||res.status===503)&&a<2){await wait(2500*(a+1));continue;}
         break;}
+      if(res.status===404&&ci<chain.length-1)continue;   /* model đã bị gỡ: thử model kế tiếp */
+      break;}
       try{data=await res.json();}catch(e){data=null;}
       if(!res.ok){
         const raw=(data&&data.error&&data.error.message)||('HTTP '+res.status);
         if(res.status===401||res.status===403||(res.status===400&&/api key|API_KEY/i.test(raw))){dk();const er=new Error('API key không hợp lệ hoặc không có quyền dùng '+M+'. Hãy nhập lại key.');er.key=1;throw er;}
-        if(res.status===404)throw new Error('Không tìm thấy model '+M+' với key này (đổi model ở tab Prompt AI).');
+        if(res.status===404)throw new Error('Không tìm thấy model '+M+' với key này (hãy nhập lại key ở tab Prompt AI để cập nhật danh sách model).');
         if(res.status===429)throw new Error('Đã hết hạn mức gọi của key. Đợi khoảng 1 phút rồi thử lại.');
         throw new Error('Gemini lỗi: '+raw);}
       const c=data&&data.candidates&&data.candidates[0];
