@@ -29,12 +29,6 @@
       return 'Tuần ' + (+w + weeks) + ' (' + fmt(a) + ' ' + sep + ' ' + fmt(b) + ')';
     });
   }
-  /* Ô ngày trong cột "Thứ": "Thứ 2⏎05/10/2026" (hoặc "Chủ nhật⏎...") -> cộng cùng số ngày với tuần, giữ nguyên "Thứ" và dấu xuống dòng */
-  var DAYCELL = /^(\s*(?:Thứ\s*[2-7]|Chủ\s*nhật)[ \t]*[\r\n]+\s*)(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{4})(\s*)$/i;
-  function shiftDayCell(text, weeks) {
-    var m = DAYCELL.exec(nfc(text)); if (!m) return null;
-    return m[1] + fmt(addDays(+m[4], +m[3], +m[2], 7 * weeks)) + m[5];
-  }
   function isInt(s) { return /^\s*\d+\s*$/.test(String(s)); }
   function isClass(s) { return /^\s*\d{1,2}\s*[A-Za-z]\s*\d*\s*$/.test(String(s)); }
 
@@ -175,25 +169,7 @@
     }
 
     sheets.forEach(function (S) {
-      /* 1a) ngày từng dòng trong cột "Thứ" (cộng cùng số ngày với tuần) */
-      var dayMap = {}, dayKeys = [];
-      S.rows.forEach(function (cells) {
-        cells.forEach(function (k) {
-          if (TITLE.test(k.v)) return;
-          var nd = shiftDayCell(k.v, weeks); if (nd === null) return;
-          if (k.hasF) { warnings.push(S.name + '!' + k.ref + ': ô ngày là công thức, không sửa.'); return; }
-          writeCell(S, k, nd);
-          var key = k.v;
-          if (!dayMap[key]) { dayMap[key] = { ref: k.ref, n: 0, neu: nd }; dayKeys.push(key); }
-          dayMap[key].n++;
-        });
-      });
-      dayKeys.forEach(function (key) {
-        var d = dayMap[key], flat = function (x) { return x.replace(/\s*[\r\n]+\s*/g, ' ').trim(); };
-        changes.push({ kind: 'Ngày', sheet: S.name, ref: d.ref, info: d.n + ' ô', old: flat(key), neu: flat(d.neu) });
-      });
-
-      /* 1b) tiêu đề tuần (mọi trang tính) */
+      /* 1) tiêu đề tuần (mọi trang tính) */
       S.rows.forEach(function (cells) {
         cells.forEach(function (k) {
           if (!TITLE.test(k.v)) return;
@@ -274,7 +250,7 @@
     }
 
     if (!titleSeen) warnings.unshift('Không tìm thấy dòng "Tuần … (dd/mm/yyyy - dd/mm/yyyy)" trong file.');
-    if (!changes.some(function (c) { return c.kind !== 'Tuần' && c.kind !== 'Ngày'; })) warnings.push('Không tìm thấy dòng môn Toán / Công nghệ có số tiết.');
+    if (!changes.some(function (c) { return c.kind !== 'Tuần'; })) warnings.push('Không tìm thấy dòng môn Toán / Công nghệ có số tiết.');
 
     var out = await zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     return { out: out, changes: changes, warnings: warnings, notes: notes, title: firstTitle };
@@ -295,7 +271,7 @@
 
   root.innerHTML =
     '<h2>📅 Lịch báo giảng tự động</h2>' +
-    '<div class="note">Chọn file Excel lịch báo giảng của tuần hiện tại. Công cụ tự đổi dòng <b>Tuần … (từ ngày - đến ngày)</b> sang tuần kế tiếp (đồng thời đổi ngày ghi ở cột “Thứ” nếu có), cộng số tiết PPCT cho môn Toán và Công nghệ (ô có nhiều tiết như “17,18” thì cộng cho từng số), giữ nguyên mọi thông tin và định dạng khác rồi xuất file Excel mới.</div>' +
+    '<div class="note">Chọn file Excel lịch báo giảng của tuần hiện tại. Công cụ tự đổi dòng <b>Tuần … (từ ngày - đến ngày)</b> sang tuần kế tiếp, cộng số tiết PPCT cho môn Toán và Công nghệ (ô có nhiều tiết như “17,18” thì cộng cho từng số), giữ nguyên mọi thông tin và định dạng khác rồi xuất file Excel mới.</div>' +
     '<div class="cfg">' +
     '<div><label for="lbgCn">Công nghệ cộng thêm (tiết)</label><input type="number" id="lbgCn" value="1" min="0" step="1"></div>' +
     '<div><label for="lbgToan">Toán cộng thêm (tiết)</label><input type="number" id="lbgToan" value="4" min="0" step="1"></div>' +
