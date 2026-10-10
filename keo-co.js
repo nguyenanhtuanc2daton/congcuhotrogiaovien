@@ -360,6 +360,8 @@
     '<div class="bar"><button class="ghost sm" id="kcFileBtn" type="button">⬆ Nhập file câu hỏi (.txt, .csv, .xlsx)</button>' +
     '<button class="sec sm" id="kcSample" type="button">Dùng bộ mẫu</button>' +
     '<button class="sec sm" id="kcTpl" type="button" title="Tải file Excel mẫu để chỉnh sửa rồi nhập lại, dùng khi AI chưa hoạt động">⬇ Tải file mẫu (.xlsx)</button>' +
+    '<button class="sm" id="kcExp" type="button" title="Tải bộ câu hỏi đang hiển thị (kể cả câu AI vừa tạo) về để chỉnh sửa, rồi nhập lại để chơi">⬇ Tải bộ câu hỏi hiện tại (.xlsx)</button>' +
+    '<button class="sec sm" id="kcExpTxt" type="button" title="Tải dạng .txt, mỗi dòng một câu">⬇ .txt</button>' +
     '<input type="file" id="kcFile" accept=".txt,.csv,.tsv,.xlsx,.xls" hidden></div>' +
     '<div class="bar" style="margin-top:6px"><b>✨ Tạo câu hỏi bằng AI</b></div>' +
     '<div class="bar"><button class="ghost sm" id="kcAiDocBtn" type="button">📄 Chọn giáo án / tài liệu (.docx, .pdf, .pptx, .txt, ảnh)</button>' +
@@ -528,6 +530,39 @@
       document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
     }
     el.msg.textContent = 'Đã tải file mẫu. Chỉnh sửa rồi bấm "Nhập file câu hỏi" để dùng.';
+  };
+  /* Tải bộ câu hỏi hiện tại (đang có trong ô Bộ câu hỏi, gồm cả câu AI vừa tạo) về để chỉnh sửa, rồi nhập lại bằng "Nhập file câu hỏi" */
+  function stamp() { var d = new Date(), z = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + '-' + z(d.getHours()) + z(d.getMinutes()); }
+  function saveBlob(blob, name) {
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+  }
+  $('kcExp').onclick = function () {
+    var qs = parse(el.bank.value);
+    if (!qs.length) { el.msg.textContent = 'Chưa có câu hỏi hợp lệ để tải. Hãy tạo bằng AI hoặc nhập câu hỏi trước.'; return; }
+    var rows = qs.map(function (q) {
+      var o = q.opts.slice(), i = o.indexOf(q.ans);
+      while (o.length < 4) o.push('');
+      return [q.q].concat(o, ['ABCDEF'.charAt(i)]);
+    });
+    var name = 'keo-co-cau-hoi-' + stamp();
+    if (window.XLSX) {
+      var wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet([SAMPLE_HEAD].concat(rows));
+      ws['!cols'] = [{ wch: 58 }, { wch: 26 }, { wch: 26 }, { wch: 26 }, { wch: 26 }, { wch: 22 }];
+      XLSX.utils.book_append_sheet(wb, ws, 'Câu hỏi');
+      XLSX.writeFile(wb, name + '.xlsx');
+    } else {
+      var csv = '\uFEFF' + [SAMPLE_HEAD].concat(rows).map(function (r) { return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n');
+      saveBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), name + '.csv');
+    }
+    el.msg.textContent = 'Đã tải ' + qs.length + ' câu. Sửa xong bấm "Nhập file câu hỏi" để chơi lại.';
+  };
+  $('kcExpTxt').onclick = function () {
+    var qs = parse(el.bank.value);
+    if (!qs.length) { el.msg.textContent = 'Chưa có câu hỏi hợp lệ để tải.'; return; }
+    var tx = qs.map(function (q) { return q.q + ' | ' + q.opts.join(' | ') + ' | ' + 'ABCDEF'.charAt(q.opts.indexOf(q.ans)); }).join('\r\n');
+    saveBlob(new Blob([tx], { type: 'text/plain;charset=utf-8' }), 'keo-co-cau-hoi-' + stamp() + '.txt');
+    el.msg.textContent = 'Đã tải ' + qs.length + ' câu (.txt). Sửa xong bấm "Nhập file câu hỏi" để chơi lại.';
   };
   el.file.addEventListener('change', function () {
     var f = el.file.files[0]; if (!f) return;
