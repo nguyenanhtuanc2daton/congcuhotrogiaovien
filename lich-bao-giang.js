@@ -32,7 +32,12 @@
   function isInt(s) { return /^\s*\d+\s*$/.test(String(s)); }
   function isClass(s) { return /^\s*\d{1,2}\s*[A-Za-z]\s*\d*\s*$/.test(String(s)); }
 
+  /* Tìm thẻ theo tên cục bộ, bất kể tiền tố namespace (file Excel xuất từ hệ thống khác dùng <x:row>, <x:t>... thay vì <row>, <t>) */
+  function byTag(el, name) { return el.getElementsByTagNameNS('*', name); }
+  function mk(doc, root, name) { return doc.createElementNS(root.namespaceURI, root.prefix ? root.prefix + ':' + name : name); }
+
   function parseXml(str) {
+    str = String(str).replace(/^\uFEFF/, ''); /* bỏ BOM đầu file nếu có */
     var doc = new DOMParser().parseFromString(str, 'application/xml');
     if (doc.getElementsByTagName('parsererror').length) throw new Error('Không đọc được cấu trúc file Excel.');
     return doc;
@@ -43,7 +48,7 @@
     return s;
   }
   function tNodes(el) {
-    var out = [], all = el.getElementsByTagName('t');
+    var out = [], all = byTag(el, 't');
     for (var i = 0; i < all.length; i++) {
       var p = all[i].parentNode;
       if (p && p.localName === 'rPh') continue;
@@ -86,7 +91,7 @@
     if (sstFile) {
       sstDoc = parseXml(await sstFile.async('string'));
       sstRoot = sstDoc.documentElement;
-      var sis = sstDoc.getElementsByTagName('si');
+      var sis = byTag(sstDoc, 'si');
       for (var i = 0; i < sis.length; i++) {
         var tx = siText(sis[i]); sst.push(tx);
         var kids = [], k;
@@ -96,7 +101,7 @@
     }
     function sstIndex(text) {
       if (plain[text] !== undefined) return plain[text];
-      var si = sstDoc.createElementNS(sstRoot.namespaceURI, 'si'), t = sstDoc.createElementNS(sstRoot.namespaceURI, 't');
+      var si = mk(sstDoc, sstRoot, 'si'), t = mk(sstDoc, sstRoot, 't');
       setT(t, text); si.appendChild(t); sstRoot.appendChild(si);
       sst.push(text); plain[text] = sst.length - 1; sstAdded++;
       return plain[text];
@@ -107,11 +112,12 @@
     try {
       var wbDoc = parseXml(await zip.file('xl/workbook.xml').async('string'));
       var rels = parseXml(await zip.file('xl/_rels/workbook.xml.rels').async('string'));
-      var rmap = {}, rl = rels.getElementsByTagName('Relationship');
+      var rmap = {}, rl = byTag(rels, 'Relationship');
       for (i = 0; i < rl.length; i++) rmap[rl[i].getAttribute('Id')] = rl[i].getAttribute('Target');
-      var shs = wbDoc.getElementsByTagName('sheet');
+      var shs = byTag(wbDoc, 'sheet');
       for (i = 0; i < shs.length; i++) {
-        var tg = (rmap[shs[i].getAttribute('r:id')] || '').replace(/^\/?(xl\/)?/, 'xl/');
+        var rid = shs[i].getAttribute('r:id') || shs[i].getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id');
+        var tg = (rmap[rid] || '').replace(/^\/?(xl\/)?/, 'xl/');
         sheetNames[tg] = shs[i].getAttribute('name');
       }
     } catch (e) { /* không có tên thì dùng tên file */ }
@@ -123,7 +129,7 @@
       var path = files[fi];
       var doc = parseXml(await zip.file(path).async('string'));
       var S = { path: path, name: sheetNames[path] || path.replace(/^xl\/worksheets\//, '').replace('.xml', ''), doc: doc, rows: [], hdr: null, dirty: false };
-      var rowEls = doc.getElementsByTagName('row');
+      var rowEls = byTag(doc, 'row');
       for (var ri = 0; ri < rowEls.length; ri++) {
         var cells = [], cs = rowEls[ri].childNodes;
         for (var ci = 0; ci < cs.length; ci++) {
@@ -176,7 +182,7 @@
             var idx = +k.vEl.textContent;
             if (!siDone[idx]) {
               siDone[idx] = true;
-              var si = sstDoc.getElementsByTagName('si')[idx], ts = tNodes(si), done = false, q;
+              var si = byTag(sstDoc, 'si')[idx], ts = tNodes(si), done = false, q;
               for (q = 0; q < ts.length; q++) {
                 if (TITLE.test(nfc(ts[q].textContent))) { setT(ts[q], shiftTitle(ts[q].textContent, weeks)); done = true; break; }
               }
