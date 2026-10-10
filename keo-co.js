@@ -359,9 +359,7 @@
     '<textarea id="kcBank" spellcheck="false" placeholder="Câu hỏi | Đáp án A | Đáp án B | Đáp án C | Đáp án D | Đáp án đúng (A/B/C/D)"></textarea>' +
     '<div class="bar"><button class="ghost sm" id="kcFileBtn" type="button">⬆ Nhập file câu hỏi (.txt, .csv, .xlsx)</button>' +
     '<button class="sec sm" id="kcSample" type="button">Dùng bộ mẫu</button>' +
-    '<button class="sec sm" id="kcTpl" type="button" title="Tải file Excel mẫu để chỉnh sửa rồi nhập lại, dùng khi AI chưa hoạt động">⬇ Tải file mẫu (.xlsx)</button>' +
-    '<button class="sm" id="kcExp" type="button" title="Tải bộ câu hỏi đang hiển thị (kể cả câu AI vừa tạo) về để chỉnh sửa, rồi nhập lại để chơi">⬇ Tải bộ câu hỏi hiện tại (.xlsx)</button>' +
-    '<button class="sec sm" id="kcExpTxt" type="button" title="Tải dạng .txt, mỗi dòng một câu">⬇ .txt</button>' +
+    '<button class="sm" id="kcExp" type="button" title="Chưa có câu hỏi: tải file mẫu. Đã có câu hỏi (kể cả câu AI vừa tạo): tải về để chỉnh sửa hoặc dùng luôn">⬇ Tải bộ câu hỏi hiện tại (.xlsx)</button>' +
     '<input type="file" id="kcFile" accept=".txt,.csv,.tsv,.xlsx,.xls" hidden></div>' +
     '<div class="bar" style="margin-top:6px"><b>✨ Tạo câu hỏi bằng AI</b></div>' +
     '<div class="bar"><button class="ghost sm" id="kcAiDocBtn" type="button">📄 Chọn giáo án / tài liệu (.docx, .pdf, .pptx, .txt, ảnh)</button>' +
@@ -510,8 +508,8 @@
 
   $('kcFileBtn').onclick = function () { el.file.click(); };
   $('kcSample').onclick = function () { el.bank.value = SAMPLE; updCount(); };
-  $('kcTpl').onclick = function () {
-    var rows = [SAMPLE_HEAD].concat(SAMPLE_ROWS);
+  function dlXlsx(qRows, fname, msg) {
+    var rows = [SAMPLE_HEAD].concat(qRows);
     var guide = [['HƯỚNG DẪN DÙNG FILE MẪU'], [''],
       ['1. Sheet "Câu hỏi": mỗi dòng là một câu. Cột A = câu hỏi; cột B–E = 4 đáp án; cột F = đáp án đúng (chữ A, B, C hoặc D).'],
       ['2. Sửa trực tiếp hoặc xóa các dòng mẫu rồi nhập câu của bạn. Dòng tiêu đề (dòng 1) có thể giữ nguyên, phần mềm tự bỏ qua.'],
@@ -523,46 +521,26 @@
       var wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows), wg = XLSX.utils.aoa_to_sheet(guide);
       ws['!cols'] = [{ wch: 58 }, { wch: 26 }, { wch: 26 }, { wch: 26 }, { wch: 26 }, { wch: 22 }]; wg['!cols'] = [{ wch: 120 }];
       XLSX.utils.book_append_sheet(wb, ws, 'Câu hỏi'); XLSX.utils.book_append_sheet(wb, wg, 'Hướng dẫn');
-      XLSX.writeFile(wb, 'keo-co-mau.xlsx');
+      XLSX.writeFile(wb, fname + '.xlsx');
     } else {
       var csv = '\uFEFF' + rows.map(function (r) { return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n');
-      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'keo-co-mau.csv';
+      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = fname + '.csv';
       document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
     }
-    el.msg.textContent = 'Đã tải file mẫu. Chỉnh sửa rồi bấm "Nhập file câu hỏi" để dùng.';
-  };
+    el.msg.textContent = msg;
+  }
   /* Tải bộ câu hỏi hiện tại (đang có trong ô Bộ câu hỏi, gồm cả câu AI vừa tạo) về để chỉnh sửa, rồi nhập lại bằng "Nhập file câu hỏi" */
   function stamp() { var d = new Date(), z = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + '-' + z(d.getHours()) + z(d.getMinutes()); }
-  function saveBlob(blob, name) {
-    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
-    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800);
-  }
+  /* Chưa có câu hỏi hợp lệ → tải file mẫu; đã có (kể cả câu AI vừa tạo) → tải đúng bộ câu đó để sửa hoặc dùng luôn */
   $('kcExp').onclick = function () {
     var qs = parse(el.bank.value);
-    if (!qs.length) { el.msg.textContent = 'Chưa có câu hỏi hợp lệ để tải. Hãy tạo bằng AI hoặc nhập câu hỏi trước.'; return; }
+    if (!qs.length) { dlXlsx(SAMPLE_ROWS, 'keo-co-mau', 'Chưa có câu hỏi nên đã tải file mẫu. Chỉnh sửa rồi bấm "Nhập file câu hỏi" để dùng.'); return; }
     var rows = qs.map(function (q) {
       var o = q.opts.slice(), i = o.indexOf(q.ans);
       while (o.length < 4) o.push('');
       return [q.q].concat(o, ['ABCDEF'.charAt(i)]);
     });
-    var name = 'keo-co-cau-hoi-' + stamp();
-    if (window.XLSX) {
-      var wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet([SAMPLE_HEAD].concat(rows));
-      ws['!cols'] = [{ wch: 58 }, { wch: 26 }, { wch: 26 }, { wch: 26 }, { wch: 26 }, { wch: 22 }];
-      XLSX.utils.book_append_sheet(wb, ws, 'Câu hỏi');
-      XLSX.writeFile(wb, name + '.xlsx');
-    } else {
-      var csv = '\uFEFF' + [SAMPLE_HEAD].concat(rows).map(function (r) { return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n');
-      saveBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), name + '.csv');
-    }
-    el.msg.textContent = 'Đã tải ' + qs.length + ' câu. Sửa xong bấm "Nhập file câu hỏi" để chơi lại.';
-  };
-  $('kcExpTxt').onclick = function () {
-    var qs = parse(el.bank.value);
-    if (!qs.length) { el.msg.textContent = 'Chưa có câu hỏi hợp lệ để tải.'; return; }
-    var tx = qs.map(function (q) { return q.q + ' | ' + q.opts.join(' | ') + ' | ' + 'ABCDEF'.charAt(q.opts.indexOf(q.ans)); }).join('\r\n');
-    saveBlob(new Blob([tx], { type: 'text/plain;charset=utf-8' }), 'keo-co-cau-hoi-' + stamp() + '.txt');
-    el.msg.textContent = 'Đã tải ' + qs.length + ' câu (.txt). Sửa xong bấm "Nhập file câu hỏi" để chơi lại.';
+    dlXlsx(rows, 'keo-co-cau-hoi-' + stamp(), 'Đã tải ' + qs.length + ' câu. Sửa xong bấm "Nhập file câu hỏi" để chơi lại.');
   };
   el.file.addEventListener('change', function () {
     var f = el.file.files[0]; if (!f) return;
