@@ -1,0 +1,1098 @@
+{
+ "meta": {
+  "bo_sach": "Kết nối tri thức với cuộc sống",
+  "phien_ban": 1,
+  "ghi_chu": "Danh mục dùng để gắn thẻ mọi bài trong kho đề. Không đổi mã (ma) sau khi đã gắn thẻ; chỉ thêm mới.",
+  "loai_de": {
+   "GK1": "Giữa kì 1",
+   "CK1": "Cuối kì 1",
+   "GK2": "Giữa kì 2",
+   "CK2": "Cuối kì 2",
+   "TS10": "Thi vào lớp 10"
+  },
+  "muc_do": {
+   "NB": "Nhận biết",
+   "TH": "Thông hiểu",
+   "VD": "Vận dụng",
+   "VDC": "Vận dụng cao"
+  },
+  "kieu_cau": {
+   "TN": "Trắc nghiệm nhiều lựa chọn",
+   "DS": "Đúng sai",
+   "TLN": "Trả lời ngắn",
+   "TL": "Tự luận"
+  },
+  "cau_truc_bai_mau": {
+   "id": "L9-CK1-2025-C4",
+   "lop": 9,
+   "loai": "CK1",
+   "nam": 2025,
+   "nguon": "Tên trường/Sở",
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "mucdo": "VD",
+   "kieu": "TL",
+   "noidung": "Nội dung đề viết bằng LaTeX",
+   "dapan": "",
+   "loigiai": "",
+   "hinh": "Mô tả hình hoặc tên file ảnh, để trống nếu không có",
+   "y": [
+    {
+     "ma": "a",
+     "noidung": "",
+     "dapan": "",
+     "mucdo": "TH"
+    }
+   ]
+  }
+ },
+ "lop": [
+  {
+   "lop": 6,
+   "chuong": [
+    {
+     "ma": "L6-C1",
+     "ten": "Tập hợp các số tự nhiên",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L6-C1-D1",
+       "ten": "Tập hợp và phần tử của tập hợp"
+      },
+      {
+       "ma": "L6-C1-D2",
+       "ten": "Cách ghi số tự nhiên, so sánh, thứ tự"
+      },
+      {
+       "ma": "L6-C1-D3",
+       "ten": "Cộng, trừ, nhân, chia số tự nhiên"
+      },
+      {
+       "ma": "L6-C1-D4",
+       "ten": "Lũy thừa với số mũ tự nhiên"
+      },
+      {
+       "ma": "L6-C1-D5",
+       "ten": "Thứ tự thực hiện các phép tính"
+      },
+      {
+       "ma": "L6-C1-D6",
+       "ten": "Tìm x trong đẳng thức số tự nhiên"
+      }
+     ]
+    },
+    {
+     "ma": "L6-C2",
+     "ten": "Tính chia hết trong tập hợp các số tự nhiên",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L6-C2-D1",
+       "ten": "Quan hệ chia hết, ước và bội"
+      },
+      {
+       "ma": "L6-C2-D2",
+       "ten": "Dấu hiệu chia hết cho 2, 5, 9, 3"
+      },
+      {
+       "ma": "L6-C2-D3",
+       "ten": "Số nguyên tố, hợp số, phân tích ra thừa số nguyên tố"
+      },
+      {
+       "ma": "L6-C2-D4",
+       "ten": "Ước chung lớn nhất (ƯCLN)"
+      },
+      {
+       "ma": "L6-C2-D5",
+       "ten": "Bội chung nhỏ nhất (BCNN)"
+      },
+      {
+       "ma": "L6-C2-D6",
+       "ten": "Bài toán thực tế về ƯC, BC"
+      }
+     ]
+    },
+    {
+     "ma": "L6-C3",
+     "ten": "Số nguyên",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L6-C3-D1",
+       "ten": "Tập hợp số nguyên, so sánh, số đối, giá trị tuyệt đối"
+      },
+      {
+       "ma": "L6-C3-D2",
+       "ten": "Cộng, trừ số nguyên"
+      },
+      {
+       "ma": "L6-C3-D3",
+       "ten": "Nhân, chia số nguyên"
+      },
+      {
+       "ma": "L6-C3-D4",
+       "ten": "Quy tắc dấu ngoặc, chuyển vế"
+      },
+      {
+       "ma": "L6-C3-D5",
+       "ten": "Tìm x trong tập số nguyên"
+      }
+     ]
+    },
+    {
+     "ma": "L6-C4",
+     "ten": "Một số hình phẳng trong thực tiễn",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L6-C4-D1",
+       "ten": "Tam giác đều, hình vuông, lục giác đều"
+      },
+      {
+       "ma": "L6-C4-D2",
+       "ten": "Hình chữ nhật, hình thoi"
+      },
+      {
+       "ma": "L6-C4-D3",
+       "ten": "Hình bình hành, hình thang cân"
+      },
+      {
+       "ma": "L6-C4-D4",
+       "ten": "Chu vi và diện tích các hình phẳng"
+      }
+     ]
+    },
+    {
+     "ma": "L6-C5",
+     "ten": "Tính đối xứng của hình phẳng trong thế giới tự nhiên",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L6-C5-D1",
+       "ten": "Hình có trục đối xứng"
+      },
+      {
+       "ma": "L6-C5-D2",
+       "ten": "Hình có tâm đối xứng"
+      }
+     ]
+    },
+    {
+     "ma": "L6-C6",
+     "ten": "Phân số",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L6-C6-D1",
+       "ten": "Phân số, so sánh phân số"
+      },
+      {
+       "ma": "L6-C6-D2",
+       "ten": "Cộng, trừ phân số"
+      },
+      {
+       "ma": "L6-C6-D3",
+       "ten": "Nhân, chia phân số"
+      },
+      {
+       "ma": "L6-C6-D4",
+       "ten": "Hỗn số"
+      },
+      {
+       "ma": "L6-C6-D5",
+       "ten": "Giá trị phân số của một số"
+      },
+      {
+       "ma": "L6-C6-D6",
+       "ten": "Tìm một số biết giá trị phân số của nó"
+      },
+      {
+       "ma": "L6-C6-D7",
+       "ten": "Tìm x trong đẳng thức phân số"
+      }
+     ]
+    },
+    {
+     "ma": "L6-C7",
+     "ten": "Số thập phân",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L6-C7-D1",
+       "ten": "Số thập phân, so sánh"
+      },
+      {
+       "ma": "L6-C7-D2",
+       "ten": "Cộng, trừ, nhân, chia số thập phân"
+      },
+      {
+       "ma": "L6-C7-D3",
+       "ten": "Làm tròn và ước lượng kết quả"
+      },
+      {
+       "ma": "L6-C7-D4",
+       "ten": "Tỉ số và tỉ số phần trăm"
+      },
+      {
+       "ma": "L6-C7-D5",
+       "ten": "Bài toán thực tế về phần trăm"
+      }
+     ]
+    },
+    {
+     "ma": "L6-C8",
+     "ten": "Những hình học cơ bản",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L6-C8-D1",
+       "ten": "Điểm, đường thẳng, ba điểm thẳng hàng"
+      },
+      {
+       "ma": "L6-C8-D2",
+       "ten": "Điểm nằm giữa, trung điểm của đoạn thẳng"
+      },
+      {
+       "ma": "L6-C8-D3",
+       "ten": "Tính độ dài đoạn thẳng"
+      },
+      {
+       "ma": "L6-C8-D4",
+       "ten": "Tia, góc, số đo góc"
+      }
+     ]
+    },
+    {
+     "ma": "L6-C9",
+     "ten": "Dữ liệu và xác suất thực nghiệm",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L6-C9-D1",
+       "ten": "Thu thập, phân loại, biểu diễn dữ liệu"
+      },
+      {
+       "ma": "L6-C9-D2",
+       "ten": "Biểu đồ cột, biểu đồ cột kép"
+      },
+      {
+       "ma": "L6-C9-D3",
+       "ten": "Kết quả có thể và sự kiện trong trò chơi"
+      },
+      {
+       "ma": "L6-C9-D4",
+       "ten": "Xác suất thực nghiệm"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "lop": 7,
+   "chuong": [
+    {
+     "ma": "L7-C1",
+     "ten": "Số hữu tỉ",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L7-C1-D1",
+       "ten": "Tập hợp số hữu tỉ, so sánh"
+      },
+      {
+       "ma": "L7-C1-D2",
+       "ten": "Cộng, trừ, nhân, chia số hữu tỉ"
+      },
+      {
+       "ma": "L7-C1-D3",
+       "ten": "Lũy thừa của số hữu tỉ"
+      },
+      {
+       "ma": "L7-C1-D4",
+       "ten": "Quy tắc dấu ngoặc, quy tắc chuyển vế"
+      },
+      {
+       "ma": "L7-C1-D5",
+       "ten": "Tìm x trong tập số hữu tỉ"
+      }
+     ]
+    },
+    {
+     "ma": "L7-C2",
+     "ten": "Số thực",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L7-C2-D1",
+       "ten": "Số vô tỉ, căn bậc hai số học"
+      },
+      {
+       "ma": "L7-C2-D2",
+       "ten": "Số thực, giá trị tuyệt đối"
+      },
+      {
+       "ma": "L7-C2-D3",
+       "ten": "Làm tròn số, ước lượng kết quả"
+      },
+      {
+       "ma": "L7-C2-D4",
+       "ten": "Tìm x có giá trị tuyệt đối, có căn"
+      }
+     ]
+    },
+    {
+     "ma": "L7-C3",
+     "ten": "Góc và đường thẳng song song",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L7-C3-D1",
+       "ten": "Góc ở vị trí đặc biệt, tia phân giác"
+      },
+      {
+       "ma": "L7-C3-D2",
+       "ten": "Hai đường thẳng song song, dấu hiệu nhận biết"
+      },
+      {
+       "ma": "L7-C3-D3",
+       "ten": "Tiên đề Euclid, tính chất hai đường thẳng song song"
+      },
+      {
+       "ma": "L7-C3-D4",
+       "ten": "Định lí và chứng minh định lí"
+      },
+      {
+       "ma": "L7-C3-D5",
+       "ten": "Tính số đo góc"
+      }
+     ]
+    },
+    {
+     "ma": "L7-C4",
+     "ten": "Tam giác bằng nhau",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L7-C4-D1",
+       "ten": "Tổng ba góc của một tam giác"
+      },
+      {
+       "ma": "L7-C4-D2",
+       "ten": "Hai tam giác bằng nhau"
+      },
+      {
+       "ma": "L7-C4-D3",
+       "ten": "Trường hợp bằng nhau c-c-c"
+      },
+      {
+       "ma": "L7-C4-D4",
+       "ten": "Trường hợp bằng nhau c-g-c"
+      },
+      {
+       "ma": "L7-C4-D5",
+       "ten": "Trường hợp bằng nhau g-c-g"
+      },
+      {
+       "ma": "L7-C4-D6",
+       "ten": "Trường hợp bằng nhau của tam giác vuông"
+      },
+      {
+       "ma": "L7-C4-D7",
+       "ten": "Tam giác cân"
+      },
+      {
+       "ma": "L7-C4-D8",
+       "ten": "Chứng minh hai tam giác bằng nhau và hệ quả"
+      }
+     ]
+    },
+    {
+     "ma": "L7-C5",
+     "ten": "Thu thập và biểu diễn dữ liệu",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L7-C5-D1",
+       "ten": "Thu thập, phân loại, đánh giá tính hợp lí của dữ liệu"
+      },
+      {
+       "ma": "L7-C5-D2",
+       "ten": "Biểu đồ hình quạt tròn"
+      },
+      {
+       "ma": "L7-C5-D3",
+       "ten": "Biểu đồ đoạn thẳng"
+      }
+     ]
+    },
+    {
+     "ma": "L7-C6",
+     "ten": "Tỉ lệ thức và đại lượng tỉ lệ",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L7-C6-D1",
+       "ten": "Tỉ lệ thức"
+      },
+      {
+       "ma": "L7-C6-D2",
+       "ten": "Tính chất dãy tỉ số bằng nhau"
+      },
+      {
+       "ma": "L7-C6-D3",
+       "ten": "Đại lượng tỉ lệ thuận"
+      },
+      {
+       "ma": "L7-C6-D4",
+       "ten": "Đại lượng tỉ lệ nghịch"
+      },
+      {
+       "ma": "L7-C6-D5",
+       "ten": "Bài toán thực tế về đại lượng tỉ lệ"
+      }
+     ]
+    },
+    {
+     "ma": "L7-C7",
+     "ten": "Biểu thức đại số và đa thức một biến",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L7-C7-D1",
+       "ten": "Biểu thức đại số, giá trị biểu thức"
+      },
+      {
+       "ma": "L7-C7-D2",
+       "ten": "Đa thức một biến, nghiệm của đa thức"
+      },
+      {
+       "ma": "L7-C7-D3",
+       "ten": "Cộng, trừ đa thức một biến"
+      },
+      {
+       "ma": "L7-C7-D4",
+       "ten": "Nhân, chia đa thức một biến"
+      }
+     ]
+    },
+    {
+     "ma": "L7-C8",
+     "ten": "Làm quen với biến cố và xác suất của biến cố",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L7-C8-D1",
+       "ten": "Biến cố ngẫu nhiên"
+      },
+      {
+       "ma": "L7-C8-D2",
+       "ten": "Xác suất của biến cố ngẫu nhiên"
+      }
+     ]
+    },
+    {
+     "ma": "L7-C9",
+     "ten": "Quan hệ giữa các yếu tố trong một tam giác",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L7-C9-D1",
+       "ten": "Quan hệ giữa góc và cạnh đối diện"
+      },
+      {
+       "ma": "L7-C9-D2",
+       "ten": "Đường vuông góc và đường xiên"
+      },
+      {
+       "ma": "L7-C9-D3",
+       "ten": "Bất đẳng thức tam giác"
+      },
+      {
+       "ma": "L7-C9-D4",
+       "ten": "Đường trung tuyến, đường phân giác"
+      },
+      {
+       "ma": "L7-C9-D5",
+       "ten": "Đường trung trực, đường cao, các đường đồng quy"
+      }
+     ]
+    },
+    {
+     "ma": "L7-C10",
+     "ten": "Một số hình khối trong thực tiễn",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L7-C10-D1",
+       "ten": "Hình hộp chữ nhật, hình lập phương"
+      },
+      {
+       "ma": "L7-C10-D2",
+       "ten": "Lăng trụ đứng tam giác, lăng trụ đứng tứ giác"
+      },
+      {
+       "ma": "L7-C10-D3",
+       "ten": "Diện tích xung quanh và thể tích"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "lop": 8,
+   "chuong": [
+    {
+     "ma": "L8-C1",
+     "ten": "Đa thức",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L8-C1-D1",
+       "ten": "Đơn thức nhiều biến"
+      },
+      {
+       "ma": "L8-C1-D2",
+       "ten": "Đa thức nhiều biến"
+      },
+      {
+       "ma": "L8-C1-D3",
+       "ten": "Cộng, trừ đa thức"
+      },
+      {
+       "ma": "L8-C1-D4",
+       "ten": "Nhân đa thức"
+      },
+      {
+       "ma": "L8-C1-D5",
+       "ten": "Chia đa thức cho đơn thức"
+      }
+     ]
+    },
+    {
+     "ma": "L8-C2",
+     "ten": "Hằng đẳng thức đáng nhớ và ứng dụng",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L8-C2-D1",
+       "ten": "Hiệu hai bình phương, bình phương của tổng và hiệu"
+      },
+      {
+       "ma": "L8-C2-D2",
+       "ten": "Lập phương của tổng và hiệu"
+      },
+      {
+       "ma": "L8-C2-D3",
+       "ten": "Tổng và hiệu hai lập phương"
+      },
+      {
+       "ma": "L8-C2-D4",
+       "ten": "Phân tích đa thức thành nhân tử: đặt nhân tử chung, nhóm hạng tử"
+      },
+      {
+       "ma": "L8-C2-D5",
+       "ten": "Phân tích đa thức thành nhân tử: dùng hằng đẳng thức"
+      },
+      {
+       "ma": "L8-C2-D6",
+       "ten": "Tìm x, tính nhanh, chứng minh biểu thức"
+      }
+     ]
+    },
+    {
+     "ma": "L8-C3",
+     "ten": "Tứ giác",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L8-C3-D1",
+       "ten": "Tứ giác, tổng các góc"
+      },
+      {
+       "ma": "L8-C3-D2",
+       "ten": "Hình thang cân"
+      },
+      {
+       "ma": "L8-C3-D3",
+       "ten": "Hình bình hành"
+      },
+      {
+       "ma": "L8-C3-D4",
+       "ten": "Hình chữ nhật"
+      },
+      {
+       "ma": "L8-C3-D5",
+       "ten": "Hình thoi và hình vuông"
+      },
+      {
+       "ma": "L8-C3-D6",
+       "ten": "Chứng minh tứ giác đặc biệt"
+      }
+     ]
+    },
+    {
+     "ma": "L8-C4",
+     "ten": "Định lí Thalès",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L8-C4-D1",
+       "ten": "Định lí Thalès trong tam giác"
+      },
+      {
+       "ma": "L8-C4-D2",
+       "ten": "Đường trung bình của tam giác"
+      },
+      {
+       "ma": "L8-C4-D3",
+       "ten": "Tính chất đường phân giác của tam giác"
+      },
+      {
+       "ma": "L8-C4-D4",
+       "ten": "Tính độ dài đoạn thẳng bằng Thalès"
+      }
+     ]
+    },
+    {
+     "ma": "L8-C5",
+     "ten": "Dữ liệu và biểu đồ",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L8-C5-D1",
+       "ten": "Thu thập, phân loại, tổ chức dữ liệu"
+      },
+      {
+       "ma": "L8-C5-D2",
+       "ten": "Biểu diễn dữ liệu bằng bảng, biểu đồ"
+      },
+      {
+       "ma": "L8-C5-D3",
+       "ten": "Phân tích số liệu và biểu đồ"
+      },
+      {
+       "ma": "L8-C5-D4",
+       "ten": "Lựa chọn biểu đồ phù hợp"
+      }
+     ]
+    },
+    {
+     "ma": "L8-C6",
+     "ten": "Phân thức đại số",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L8-C6-D1",
+       "ten": "Phân thức đại số, điều kiện xác định"
+      },
+      {
+       "ma": "L8-C6-D2",
+       "ten": "Rút gọn phân thức"
+      },
+      {
+       "ma": "L8-C6-D3",
+       "ten": "Cộng, trừ phân thức"
+      },
+      {
+       "ma": "L8-C6-D4",
+       "ten": "Nhân, chia phân thức"
+      },
+      {
+       "ma": "L8-C6-D5",
+       "ten": "Biểu thức chứa phân thức, tìm giá trị"
+      }
+     ]
+    },
+    {
+     "ma": "L8-C7",
+     "ten": "Phương trình bậc nhất và hàm số bậc nhất",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L8-C7-D1",
+       "ten": "Phương trình bậc nhất một ẩn"
+      },
+      {
+       "ma": "L8-C7-D2",
+       "ten": "Giải bài toán bằng cách lập phương trình"
+      },
+      {
+       "ma": "L8-C7-D3",
+       "ten": "Khái niệm hàm số, đồ thị hàm số"
+      },
+      {
+       "ma": "L8-C7-D4",
+       "ten": "Hàm số bậc nhất y = ax + b và đồ thị"
+      },
+      {
+       "ma": "L8-C7-D5",
+       "ten": "Hệ số góc, hai đường thẳng song song, cắt nhau"
+      }
+     ]
+    },
+    {
+     "ma": "L8-C8",
+     "ten": "Mở đầu về tính xác suất của biến cố",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L8-C8-D1",
+       "ten": "Kết quả có thể và kết quả thuận lợi"
+      },
+      {
+       "ma": "L8-C8-D2",
+       "ten": "Xác suất lí thuyết và xác suất thực nghiệm"
+      }
+     ]
+    },
+    {
+     "ma": "L8-C9",
+     "ten": "Tam giác đồng dạng",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L8-C9-D1",
+       "ten": "Hai tam giác đồng dạng"
+      },
+      {
+       "ma": "L8-C9-D2",
+       "ten": "Các trường hợp đồng dạng của tam giác"
+      },
+      {
+       "ma": "L8-C9-D3",
+       "ten": "Đồng dạng của tam giác vuông"
+      },
+      {
+       "ma": "L8-C9-D4",
+       "ten": "Hình đồng dạng, ứng dụng thực tế"
+      },
+      {
+       "ma": "L8-C9-D5",
+       "ten": "Chứng minh hệ thức bằng tam giác đồng dạng"
+      }
+     ]
+    },
+    {
+     "ma": "L8-C10",
+     "ten": "Một số hình khối trong thực tiễn",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L8-C10-D1",
+       "ten": "Hình chóp tam giác đều"
+      },
+      {
+       "ma": "L8-C10-D2",
+       "ten": "Hình chóp tứ giác đều"
+      },
+      {
+       "ma": "L8-C10-D3",
+       "ten": "Diện tích xung quanh và thể tích"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "lop": 9,
+   "chuong": [
+    {
+     "ma": "L9-C1",
+     "ten": "Phương trình và hệ hai phương trình bậc nhất hai ẩn",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L9-C1-D1",
+       "ten": "Phương trình bậc nhất hai ẩn"
+      },
+      {
+       "ma": "L9-C1-D2",
+       "ten": "Hệ hai phương trình bậc nhất hai ẩn, giải bằng thế, cộng đại số"
+      },
+      {
+       "ma": "L9-C1-D3",
+       "ten": "Giải bài toán bằng cách lập hệ phương trình"
+      },
+      {
+       "ma": "L9-C1-D4",
+       "ten": "Hệ phương trình chứa tham số"
+      }
+     ]
+    },
+    {
+     "ma": "L9-C2",
+     "ten": "Phương trình và bất phương trình bậc nhất một ẩn",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L9-C2-D1",
+       "ten": "Phương trình quy về bậc nhất một ẩn (tích, chứa ẩn ở mẫu)"
+      },
+      {
+       "ma": "L9-C2-D2",
+       "ten": "Bất đẳng thức, tính chất thứ tự"
+      },
+      {
+       "ma": "L9-C2-D3",
+       "ten": "Bất phương trình bậc nhất một ẩn"
+      },
+      {
+       "ma": "L9-C2-D4",
+       "ten": "Giải bài toán thực tế bằng bất phương trình"
+      }
+     ]
+    },
+    {
+     "ma": "L9-C3",
+     "ten": "Căn bậc hai và căn bậc ba",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L9-C3-D1",
+       "ten": "Căn bậc hai và căn thức bậc hai"
+      },
+      {
+       "ma": "L9-C3-D2",
+       "ten": "Biến đổi đơn giản biểu thức chứa căn thức bậc hai"
+      },
+      {
+       "ma": "L9-C3-D3",
+       "ten": "Căn bậc ba"
+      },
+      {
+       "ma": "L9-C3-D4",
+       "ten": "Rút gọn biểu thức chứa căn"
+      },
+      {
+       "ma": "L9-C3-D5",
+       "ten": "Bài toán phụ sau rút gọn (tính giá trị, tìm x, so sánh)"
+      },
+      {
+       "ma": "L9-C3-D6",
+       "ten": "Cực trị, bất đẳng thức chứa căn"
+      }
+     ]
+    },
+    {
+     "ma": "L9-C4",
+     "ten": "Hệ thức lượng trong tam giác vuông",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L9-C4-D1",
+       "ten": "Tỉ số lượng giác của góc nhọn"
+      },
+      {
+       "ma": "L9-C4-D2",
+       "ten": "Hệ thức giữa cạnh và góc trong tam giác vuông"
+      },
+      {
+       "ma": "L9-C4-D3",
+       "ten": "Giải tam giác vuông"
+      },
+      {
+       "ma": "L9-C4-D4",
+       "ten": "Ứng dụng thực tế (chiều cao, khoảng cách, góc)"
+      }
+     ]
+    },
+    {
+     "ma": "L9-C5",
+     "ten": "Đường tròn",
+     "hocky": 1,
+     "dang": [
+      {
+       "ma": "L9-C5-D1",
+       "ten": "Mở đầu về đường tròn, vị trí của điểm với đường tròn"
+      },
+      {
+       "ma": "L9-C5-D2",
+       "ten": "Cung và dây của đường tròn"
+      },
+      {
+       "ma": "L9-C5-D3",
+       "ten": "Độ dài cung, diện tích hình quạt, hình vành khuyên"
+      },
+      {
+       "ma": "L9-C5-D4",
+       "ten": "Vị trí tương đối của đường thẳng và đường tròn"
+      },
+      {
+       "ma": "L9-C5-D5",
+       "ten": "Tiếp tuyến của đường tròn, hai tiếp tuyến cắt nhau"
+      },
+      {
+       "ma": "L9-C5-D6",
+       "ten": "Vị trí tương đối của hai đường tròn"
+      }
+     ]
+    },
+    {
+     "ma": "L9-C6",
+     "ten": "Hàm số y = ax² (a ≠ 0) và phương trình bậc hai một ẩn",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L9-C6-D1",
+       "ten": "Hàm số y = ax² và đồ thị (parabol)"
+      },
+      {
+       "ma": "L9-C6-D2",
+       "ten": "Phương trình bậc hai một ẩn, cách giải"
+      },
+      {
+       "ma": "L9-C6-D3",
+       "ten": "Định lí Viète và ứng dụng"
+      },
+      {
+       "ma": "L9-C6-D4",
+       "ten": "Giải bài toán bằng cách lập phương trình bậc hai"
+      },
+      {
+       "ma": "L9-C6-D5",
+       "ten": "Tương giao parabol và đường thẳng"
+      },
+      {
+       "ma": "L9-C6-D6",
+       "ten": "Phương trình bậc hai chứa tham số"
+      }
+     ]
+    },
+    {
+     "ma": "L9-C7",
+     "ten": "Tần số và tần số tương đối",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L9-C7-D1",
+       "ten": "Bảng tần số, tần số tương đối"
+      },
+      {
+       "ma": "L9-C7-D2",
+       "ten": "Biểu đồ tần số, tần số tương đối"
+      },
+      {
+       "ma": "L9-C7-D3",
+       "ten": "Tần số ghép nhóm"
+      }
+     ]
+    },
+    {
+     "ma": "L9-C8",
+     "ten": "Xác suất của biến cố trong một số mô hình xác suất đơn giản",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L9-C8-D1",
+       "ten": "Phép thử ngẫu nhiên và không gian mẫu"
+      },
+      {
+       "ma": "L9-C8-D2",
+       "ten": "Xác suất của biến cố (liệt kê, bảng, sơ đồ cây)"
+      }
+     ]
+    },
+    {
+     "ma": "L9-C9",
+     "ten": "Đường tròn ngoại tiếp và đường tròn nội tiếp",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L9-C9-D1",
+       "ten": "Góc ở tâm, góc nội tiếp"
+      },
+      {
+       "ma": "L9-C9-D2",
+       "ten": "Đường tròn ngoại tiếp, nội tiếp tam giác"
+      },
+      {
+       "ma": "L9-C9-D3",
+       "ten": "Tứ giác nội tiếp"
+      },
+      {
+       "ma": "L9-C9-D4",
+       "ten": "Đa giác đều"
+      },
+      {
+       "ma": "L9-C9-D5",
+       "ten": "Bài hình tổng hợp về đường tròn (chứng minh nhiều ý)"
+      }
+     ]
+    },
+    {
+     "ma": "L9-C10",
+     "ten": "Một số hình khối trong thực tiễn",
+     "hocky": 2,
+     "dang": [
+      {
+       "ma": "L9-C10-D1",
+       "ten": "Hình trụ"
+      },
+      {
+       "ma": "L9-C10-D2",
+       "ten": "Hình nón"
+      },
+      {
+       "ma": "L9-C10-D3",
+       "ten": "Hình cầu"
+      },
+      {
+       "ma": "L9-C10-D4",
+       "ten": "Bài toán thực tế về diện tích và thể tích"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ts10": {
+  "ten": "Thi vào lớp 10",
+  "dang": [
+   {
+    "ma": "TS10-D1",
+    "ten": "Rút gọn biểu thức và bài toán liên quan (tính giá trị, tìm x)"
+   },
+   {
+    "ma": "TS10-D2",
+    "ten": "Giải bài toán bằng cách lập phương trình hoặc hệ phương trình"
+   },
+   {
+    "ma": "TS10-D3",
+    "ten": "Hệ phương trình"
+   },
+   {
+    "ma": "TS10-D4",
+    "ten": "Phương trình bậc hai, định lí Viète, tham số"
+   },
+   {
+    "ma": "TS10-D5",
+    "ten": "Parabol và đường thẳng"
+   },
+   {
+    "ma": "TS10-D6",
+    "ten": "Bài toán thực tế (phần trăm, hình khối, hàm số)"
+   },
+   {
+    "ma": "TS10-D7",
+    "ten": "Bài hình: đường tròn, chứng minh nhiều ý"
+   },
+   {
+    "ma": "TS10-D8",
+    "ten": "Bài hình: tính toán, hệ thức lượng"
+   },
+   {
+    "ma": "TS10-D9",
+    "ten": "Bất đẳng thức, giá trị lớn nhất - nhỏ nhất"
+   },
+   {
+    "ma": "TS10-D10",
+    "ten": "Bài toán rời rạc, suy luận logic"
+   },
+   {
+    "ma": "TS10-D11",
+    "ten": "Thống kê và xác suất"
+   }
+  ],
+  "ghi_chu": "Bài thi vào 10 tổng hợp kiến thức lớp 9 trở xuống. Mỗi bài vẫn gắn thêm chuong/dang của lớp tương ứng; trường dang TS10 dùng để lọc theo dạng bài thường gặp."
+ }
+}

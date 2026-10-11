@@ -1,0 +1,272 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK01",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (GDPT 2018)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_01_Phương_Anh.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1, đã thêm TS10-D11)",
+  "ghi_chu": "Năm của đề chưa rõ. Trường dang = dạng theo chương lớp 6-9; dang_phu = dạng liên quan; dang_ts10 = dạng bài thi vào 10."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK01-C1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "diem": 1.5,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D1",
+   "dang_phu": [
+    "L9-C8-D2"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Tỉ lệ học sinh bình chọn cho danh hiệu cầu thủ xuất sắc nhất trong giải bóng đá của trường được cho trong bảng. Biết rằng có $500$ học sinh tham gia bình chọn.",
+   "bang": {
+    "tieu_de": [
+     "Cầu thủ",
+     "Tuấn",
+     "Trường",
+     "An",
+     "Linh"
+    ],
+    "hang": [
+     [
+      "Tỉ lệ học sinh bình chọn",
+      "30%",
+      "25%",
+      "10%",
+      "35%"
+     ]
+    ]
+   },
+   "hinh": "",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Hãy lập bảng tần số học sinh bình chọn cho danh hiệu cầu thủ xuất sắc nhất trong giải bóng đá của trường.",
+     "dapan": "Tuấn: 150; Trường: 125; An: 50; Linh: 175",
+     "loigiai": "Số học sinh bình chọn: Tuấn $\\frac{500\\cdot 30\\%}{100\\%}=150$; Trường $125$; An $50$; Linh $175$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Hãy tính xác suất cầu thủ được chọn cho danh hiệu cầu thủ xuất sắc nhất có tên bắt đầu bởi chữ cái “$T$”.",
+     "dapan": "0,55",
+     "loigiai": "Tuấn và Trường có tên bắt đầu bằng chữ T: $150+125=275$ học sinh. Xác suất $=\\frac{275}{500}=0{,}55$."
+    }
+   ],
+   "can_duyet": false
+  },
+  {
+   "id": "TS10-HN-TK01-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{x-5}{\\sqrt{x}}$ và $B=\\dfrac{2x+2\\sqrt{x}}{x-1}-\\dfrac{\\sqrt{x}}{\\sqrt{x}-1}$ với $x>0,\\ x\\neq 1$.",
+   "hinh": "",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=36$.",
+     "dapan": "$A=\\frac{31}{6}$",
+     "loigiai": "Thay $x=36$ (thỏa mãn điều kiện): $A=\\frac{36-5}{\\sqrt{36}}=\\frac{31}{6}$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Rút gọn biểu thức $B$.",
+     "dapan": "$B=\\frac{\\sqrt{x}}{\\sqrt{x}-1}$ với $x>0,\\ x\\neq1$",
+     "loigiai": "$B=\\frac{2\\sqrt{x}(\\sqrt{x}+1)}{(\\sqrt{x}-1)(\\sqrt{x}+1)}-\\frac{\\sqrt{x}(\\sqrt{x}+1)}{(\\sqrt{x}-1)(\\sqrt{x}+1)}=\\frac{x+\\sqrt{x}}{(\\sqrt{x}-1)(\\sqrt{x}+1)}=\\frac{\\sqrt{x}}{\\sqrt{x}-1}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "dang": "L9-C3-D5",
+     "noidung": "Tìm tất cả giá trị nguyên của $x$ để biểu thức $P=A\\cdot B$ có giá trị nguyên.",
+     "dapan": "$x\\in\\{4;5;9;25\\}$",
+     "loigiai": "$P=\\frac{x-5}{\\sqrt{x}-1}$. Nếu $x=5$ thì $P=0$ (nguyên). Nếu $x\\neq5$ thì $P\\neq0$, $P$ nguyên chỉ khi $\\sqrt{x}$ nguyên; khi đó $P=\\sqrt{x}+1-\\frac{4}{\\sqrt{x}-1}$ nên $\\sqrt{x}-1\\in\\mathrm{U}(4)$, với $\\sqrt{x}>0$ ta được $\\sqrt{x}\\in\\{2;3;5\\}$, tức $x\\in\\{4;9;25\\}$."
+    }
+   ],
+   "can_duyet": false
+  },
+  {
+   "id": "TS10-HN-TK01-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Hai dung dịch $X$ và $Y$ có khối lượng tổng cộng là $220$ gam. Lượng muối trong dung dịch $X$ là $5$ gam, lượng muối trong dung dịch $Y$ là $4{,}8$ gam. Biết nồng độ muối trong dung dịch $X$ nhiều hơn nồng độ muối trong dung dịch $Y$ là $1\\%$. Tính khối lượng mỗi dung dịch nói trên.",
+   "hinh": "",
+   "dapan": "Dung dịch X: 100 g; dung dịch Y: 120 g",
+   "loigiai": "Gọi khối lượng dung dịch $X$, $Y$ lần lượt là $x,y$ (g), $x,y>0$. Ta có hệ $\\begin{cases}x+y=220\\\\ \\frac{5}{x}\\cdot100\\%-\\frac{4{,}8}{y}\\cdot100\\%=1\\%\\end{cases}$. Giải hệ được $x=100,\\ y=120$ (thỏa mãn).",
+   "can_duyet": false,
+   "ghi_chu": "Đề gốc chia Câu III (2,5 điểm) thành 3 ý; tách thành 3 bài để lọc theo dạng. Điểm từng ý do tôi chia tạm, bạn chỉnh theo thang điểm chính thức."
+  },
+  {
+   "id": "TS10-HN-TK01-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Hai đội công nhân cùng làm một công việc trong $24$ ngày thì xong. Nếu đội $A$ làm trong $10$ ngày và đội $B$ làm trong $12$ ngày thì được $\\dfrac{9}{20}$ công việc. Hỏi nếu làm một mình thì mỗi đội làm xong công việc đó trong bao lâu?",
+   "hinh": "",
+   "dapan": "Đội A: 40 ngày; đội B: 60 ngày",
+   "loigiai": "Gọi thời gian làm riêng xong việc của đội $A$, $B$ lần lượt là $x,y$ (ngày), $x,y>0$. Ta có hệ $\\begin{cases}\\frac1x+\\frac1y=\\frac1{24}\\\\ \\frac{10}{x}+\\frac{12}{y}=\\frac{9}{20}\\end{cases}$. Giải hệ được $x=40,\\ y=60$ (thỏa mãn).",
+   "can_duyet": false
+  },
+  {
+   "id": "TS10-HN-TK01-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D6",
+   "dang_phu": [
+    "L9-C6-D3"
+   ],
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $x^2-2(m-1)x-m-3=0$. Tìm $m$ để biểu thức $A=x_1^2+x_2^2$ đạt giá trị nhỏ nhất.",
+   "hinh": "",
+   "dapan": "$\\min A=\\frac{31}{4}$ khi $m=\\frac34$",
+   "loigiai": "$\\Delta'=(m-1)^2+m+3=\\left(m-\\frac12\\right)^2+\\frac{15}{4}>0$ nên phương trình luôn có hai nghiệm phân biệt. Theo Viète: $x_1+x_2=2(m-1)$, $x_1x_2=-m-3$. $A=(x_1+x_2)^2-2x_1x_2=4m^2-6m+10=\\left(2m-\\frac32\\right)^2+\\frac{31}{4}\\ge\\frac{31}{4}$. Dấu bằng khi $m=\\frac34$.",
+   "can_duyet": false
+  },
+  {
+   "id": "TS10-HN-TK01-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D4",
+   "dang_phu": [
+    "L9-C10-D1"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Mặt xung quanh của một thùng chứa nước hình trụ có chiều cao $1$ m được gõ từ một tấm tôn hình chữ nhật có kích thước $1\\text{ m}\\times 2\\text{ m}$ (như hình vẽ).",
+   "hinh": "hinh/hanoi-tk01-c4-1.png",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Hỏi thùng nước này đựng đầy được bao nhiêu mét khối nước? (Bỏ qua bề dày của thùng nước và lấy $\\pi=3{,}14$, làm tròn đến chữ số thập phân thứ hai.)",
+     "dapan": "$\\approx 0{,}32\\ \\text{m}^3$",
+     "loigiai": "Chu vi đáy $C=2$ m nên $R=\\frac{C}{2\\pi}=\\frac1\\pi$ (m). Thể tích $V=\\pi R^2h=\\pi\\cdot\\frac1{\\pi^2}\\cdot1=\\frac1\\pi\\approx0{,}32\\ \\text{m}^3$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Một em bé đánh rơi quả bóng bưởi xuống thùng tôn. Bên cạnh có một vòi nước cung cấp nước. Em bé cần lấy ít nhất bao nhiêu nước từ vòi để lấy được bóng bưởi một cách an toàn?",
+     "dapan": "$\\approx 0{,}32\\ \\text{m}^3$",
+     "loigiai": "Để lấy bóng, chỉ cần đổ đầy nước vào thùng tôn; bóng nổi lên miệng thùng nên lấy được an toàn."
+    }
+   ],
+   "can_duyet": true,
+   "ghi_chu": "Ý b có thể bị coi là mơ hồ (đề gốc dùng 'ít nhất'); đáp án theo file gốc."
+  },
+  {
+   "id": "TS10-HN-TK01-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho đường tròn $(O;R)$ có hai đường kính $AB$ và $CD$ vuông góc tại $O$. Gọi $I$ là trung điểm của $OB$. Tia $CI$ cắt đường tròn $(O)$ tại $E$. Gọi $H$ là giao điểm của $AE$ và $CD$.",
+   "hinh": "hinh/hanoi-tk01-c4-2.png",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh bốn điểm $O,I,E,D$ cùng thuộc một đường tròn.",
+     "dapan": "",
+     "loigiai": "Gọi $J$ là trung điểm của $ID$. $\\triangle IOD$ vuông tại $O$ nên $JO=JI=JD$. $\\triangle IED$ vuông tại $E$ nên $JI=JE=JD$. Suy ra $O,I,E,D$ cùng thuộc đường tròn tâm $J$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh: $AH\\cdot AE=2R^2$ và $OA=3\\cdot OH$.",
+     "dapan": "",
+     "loigiai": "$\\triangle AHO\\backsim\\triangle ABE$ (g.g) nên $AH\\cdot AE=AO\\cdot AB=R\\cdot2R=2R^2$ và $\\frac{OA}{OH}=\\frac{AE}{BE}$. $EI$ là phân giác của $\\widehat{AEB}$ nên $\\frac{AE}{BE}=\\frac{AI}{IB}=\\frac{\\frac32R}{\\frac12R}=3$. Vậy $OA=3\\cdot OH$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Gọi $K$ là hình chiếu của $O$ trên $BD$, $Q$ là giao điểm của $AD$ và $BE$. Chứng minh: $Q,K,I$ thẳng hàng.",
+     "dapan": "",
+     "loigiai": "Từ $OD=3\\cdot OH$ suy ra $HD=\\frac23OD$, nên $H$ là trọng tâm $\\triangle ABD$; $K$ là trung điểm $BD$ nên $A,H,K,E$ thẳng hàng. Do đó $K$ là trực tâm $\\triangle ABQ$, suy ra $KQ\\perp AB$. Mặt khác $KI\\parallel OD$ nên $KI\\perp AB$. Vậy $Q,K,I$ thẳng hàng."
+    }
+   ],
+   "can_duyet": true,
+   "ghi_chu": "Lời giải ý c trong file gốc chỉ là gợi ý ngắn; tôi viết lại cho đủ ý. Bạn nên đối chiếu với hình vẽ."
+  },
+  {
+   "id": "TS10-HN-TK01-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "diem": 0.5,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D4",
+   "dang_phu": [
+    "L7-C10-D3"
+   ],
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Người ta muốn chế tạo một chiếc hộp hình hộp chữ nhật có thể tích $500\\ \\text{cm}^3$, chiều cao của hộp là $2$ cm. Tìm kích thước đáy của hộp sao cho sử dụng ít vật liệu nhất.",
+   "hinh": "hinh/hanoi-tk01-c5.png",
+   "dapan": "Đáy là hình vuông cạnh $5\\sqrt{10}\\approx15{,}81$ cm (đáp án tôi tính lại; file gốc ghi $5\\sqrt5$ cm và $10\\sqrt5$ cm)",
+   "loigiai": "Gọi hai kích thước đáy là $a,b$ (cm), $ab=\\frac{500}{2}=250$. Diện tích toàn phần $S=2ab+2\\cdot2(a+b)=500+4(a+b)\\ge500+8\\sqrt{ab}=500+40\\sqrt{10}$. Dấu bằng khi $a=b=\\sqrt{250}=5\\sqrt{10}$.",
+   "can_duyet": true,
+   "ghi_chu": "CẦN DUYỆT: lời giải trong file gốc cho đáy $5\\sqrt5\\times10\\sqrt5$ nhưng biểu thức $S$ viết ở đó không đúng diện tích toàn phần của hộp. Tôi tính lại ra đáy hình vuông $5\\sqrt{10}$. Bạn kiểm tra rồi quyết định dùng đáp án nào."
+  }
+ ]
+}
