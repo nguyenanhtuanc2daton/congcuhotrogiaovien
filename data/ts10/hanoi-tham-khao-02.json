@@ -1,0 +1,296 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK02",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 02)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_02_TRUNG_THỊ_DUNG_đã_sửa_PB2.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK02-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk02-c1-bieudo.png",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C7-D2"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Biểu đồ cột kép ở Hình 30 biểu diễn số lượng học sinh tham gia giải thi đấu thể thao của một trường trung học cơ sở. Chọn ngẫu nhiên một học sinh tham gia giải thi đấu thể thao của trường đó.",
+   "bang": {
+    "tieu_de": [
+     "Khối",
+     "6",
+     "7",
+     "8",
+     "9"
+    ],
+    "hang": [
+     [
+      "Nam",
+      "7",
+      "9",
+      "9",
+      "9"
+     ],
+     [
+      "Nữ",
+      "9",
+      "7",
+      "8",
+      "8"
+     ]
+    ]
+   },
+   "y": [
+    {
+     "ma": "A",
+     "mucdo": "TH",
+     "noidung": "Tính xác suất của biến cố A: “Học sinh được chọn là nam”.",
+     "dapan": "$\\frac{17}{33}$",
+     "loigiai": "Tổng số học sinh: $16+16+17+17=66$. Số nam: $7+9+9+9=34$. $P(A)=\\frac{34}{66}=\\frac{17}{33}$."
+    },
+    {
+     "ma": "B",
+     "mucdo": "TH",
+     "noidung": "Tính xác suất của biến cố B: “Học sinh được chọn thuộc khối 6”.",
+     "dapan": "$\\frac{8}{33}$",
+     "loigiai": "Khối 6 có $16$ học sinh nên $P(B)=\\frac{16}{66}=\\frac{8}{33}$."
+    },
+    {
+     "ma": "C",
+     "mucdo": "TH",
+     "noidung": "Tính xác suất của biến cố C: “Học sinh được chọn là nữ và không thuộc khối 9”.",
+     "dapan": "$\\frac{4}{11}$ (tức $\\frac{12}{33}$)",
+     "loigiai": "Số học sinh nữ không thuộc khối 9: $9+7+8=24$. $P(C)=\\frac{24}{66}=\\frac{12}{33}=\\frac{4}{11}$."
+    }
+   ],
+   "ghi_chu": "Số liệu biểu đồ đã chuyển sang trường bang để đối chiếu với hình."
+  },
+  {
+   "id": "TS10-HN-TK02-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D1",
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Một hộp đựng $5$ tấm thẻ ghi số $1;2;3;4;5$. Rút ngẫu nhiên lần lượt hai tấm thẻ từ hộp, tấm thẻ rút ra lần đầu không trả lại vào hộp.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Phép thử và kết quả của phép thử là gì?",
+     "dapan": "",
+     "loigiai": "Phép thử: rút ngẫu nhiên lần lượt hai tấm thẻ, thẻ rút lần đầu không trả lại. Lần 1 có $5$ kết quả có thể, lần 2 có $4$ kết quả có thể."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Mô tả không gian mẫu của phép thử. Không gian mẫu có bao nhiêu phần tử?",
+     "dapan": "20 phần tử",
+     "loigiai": "Dùng cặp số $(x;y)$ ($x$: số ở thẻ lần 1, $y$: số ở thẻ lần 2, $x\\neq y$). Liệt kê được $20$ cặp, nên không gian mẫu có $20$ phần tử."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK02-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{\\sqrt{x}+3}{\\sqrt{x}+1}$ và $B=\\dfrac{\\sqrt{x}}{\\sqrt{x}-2}-\\dfrac{\\sqrt{x}+2}{3-\\sqrt{x}}-\\dfrac{x-3\\sqrt{x}+5}{x-5\\sqrt{x}+6}$ với $x\\ge0,\\ x\\neq4,\\ x\\neq9$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=25$.",
+     "dapan": "$A=\\frac43$",
+     "loigiai": "Thay $x=25$: $A=\\frac{5+3}{5+1}=\\frac43$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Rút gọn biểu thức $B$.",
+     "dapan": "$B=\\frac{\\sqrt{x}+3}{\\sqrt{x}-2}$",
+     "loigiai": "$B=\\frac{\\sqrt{x}(\\sqrt{x}-3)+(\\sqrt{x}+2)(\\sqrt{x}-2)-(x-3\\sqrt{x}+5)}{(\\sqrt{x}-2)(\\sqrt{x}-3)}=\\frac{x-9}{(\\sqrt{x}-2)(\\sqrt{x}-3)}=\\frac{\\sqrt{x}+3}{\\sqrt{x}-2}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Cho $P=A:B$. Tìm $x$ để $2P=2\\sqrt{x}-9$.",
+     "dapan": "$x=25$",
+     "loigiai": "$P=\\frac{\\sqrt{x}-2}{\\sqrt{x}+1}$. Phương trình $2(\\sqrt{x}-2)=(2\\sqrt{x}-9)(\\sqrt{x}+1)$ cho $2x-9\\sqrt{x}-5=0\\Leftrightarrow(2\\sqrt{x}+1)(\\sqrt{x}-5)=0$, nên $\\sqrt{x}=5$, $x=25$ (thỏa mãn)."
+    }
+   ],
+   "ghi_chu": "Trong file gốc, dòng khai triển của câu 3 bị lỗi dấu; tôi tính lại và đáp án vẫn là x = 25."
+  },
+  {
+   "id": "TS10-HN-TK02-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Tháng thứ nhất hai đội sản xuất được $1100$ sản phẩm. Sang tháng thứ hai, đội $I$ làm vượt mức $15\\%$ và đội $II$ làm vượt mức $20\\%$ so với tháng thứ nhất, vì vậy cả hai đội đã làm được $1295$ sản phẩm. Hỏi trong tháng thứ nhất mỗi đội làm được bao nhiêu sản phẩm?",
+   "dapan": "Đội I: 500 sản phẩm; đội II: 600 sản phẩm",
+   "loigiai": "Gọi số sản phẩm tháng thứ nhất của đội $I$, $II$ lần lượt là $x,y$. Ta có $\\begin{cases}x+y=1100\\\\1{,}15x+1{,}2y=1295\\end{cases}$. Giải hệ được $x=500$, $y=600$ (thỏa mãn)."
+  },
+  {
+   "id": "TS10-HN-TK02-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một cơ sở sản xuất lập kế hoạch làm $180$ sản phẩm trong một thời gian nhất định. Do cải tiến kĩ thuật, năng suất mỗi ngày tăng $3$ sản phẩm, vì thế không những hoàn thành sớm một ngày, mà còn vượt mức $18$ sản phẩm. Hỏi theo kế hoạch mỗi ngày phải sản xuất bao nhiêu sản phẩm?",
+   "dapan": "15 sản phẩm mỗi ngày",
+   "loigiai": "Gọi số sản phẩm làm mỗi ngày theo kế hoạch là $x$ ($x>0$). Thực tế làm $180+18=198$ sản phẩm, mỗi ngày $x+3$ sản phẩm. Ta có $\\frac{180}{x}-\\frac{198}{x+3}=1\\Leftrightarrow x^2+21x-540=0$, được $x=15$ (nhận), $x=-36$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK02-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Gọi $x_1,x_2$ là hai nghiệm của phương trình $x^2-4x-7=0$. Tính giá trị của biểu thức $T=\\dfrac{x_1}{x_2}+\\dfrac{x_2}{x_1}-2$.",
+   "dapan": "$T=-\\frac{44}{7}$",
+   "loigiai": "Vì $ac=-7<0$ nên phương trình có hai nghiệm phân biệt; theo Viète $x_1+x_2=4$, $x_1x_2=-7$. $T=\\frac{(x_1+x_2)^2-2x_1x_2}{x_1x_2}-2=\\frac{16+14}{-7}-2=-\\frac{44}{7}$."
+  },
+  {
+   "id": "TS10-HN-TK02-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D4",
+   "dang_phu": [
+    "L9-C10-D1"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Người ta thả một cục đá vào cốc thuỷ tinh hình trụ có chứa nước, đá chìm một phần xuống nước trong cốc. Hãy tính thể tích phần đá chìm trong nước của cục đá đó, biết diện tích đáy của cốc nước hình trụ là $16{,}5\\ \\text{cm}^2$ và nước dâng lên thêm $80\\ \\text{mm}$.",
+   "dapan": "$132\\ \\text{cm}^3$",
+   "loigiai": "Đổi $80\\text{ mm}=8\\text{ cm}$. Thể tích phần đá chìm bằng thể tích nước dâng lên: $16{,}5\\cdot8=132\\ \\text{cm}^3$."
+  },
+  {
+   "id": "TS10-HN-TK02-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk02-c4-2.png",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho đường tròn $(O)$ đường kính $AB$. Kẻ đường kính $CD$ vuông góc với $AB$. Lấy $M$ thuộc cung nhỏ $BC$, $AM$ cắt $CD$ tại $E$. Qua $D$ kẻ tiếp tuyến với $(O)$ cắt đường thẳng $BM$ tại $N$. Gọi $P$ là hình chiếu vuông góc của $B$ lên $DN$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh các điểm $M,N,D,E$ cùng thuộc một đường tròn.",
+     "dapan": "",
+     "loigiai": "$DN\\perp CD$ nên $\\widehat{EDN}=90^\\circ$; $\\widehat{AMB}=90^\\circ$ (góc nội tiếp chắn nửa đường tròn) nên $\\widehat{EMN}=90^\\circ$. Suy ra $D,M$ cùng nhìn $EN$ dưới góc vuông, nên $M,N,D,E$ thuộc đường tròn đường kính $EN$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh $EN\\parallel CB$.",
+     "dapan": "",
+     "loigiai": "Tứ giác $MNDE$ nội tiếp nên $\\widehat{EDM}=\\widehat{ENM}$; mà $\\widehat{EDM}=\\widehat{CBM}$ (cùng chắn cung $CM$). Suy ra $\\widehat{CBM}=\\widehat{ENM}$, hai góc ở vị trí so le trong nên $EN\\parallel CB$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Chứng minh $AM\\cdot BN=2R^2$ và tìm vị trí điểm $M$ trên cung nhỏ $BC$ để diện tích tam giác $BNC$ đạt giá trị lớn nhất.",
+     "dapan": "Vị trí M theo đáp án gốc: M trùng B (xem ghi chú)",
+     "loigiai": "$\\triangle AMB\\backsim\\triangle BPN$ (g.g) nên $\\frac{AM}{BP}=\\frac{AB}{BN}$, mà $OBPD$ là hình vuông nên $BP=R$. Vậy $AM\\cdot BN=BP\\cdot AB=R\\cdot2R=2R^2$. Phần cực trị: $S_{BNC}=\\frac12NK\\cdot BC$ với $NK=EF$ ($F,K$ là hình chiếu của $E,N$ trên $BC$); $EF$ lớn nhất khi $E\\equiv O$, tức $M\\equiv B$."
+    }
+   ],
+   "ghi_chu": "Ý c: đáp án gốc kết luận M trùng B, đây là vị trí đầu mút của cung nên cần duyệt lại cách hiểu 'cung nhỏ BC'."
+  },
+  {
+   "id": "TS10-HN-TK02-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D2",
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Người ta muốn làm một vườn rau có dạng hình chữ nhật $ABCD$ có diện tích $640\\ \\text{m}^2$. Để tạo thêm cảnh quan xung quanh đẹp hơn, người ta mở rộng thêm bốn phần diện tích để trồng hoa, tạo thành một đường tròn đi như hình vẽ, biết tâm hình tròn trùng với giao điểm hai đường chéo của hình chữ nhật. Khi đó chọn kích thước cạnh $ABCD$ như thế nào để diện tích của bốn phần đất trồng hoa nhỏ nhất?",
+   "dapan": "$AB=BC=8\\sqrt{10}$ m (hình vuông); diện tích đất trồng hoa nhỏ nhất là $320\\pi-640\\ \\text{m}^2$",
+   "loigiai": "Gọi hai cạnh là $x,y$ (m), $xy=640$. Bán kính đường tròn là $\\frac{\\sqrt{x^2+y^2}}{2}$ nên diện tích đất trồng hoa $S'=\\pi\\frac{x^2+y^2}{4}-xy\\ge\\pi\\frac{xy}{2}-xy=320\\pi-640$. Dấu bằng khi $x=y=8\\sqrt{10}$."
+  }
+ ]
+}

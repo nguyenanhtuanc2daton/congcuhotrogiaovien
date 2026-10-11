@@ -1,0 +1,269 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK05",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo số 5 tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_05_NGUYEN_THI_BINH_CDKT.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK05-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Một lớp học gồm $40$ học sinh được khảo sát về chiều cao và đưa ra bảng tần số ghép nhóm dưới đây. Tính tần số tương đối ghép nhóm và tần số ghép nhóm của nhóm $[170;180)$.",
+   "bang": {
+    "tieu_de": [
+     "Nhóm chiều cao",
+     "[140; 150)",
+     "[150; 160)",
+     "[160; 170)",
+     "[170; 180)"
+    ],
+    "hang": [
+     [
+      "Tần số",
+      "5",
+      "15",
+      "12",
+      "8"
+     ]
+    ]
+   },
+   "dapan": "Tần số ghép nhóm 8; tần số tương đối 20%",
+   "loigiai": "Nhóm $[170;180)$ có tần số $8$; tần số tương đối $\\frac{8}{40}=0{,}2=20\\%$."
+  },
+  {
+   "id": "TS10-HN-TK05-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Trong một trò chơi xúc xắc, một người chơi lần lượt gieo hai viên xúc xắc. Xác định không gian mẫu của phép thử và tính xác suất của biến cố B: “Hai viên xúc xắc đều ra số chẵn”.",
+   "dapan": "$P(B)=\\frac14$",
+   "loigiai": "Không gian mẫu gồm $36$ cặp $(i;j)$, $1\\le i,j\\le6$. Các kết quả thuận lợi: $(2;2),(2;4),(2;6),(4;2),(4;4),(4;6),(6;2),(6;4),(6;6)$, có $9$ kết quả. $P(B)=\\frac9{36}=\\frac14$."
+  },
+  {
+   "id": "TS10-HN-TK05-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{\\sqrt{x}-2}{\\sqrt{x}+9}$ và $B=\\dfrac{3\\sqrt{x}-6}{x-2\\sqrt{x}}+\\dfrac{\\sqrt{x}-3}{\\sqrt{x}}-\\dfrac{1}{2-\\sqrt{x}}$ với $x>0,\\ x\\neq4$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=1$.",
+     "dapan": "$A=-\\frac1{10}$",
+     "loigiai": "$A=\\frac{1-2}{1+9}=-\\frac1{10}$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Rút gọn biểu thức $B$.",
+     "dapan": "$B=\\frac{\\sqrt{x}-1}{\\sqrt{x}-2}$",
+     "loigiai": "$B=\\frac{3}{\\sqrt{x}}+\\frac{\\sqrt{x}-3}{\\sqrt{x}}+\\frac{1}{\\sqrt{x}-2}=1+\\frac1{\\sqrt{x}-2}=\\frac{\\sqrt{x}-1}{\\sqrt{x}-2}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Cho biểu thức $P=A\\cdot B$. Tìm $x$ là số nguyên lớn nhất để $P<\\frac12$.",
+     "dapan": "$x=120$",
+     "loigiai": "$P=\\frac{\\sqrt{x}-1}{\\sqrt{x}+9}<\\frac12\\Leftrightarrow\\sqrt{x}<11\\Leftrightarrow x<121$. Kết hợp điều kiện, số nguyên lớn nhất là $x=120$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK05-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Trong một đợt khuyến mãi, siêu thị giảm giá cho mặt hàng $A$ là $20\\%$ và mặt hàng $B$ là $15\\%$ so với giá niêm yết. Một khách hàng mua $2$ món hàng $A$ và $1$ món hàng $B$ phải trả số tiền là $362\\,000$ đồng. Nhưng nếu mua trong khung giờ vàng thì món hàng $A$ được giảm giá $30\\%$ còn món hàng $B$ được giảm giá $25\\%$ so với giá niêm yết. Một người mua $3$ món hàng $A$ và $2$ món hàng $B$ trong khung giờ vàng nên chỉ trả số tiền là $552\\,000$ đồng. Tính giá niêm yết của mỗi món hàng $A$ và $B$.",
+   "dapan": "Giá niêm yết: A là 120 000 đồng; B là 200 000 đồng",
+   "loigiai": "Gọi giá niêm yết của $A,B$ là $x,y$ (đồng). $\\begin{cases}2\\cdot0{,}8x+0{,}85y=362\\,000\\\\3\\cdot0{,}7x+2\\cdot0{,}75y=552\\,000\\end{cases}\\Rightarrow x=120\\,000,\\ y=200\\,000$."
+  },
+  {
+   "id": "TS10-HN-TK05-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một nhóm thợ thủ công lên kế hoạch làm $1200$ chiếc đèn lồng cho dịp lễ Trung Thu. Trong $12$ ngày đầu họ làm đúng theo kế hoạch. Những ngày còn lại do có thêm người làm cùng nên mỗi ngày họ đã làm vượt mức $20$ chiếc và hoàn thành kế hoạch sớm $2$ ngày. Theo kế hoạch, mỗi ngày nhóm thợ phải làm bao nhiêu chiếc đèn lồng?",
+   "dapan": "60 chiếc mỗi ngày",
+   "loigiai": "Gọi số đèn làm mỗi ngày theo kế hoạch là $x$ ($x\\in\\mathbb{N}^*$). Ta có $\\frac{1200}{x}=12+\\frac{1200-12x}{x+20}+2$. Giải được $x=60$ (nhận), $x=-200$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK05-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $4x^2-2x-1=0$ có $2$ nghiệm là $x_1,x_2$. Không giải phương trình, hãy tính giá trị của biểu thức $A=(x_1-x_2)^2-x_1\\left(x_1-\\dfrac12\\right)$.",
+   "dapan": "$A=1$",
+   "loigiai": "$\\Delta=20>0$; $x_1+x_2=\\frac12$, $x_1x_2=-\\frac14$. Vì $\\frac12=x_1+x_2$ nên $A=x_1^2-2x_1x_2+x_2^2-x_1(x_1-x_1-x_2)=x_1^2-x_1x_2+x_2^2=(x_1+x_2)^2-3x_1x_2=\\frac14+\\frac34=1$."
+  },
+  {
+   "id": "TS10-HN-TK05-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk05-c4-1.png",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D4",
+   "dang_phu": [
+    "L9-C10-D1"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VD",
+   "noidung": "Gạch ống là một sản phẩm được tạo hình thành từ đất sét và nước, được kết hợp lại với nhau theo một công thức chung hợp lý mới có thể tạo ra hỗn hợp dẻo quánh, sau đó chúng được đổ vào khuôn, rồi đem phơi hoặc sấy khô và cuối cùng là đưa vào lò nung. Một viên gạch hình hộp chữ nhật có kích thước dài $20$ cm, rộng $8$ cm, cao $8$ cm. Bên trong có bốn lỗ hình trụ bằng nhau có đường kính $2{,}5$ cm.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Tính thể tích đất sét để làm một viên gạch. (lấy $\\pi=3{,}14$)",
+     "dapan": "$\\approx887{,}5\\ \\text{cm}^3$",
+     "loigiai": "Thể tích hộp: $8\\cdot8\\cdot20=1280$. Một lỗ trụ: $V_1=3{,}14\\cdot\\left(\\frac{2{,}5}{2}\\right)^2\\cdot20=98{,}125$. $V_2=1280-4\\cdot98{,}125\\approx887{,}5\\ \\text{cm}^3$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Theo toán học, bác Ba muốn xây một ngôi nhà phải mua $10\\,000$ viên gạch, giá một viên là $1100$ đồng. Nhưng khi thi công, bác Ba phải mua dư $2\\%$ số gạch cần dùng để dự phòng cho hư hao. Tính số tiền bác Ba mua gạch để xây căn nhà.",
+     "dapan": "11 220 000 đồng",
+     "loigiai": "Số viên gạch mua: $10\\,000\\cdot1{,}02=10\\,200$. Số tiền: $10\\,200\\cdot1100=11\\,220\\,000$ đồng."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK05-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk05-c4-2.png",
+   "can_duyet": false,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho $\\triangle ABC$ ($AB<AC$) nội tiếp $(O;R)$ đường kính $BC$, trên cung nhỏ $AC$ lấy điểm $D$, $BD$ cắt $AC$ tại $E$, từ $E$ vẽ $EF\\perp BC$ tại $F$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh tứ giác $BAEF$ nội tiếp đường tròn.",
+     "dapan": "",
+     "loigiai": "$\\widehat{BFE}=90^\\circ$ ($EF\\perp BC$) và $\\widehat{BAE}=90^\\circ$ (góc nội tiếp chắn nửa đường tròn). Gọi $I$ là trung điểm $BE$ thì $IA=IE=IB=IF$, nên $B,A,E,F$ cùng thuộc một đường tròn."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh $DB$ là phân giác góc $ADF$.",
+     "dapan": "",
+     "loigiai": "Tứ giác $CDEF$ nội tiếp nên $\\widehat{EDF}=\\widehat{BCA}$ (cùng chắn cung $EF$); mà $\\widehat{BCA}=\\widehat{ADB}$ (cùng chắn cung $AB$). Suy ra $\\widehat{EDF}=\\widehat{ADB}$, vậy $DB$ là phân giác của $\\widehat{ADF}$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Gọi $M$ là trung điểm $EC$. Chứng minh $DM\\cdot CA=CF\\cdot CO$.",
+     "dapan": "",
+     "loigiai": "$\\triangle CDE$ vuông tại $D$, $DM$ là trung tuyến nên $CE=2DM$. $\\triangle CEF\\backsim\\triangle CBA$ (g.g) nên $\\frac{CE}{CB}=\\frac{CF}{CA}$, suy ra $CE\\cdot CA=CF\\cdot CB$. Thay $CE=2DM$, $CB=2CO$ ta được $DM\\cdot CA=CF\\cdot CO$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK05-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 0.5,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D1",
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Một công ty du lịch dự định tổ chức một tour du lịch xuyên Việt. Công ty dự định nếu giá tour là $2$ triệu đồng thì sẽ có khoảng $150$ người tham gia. Để kích thích mọi người tham gia, công ty sẽ quyết định giảm giá và cứ mỗi lần giảm giá tour $100$ nghìn đồng thì sẽ có thêm $20$ người tham gia. Hỏi công ty phải giảm giá tour là bao nhiêu để doanh thu từ tour xuyên Việt là lớn nhất.",
+   "dapan": "Theo đáp án gốc: giảm $6{,}25$ lần, giá tour $1\\,375\\,000$ đồng, doanh thu lớn nhất $378\\,125\\,000$ đồng",
+   "loigiai": "Sau $x$ lần giảm, giá tour là $2\\,000\\,000-100\\,000x$, số người là $150+20x$. Doanh thu $S=1\\,000\\,000(-2x^2+25x+300)\\le378\\,125\\,000$, dấu bằng khi $x=\\frac{25}{4}=6{,}25$.",
+   "ghi_chu": "CẦN DUYỆT: nếu 'số lần giảm' phải là số nguyên thì doanh thu lớn nhất là 378 000 000 đồng khi x = 6 (giá tour 1 400 000 đồng). Đáp án gốc cho x = 6,25."
+  }
+ ]
+}

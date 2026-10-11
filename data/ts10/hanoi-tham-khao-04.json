@@ -1,0 +1,301 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK04",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 04)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_04_LÊ_THANH_SƠN.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK04-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D1",
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Tại một trại hè thanh thiếu niên quốc tế, người ta tìm hiểu xem mỗi đại biểu tham dự có thể sử dụng được bao nhiêu ngoại ngữ. Kết quả được như bảng sau.",
+   "bang": {
+    "tieu_de": [
+     "Số ngoại ngữ",
+     "1",
+     "2",
+     "3",
+     "4",
+     "≥5"
+    ],
+    "hang": [
+     [
+      "Số đại biểu",
+      "84",
+      "64",
+      "24",
+      "16",
+      "12"
+     ]
+    ]
+   },
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Hãy lập bảng tần số tương đối từ bảng trên.",
+     "dapan": "Tần số tương đối: 42%; 32%; 12%; 8%; 6%",
+     "loigiai": "Tổng số đại biểu $200$; mỗi giá trị chia cho $200$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Hãy tính tỉ lệ phần trăm đại biểu sử dụng được ít nhất 2 ngoại ngữ.",
+     "dapan": "58%",
+     "loigiai": "$32\\%+12\\%+8\\%+6\\%=58\\%$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VD",
+     "noidung": "Tại trại hè thanh thiếu niên quốc tế tổ chức $1$ năm trước đó, có $54$ trong tổng số $220$ đại biểu tham dự có thể sử dụng được từ $3$ ngoại ngữ trở lên. Có ý kiến cho rằng “Tỉ lệ đại biểu sử dụng được $3$ ngoại ngữ trở lên có tăng giữa hai năm đó”. Ý kiến đó đúng hay sai? Giải thích.",
+     "dapan": "Đúng",
+     "loigiai": "Năm trước: $\\frac{54}{220}\\cdot100\\%\\approx24{,}5\\%$. Năm nay: $12\\%+8\\%+6\\%=26\\%>24{,}5\\%$ nên ý kiến đúng."
+    }
+   ],
+   "ghi_chu": "Hình/bảng gốc không có biểu đồ; bảng đã chuyển sang trường bang."
+  },
+  {
+   "id": "TS10-HN-TK04-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Một hộp có $20$ viên bi với kích thước và khối lượng như nhau. Bạn Ngân viết lên các viên bi đó các số $1,2,3,\\dots,20$; hai viên bi khác nhau thì viết hai số khác nhau. Xét phép thử “Lấy ngẫu nhiên một viên bi trong hộp”.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Liệt kê các kết quả có thể có đối với số xuất hiện trên viên bi được lấy ra.",
+     "dapan": "$1,2,3,\\dots,20$",
+     "loigiai": ""
+    },
+    {
+     "ma": "b",
+     "mucdo": "NB",
+     "noidung": "Viết không gian mẫu phép thử đó.",
+     "dapan": "$\\Omega=\\{1;2;3;\\dots;20\\}$",
+     "loigiai": ""
+    },
+    {
+     "ma": "c",
+     "mucdo": "TH",
+     "noidung": "Tính xác suất biến cố “Số xuất hiện trên viên bi được lấy ra chia $7$ dư $1$”.",
+     "dapan": "$\\frac{3}{20}$",
+     "loigiai": "Các số chia $7$ dư $1$ là $1,8,15$ nên có $3$ kết quả thuận lợi; $P=\\frac{3}{20}$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK04-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $N=\\dfrac{24}{\\sqrt{x}+6}$ và $M=\\dfrac{\\sqrt{x}}{\\sqrt{x}+6}+\\dfrac{1}{\\sqrt{x}-6}+\\dfrac{17\\sqrt{x}+30}{x-36}$ với $x\\ge0,\\ x\\neq36$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $N$ khi $x=9$.",
+     "dapan": "$N=\\frac83$",
+     "loigiai": "$N=\\frac{24}{3+6}=\\frac83$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Rút gọn biểu thức $M$.",
+     "dapan": "$M=\\frac{\\sqrt{x}+6}{\\sqrt{x}-6}$",
+     "loigiai": "Quy đồng: tử số $=\\sqrt{x}(\\sqrt{x}-6)+(\\sqrt{x}+6)+17\\sqrt{x}+30=x+12\\sqrt{x}+36=(\\sqrt{x}+6)^2$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Tìm số nguyên $x$ để biểu thức $L=N\\cdot M$ có giá trị nguyên lớn nhất.",
+     "dapan": "$x=49$ (khi đó $L=24$)",
+     "loigiai": "$L=\\frac{24}{\\sqrt{x}-6}$. $L$ nguyên và $x$ nguyên nên $\\sqrt{x}$ nguyên; $L$ lớn nhất khi $\\sqrt{x}-6=1$, tức $x=49$, $L=24$."
+    }
+   ],
+   "ghi_chu": "Lời giải gốc rút gọn bị lỗi hiển thị; tôi tự tính lại các kết quả và thấy khớp."
+  },
+  {
+   "id": "TS10-HN-TK04-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Có hai loại quặng chứa $75\\%$ sắt và $50\\%$ sắt. Tính khối lượng của mỗi loại quặng đem trộn để được $25$ tấn quặng chứa $66\\%$ sắt.",
+   "dapan": "16 tấn quặng 75% sắt và 9 tấn quặng 50% sắt",
+   "loigiai": "Gọi khối lượng quặng $75\\%$ và $50\\%$ lần lượt là $x,y$ (tấn). $\\begin{cases}x+y=25\\\\0{,}75x+0{,}5y=0{,}66\\cdot25\\end{cases}\\Rightarrow x=16,\\ y=9$."
+  },
+  {
+   "id": "TS10-HN-TK04-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Hai công nhân làm chung một công việc thì sau $5$ giờ $50$ phút sẽ hoàn xong công việc. Sau khi làm chung $5$ giờ thì người thứ nhất đi làm việc khác trong khi người thứ hai vẫn tiếp tục làm trong $2$ giờ nữa mới hoàn thành xong công việc. Hỏi nếu làm riêng thì mỗi người phải mất bao nhiêu thời gian để hoàn thành xong công việc?",
+   "dapan": "Người thứ nhất: 10 giờ; người thứ hai: 14 giờ",
+   "loigiai": "Đổi $5\\text{ h }50'=\\frac{35}{6}$ h. Gọi thời gian làm riêng của hai người là $x,y$ (giờ). $\\begin{cases}\\frac1x+\\frac1y=\\frac{6}{35}\\\\ \\frac5x+\\frac7y=1\\end{cases}\\Rightarrow x=10,\\ y=14$."
+  },
+  {
+   "id": "TS10-HN-TK04-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $3x^2-11x-15=0$ có $2$ nghiệm là $x_1,x_2$. Không giải phương trình, hãy tính giá trị của biểu thức $A=\\dfrac{3x_1}{x_2}+\\dfrac{3x_2}{x_1}$.",
+   "dapan": "$A=-\\frac{211}{15}$",
+   "loigiai": "Phương trình có $ac<0$ nên có hai nghiệm; theo Viète: $x_1+x_2=\\frac{11}3$, $x_1x_2=-5$. $A=\\frac{3(x_1^2+x_2^2)}{x_1x_2}=\\frac{3\\left[\\left(\\frac{11}3\\right)^2+10\\right]}{-5}=-\\frac{211}{15}$.",
+   "ghi_chu": "CẦN DUYỆT: hướng dẫn chấm trong file gốc ở ý này (dòng 'x2 = -9', 'm = -3 ± √13') thuộc một đề khác, không khớp với câu hỏi. Đáp án ở đây do tôi tự tính."
+  },
+  {
+   "id": "TS10-HN-TK04-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Đường ống nối hai bể cá trong một thủy cung có dạng một hình trụ, độ dài của đường ống là $30$ m. Dung tích của đường ống nói trên là $1800\\ \\text{m}^3$. Tính diện tích đáy của đường ống.",
+   "dapan": "$60\\ \\text{m}^2$",
+   "loigiai": "$S_{\\text{đáy}}=\\frac{V}{h}=\\frac{1800}{30}=60\\ \\text{m}^2$."
+  },
+  {
+   "id": "TS10-HN-TK04-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho tam giác $ABC$ nhọn ($AB<AC$) nội tiếp đường tròn $(O)$. Hai đường cao $BE$ và $CF$ của tam giác $ABC$ cắt nhau tại điểm $H$. Gọi $K$ là trung điểm $BC$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $\\triangle AEF$ đồng dạng $\\triangle ABC$.",
+     "dapan": "",
+     "loigiai": "$\\widehat{BEC}=\\widehat{CFB}=90^\\circ$ nên $BFEC$ nội tiếp, suy ra $\\widehat{AEF}=\\widehat{ABC}$; cùng góc $A$ chung nên $\\triangle AEF\\backsim\\triangle ABC$ (g.g)."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh đường thẳng $OA$ vuông góc với đường thẳng $EF$.",
+     "dapan": "",
+     "loigiai": "$\\widehat{AEF}=\\widehat{ABC}$; $\\widehat{EAO}=\\frac{180^\\circ-\\widehat{AOC}}{2}=90^\\circ-\\widehat{ABC}$. Suy ra $\\widehat{AEF}+\\widehat{EAO}=90^\\circ$, tức $AO\\perp EF$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Đường phân giác góc $FHB$ cắt $AB$ và $AC$ lần lượt tại $M$ và $N$. Gọi $I$ là trung điểm của $MN$, $J$ là trung điểm của $AH$. Chứng minh tứ giác $AFHI$ nội tiếp và ba điểm $I,J,K$ thẳng hàng.",
+     "dapan": "",
+     "loigiai": "$\\triangle AMN$ cân tại $A$ nên $AI\\perp MN$, suy ra $\\widehat{AFH}=\\widehat{AIH}=90^\\circ$ nên $AFHI$ nội tiếp. Tiếp theo $IJ\\parallel AO$ nên $IJ\\perp EF$ và $JE=JF$, $KE=KF$ nên $IJ$, $JK$ cùng là trung trực của $EF$, vậy $I,J,K$ thẳng hàng."
+    }
+   ],
+   "ghi_chu": "Đề gốc không có hình ở phần đề; chưa trích hình. Lời giải gốc ý c ở dạng barem ngắn gọn nên cần duyệt lại."
+  },
+  {
+   "id": "TS10-HN-TK04-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D4",
+   "dang_phu": [
+    "L7-C10-D2"
+   ],
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Cho hình lăng trụ đứng $ABCD.A'B'C'D'$ có đáy là hình thoi. Biết thể tích của nó là $1280\\ \\text{cm}^3$ và chiều cao là $20\\ \\text{cm}$. Tính giá trị nhỏ nhất của diện tích xung quanh.",
+   "dapan": "$640\\ \\text{cm}^2$",
+   "loigiai": "Đặt $AC=2m$, $BD=2n$. $S_{ABCD}=\\frac{1280}{20}=64$ nên $2mn=64$. $S_{xq}=4\\cdot AB\\cdot20=80AB$. $AB^2=m^2+n^2\\ge2mn=64\\Rightarrow AB\\ge8$. Vậy $\\min S_{xq}=80\\cdot8=640\\ \\text{cm}^2$ khi $m=n$ (đáy là hình vuông)."
+  }
+ ]
+}

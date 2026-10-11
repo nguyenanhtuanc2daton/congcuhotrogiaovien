@@ -1,0 +1,313 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK03",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 03)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_03_ĐẶNG-HƯƠNG-THUỶ.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK03-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk03-c1-bieudo.png",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D1",
+   "dang_phu": [
+    "L9-C7-D2"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Biểu đồ thống kê thời gian công tác (theo năm) của các y tá ở một phòng khám tư nhân ở Hà Nội.",
+   "bang": {
+    "tieu_de": [
+     "Số năm công tác",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5",
+     "6",
+     "7"
+    ],
+    "hang": [
+     [
+      "Số y tá",
+      "6",
+      "5",
+      "5",
+      "7",
+      "9",
+      "5",
+      "2"
+     ]
+    ]
+   },
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Các y tá của phòng khám có thời gian công tác nhận những giá trị nào? Tìm tần số mỗi giá trị đó.",
+     "dapan": "Giá trị $1;2;3;4;5;6;7$ với tần số $6;5;5;7;9;5;2$",
+     "loigiai": "Lập bảng tần số theo biểu đồ."
+    },
+    {
+     "ma": "b",
+     "mucdo": "NB",
+     "noidung": "Phòng khám có tổng bao nhiêu y tá?",
+     "dapan": "39 y tá",
+     "loigiai": "$6+5+5+7+9+5+2=39$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "TH",
+     "noidung": "Có bao nhiêu y tá đã công tác ở phòng khám ít nhất 3 năm?",
+     "dapan": "28 y tá",
+     "loigiai": "$5+7+9+5+2=28$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK03-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Nhóm học sinh tình nguyện khối 9 của một trường trung học cơ sở có 6 bạn, trong đó có 3 bạn nam là: Trung (lớp 9A); Quý (lớp 9A); Việt (lớp 9C); và 3 bạn nữ là: An (lớp 9A); Châu (lớp 9B); Hương (lớp 9D). Chọn ngẫu nhiên một bạn trong nhóm đó để tham gia hoạt động tình nguyện bên trường.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Liệt kê tất cả các kết quả có thể xảy ra trong phép thử trên. Có tất cả bao nhiêu kết quả có thể xảy ra.",
+     "dapan": "6 kết quả: Trung, Quý, Việt, An, Châu, Hương",
+     "loigiai": ""
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Tính xác suất của mỗi biến cố sau: A: “Bạn được chọn là bạn nữ”; B: “Bạn được chọn thuộc lớp 9A”.",
+     "dapan": "$P(A)=\\frac12$; $P(B)=\\frac12$",
+     "loigiai": "Có 3 kết quả thuận lợi cho A (An, Châu, Hương) nên $P(A)=\\frac36=\\frac12$. Có 3 kết quả thuận lợi cho B (Trung, Quý, An) nên $P(B)=\\frac36=\\frac12$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK03-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{x-7}{\\sqrt{x}}$ và $B=\\dfrac{1}{\\sqrt{x}+2}+\\dfrac{\\sqrt{x}}{2-\\sqrt{x}}+\\dfrac{2x-\\sqrt{x}+2}{x-4}$ với $x>0,\\ x\\neq4$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=9$.",
+     "dapan": "$A=\\frac23$",
+     "loigiai": "$A=\\frac{9-7}{3}=\\frac23$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Rút gọn biểu thức $B$.",
+     "dapan": "$B=\\frac{\\sqrt{x}}{\\sqrt{x}+2}$",
+     "loigiai": "$B=\\frac{(\\sqrt{x}-2)-\\sqrt{x}(\\sqrt{x}+2)+2x-\\sqrt{x}+2}{(\\sqrt{x}+2)(\\sqrt{x}-2)}=\\frac{x-2\\sqrt{x}}{(\\sqrt{x}+2)(\\sqrt{x}-2)}=\\frac{\\sqrt{x}}{\\sqrt{x}+2}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Tìm tất cả các giá trị nguyên của $x$ để biểu thức $P=A\\cdot B$ có giá trị nguyên.",
+     "dapan": "$x\\in\\{1;7\\}$",
+     "loigiai": "$P=\\frac{x-7}{\\sqrt{x}+2}$. Nếu $x=7$ thì $P=0$. Nếu $P\\neq0$ thì cần $\\sqrt{x}\\in\\mathbb{Z}$ và $P=\\sqrt{x}-2-\\frac{3}{\\sqrt{x}+2}$, nên $\\sqrt{x}+2\\in\\mathrm{U}(3)$, với $\\sqrt{x}+2\\ge2$ ta được $\\sqrt{x}+2=3$, $x=1$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK03-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Khoảng cách giữa hai bến sông $C$ và $D$ là $60$ km. Một ca nô đi xuôi dòng từ bến $C$ đến bến $D$, nghỉ $36$ phút rồi đi ngược dòng quay lại bến $C$. Kể từ lúc khởi hành đến khi về tới bến $C$ hết tất cả $7$ giờ. Tìm vận tốc của ca nô trong nước yên lặng, biết rằng vận tốc nước chảy là $5$ km/h.",
+   "dapan": "20 km/h",
+   "loigiai": "Gọi vận tốc ca nô trong nước yên lặng là $x$ (km/h), $x>5$. Ta có $\\frac{60}{x+5}+\\frac{60}{x-5}+\\frac35=7$, tức $32x^2-600x-800=0\\Leftrightarrow(x-20)(4x+5)=0$, được $x=20$ (nhận), $x=-\\frac54$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK03-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L8-C7",
+   "dang": "L8-C7-D4",
+   "dang_phu": [
+    "L9-C2-D3"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Một nhà may $A$ sản xuất một lô váy $700$ chiếc với tổng số vốn ban đầu là $40$ triệu đồng và giá bán ra mỗi chiếc váy là $250\\,000$ đồng. Khi đó gọi $X$ (đồng) là số tiền lời (hoặc lỗ) của nhà may $A$ thu được khi bán $t$ chiếc váy.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Thiết lập biểu thức của $X$ theo $t$.",
+     "dapan": "$X=250\\,000t-40\\,000\\,000$ (đồng)",
+     "loigiai": "Doanh thu $250\\,000t$ trừ vốn $40\\,000\\,000$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Hỏi phải bán được ít nhất bao nhiêu chiếc váy thì nhà may bắt đầu có lời?",
+     "dapan": "161 chiếc",
+     "loigiai": "Có lời khi $X>0\\Leftrightarrow250\\,000t>40\\,000\\,000\\Leftrightarrow t>160$, nên cần bán ít nhất $161$ chiếc."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK03-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D6",
+   "dang_phu": [
+    "L9-C6-D3"
+   ],
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $x^2+(m+1)x-3=0$. Tìm giá trị của $m$ để phương trình có hai nghiệm $x_1;x_2$ thỏa mãn $\\dfrac1{x_1}+\\dfrac1{x_2}=2$.",
+   "dapan": "$m=5$",
+   "loigiai": "$\\Delta=(m+1)^2+12>0$ với mọi $m$. Theo Viète: $x_1+x_2=-(m+1)$, $x_1x_2=-3$. $\\frac1{x_1}+\\frac1{x_2}=\\frac{x_1+x_2}{x_1x_2}=\\frac{m+1}{3}=2\\Rightarrow m=5$."
+  },
+  {
+   "id": "TS10-HN-TK03-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D2",
+   "dang_ts10": "TS10-D6",
+   "mucdo": "NB",
+   "noidung": "Một hình nón có độ dài đường sinh bằng $50$ cm và bán kính đáy bằng $30$ cm. Tính thể tích của hình nón đó (lấy $\\pi\\approx3{,}14$).",
+   "dapan": "$V\\approx37\\,680\\ \\text{cm}^3$",
+   "loigiai": "Chiều cao $h=\\sqrt{50^2-30^2}=40$ cm. $V=\\frac13\\pi R^2h\\approx\\frac13\\cdot3{,}14\\cdot30^2\\cdot40=37\\,680\\ \\text{cm}^3$."
+  },
+  {
+   "id": "TS10-HN-TK03-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk03-c4-2.png",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho $\\triangle ABC$ có ba góc nhọn ($AB<AC$). Ba đường cao $AD,BE,CF$ cắt nhau tại $H$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh tứ giác $BFEC$ nội tiếp. Xác định tâm $O$ của đường tròn ngoại tiếp tứ giác $BFEC$.",
+     "dapan": "$O$ là trung điểm của $BC$",
+     "loigiai": "$\\widehat{BFC}=\\widehat{BEC}=90^\\circ$ nên $F,E$ thuộc đường tròn đường kính $BC$, suy ra $BFEC$ nội tiếp và tâm $O$ là trung điểm $BC$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Gọi $I$ là trung điểm của $AH$. Chứng minh $IE$ là tiếp tuyến của đường tròn $(O)$.",
+     "dapan": "",
+     "loigiai": "$\\triangle AEH$ vuông tại $E$, $EI$ là trung tuyến nên $IE=IH$, suy ra $\\widehat{IEH}=\\widehat{IHE}=\\widehat{BHD}$. $\\triangle OEB$ cân tại $O$ nên $\\widehat{OBE}=\\widehat{OEB}$. Mà $\\widehat{BHD}+\\widehat{OBE}=90^\\circ$ nên $\\widehat{OEI}=90^\\circ$, tức $OE\\perp EI$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Vẽ $CI$ cắt đường tròn $(O)$ tại $M$ ($M$ khác $C$), $EF$ cắt $AD$ tại $K$. Chứng minh ba điểm $B,K,M$ thẳng hàng.",
+     "dapan": "",
+     "loigiai": "$\\triangle IEK\\backsim\\triangle IDE$ (g.g) nên $ID\\cdot IK=IE^2=IM\\cdot IC$, suy ra $\\triangle IMK\\backsim\\triangle IDC$ và $\\widehat{KMI}=\\widehat{CDI}=90^\\circ$, tức $KM\\perp IC$. Mặt khác $BM\\perp IC$ ($\\widehat{BMC}=90^\\circ$). Vậy $B,M,K$ thẳng hàng."
+    }
+   ],
+   "ghi_chu": "Đề gốc không kèm hình ở phần đề; hình lấy từ phần lời giải. Ý c lời giải gốc có chỗ 'bạn đọc tự chứng minh' (IM·IC = IE²), cần duyệt."
+  },
+  {
+   "id": "TS10-HN-TK03-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk03-c5.png",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D1",
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Một mảnh đất hình vuông $ABCD$ cạnh $30$ m. Người ta xây dựng một vườn hoa dạng hình vuông $EFGH$ có các đỉnh $E,F,G,H$ thuộc các cạnh của hình vuông $ABCD$ (hình vẽ). Xác định vị trí điểm $E$ trên cạnh $AB$ để diện tích vườn hoa nhỏ nhất.",
+   "dapan": "$AE=15$ m; diện tích nhỏ nhất $450\\ \\text{m}^2$",
+   "loigiai": "Đặt $AE=x$ ($0\\le x\\le30$). $S_{EFGH}=900-4\\cdot\\frac12x(30-x)=2x^2-60x+900=2(x-15)^2+450\\ge450$. Dấu bằng khi $x=15$."
+  }
+ ]
+}
