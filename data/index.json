@@ -1,0 +1,11 @@
+{
+ "ghi_chu": "Danh sách dự phòng. App tự tìm file mới trong data/ qua GitHub; nếu không tìm được thì dùng danh sách này. Khi thêm file đề mới, thêm đường dẫn (tính từ data/) vào đây.",
+ "files": [
+  "ts10/hanoi-tham-khao-01.json",
+  "ts10/hanoi-tham-khao-02.json",
+  "ts10/hanoi-tham-khao-03.json",
+  "ts10/hanoi-tham-khao-04.json",
+  "ts10/hanoi-tham-khao-05.json",
+  "ts10/hanoi-tham-khao-06.json"
+ ]
+}
