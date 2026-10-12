@@ -301,7 +301,7 @@
     '<div class="bar"><button class="sec sm" id="lbgAdd" type="button">➕ Thêm môn</button></div>' +
     '<div class="bar"><button class="sm" id="lbgPick" type="button">📤 Chọn file Excel (.xlsx)</button>' +
     '<button class="green sm" id="lbgDl" type="button" disabled>📥 Tải file Excel mới</button>' +
-    '<input type="file" id="lbgFile" accept=".xlsx" hidden></div>' +
+    '<input type="file" id="lbgFile" hidden></div>' +
     '<div id="lbgMsg" class="note"></div>' +
     '<div id="lbgOut"></div>';
 
@@ -376,6 +376,7 @@
   $('lbgPick').addEventListener('click', function () { $('lbgFile').click(); });
   $('lbgFile').addEventListener('change', async function () {
     var f = this.files && this.files[0]; if (!f) return;
+    if (!/\.xlsx$/i.test(f.name)) { this.value = ''; $('lbgMsg').textContent = '❌ Hãy chọn file có đuôi .xlsx (nếu là .xls, mở bằng Excel và “Lưu thành” .xlsx).'; return; }
     state.name = f.name; state.buf = await f.arrayBuffer(); this.value = '';
     run();
   });

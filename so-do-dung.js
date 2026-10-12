@@ -191,7 +191,7 @@
   exp.title = 'Xuất file "Sổ đồ dùng.xlsx", mỗi tuần đã nạp là một trang tính';
   exp.textContent = '📘 Xuất Excel sổ đồ dùng';
   var fi = document.createElement('input');
-  fi.type = 'file'; fi.id = 'sddFile'; fi.accept = '.xlsx'; fi.multiple = true; fi.hidden = true;
+  fi.type = 'file'; fi.id = 'sddFile'; fi.multiple = true; fi.hidden = true;
   bar.appendChild(load); bar.appendChild(exp); bar.appendChild(fi);
   var msg = document.createElement('div'); msg.id = 'sddMsg'; msg.className = 'note';
   var out = document.createElement('div'); out.id = 'sddOut';
