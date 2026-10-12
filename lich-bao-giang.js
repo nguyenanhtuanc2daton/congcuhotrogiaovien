@@ -1,7 +1,8 @@
 /* Lịch báo giảng tự động
  * - Đọc file Excel lịch báo giảng (.xlsx), chuyển sang tuần kế tiếp:
  *     "Tuần 5 (05/10/2026 - 10/10/2026)" -> "Tuần 6 (12/10/2026 - 17/10/2026)"
- * - Số tiết (PPCT) của môn Toán cộng thêm N, môn Công nghệ cộng thêm M.
+ * - Số tiết (PPCT) của TỪNG MÔN được chọn cộng thêm một số tiết tuỳ ý (có thể là số âm).
+ *   Các môn hỗ trợ: xem SUBJECTS bên dưới (Toán, Công nghệ, Ngữ văn, LSĐL, Ngoại ngữ, ...).
  * - Sửa trực tiếp XML trong file .xlsx (JSZip) nên giữ nguyên toàn bộ định dạng, ô gộp, khung viền...
  * Cần: JSZip (đã nạp trong index.html). */
 (function () {
@@ -64,22 +65,40 @@
   }
 
   /* ---------- xử lý chính ---------- */
-  /* opts: { toan, cn, toanHT } = số tiết cộng thêm; luôn chuyển 1 tuần.
+  /* opts: { inc: { <key môn>: số tiết cộng thêm } }; luôn chuyển 1 tuần. Môn nào không có trong opts.inc thì giữ nguyên.
    * Ưu tiên nhận cột theo tiêu đề bảng (Môn học / Lớp học / Tiết theo PPCT); nếu không có thì dò theo vị trí. */
+  /* Danh sách môn: key, nhãn hiển thị, và mẫu nhận diện tên môn trong file Excel (đã chuẩn hoá chữ thường, bỏ số khối cuối như "Toán 8").
+   * Muốn nhận thêm cách ghi khác của một môn thì thêm vào biểu thức "re" của môn đó. */
+  var SUBJECTS = [
+    { key: 'toan',      label: 'Toán',               re: /^toán$/ },
+    { key: 'toanHT',    label: 'Toán (HT)',          re: /^toán\s*\(\s*ht\s*\)$/ },
+    { key: 'cn',        label: 'Công nghệ',          re: /^công nghệ$/ },
+    { key: 'nguvan',    label: 'Ngữ văn',            re: /^ngữ văn$/ },
+    { key: 'lsdl',      label: 'LSĐL',               re: /^(lsđl|ls\s*[-&,.]\s*đl|ls\s*(và|&)\s*đl|lịch sử\s*(và|&)\s*địa l[íý])$/ },
+    { key: 'ngoaingu',  label: 'Ngoại ngữ',          re: /^(ngoại ngữ|ngoại ngữ 1)$/ },
+    { key: 'nghethuat', label: 'Nghệ thuật',         re: /^nghệ thuật$/ },
+    { key: 'tinhoc',    label: 'Tin học',            re: /^tin học$/ },
+    { key: 'khtn',      label: 'KHTN',               re: /^(khtn|khoa học tự nhiên)$/ },
+    { key: 'gdcd',      label: 'GDCD',               re: /^(gdcd|giáo dục công dân)$/ },
+    { key: 'gddp',      label: 'GDĐP',               re: /^(gdđp|giáo dục địa phương)$/ },
+    { key: 'hdtn',      label: 'HĐTN',               re: /^(hđtn|hoạt động trải nghiệm.*)$/ },
+    { key: 'gdtc',      label: 'Giáo dục thể chất',  re: /^(giáo dục thể chất|gdtc)$/ }
+  ];
+  var LABEL = {};
+  SUBJECTS.forEach(function (x) { LABEL[x.key] = x.label; });
   function subjectOf(text) {
-    var n = norm(text);
-    if (/^toán(\s+\d+)?$/.test(n)) return 'toan';
-    if (/^công nghệ(\s+\d+)?$/.test(n)) return 'cn';
-    if (/^toán\s*\(\s*ht\s*\)$/.test(n)) return 'toanHT';
+    var n = norm(text).replace(/\s+\d+$/, ''); /* "Toán 8" -> "toán" */
+    for (var i = 0; i < SUBJECTS.length; i++) if (SUBJECTS[i].re.test(n)) return SUBJECTS[i].key;
     return '';
   }
   /* Đại số / Hình học có bộ đếm PPCT riêng, số tiết mỗi tuần khác nhau => không tự cộng, chỉ cảnh báo */
   function isOtherMath(text) { return /^(đại số|hình học)(\s+\d+)?$/.test(norm(text)); }
-  var LABEL = { toan: 'Toán', cn: 'Công nghệ', toanHT: 'Toán (HT)' };
   /* cộng thêm n vào mọi số trong ô PPCT, giữ nguyên dấu phân cách: "17,18" -> "21,22" */
   function bump(text, n) {
     if (!/^[\d\s,;\-–]*\d[\d\s,;\-–]*$/.test(text)) return null;
-    return text.replace(/\d+/g, function (d) { return String(parseInt(d, 10) + n); });
+    var bad = false;
+    var out = text.replace(/\d+/g, function (d) { var v = parseInt(d, 10) + n; if (v < 0) bad = true; return String(v); });
+    return bad ? false : out;
   }
 
   async function process(buf, opts) {
@@ -158,6 +177,7 @@
     }
     var anyHdr = sheets.some(function (S) { return !!S.hdr; });
 
+    var inc = (opts && opts.inc) || {}, skipped = {};
     var changes = [], warnings = [], notes = [], titleSeen = 0, firstTitle = null, siDone = {};
 
     /* ghi giá trị mới vào ô */
@@ -197,14 +217,16 @@
 
       /* 2) số tiết theo môn */
       function handle(kind, subjCell, ppct, cls) {
-        var inc = opts[kind] || 0;
+        if (!Object.prototype.hasOwnProperty.call(inc, kind)) { skipped[kind] = true; return; }
+        var add = inc[kind] || 0;
         if (!ppct || !String(ppct.v).trim()) {
           warnings.push(S.name + '!' + (ppct ? ppct.ref : subjCell.ref) + ': dòng ' + LABEL[kind] + (cls ? ' ' + cls : '') + ' chưa có số tiết PPCT, bỏ qua.');
           return;
         }
-        var oldT = ppct.v.trim(), neu = bump(oldT, inc);
+        var oldT = ppct.v.trim(), neu = bump(oldT, add);
+        if (neu === false) { warnings.push(S.name + '!' + ppct.ref + ': ' + LABEL[kind] + (cls ? ' ' + cls : '') + ' = ' + oldT + ' cộng ' + add + ' sẽ ra số âm, giữ nguyên.'); return; }
         if (neu === null) { warnings.push(S.name + '!' + ppct.ref + ': "' + oldT + '" không phải số tiết, giữ nguyên.'); return; }
-        if (!inc) { notes.push(S.name + '!' + ppct.ref + ': ' + LABEL[kind] + (cls ? ' ' + cls : '') + ' = ' + oldT + ' (giữ nguyên, cộng thêm 0)'); return; }
+        if (!add) { notes.push(S.name + '!' + ppct.ref + ': ' + LABEL[kind] + (cls ? ' ' + cls : '') + ' = ' + oldT + ' (giữ nguyên, cộng thêm 0)'); return; }
         if (ppct.hasF) { warnings.push(S.name + '!' + ppct.ref + ': số tiết là công thức, không sửa.'); return; }
         changes.push({ kind: LABEL[kind], sheet: S.name, ref: ppct.ref, info: cls || '', old: oldT, neu: neu });
         if (ppct.t === 'n' && /^\d+$/.test(neu)) { ppct.vEl.textContent = neu; S.dirty = true; }
@@ -250,7 +272,9 @@
     }
 
     if (!titleSeen) warnings.unshift('Không tìm thấy dòng "Tuần … (dd/mm/yyyy - dd/mm/yyyy)" trong file.');
-    if (!changes.some(function (c) { return c.kind !== 'Tuần'; })) warnings.push('Không tìm thấy dòng môn Toán / Công nghệ có số tiết.');
+    if (!changes.some(function (c) { return c.kind !== 'Tuần'; })) warnings.push('Không tìm thấy dòng môn nào trong danh sách đã chọn có số tiết để cộng.');
+    var sk = Object.keys(skipped).map(function (k) { return LABEL[k]; });
+    if (sk.length) notes.push('File có môn ' + sk.join(', ') + ' nhưng bạn chưa thêm môn này vào danh sách cộng tiết nên giữ nguyên.');
 
     var out = await zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     return { out: out, changes: changes, warnings: warnings, notes: notes, title: firstTitle };
@@ -271,12 +295,10 @@
 
   root.innerHTML =
     '<h2>📅 Lịch báo giảng tự động</h2>' +
-    '<div class="note">Chọn file Excel lịch báo giảng của tuần hiện tại. Công cụ tự đổi dòng <b>Tuần … (từ ngày - đến ngày)</b> sang tuần kế tiếp, cộng số tiết PPCT cho môn Toán và Công nghệ (ô có nhiều tiết như “17,18” thì cộng cho từng số), giữ nguyên mọi thông tin và định dạng khác rồi xuất file Excel mới.</div>' +
-    '<div class="cfg">' +
-    '<div><label for="lbgCn">Công nghệ cộng thêm (tiết)</label><input type="number" id="lbgCn" value="1" min="0" step="1"></div>' +
-    '<div><label for="lbgToan">Toán cộng thêm (tiết)</label><input type="number" id="lbgToan" value="4" min="0" step="1"></div>' +
-    '<div><label for="lbgHt" title="Dòng môn ghi là Toán (HT) có bộ đếm tiết riêng">Toán học thêm (HT) cộng thêm (tiết)</label><input type="number" id="lbgHt" value="1" min="0" step="1"></div>' +
-    '</div>' +
+    '<div class="note">Chọn file Excel lịch báo giảng của tuần hiện tại. Công cụ tự đổi dòng <b>Tuần … (từ ngày - đến ngày)</b> sang tuần kế tiếp, cộng số tiết PPCT cho <b>các môn bạn chọn bên dưới</b> (mỗi môn một số tiết riêng, có thể nhập số âm; ô có nhiều tiết như “17,18” thì cộng cho từng số), giữ nguyên mọi thông tin và định dạng khác rồi xuất file Excel mới.</div>' +
+    '<div class="note" style="margin-top:6px"><b>Môn cần cộng tiết:</b></div>' +
+    '<div id="lbgRows"></div>' +
+    '<div class="bar"><button class="sec sm" id="lbgAdd" type="button">➕ Thêm môn</button></div>' +
     '<div class="bar"><button class="sm" id="lbgPick" type="button">📤 Chọn file Excel (.xlsx)</button>' +
     '<button class="green sm" id="lbgDl" type="button" disabled>📥 Tải file Excel mới</button>' +
     '<input type="file" id="lbgFile" accept=".xlsx" hidden></div>' +
@@ -288,8 +310,38 @@
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
+  /* ----- danh sách môn + số tiết cộng thêm ----- */
+  var STORE = 'lbgRows.v2';
+  var DEFAULT_ROWS = [{ key: 'cn', n: 1 }, { key: 'toan', n: 4 }, { key: 'toanHT', n: 1 }];
+  var rowsData = loadRows();
+
+  function loadRows() {
+    try {
+      var j = JSON.parse(localStorage.getItem(STORE) || 'null');
+      if (Array.isArray(j) && j.every(function (r) { return r && LABEL[r.key] && typeof r.n === 'number' && isFinite(r.n); })) return j;
+    } catch (e) { /* bỏ qua, dùng mặc định */ }
+    return DEFAULT_ROWS.map(function (r) { return { key: r.key, n: r.n }; });
+  }
+  function saveRows() { try { localStorage.setItem(STORE, JSON.stringify(rowsData)); } catch (e) { /* bỏ qua */ } }
+
+  function renderRows() {
+    var used = {}; rowsData.forEach(function (r) { used[r.key] = true; });
+    $('lbgRows').innerHTML = rowsData.map(function (r, i) {
+      var optsHtml = SUBJECTS.map(function (x) {
+        return '<option value="' + x.key + '"' + (x.key === r.key ? ' selected' : '') + (used[x.key] && x.key !== r.key ? ' disabled' : '') + '>' + esc(x.label) + '</option>';
+      }).join('');
+      return '<div class="bar" data-i="' + i + '" style="align-items:center">' +
+        '<select class="lbgSub" style="min-width:170px">' + optsHtml + '</select>' +
+        '<label>cộng thêm <input type="number" class="lbgN" value="' + r.n + '" step="1" style="width:80px"> tiết</label>' +
+        '<button class="sec sm lbgDel" type="button" title="Xoá môn này">🗑</button></div>';
+    }).join('') || '<div class="note">Chưa chọn môn nào — bấm “Thêm môn”. Chỉ đổi tuần, không cộng tiết.</div>';
+    $('lbgAdd').disabled = rowsData.length >= SUBJECTS.length;
+  }
+
   function opts() {
-    return { toan: Math.max(0, parseInt($('lbgToan').value, 10) || 0), cn: Math.max(0, parseInt($('lbgCn').value, 10) || 0), toanHT: Math.max(0, parseInt($('lbgHt').value, 10) || 0) };
+    var inc = {};
+    rowsData.forEach(function (r) { inc[r.key] = Math.trunc(r.n) || 0; });
+    return { inc: inc };
   }
 
   var runSeq = 0;
@@ -306,7 +358,8 @@
         return '<tr><td>' + esc(c.kind) + '</td><td>' + esc(c.sheet) + '</td><td>' + esc(c.ref) + '</td><td>' + esc(c.info) + '</td><td>' + esc(c.old) + '</td><td>' + esc(c.neu) + '</td></tr>';
       }).join('');
       var o = opts();
-      $('lbgMsg').innerHTML = (r.changes.length ? '✅ Đã chuẩn bị ' + r.changes.length + ' thay đổi (Toán +' + o.toan + ', Công nghệ +' + o.cn + ', Toán (HT) +' + o.toanHT + '). Kiểm tra bảng dưới rồi bấm “Tải file Excel mới”.' : '⚠️ Không có thay đổi nào.') +
+      var sum = rowsData.map(function (r) { return LABEL[r.key] + ' ' + (r.n > 0 ? '+' : '') + (Math.trunc(r.n) || 0); }).join(', ');
+      $('lbgMsg').innerHTML = (r.changes.length ? '✅ Đã chuẩn bị ' + r.changes.length + ' thay đổi' + (sum ? ' (' + esc(sum) + ')' : '') + '. Kiểm tra bảng dưới rồi bấm “Tải file Excel mới”.' : '⚠️ Không có thay đổi nào.') +
         (r.warnings.length ? '<br>⚠️ ' + r.warnings.map(esc).join('<br>⚠️ ') : '') +
         (r.notes.length ? '<br>ℹ️ ' + r.notes.map(esc).join('<br>ℹ️ ') : '');
       $('lbgOut').innerHTML = r.changes.length ?
@@ -326,9 +379,30 @@
     state.name = f.name; state.buf = await f.arrayBuffer(); this.value = '';
     run();
   });
-  $('lbgToan').addEventListener('input', run);
-  $('lbgCn').addEventListener('input', run);
-  $('lbgHt').addEventListener('input', run);
+  $('lbgRows').addEventListener('input', function (e) {
+    if (!e.target.classList.contains('lbgN')) return;
+    var i = +e.target.closest('[data-i]').getAttribute('data-i');
+    rowsData[i].n = parseInt(e.target.value, 10) || 0;
+    saveRows(); run();
+  });
+  $('lbgRows').addEventListener('change', function (e) {
+    if (!e.target.classList.contains('lbgSub')) return;
+    var i = +e.target.closest('[data-i]').getAttribute('data-i');
+    rowsData[i].key = e.target.value;
+    saveRows(); renderRows(); run();
+  });
+  $('lbgRows').addEventListener('click', function (e) {
+    var b = e.target.closest('.lbgDel'); if (!b) return;
+    rowsData.splice(+b.closest('[data-i]').getAttribute('data-i'), 1);
+    saveRows(); renderRows(); run();
+  });
+  $('lbgAdd').addEventListener('click', function () {
+    var used = {}; rowsData.forEach(function (r) { used[r.key] = true; });
+    var nx = SUBJECTS.filter(function (x) { return !used[x.key]; })[0]; if (!nx) return;
+    rowsData.push({ key: nx.key, n: 0 });
+    saveRows(); renderRows(); run();
+  });
+  renderRows();
   $('lbgDl').addEventListener('click', function () {
     if (!state.result) return;
     var blob = new Blob([state.result.out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
