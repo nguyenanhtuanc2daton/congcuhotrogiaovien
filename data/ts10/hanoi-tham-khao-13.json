@@ -1,0 +1,258 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK13",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 13)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI__13__Đinh_Thị_Hằng.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK13-C1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D1",
+   "dang_phu": [
+    "L9-C8-D2"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Viết ngẫu nhiên một số tự nhiên có hai chữ số.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Viết tập hợp $\\Omega$ tất cả các kết quả có thể xảy ra đối với số tự nhiên được viết ra.",
+     "dapan": "$\\Omega=\\{10;11;12;\\dots;98;99\\}$ ($90$ phần tử)",
+     "loigiai": ""
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Xác định kết quả thuận lợi cho biến cố $B$: “Số tự nhiên được viết ra chia hết cho $11$”.",
+     "dapan": "$11;22;33;44;55;66;77;88;99$",
+     "loigiai": ""
+    },
+    {
+     "ma": "c",
+     "mucdo": "TH",
+     "noidung": "Xác định kết quả thuận lợi cho biến cố $C$: “Số tự nhiên được viết ra chia cho $10$ dư $6$”.",
+     "dapan": "$16;26;36;46;56;66;76;86;96$",
+     "loigiai": ""
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK13-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{\\sqrt{x}+4}{\\sqrt{x}-1}$ và $B=\\dfrac{3\\sqrt{x}+1}{x+2\\sqrt{x}-3}-\\dfrac{2}{\\sqrt{x}+3}$ với $x\\ge0,\\ x\\neq1$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=9$.",
+     "dapan": "$A=\\frac72$",
+     "loigiai": "$A=\\frac{3+4}{3-1}=\\frac72$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $B=\\dfrac{1}{\\sqrt{x}-1}$.",
+     "dapan": "",
+     "loigiai": "$B=\\frac{3\\sqrt{x}+1-2(\\sqrt{x}-1)}{(\\sqrt{x}-1)(\\sqrt{x}+3)}=\\frac{\\sqrt{x}+3}{(\\sqrt{x}-1)(\\sqrt{x}+3)}=\\frac1{\\sqrt{x}-1}$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VD",
+     "noidung": "Tìm tất cả các giá trị của $x$ để $\\dfrac AB\\ge\\dfrac x4+5$.",
+     "dapan": "$x=4$",
+     "loigiai": "$\\frac AB=\\sqrt{x}+4$. $\\sqrt{x}+4\\ge\\frac x4+5\\Leftrightarrow\\frac x4-\\sqrt{x}+1\\le0\\Leftrightarrow\\left(\\frac{\\sqrt{x}}2-1\\right)^2\\le0\\Leftrightarrow x=4$ (thỏa mãn điều kiện)."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK13-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Có hai loại dung dịch acid cùng loại có nồng độ acid lần lượt là $10\\%$ và $20\\%$, trộn hai dung dịch acid đó để được $0{,}5$ kg dung dịch có nồng độ acid là $16\\%$. Tính cần dùng bao nhiêu gam mỗi loại dung dịch acid nói trên.",
+   "dapan": "200 g dung dịch 10% và 300 g dung dịch 20%",
+   "loigiai": "Đổi $0{,}5\\text{ kg}=500$ g. Gọi khối lượng dung dịch $10\\%$ và $20\\%$ là $x,y$ (g). $\\begin{cases}x+y=500\\\\0{,}1x+0{,}2y=0{,}16\\cdot500=80\\end{cases}\\Rightarrow x=200,\\ y=300$."
+  },
+  {
+   "id": "TS10-HN-TK13-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Xe máy thứ nhất đi quãng đường từ Hà Nội về Nam Định hết $3$ giờ $20$ phút. Xe máy thứ hai đi hết $3$ giờ $40$ phút. Mỗi giờ xe máy thứ nhất đi nhanh hơn xe thứ hai là $3$ km. Tính vận tốc của mỗi xe máy và quãng đường từ Hà Nội về Nam Định.",
+   "dapan": "Xe thứ nhất: 33 km/h; xe thứ hai: 30 km/h; quãng đường 110 km",
+   "loigiai": "Gọi vận tốc hai xe là $x,y$ (km/h). $\\begin{cases}x-y=3\\\\ \\frac{10}{3}x=\\frac{11}{3}y\\end{cases}\\Rightarrow x=33,\\ y=30$. Quãng đường: $\\frac{10}{3}\\cdot33=110$ km."
+  },
+  {
+   "id": "TS10-HN-TK13-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D6",
+   "dang_phu": [
+    "L9-C6-D3"
+   ],
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $x^2-(4m-1)x+3m^2-2m=0$ (ẩn $x$). Tìm $m$ để phương trình có hai nghiệm phân biệt $x_1,x_2$ thỏa mãn điều kiện $x_1^2+x_2^2=7$.",
+   "dapan": "$m=1$ hoặc $m=-\\frac35$",
+   "loigiai": "$\\Delta=(4m-1)^2-4(3m^2-2m)=4m^2+1>0$ với mọi $m$. Viète: $x_1+x_2=4m-1$, $x_1x_2=3m^2-2m$. $x_1^2+x_2^2=(x_1+x_2)^2-2x_1x_2=10m^2-4m+1=7\\Leftrightarrow5m^2-2m-3=0\\Leftrightarrow m=1$ hoặc $m=-\\frac35$."
+  },
+  {
+   "id": "TS10-HN-TK13-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk13-c4-1.png",
+   "can_duyet": true,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D4",
+   "dang_phu": [
+    "L7-C10-D3"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Vườn nhà bạn Minh có trồng loại dưa hấu hình vuông. Trong hình dưới là quả dưa hấu hình vuông có cạnh dài $18$ cm.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Tính thể tích của quả dưa hấu hình vuông.",
+     "dapan": "$5832\\ \\text{cm}^3$",
+     "loigiai": "Quả dưa có dạng khối lập phương cạnh $18$ cm: $V_1=18^3=5832\\ \\text{cm}^3$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Minh muốn cắt quả dưa hấu thành những hình vuông nhỏ có cạnh $5$ cm để bày ra đĩa và dự định mỗi đĩa bày $12$ miếng dưa. Hỏi Minh có thể bày được mấy đĩa? (Làm tròn đến hàng đơn vị).",
+     "dapan": "4 đĩa (theo đáp án gốc)",
+     "loigiai": "Thể tích một miếng nhỏ $5^3=125\\ \\text{cm}^3$. Số miếng: $5832:125\\approx46{,}656$. Số đĩa: $46{,}656:12\\approx4$ đĩa."
+    }
+   ],
+   "ghi_chu": "CẦN DUYỆT: đáp án gốc chia thể tích (≈ 4 đĩa) chứ không tính số miếng cắt được thực tế. Nếu cắt đúng khối 5 cm từ khối 18 cm thì cắt được 3×3×3 = 27 miếng, bày được 2 đĩa."
+  },
+  {
+   "id": "TS10-HN-TK13-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk13-c4-2.png",
+   "can_duyet": false,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho tam giác $ABC$ nhọn với $AB>AC$. Các đường cao $BM$, $CN$ cắt nhau tại $H$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh tứ giác $AMHN$ nội tiếp.",
+     "dapan": "",
+     "loigiai": "$\\widehat{ANH}=\\widehat{AMH}=90^\\circ$ nên $N,M$ thuộc đường tròn đường kính $AH$; vậy $AMHN$ nội tiếp đường tròn đường kính $AH$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Gọi $D$ là giao điểm của $AH$ và $BC$. Chứng minh $DA$ là phân giác của $\\widehat{MDN}$.",
+     "dapan": "",
+     "loigiai": "$\\widehat{HMC}=\\widehat{HDC}=90^\\circ$ nên $H,D,C,M$ thuộc đường tròn đường kính $CH$, suy ra $\\widehat{HDM}=\\widehat{HCM}$. $\\widehat{HDB}=\\widehat{HNB}=90^\\circ$ nên $H,D,B,N$ thuộc đường tròn đường kính $BH$, suy ra $\\widehat{HDN}=\\widehat{HBN}$. Mà $\\widehat{HCM}=\\widehat{HBN}$ (cùng phụ $\\widehat{BAC}$) nên $\\widehat{HDM}=\\widehat{HDN}$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Đường thẳng qua $D$ và song song với $MN$ cắt $AB$, $CN$ lần lượt tại $I$, $J$. Chứng minh $D$ là trung điểm $IJ$.",
+     "dapan": "",
+     "loigiai": "$BCMN$ nội tiếp nên $\\widehat{HNM}=\\widehat{HBD}$; $HDBN$ nội tiếp nên $\\widehat{HBD}=\\widehat{HND}$, suy ra $\\widehat{HNM}=\\widehat{HND}$. Vì $IJ\\parallel MN$ nên $\\widehat{HNM}=\\widehat{HJD}$, do đó $\\widehat{HND}=\\widehat{HJD}$ và $\\triangle DNJ$ cân tại $D$: $DN=DJ$ (1). Tương tự $\\triangle NID$ cân tại $D$: $DN=DI$ (2). Từ (1) và (2): $DI=DJ$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK13-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk13-c5.png",
+   "can_duyet": true,
+   "diem": 0.5,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C5-D3",
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VDC",
+   "noidung": "Một bồn hình trụ đang chứa dầu, được đặt nằm ngang, có chiều dài bồn là $5$ m, có bán kính đáy $1$ m, với nắp bồn đặt trên mặt nằm ngang của mặt trụ. Người ta đã rút dầu trong bồn tương ứng với $0{,}5$ m của đường kính đáy. Tính thể tích gần đúng nhất của khối dầu còn lại trong bồn (lấy $\\pi\\approx3{,}14$, kết quả làm tròn đến chữ số thập phân thứ hai, theo đơn vị $\\text{m}^3$).",
+   "dapan": "$\\approx12{,}63\\ \\text{m}^3$ (đáp án tôi tính lại; file gốc ghi $4{,}21\\ \\text{m}^3$)",
+   "loigiai": "Bồn hình trụ: $V=\\pi R^2\\cdot5=5\\pi\\approx15{,}7\\ \\text{m}^3$. Lớp dầu đã rút ứng với dây $AB$ cách tâm $OH=1-\\frac12=\\frac12$ m, nên $HB=\\frac{\\sqrt3}2$, $\\widehat{AOB}=120^\\circ$. Diện tích viên phân: $S_2=\\frac{\\pi}{3}-\\frac{\\sqrt3}{4}\\approx0{,}614\\ \\text{m}^2$. Thể tích dầu đã rút: $5S_2\\approx3{,}07\\ \\text{m}^3$. Dầu còn lại: $15{,}7-3{,}07\\approx12{,}63\\ \\text{m}^3$.",
+   "ghi_chu": "CẦN DUYỆT: lời giải gốc dùng công thức V = (1/3)·πR²·5 (công thức của hình nón/chóp) cho cả thể tích bồn và phần dầu rút, ra 4,21 m³; với bồn hình trụ thể tích phải là πR²·h, nên tôi tính lại ra khoảng 12,63 m³. Hình vẽ đề không nêu rõ hướng, tôi hiểu 0,5 m là bề dày lớp dầu rút từ trên xuống."
+  }
+ ]
+}

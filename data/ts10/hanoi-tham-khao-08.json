@@ -1,0 +1,304 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK08",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 08)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_08_Trần_Thị_Tuyết_Ly__sau_PB_.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK08-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Sau khi điều tra về số học sinh trong $100$ lớp học (đơn vị: học sinh), người ta có bảng tần số ghép nhóm như ở bảng sau.",
+   "bang": {
+    "tieu_de": [
+     "Nhóm",
+     "[36; 38)",
+     "[38; 40)",
+     "[40; 42)",
+     "[42; 44)",
+     "[44; 46)",
+     "Cộng"
+    ],
+    "hang": [
+     [
+      "Tần số (n)",
+      "20",
+      "15",
+      "25",
+      "30",
+      "10",
+      "N = 100"
+     ]
+    ]
+   },
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Tìm tần số tương đối của mỗi nhóm đó.",
+     "dapan": "20%; 15%; 25%; 30%; 10%",
+     "loigiai": "Mỗi tần số chia cho $100$ rồi nhân $100\\%$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "NB",
+     "noidung": "Lập bảng tần số tương đối ghép nhóm của mẫu số liệu ghép nhóm đó.",
+     "dapan": "Bảng gồm các nhóm ở trên với tần số tương đối 20%; 15%; 25%; 30%; 10% (tổng 100%)",
+     "loigiai": ""
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK08-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Một hộp có $52$ chiếc thẻ cùng loại, mỗi thẻ được ghi một trong các số $1,2,3,\\dots,52$; hai thẻ khác nhau thì ghi số khác nhau. Rút ngẫu nhiên một thẻ trong hộp. Tính xác suất các biến cố sau.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "“Số xuất hiện trên thẻ được rút ra là số nhỏ hơn $27$”.",
+     "dapan": "$\\frac12$",
+     "loigiai": "Các kết quả thuận lợi là $1,2,\\dots,26$ ($26$ kết quả). $P=\\frac{26}{52}=\\frac12$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "“Số xuất hiện trên thẻ được rút ra là số lớn hơn $19$ và nhỏ hơn $51$”.",
+     "dapan": "$\\frac{31}{52}$",
+     "loigiai": "Các kết quả thuận lợi là $20,21,\\dots,50$: $50-20+1=31$ kết quả. $P=\\frac{31}{52}$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK08-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{x-2}{\\sqrt{x}+2}$ và $B=\\dfrac{\\sqrt{x}}{\\sqrt{x}+1}-\\dfrac{2}{1-\\sqrt{x}}-\\dfrac{4}{x-1}$ (với $x\\ge0;\\ x\\neq1$).",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của $A$ khi $x=16$.",
+     "dapan": "$A=\\frac73$",
+     "loigiai": "$A=\\frac{16-2}{\\sqrt{16}+2}=\\frac{14}{6}=\\frac73$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Rút gọn biểu thức $B$.",
+     "dapan": "$B=\\frac{\\sqrt{x}+2}{\\sqrt{x}+1}$",
+     "loigiai": "$B=\\frac{\\sqrt{x}(\\sqrt{x}-1)+2(\\sqrt{x}+1)-4}{(\\sqrt{x}+1)(\\sqrt{x}-1)}=\\frac{x+\\sqrt{x}-2}{(\\sqrt{x}+1)(\\sqrt{x}-1)}=\\frac{(\\sqrt{x}-1)(\\sqrt{x}+2)}{(\\sqrt{x}+1)(\\sqrt{x}-1)}=\\frac{\\sqrt{x}+2}{\\sqrt{x}+1}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Đặt $P=A\\cdot B$. Tìm các giá trị nguyên của $x$ để $P=\\frac74$.",
+     "dapan": "$x=9$",
+     "loigiai": "$P=\\frac{x-2}{\\sqrt{x}+1}=\\frac74\\Leftrightarrow4x-7\\sqrt{x}-15=0\\Leftrightarrow(\\sqrt{x}-3)(4\\sqrt{x}+5)=0\\Leftrightarrow\\sqrt{x}=3$, tức $x=9$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK08-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một trường THCS tổ chức cho $250$ người bao gồm giáo viên và học sinh đi tham quan khu du lịch Đảo Ngọc Xanh. Biết giá vé vào cổng của một giáo viên là $80\\,000$ đồng, vé vào cổng của một học sinh là $60\\,000$ đồng. Nhà trường tổ chức đi vào đúng dịp Khai trương nên được giảm $5\\%$ cho mỗi vé vào cổng, vì vậy nhà trường chỉ phải trả tổng số tiền là $14\\,535\\,000$ đồng. Hỏi có bao nhiêu giáo viên và học sinh của trường đi tham quan?",
+   "dapan": "15 giáo viên và 235 học sinh",
+   "loigiai": "Gọi số giáo viên, học sinh là $x,y$. $\\begin{cases}x+y=250\\\\76\\,000x+57\\,000y=14\\,535\\,000\\end{cases}\\Rightarrow x=15,\\ y=235$."
+  },
+  {
+   "id": "TS10-HN-TK08-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_phu": [
+    "L9-C1-D3"
+   ],
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một xe khách và một xe du lịch khởi hành đồng thời từ $A$ đi đến $B$. Biết vận tốc của xe du lịch lớn hơn vận tốc của xe khách là $20$ km/h. Do đó nó đến $B$ trước xe khách $50$ phút. Tính vận tốc của mỗi xe, biết quãng đường $AB$ dài $100$ km.",
+   "dapan": "Xe khách: 40 km/h; xe du lịch: 60 km/h",
+   "loigiai": "Gọi vận tốc xe khách, xe du lịch là $x,y$ (km/h). $\\begin{cases}y-x=20\\\\ \\frac{100}{x}-\\frac{100}{y}=\\frac56\\end{cases}\\Rightarrow x=40,\\ y=60$."
+  },
+  {
+   "id": "TS10-HN-TK08-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_ts10": "TS10-D4",
+   "mucdo": "TH",
+   "noidung": "Cho phương trình $2x^2-4x-3=0$ có hai nghiệm là $x_1;x_2$. Không giải phương trình, hãy tính giá trị của biểu thức $A=(x_1-x_2)^2$.",
+   "dapan": "$A=10$",
+   "loigiai": "$ac=-6<0$ nên phương trình có hai nghiệm. Viète: $x_1+x_2=2$, $x_1x_2=-\\frac32$. $A=(x_1+x_2)^2-4x_1x_2=4+6=10$."
+  },
+  {
+   "id": "TS10-HN-TK08-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C10-D3",
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Một ly đựng đầy nước dạng hình trụ có chiều cao là $15$ cm, bán kính đáy bằng $5$ cm.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Tính thể tích nước chứa trong ly.",
+     "dapan": "$375\\pi\\ \\text{cm}^3$",
+     "loigiai": "$V=\\pi R^2h=\\pi\\cdot5^2\\cdot15=375\\pi\\ \\text{cm}^3$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Người ta thả vào ly $5$ viên bi đặc không thấm nước có dạng hình cầu, đường kính mỗi viên bi bằng $3$ cm. Tính thể tích nước tràn ra ngoài ly.",
+     "dapan": "$22{,}5\\pi\\ \\text{cm}^3$",
+     "loigiai": "Thể tích nước tràn ra bằng thể tích $5$ viên bi: $5\\cdot\\frac43\\pi\\left(\\frac32\\right)^3=22{,}5\\pi\\ \\text{cm}^3$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK08-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk08-c4-2.png",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho tam giác $ABC$ nhọn ($AB<AC$) có đường cao $AD$ và đường phân giác trong $AO$ ($D,O$ thuộc cạnh $BC$). Kẻ $OM\\perp AB$ tại $M$, $ON\\perp AC$ tại $N$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh bốn điểm $O,M,D,N$ cùng nằm trên một đường tròn.",
+     "dapan": "",
+     "loigiai": "Gọi $E$ là trung điểm $AO$. Các tam giác $AMO$, $ADO$, $ANO$ vuông lần lượt tại $M,D,N$ nên $EA=EO=EM=ED=EN=\\frac12AO$. Vậy $O,M,D,N$ cùng thuộc đường tròn tâm $E$, đường kính $AO$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh $\\widehat{BDM}=\\widehat{ODN}$.",
+     "dapan": "",
+     "loigiai": "$\\triangle AON=\\triangle AOM$ (cạnh huyền - góc nhọn) nên $\\widehat{AON}=\\widehat{AOM}$. Trong đường tròn $(E)$: $\\widehat{ADM}=\\widehat{AOM}$ và $\\widehat{ADN}=\\widehat{AON}$ (cùng chắn $AM$, $AN$), nên $\\widehat{ADM}=\\widehat{ADN}$. Mà $\\widehat{BDM}+\\widehat{MDA}=90^\\circ=\\widehat{ODN}+\\widehat{NDA}$ nên $\\widehat{BDM}=\\widehat{ODN}$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Qua $O$ kẻ đường thẳng vuông góc với $BC$ cắt $MN$ tại $I$, $AI$ cắt $BC$ tại $K$. Chứng minh $K$ là trung điểm của $BC$.",
+     "dapan": "",
+     "loigiai": "Qua $I$ kẻ đường thẳng song song $BC$ cắt $AB,AC$ tại $P,Q$. Chứng minh $P,I,O,M$ cùng thuộc đường tròn đường kính $PO$ và $INQ O$ nội tiếp, suy ra $OI$ là phân giác của $\\widehat{POQ}$; $OI\\perp PQ$ nên $\\triangle OPQ$ cân tại $O$ và $IP=IQ$. Vì $PQ\\parallel BC$: $\\frac{PI}{BK}=\\frac{AI}{AK}=\\frac{IQ}{KC}$, mà $PI=IQ$ nên $KB=KC$."
+    }
+   ],
+   "ghi_chu": "Ý c: lời giải gốc tóm tắt nhiều bước, và hình trong lời giải có thêm điểm P, Q, E. Cần duyệt lại cách trình bày."
+  },
+  {
+   "id": "TS10-HN-TK08-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C2",
+   "dang": "L9-C2-D2",
+   "dang_phu": [
+    "L7-C10-D1"
+   ],
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Một miếng bìa hình vuông có cạnh $6$ dm. Ở mỗi góc của hình vuông người ta cắt đi một hình vuông nhỏ cạnh $x$ dm rồi gấp bìa để được một hình hộp chữ nhật (không có nắp). Tính cạnh $x$ của mỗi hình vuông nhỏ để hộp có thể tích lớn nhất.",
+   "dapan": "$x=1$ dm; thể tích lớn nhất $16\\ \\text{dm}^3$",
+   "loigiai": "$V=x(6-2x)^2=4x(3-x)^2$, $0<x<3$. $\\frac V2=2x(3-x)(3-x)$: ba số dương $2x,\\ 3-x,\\ 3-x$ có tổng không đổi $6$ nên tích lớn nhất khi $2x=3-x$, tức $x=1$. Khi đó $V=1\\cdot(6-2)^2=16\\ \\text{dm}^3$."
+  }
+ ]
+}

@@ -1,0 +1,249 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK10",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 10)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_10_TẠ_HOÀI_NINH.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK10-C1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk10-c1-bieudo.png",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D2"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Một cửa hàng tạp hóa thống kê số tiền lãi (đơn vị: nghìn đồng) trong $60$ ngày. Số liệu được ghi lại trong biểu đồ tần số ghép nhóm sau.",
+   "bang": {
+    "tieu_de": [
+     "Nhóm (nghìn đồng)",
+     "[500;1000)",
+     "[1000;1500)",
+     "[1500;2000)",
+     "[2000;2500)",
+     "[2500;3000)"
+    ],
+    "hang": [
+     [
+      "Tần số",
+      "5",
+      "8",
+      "12",
+      "20",
+      "15"
+     ]
+    ]
+   },
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính tần số tương đối của mỗi nhóm.",
+     "dapan": "8,3%; 13,4%; 20%; 33,3%; 25%",
+     "loigiai": "$f_1=\\frac5{60}\\approx8{,}3\\%$; $f_2=\\frac8{60}\\approx13{,}4\\%$; $f_3=\\frac{12}{60}=20\\%$; $f_4=\\frac{20}{60}\\approx33{,}3\\%$; $f_5=\\frac{15}{60}=25\\%$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "NB",
+     "noidung": "Lập bảng tần số tương đối ghép nhóm cho bảng thống kê trên.",
+     "dapan": "Bảng gồm các nhóm trên với tần số tương đối 8,3%; 13,4%; 20%; 33,3%; 25%",
+     "loigiai": ""
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK10-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{x-3}{\\sqrt{x}}$ và $B=\\dfrac{\\sqrt{x}}{\\sqrt{x}+2}-\\dfrac{4\\sqrt{x}}{4-x}$ với $x>0,\\ x\\neq4$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ biết $x=16$.",
+     "dapan": "$A=\\frac{13}4$",
+     "loigiai": "$A=\\frac{16-3}{\\sqrt{16}}=\\frac{13}{4}$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Rút gọn biểu thức $B$.",
+     "dapan": "$B=\\frac{\\sqrt{x}}{\\sqrt{x}-2}$",
+     "loigiai": "$B=\\frac{\\sqrt{x}(\\sqrt{x}-2)+4\\sqrt{x}}{(\\sqrt{x}-2)(\\sqrt{x}+2)}=\\frac{x+2\\sqrt{x}}{(\\sqrt{x}-2)(\\sqrt{x}+2)}=\\frac{\\sqrt{x}}{\\sqrt{x}-2}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Cho $P=A\\cdot B$. Tìm các giá trị nguyên của $x$ để $P\\le6$.",
+     "dapan": "$x\\in\\{1;2;3;9\\}$",
+     "loigiai": "$P=\\frac{x-3}{\\sqrt{x}-2}$. $P\\le6\\Leftrightarrow\\frac{(\\sqrt{x}-3)^2}{\\sqrt{x}-2}\\le0$. Hoặc $\\sqrt{x}=3$ ($x=9$), hoặc $\\sqrt{x}-2<0$ với $x\\neq9$: $0<x<4$. Kết hợp $x$ nguyên: $x\\in\\{1;2;3;9\\}$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK10-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Anh Bình đến siêu thị để mua $1$ cái bàn ủi và $1$ cái quạt điện có tổng giá niêm yết là $850$ ngàn đồng. Tuy nhiên, thực tế khi trả tiền, nhờ siêu thị khuyến mãi để tri ân khách hàng nên giá bán bàn ủi và quạt điện đã giảm lần lượt $10\\%$ và $20\\%$ so với giá niêm yết. Do đó, anh Bình đã được giảm $125$ ngàn đồng khi mua hai sản phẩm trên. Hỏi số tiền chênh lệch giữa giá bán niêm yết với giá bán thực tế của mỗi sản phẩm mà anh Bình đã mua nói trên là bao nhiêu?",
+   "dapan": "Bàn ủi: 45 ngàn đồng; quạt điện: 80 ngàn đồng (giá niêm yết 450 và 400 ngàn đồng)",
+   "loigiai": "Gọi giá niêm yết của bàn ủi, quạt điện là $x,y$ (ngàn đồng). $\\begin{cases}x+y=850\\\\0{,}1x+0{,}2y=125\\end{cases}\\Rightarrow x=450,\\ y=400$. Chênh lệch: $450\\cdot10\\%=45$ và $400\\cdot20\\%=80$ (ngàn đồng)."
+  },
+  {
+   "id": "TS10-HN-TK10-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Cho quãng đường từ địa điểm $A$ tới địa điểm $B$ dài $90$ km. Lúc $6$ giờ một xe máy đi từ $A$ để tới $B$. Lúc $6$ giờ $30$ phút cùng ngày, một ô tô cũng đi từ $A$ để tới $B$ với vận tốc lớn hơn vận tốc xe máy $15$ km/h. (Hai xe chạy trên cùng một con đường đã cho). Hai xe nói trên đều đến $B$ cùng lúc. Tính vận tốc mỗi xe.",
+   "dapan": "Xe máy: 45 km/h; ô tô: 60 km/h",
+   "loigiai": "Gọi vận tốc xe máy là $x$ (km/h), $x>0$; ô tô $x+15$. Xe máy đi trước $\\frac12$ giờ: $\\frac{90}{x}-\\frac12=\\frac{90}{x+15}\\Leftrightarrow x^2+15x-2700=0$, được $x=45$ (nhận), $x=-60$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK10-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Biết rằng phương trình bậc hai $2x^2-4x+m=0$ có một nghiệm $x=\\dfrac{2+\\sqrt{10}}{2}$. Tính tổng nghịch đảo hai nghiệm của phương trình trên.",
+   "dapan": "$-\\frac43$",
+   "loigiai": "Thay $x=\\frac{2+\\sqrt{10}}{2}$ vào phương trình được $m=-3$, phương trình là $2x^2-4x-3=0$. Viète: $x_1+x_2=2$, $x_1x_2=-\\frac32$. $\\frac1{x_1}+\\frac1{x_2}=\\frac{x_1+x_2}{x_1x_2}=\\frac{2}{-3/2}=-\\frac43$."
+  },
+  {
+   "id": "TS10-HN-TK10-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Một ống đồng hình trụ có chiều cao gấp $5$ lần bán kính. Biết thể tích ống đồng bằng $40\\pi\\ \\text{cm}^3$. Tính chiều cao của ống đồng đó.",
+   "dapan": "10 cm",
+   "loigiai": "$h=5R$ nên $V=\\pi R^2h=5\\pi R^3=40\\pi\\Rightarrow R^3=8\\Rightarrow R=2$ cm, $h=10$ cm."
+  },
+  {
+   "id": "TS10-HN-TK10-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk10-c4-2.png",
+   "can_duyet": false,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho $(O;R)$ đường kính $AB$. Bán kính $CO$ vuông góc với $AB$, $M$ là điểm bất kì trên cung nhỏ $AC$ ($M$ khác $A$ và $C$), $MB$ cắt $AC$ tại $H$. Gọi $K$ là hình chiếu của $H$ trên $AB$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh bốn điểm $C,B,H,K$ cùng thuộc một đường tròn.",
+     "dapan": "",
+     "loigiai": "Gọi $I$ là trung điểm $HB$. $\\widehat{ACB}=90^\\circ$ nên $\\triangle CHB$ vuông tại $C$, $CI=IH=IB=\\frac{HB}2$. $\\widehat{HKB}=90^\\circ$ nên $KI=\\frac{HB}2$. Suy ra $IC=IK=IH=IB$, nên $C,B,H,K$ cùng thuộc đường tròn tâm $I$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh $CA$ là phân giác của $\\widehat{MCK}$.",
+     "dapan": "",
+     "loigiai": "$\\widehat{MCA}=\\widehat{MBA}$ (cùng chắn $\\widehat{AM}$); $\\widehat{ACK}=\\widehat{HBK}=\\widehat{MBA}$ (tứ giác $CHKB$ nội tiếp). Suy ra $\\widehat{MCA}=\\widehat{ACK}$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Kẻ $Ax$ là tiếp tuyến của nửa đường tròn tại $A$. Lấy $P\\in Ax$ sao cho $\\dfrac{AP\\cdot MB}{MA}=R$. Chứng minh $PB$ đi qua trung điểm của đoạn thẳng $HK$.",
+     "dapan": "",
+     "loigiai": "Từ giả thiết $\\frac{AP}{MA}=\\frac{OA}{MB}$ và $\\widehat{PAO}=\\widehat{AMB}=90^\\circ$ nên $\\triangle PAO\\backsim\\triangle AMB$ (c-g-c), suy ra $\\widehat{POA}=\\widehat{MBA}$, vậy $OP\\parallel BQ$ ($Q=Ax\\cap BM$), nên $P$ là trung điểm $AQ$. Gọi $F=BP\\cap HK$: $FK\\parallel AP$ nên $\\frac{FK}{AP}=\\frac{BF}{BP}$; $FH\\parallel QP$ nên $\\frac{FH}{QP}=\\frac{BF}{BP}$. Mà $AP=QP$ nên $FK=FH$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK10-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C2",
+   "dang": "L9-C2-D2",
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Một trang chữ của một tạp chí cần diện tích là $384\\ \\text{cm}^2$. Lề trên, lề dưới là $3$ cm; lề phải, lề trái là $2$ cm. Hỏi chiều ngang và chiều dọc tối ưu của trang giấy lần lượt là bao nhiêu để diện tích trang giấy là nhỏ nhất?",
+   "dapan": "Chiều ngang 20 cm, chiều dọc 30 cm (diện tích trang giấy nhỏ nhất là 600 cm²)",
+   "loigiai": "Gọi chiều dọc và chiều ngang của trang chữ là $a,b$ (cm), $ab=384$. Trang giấy có kích thước $a+6$ và $b+4$: $S=(a+6)(b+4)=408+4a+\\frac{2304}{a}\\ge408+2\\sqrt{4a\\cdot\\frac{2304}{a}}=600$. Dấu bằng khi $4a=\\frac{2304}a$, tức $a=24$, $b=16$. Vậy trang giấy có chiều dọc $30$ cm, chiều ngang $20$ cm."
+  }
+ ]
+}

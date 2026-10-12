@@ -1,0 +1,328 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK07",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 07)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_07_TRẦN_HƯƠNG.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK07-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Thống kê số lần truy cập Internet của $30$ người trong một tuần là bảng dưới đây (mỗi ô là số lần truy cập của một người).",
+   "bang": {
+    "tieu_de": [
+     "#",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5",
+     "6",
+     "7",
+     "8",
+     "9",
+     "10"
+    ],
+    "hang": [
+     [
+      "Hàng 1",
+      "85",
+      "81",
+      "65",
+      "58",
+      "47",
+      "30",
+      "51",
+      "89",
+      "85",
+      "42"
+     ],
+     [
+      "Hàng 2",
+      "55",
+      "37",
+      "31",
+      "82",
+      "63",
+      "33",
+      "44",
+      "88",
+      "77",
+      "57"
+     ],
+     [
+      "Hàng 3",
+      "44",
+      "74",
+      "63",
+      "67",
+      "46",
+      "73",
+      "52",
+      "53",
+      "47",
+      "35"
+     ]
+    ]
+   },
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Lập bảng tần số ghép nhóm của mẫu số liệu đó sau khi được ghép nhóm theo sáu nhóm sau: $[30;40)$, $[40;50)$, $[50;60)$, $[60;70)$, $[70;80)$, $[80;90)$.",
+     "dapan": "Tần số: 5; 6; 6; 4; 3; 6 (tổng 30)",
+     "loigiai": "Đếm số giá trị rơi vào từng nhóm."
+    },
+    {
+     "ma": "b",
+     "mucdo": "NB",
+     "noidung": "Tìm tần số tương đối ghép nhóm của nhóm $[50;60)$.",
+     "dapan": "20%",
+     "loigiai": "$f=\\frac{6}{30}\\cdot100\\%=20\\%$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK07-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Một đĩa tròn được chia thành $12$ hình quạt như nhau, được đánh số như hình bên (có số La Mã và số thường: $1;\\ \\mathrm{II};\\ 3;\\ \\mathrm{IV};\\ 5;\\ \\mathrm{VI};\\ 7;\\ \\mathrm{VIII};\\ 9;\\ \\mathrm{X};\\ 11;\\ 12$) và được gắn vào trục quay có mũi tên cố định ở tâm. Xét phép thử “Quay đĩa tròn một lần” và biến cố $A$: “Mũi tên chỉ vào các số La Mã”. Tính xác suất của biến cố $A$.",
+   "dapan": "$P(A)=\\frac13$",
+   "loigiai": "Các kết quả có thể là đồng khả năng: $\\Omega=\\{1;2;\\dots;12\\}$, có $12$ phần tử. Kết quả thuận lợi cho $A$: $\\mathrm{II},\\mathrm{IV},\\mathrm{VI},\\mathrm{VIII}$ ($4$ kết quả). $P(A)=\\frac4{12}=\\frac13$.",
+   "ghi_chu": "CẦN DUYỆT: đề gốc ghi 'chia thành 10 hình quạt' nhưng lời giải và hình dùng 12 ô (tập Ω có 12 phần tử). Tôi dùng 12; cách ghi số trên các ô tôi mô tả lại theo hình, bạn đối chiếu. Hình đĩa chưa trích."
+  },
+  {
+   "id": "TS10-HN-TK07-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho biểu thức $A=\\dfrac{\\sqrt{x}}{\\sqrt{x}-3}$; $B=\\dfrac{7}{\\sqrt{x}+1}-\\dfrac{12}{(\\sqrt{x}+1)(3-\\sqrt{x})}$ với $x\\ge0;\\ x\\neq9$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của $A$ khi $x=\\frac94$.",
+     "dapan": "$A=-1$",
+     "loigiai": "$A=\\frac{\\sqrt{9/4}}{\\sqrt{9/4}-3}=\\frac{3/2}{-3/2}=-1$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Rút gọn $M=A-B$.",
+     "dapan": "$M=\\frac{\\sqrt{x}-3}{\\sqrt{x}+1}$",
+     "loigiai": "$M=\\frac{\\sqrt{x}(\\sqrt{x}+1)-7(\\sqrt{x}-3)-12}{(\\sqrt{x}+1)(\\sqrt{x}-3)}=\\frac{x-6\\sqrt{x}+9}{(\\sqrt{x}+1)(\\sqrt{x}-3)}=\\frac{\\sqrt{x}-3}{\\sqrt{x}+1}$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VD",
+     "noidung": "Tìm các giá trị của $x$ sao cho $M^2<\\frac{25}4$.",
+     "dapan": "$x>\\frac1{49}$ và $x\\neq9$",
+     "loigiai": "$M^2<\\frac{25}{4}\\Leftrightarrow\\left(\\frac{\\sqrt{x}-3}{\\sqrt{x}+1}\\right)^2<\\left(\\frac52\\right)^2\\Leftrightarrow(7\\sqrt{x}-1)(-3\\sqrt{x}-11)<0\\Leftrightarrow\\sqrt{x}>\\frac17$. Kết hợp điều kiện: $x>\\frac1{49}$, $x\\neq9$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK07-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Hai vòi nước cùng chảy vào một bể không có nước thì sau $7$ giờ $12$ phút đầy bể. Nếu mở vòi $1$ chảy trong $5$ giờ rồi khóa lại, mở tiếp vòi $2$ chảy trong $6$ giờ thì cả hai vòi chảy được $\\dfrac34$ bể. Tính thời gian mỗi vòi chảy một mình đầy bể.",
+   "dapan": "Vòi 1: 12 giờ; vòi 2: 18 giờ",
+   "loigiai": "Đổi $7\\text{ h }12'=\\frac{36}{5}$ h. Gọi thời gian chảy một mình đầy bể của vòi $1,2$ là $x,y$ (giờ). $\\begin{cases}\\frac1x+\\frac1y=\\frac5{36}\\\\ \\frac5x+\\frac6y=\\frac34\\end{cases}\\Rightarrow x=12,\\ y=18$."
+  },
+  {
+   "id": "TS10-HN-TK07-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Hưởng ứng phong trào Tết trồng cây, chi đoàn thanh niên dự định trồng $30$ cây trong một thời gian nhất định. Do mỗi giờ chi đoàn trồng nhiều hơn dự định $5$ cây nên đã hoàn thành công việc trước dự định $20$ phút và trồng thêm được $10$ cây nữa. Tính số cây mà chi đoàn dự định trồng mỗi giờ.",
+   "dapan": "10 cây mỗi giờ",
+   "loigiai": "Gọi số cây dự định trồng mỗi giờ là $x$ ($x>0$). Thực tế trồng $40$ cây, mỗi giờ $x+5$ cây. $\\frac{30}{x}-\\frac{40}{x+5}=\\frac13\\Leftrightarrow x^2+35x-450=0$, được $x=10$ (nhận), $x=-45$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK07-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D6",
+   "dang_phu": [
+    "L9-C6-D3"
+   ],
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $x^2+2x+m=0$ (với $m$ là tham số). Tìm giá trị của tham số $m$ để phương trình có hai nghiệm phân biệt $x_1,x_2$ thỏa mãn $x_1+2x_2=1$.",
+   "dapan": "$m=-15$",
+   "loigiai": "$\\Delta'=1-m>0\\Leftrightarrow m<1$. Viète: $x_1+x_2=-2$, $x_1x_2=m$. Giải $\\begin{cases}x_1+x_2=-2\\\\x_1+2x_2=1\\end{cases}$ được $x_2=3$, $x_1=-5$. Suy ra $m=x_1x_2=-15$ (thỏa mãn).",
+   "ghi_chu": "CẦN DUYỆT: đề gốc in điều kiện là x₁ − 2x₂ = 1 nhưng lời giải dùng x₁ + 2x₂ = 1 (cho m = −15). Nếu đúng là dấu trừ thì x₁ = x₂ = −1, m = 1, phương trình có nghiệm kép nên không thỏa 'hai nghiệm phân biệt'. Tôi dùng bản trong lời giải."
+  },
+  {
+   "id": "TS10-HN-TK07-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk07-c4-1.png",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D2",
+   "dang_phu": [
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Khung của nón lá có dạng hình nón được làm bởi các thanh gỗ nối từ đỉnh tới đáy như các đường sinh $l$, $16$ vành nón được làm từ những thanh tre mảnh nhỏ, dẻo dai uốn thành những vòng tròn, cái nhỏ nhất to bằng đồng xu. Đường kính ($d=2r$) của chiếc nón lá khoảng $40$ cm; chiều cao ($h$) của chiếc nón lá khoảng $19$ cm.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Tính độ dài của thanh tre uốn thành vòng tròn lớn nhất của vành chiếc nón lá (không kể phần chắp nối, tính gần đúng đến chữ số thập phân thứ hai, biết $\\pi\\approx3{,}14$).",
+     "dapan": "$\\approx125{,}6$ cm",
+     "loigiai": "Vòng lớn nhất là đường tròn đáy: $C=\\pi d\\approx3{,}14\\cdot40=125{,}6$ cm."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Tính diện tích phần lá phủ xung quanh chiếc nón lá (không kể phần chắp nối, tính gần đúng đến chữ số thập phân thứ hai). Biết diện tích xung quanh của hình nón là $S=\\pi rl$.",
+     "dapan": "$\\approx1732{,}42\\ \\text{cm}^2$",
+     "loigiai": "$l=\\sqrt{20^2+19^2}=\\sqrt{761}$ cm. $S=\\pi rl\\approx3{,}14\\cdot20\\cdot\\sqrt{761}\\approx1732{,}42\\ \\text{cm}^2$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK07-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk07-c4-2.png",
+   "can_duyet": false,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho đường tròn $(O;R)$ và dây $BC<2R$. Trên cung lớn $BC$ lấy điểm $A$ sao cho $AB<AC$. Các đường cao $AD$ và $BF$ của tam giác $ABC$ cắt nhau tại $I$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh tứ giác $ABDF$ nội tiếp đường tròn và xác định tâm của đường tròn đó.",
+     "dapan": "Tâm là trung điểm của $AB$",
+     "loigiai": "Gọi $M$ là trung điểm $AB$. $\\triangle ABD$ vuông tại $D$ nên $DM=\\frac12AB$; $\\triangle ABF$ vuông tại $F$ nên $FM=\\frac12AB$. Vậy $A,B,D,F$ cùng thuộc đường tròn đường kính $AB$, tâm $M$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh: $CD\\cdot CB=CF\\cdot CA$.",
+     "dapan": "",
+     "loigiai": "$\\triangle ADC\\backsim\\triangle BFC$ (g.g) ($\\widehat{ADC}=\\widehat{BFC}=90^\\circ$, $\\widehat{C}$ chung) nên $\\frac{CD}{CF}=\\frac{CA}{CB}$, suy ra $CD\\cdot CB=CF\\cdot CA$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Đường tròn ngoại tiếp tam giác $CDF$ cắt $(O;R)$ tại $H$ ($H$ khác $C$). Vẽ đường kính $CK$ của $(O;R)$ và gọi $E$ là trung điểm của $AB$. Chứng minh $3$ điểm $K,E,H$ thẳng hàng.",
+     "dapan": "",
+     "loigiai": "$AK\\perp AC$, $BF\\perp AC$ nên $AK\\parallel BI$; $KB\\perp BC$, $AD\\perp BC$ nên $KB\\parallel AI$. Vậy $AKBI$ là hình bình hành, $E$ là trung điểm $AB$ nên cũng là trung điểm $KI$: $K,E,I$ thẳng hàng (1). Đường tròn $(CDF)$ có đường kính $IC$ (trung điểm $J$ của $IC$ cách đều $D,F,C,I$) nên $\\widehat{IHC}=90^\\circ$; mà $\\widehat{KHC}=90^\\circ$ nên $K,I,H$ thẳng hàng (2). Từ (1) và (2): $K,E,H$ thẳng hàng."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK07-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk07-c5.png",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D4",
+   "dang_phu": [
+    "L7-C10-D2"
+   ],
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Cho hình vuông $ABCD$ có cạnh là $30$ cm. Trên cạnh $AB$ lấy hai điểm $E,G$ sao cho $AE=GB=x$ (cm) và điểm $E$ nằm giữa điểm $A$ và điểm $G$. Qua $E$ kẻ đường thẳng vuông góc với $AB$ cắt $CD$ tại $F$; qua $G$ kẻ đường thẳng vuông góc với $AB$ cắt $CD$ tại $H$. Người ta gập hình vuông theo hai cạnh $EF$ và $GH$ sao cho cạnh $AD$ trùng cạnh $BC$ như hình vẽ để tạo thành hình lăng trụ đứng khuyết đáy. Tìm $x$ để thể tích hình lăng trụ lớn nhất.",
+   "dapan": "$x=10$ cm; thể tích lớn nhất $750\\sqrt3\\ \\text{cm}^3$",
+   "loigiai": "Đáy lăng trụ là tam giác cân có ba cạnh $x,x,30-2x$ ($0<x<15$): chiều cao $\\sqrt{30x-225}$, diện tích $\\sqrt{30x-225}(15-x)$. $V=30\\sqrt{30x-225}\\,(15-x)$. Áp dụng Cô-si cho ba số dương $2x-15,\\ 15-x,\\ 15-x$ (tổng không đổi $15$) ta được $V\\le750\\sqrt3$, dấu bằng khi $2x-15=15-x$, tức $x=10$."
+  }
+ ]
+}

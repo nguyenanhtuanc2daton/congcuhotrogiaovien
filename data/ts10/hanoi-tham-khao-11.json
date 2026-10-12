@@ -1,0 +1,273 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK11",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 11, bản nháp)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_11_PHẠM_VĂN_KIÊN.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK11-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk11-c1-bieudo.png",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D2",
+   "dang_phu": [
+    "L9-C7-D3"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Cho bảng tần số tương đối ghép nhóm sau về tuổi thọ (năm) của một loại điện thoại.",
+   "bang": {
+    "tieu_de": [
+     "Nhóm tuổi thọ",
+     "[2;2,5)",
+     "[2,5;3)",
+     "[3;3,5)",
+     "[3,5;4)",
+     "[4;4,5)"
+    ],
+    "hang": [
+     [
+      "Tần số tương đối",
+      "25%",
+      "30%",
+      "15%",
+      "20%",
+      "10%"
+     ]
+    ]
+   },
+   "y": [
+    {
+     "ma": "",
+     "mucdo": "NB",
+     "noidung": "Tìm giá trị đại diện của nhóm $[3;3{,}5)$ và cho biết tần số tương đối của nhóm $[3;3{,}5)$.",
+     "dapan": "Giá trị đại diện $3{,}25$; tần số tương đối $15\\%$",
+     "loigiai": "Giá trị đại diện của nhóm $[3;3{,}5)$ là $\\frac{3+3{,}5}{2}=3{,}25$; tần số tương đối đọc từ bảng là $15\\%$."
+    }
+   ],
+   "ghi_chu": "Đề 11 là bản nháp: đầu đề có ghi chú chỉnh sửa của người soạn. Số liệu tần số tương đối tôi đọc từ biểu đồ đường (các đỉnh 25%, 30%, 15%, 20%, 10%)."
+  },
+  {
+   "id": "TS10-HN-TK11-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Bạn Bình gieo một đồng xu cân đối (hai mặt $S$ và $N$) và bạn Cường rút ngẫu nhiên một tấm thẻ từ trong hộp chứa $7$ tấm thẻ ghi các số $1;2;3;4;5;6;7$. Tính xác suất của biến cố $A$: “Rút được tấm thẻ ghi số $6$ hoặc đồng xu xuất hiện mặt $N$”.",
+   "dapan": "$P(A)=\\frac47$",
+   "loigiai": "Không gian mẫu gồm các cặp $(S;k)$, $(N;k)$ với $k=1,\\dots,7$: $14$ phần tử, đồng khả năng. Kết quả thuận lợi cho $A$: $(S;6)$ và $(N;1),\\dots,(N;7)$, có $8$ kết quả. $P(A)=\\frac8{14}=\\frac47$."
+  },
+  {
+   "id": "TS10-HN-TK11-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho biểu thức $B=\\left(\\dfrac{\\sqrt{x}}{2+\\sqrt{x}}+\\dfrac{x+4}{4-x}\\right):\\dfrac{x}{x-2\\sqrt{x}}$ (với $x>0,\\ x\\neq4$).",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "TH",
+     "noidung": "Rút gọn biểu thức $B$.",
+     "dapan": "$B=-\\frac{2}{\\sqrt{x}}$",
+     "loigiai": "$B=\\frac{\\sqrt{x}(\\sqrt{x}-2)-x-4}{(\\sqrt{x}+2)(\\sqrt{x}-2)}\\cdot\\frac{\\sqrt{x}(\\sqrt{x}-2)}{x}=\\frac{-2(\\sqrt{x}+2)}{(\\sqrt{x}+2)\\sqrt{x}}=-\\frac2{\\sqrt{x}}$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của $B$ với $x=\\frac14$.",
+     "dapan": "$B=-4$",
+     "loigiai": "$B=-\\frac{2}{\\sqrt{1/4}}=-4$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Tìm tất cả các giá trị nguyên $x$ để $B<-\\sqrt{x}$.",
+     "dapan": "$x=1$",
+     "loigiai": "$-\\frac{2}{\\sqrt{x}}<-\\sqrt{x}\\Leftrightarrow\\frac2{\\sqrt{x}}-\\sqrt{x}>0\\Leftrightarrow\\frac{2-x}{\\sqrt{x}}>0\\Leftrightarrow x<2$. Kết hợp điều kiện và $x$ nguyên: $x=1$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK11-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Bác Dũng có số tiền nhàn rỗi là $700$ triệu đồng. Bác Dũng quyết định gửi một số tiền (triệu đồng) cho gói tiết kiệm ngắn hạn với lãi suất $0{,}5\\%$/tháng, phần còn lại gửi cho gói tiết kiệm trung hạn với lãi suất $0{,}8\\%$/tháng. Sau mỗi tháng bác đều rút toàn bộ số tiền lãi của cả hai gói và được $4{,}7$ triệu đồng. Tính tiền gửi mỗi gói.",
+   "dapan": "Gói ngắn hạn: 300 triệu đồng; gói trung hạn: 400 triệu đồng",
+   "loigiai": "Gọi số tiền gửi gói ngắn hạn, trung hạn là $x,y$ (triệu đồng). $\\begin{cases}x+y=700\\\\0{,}005x+0{,}008y=4{,}7\\end{cases}\\Rightarrow x=300,\\ y=400$.",
+   "ghi_chu": "CẦN DUYỆT: lời giải gốc ghi 'x = 0,5; y = 0,8' và kết luận 'lãi suất ngắn hạn 0,5%, trung hạn 0,8%' (đó là dữ kiện của đề, không phải đáp án). Đáp án 300 và 400 triệu do tôi tự giải."
+  },
+  {
+   "id": "TS10-HN-TK11-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VD",
+   "noidung": "Một người đi siêu thị nếu mua $1$ cái áo và $1$ đôi giày theo giá niêm yết hết $800\\,000$ đồng. Nhưng gặp đợt khuyến mãi $1$ cái áo giảm $5\\%$ và $1$ đôi giày giảm $10\\%$ nên người đó chỉ phải trả $735\\,000$ đồng. Ngoài ra, nếu khách mua hàng có hóa đơn từ $2\\,000\\,000$ đồng trở lên sẽ được giảm tiếp $10\\%$ trên tổng số tiền đã mua. Trong dịp này, người đó đã mua $4$ cái áo và $2$ đôi giày. Hỏi người đó đã trả hết tất cả bao nhiêu tiền?",
+   "dapan": "1 836 000 đồng",
+   "loigiai": "Gọi giá niêm yết áo, giày là $x,y$ (nghìn đồng). $\\begin{cases}x+y=800\\\\0{,}95x+0{,}9y=735\\end{cases}\\Rightarrow x=300,\\ y=500$. Mua $4$ áo và $2$ giày: $4\\cdot300\\cdot0{,}95+2\\cdot500\\cdot0{,}9=2040$ nghìn $\\ge2000$ nghìn nên được giảm thêm $10\\%$: $2040\\cdot0{,}9=1836$ nghìn đồng."
+  },
+  {
+   "id": "TS10-HN-TK11-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_phu": [
+    "L9-C3-D4"
+   ],
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Biết rằng phương trình bậc hai $x^2+x+m=0$ có hai nghiệm là $x_1=\\dfrac{\\sqrt2+1}{\\sqrt2-1}$ và $x_2$. Tính giá trị của biểu thức $A=2024x_1+2025x_2$.",
+   "dapan": "$A=-2028-2\\sqrt2$",
+   "loigiai": "$x_1=\\frac{(\\sqrt2+1)^2}{(\\sqrt2-1)(\\sqrt2+1)}=3+2\\sqrt2$. Viète: $x_1+x_2=-1\\Rightarrow x_2=-4-2\\sqrt2$. $A=2024(3+2\\sqrt2)+2025(-4-2\\sqrt2)=-2028-2\\sqrt2$."
+  },
+  {
+   "id": "TS10-HN-TK11-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk11-c4-1.png",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C10-D3",
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Một hộp đựng bóng có dạng hình trụ đựng được vừa khít $3$ quả bóng như hình vẽ bên. Coi quả bóng có dạng hình cầu với đường kính $6$ cm. Tính thể tích phần khoảng không trong hộp?",
+   "dapan": "$54\\pi\\ \\text{cm}^3$",
+   "loigiai": "Chiều cao hộp $6\\cdot3=18$ cm, bán kính đáy $3$ cm: $V_{\\text{hộp}}=\\pi\\cdot3^2\\cdot18=162\\pi$. Thể tích $3$ quả bóng: $3\\cdot\\frac43\\pi\\cdot3^3=108\\pi$. Thể tích khoảng không: $162\\pi-108\\pi=54\\pi\\ \\text{cm}^3$."
+  },
+  {
+   "id": "TS10-HN-TK11-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk11-c4-2.png",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Từ điểm $A$ nằm ngoài $(O)$ vẽ hai tiếp tuyến $AB,AC$ với đường tròn ($B,C$ là các tiếp điểm). Kẻ đường kính $CD$ của $(O)$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $BD\\parallel AO$.",
+     "dapan": "",
+     "loigiai": "$B\\in(O)$, $CD$ là đường kính nên $\\widehat{CBD}=90^\\circ$, $BD\\perp BC$. $AB=AC$ và $OB=OC$ nên $AO$ là trung trực của $BC$, $AO\\perp BC$. Suy ra $BD\\parallel AO$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "$AD$ cắt $(O)$ tại $E$ ($A,E,D$ theo thứ tự). Chứng minh rằng $AB^2=AE\\cdot AD$.",
+     "dapan": "",
+     "loigiai": "$\\widehat{CED}=90^\\circ$ nên $CE\\perp AD$. $\\triangle AEC\\backsim\\triangle ACD$ (g.g) nên $AC^2=AE\\cdot AD$. Mà $AB=AC$ nên $AB^2=AE\\cdot AD$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Vẽ $BH\\perp DC$ tại $H$. Gọi $I$ là trung điểm của $BH$. Chứng minh ba điểm $A,I,D$ thẳng hàng.",
+     "dapan": "",
+     "loigiai": "$\\triangle HDB\\backsim\\triangle COA$ (g.g) nên $\\frac{HD}{OC}=\\frac{BH}{AC}$, suy ra $\\frac{HD}{CD}=\\frac{BH}{2AC}=\\frac{HI}{AC}$. Khi đó $\\triangle HDI\\backsim\\triangle CDA$ (c-g-c) nên $\\widehat{HDI}=\\widehat{CDA}$, hai tia $DI$ và $DA$ trùng nhau. Vậy $A,I,D$ thẳng hàng."
+    }
+   ],
+   "ghi_chu": "Lời giải gốc ý c ở dạng barem rút gọn, cần duyệt lại."
+  },
+  {
+   "id": "TS10-HN-TK11-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D2",
+   "dang_phu": [
+    "L9-C1-D3"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VDC",
+   "noidung": "Một trường THCS dự định tổ chức cho $645$ người gồm giáo viên và học sinh khối $8$ và $9$ tham gia hoạt động trải nghiệm. Nhà trường đã liên hệ với công ty du lịch để thuê $2$ loại xe. Loại $35$ chỗ ngồi và loại xe $50$ chỗ ngồi (không kể lái xe). Biết rằng giá thuê xe loại $35$ chỗ ngồi là $3\\,500\\,000$ đồng/chiếc; loại xe $50$ chỗ ngồi là $5\\,200\\,000$ đồng/chiếc. Hỏi nhà trường cần thuê mỗi loại bao nhiêu chiếc để vừa đủ số chỗ ngồi cho $645$ người và chi phí thuê xe là ít nhất?",
+   "dapan": "17 xe loại 35 chỗ và 1 xe loại 50 chỗ (chi phí 64 700 000 đồng)",
+   "loigiai": "Gọi số xe $35$ chỗ và $50$ chỗ là $x,y$ (nguyên dương). $35x+50y=645\\Leftrightarrow7x+10y=129$. Nghiệm nguyên dương: $(x;y)=(7;8)$ hoặc $(17;1)$. Chi phí: $7\\cdot3{,}5+8\\cdot5{,}2=66{,}1$ triệu; $17\\cdot3{,}5+1\\cdot5{,}2=64{,}7$ triệu. Chọn $17$ xe $35$ chỗ và $1$ xe $50$ chỗ.",
+   "ghi_chu": "Phần lời giải trong file gốc bị lỗi hiển thị công thức; tôi tự giải lại và kết quả khớp với kết luận 17 xe và 1 xe."
+  }
+ ]
+}
