@@ -1,9 +1,10 @@
 /* =====================================================================
    kho-de.js — Kho đề lớp 6-9 & thi vào 10 (Toán học → "📚 Kho đề")
-   - Đọc data/chuong-trinh.json và các file đề trong data/ (tự tìm file mới)
-   - Lọc theo lớp, loại đề, chương, dạng, mức độ, từ khóa
-   - AI (Gemini) chọn bài theo yêu cầu tiếng Việt, sinh bài tương tự, tự giải lại để kiểm tra
-   - Xuất đề: sao chép, tải .txt, gửi sang "Chuyển LaTeX → Word / PDF"
+   - Tự động lấy API key Gemini từ gkey.js (không cần ô nhập riêng)
+   - Tự động chọn model AI mới nhất còn hoạt động, không cần bấm "Dò"
+   - Giao diện tối giản: chỉ hiện số bài khớp + danh sách ID đã chọn
+   - AI sinh bài tương tự dựa trên bài mẫu + tự giải lại kiểm tra
+   - Tạo đề ngẫu nhiên 5 câu + xuất file Word (gửi sang Chuyển LaTeX)
    Không sửa các file cũ. Chỉ cần thêm 1 dòng <script src="kho-de.js"> vào index.html.
    ===================================================================== */
 (function () {
@@ -15,8 +16,9 @@
   };
   var S = {
     ready: false, loading: false, ct: null, items: [], byId: {}, errs: [],
-    CH: {}, DG: {}, sel: {}, order: [], ai: [], shown: 40, filtered: [], onlySel: false,
-    f: { lop: '', loai: '', chuong: '', dang: '', ts: '', md: [], q: '' }
+    CH: {}, DG: {}, sel: {}, order: [], ai: [], filtered: [],
+    f: { lop: '', loai: '', chuong: '', dang: '', ts: '', md: [], q: '' },
+    model: '', modelList: null
   };
   var MD_NAME = { NB: 'Nhận biết', TH: 'Thông hiểu', VD: 'Vận dụng', VDC: 'Vận dụng cao' };
 
@@ -28,8 +30,7 @@
     st.textContent =
       '#mKho .kd-card{border:1px solid var(--bd,#cfd8dc);border-radius:10px;padding:8px 10px;margin:8px 0;background:var(--card,transparent)}' +
       '#mKho .kd-card.pick{border-color:#2e7d32;box-shadow:0 0 0 1px #2e7d32 inset}' +
-      '#mKho .kd-h{display:flex;flex-wrap:wrap;gap:6px;align-items:center;cursor:pointer;font-size:13px}' +
-      '#mKho .kd-chip{display:inline-block;padding:1px 8px;border-radius:99px;background:var(--card2,#eceff1);font-size:12px}' +
+      '#mKho .kd-chip{display:inline-block;padding:1px 8px;border-radius:99px;background:var(--card2,#eceff1);font-size:12px;margin-left:4px}' +
       '#mKho .kd-warn{background:#fff3cd;color:#7a5d00}' +
       '#mKho .kd-ok{background:#d7f0dc;color:#1b5e20}' +
       '#mKho .kd-bad{background:#fde0dd;color:#b71c1c}' +
@@ -43,7 +44,13 @@
       '#mKho details>div{padding:4px 0 2px 10px;border-left:3px solid var(--bd,#cfd8dc);margin-top:4px}' +
       '#mKho h3{margin:14px 0 6px;font-size:15px}' +
       '#mKho .kd-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}' +
-      '#mKho .kd-row input[type=text],#mKho .kd-row input[type=password]{flex:1 1 200px;min-width:150px}';
+      '#mKho .kd-row input[type=text],#mKho .kd-row input[type=password]{flex:1 1 200px;min-width:150px}' +
+      '#mKho .kd-sel-list{max-height:200px;overflow:auto;border:1px solid var(--bd,#cfd8dc);border-radius:8px;padding:6px 10px;background:var(--card2,#fafafa)}' +
+      '#mKho .kd-sel-item{display:flex;justify-content:space-between;gap:8px;padding:2px 0;font-size:13px;border-bottom:1px dashed var(--bd,#e0e0e0)}' +
+      '#mKho .kd-sel-item:last-child{border-bottom:none}' +
+      '#mKho .kd-sel-item button{flex:0 0 auto}' +
+      '#mKho .kd-ai-preview{width:100%;min-height:160px;font-family:inherit;font-size:13px}' +
+      '#mKho .kd-count{font-weight:600;color:var(--cy,#0a7)}';
     document.head.appendChild(st);
   }
 
@@ -199,22 +206,11 @@
       '<div class="kd-row"><input type="text" id="kdReq" placeholder="Nhờ AI chọn bài, ví dụ: lấy 5 bài hệ thức Vi-ét mức vận dụng">' +
       '<button class="sm" id="kdPick" type="button">🤖 AI chọn bài</button></div>' +
 
-      '<div class="kd-row"><label for="kdKey" class="note" style="margin:0">API key Gemini · ' +
-      '<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">lấy miễn phí</a></label>' +
-      '<input type="password" id="kdKey" placeholder="Dán API key vào đây" autocomplete="off" spellcheck="false">' +
-      '<label>Model <input type="text" id="kdModel" value="auto" list="kdModelList" title="auto = tự chọn model mới nhất còn hoạt động" style="width:200px;flex:0 0 auto"></label>' +
-      '<datalist id="kdModelList"></datalist>' +
-      '<label>Ưu tiên <select id="kdTier"><option value="lite">Flash-Lite</option><option value="flash">Flash</option><option value="pro">Pro</option></select></label>' +
-      '<button class="sec sm" id="kdModels" type="button">🔍 Dò model mới nhất</button>' +
-      '<label class="qchip"><input type="checkbox" id="kdRem"> Ghi nhớ trên máy này</label></div>' +
-      '<div class="note" id="kdModelNote" style="margin:0 0 4px">Model: <b>auto</b> — tự dò và dùng bản mới nhất còn hoạt động theo mức ưu tiên đã chọn; nếu một model lỗi sẽ tự thử model kế tiếp.</div>' +
+      '<div class="kd-row"><span class="note kd-count" id="kdCount" style="margin:0"></span>' +
+      '<button class="sec sm" id="kdSelAll" type="button">Chọn tất cả đang lọc</button>' +
+      '<button class="sec sm" id="kdSelNone" type="button">Bỏ chọn hết</button></div>' +
 
-      '<div class="kd-row"><span class="note" id="kdCount" style="margin:0"></span>' +
-      '<button class="sec sm" id="kdSelAll" type="button">Chọn tất cả đang hiện</button>' +
-      '<button class="sec sm" id="kdSelNone" type="button">Bỏ chọn hết</button>' +
-      '<button class="sec sm" id="kdOnly" type="button">Chỉ xem bài đã chọn</button></div>' +
-      '<div id="kdList"></div>' +
-      '<div class="kd-row"><button class="sec sm" id="kdMore" type="button">Hiện thêm</button></div>' +
+      '<div id="kdSelBox" style="display:none"><b>Bài đã chọn:</b><div class="kd-sel-list" id="kdSelList"></div></div>' +
 
       '<h3>✨ Bài tương tự do AI sinh</h3>' +
       '<div class="kd-row"><label>Số biến thể mỗi bài <input type="number" id="kdNVar" value="3" min="1" max="5" style="width:60px"></label>' +
@@ -222,43 +218,21 @@
       '<button class="green sm" id="kdGen" type="button">✨ Sinh bài tương tự cho các bài đã chọn</button>' +
       '<button class="sec sm" id="kdAiClear" type="button">🗑 Xóa bài AI</button></div>' +
       '<div class="note" id="kdAiMsg"></div>' +
-      '<div id="kdAiList"></div>' +
+      '<div id="kdAiBox" style="display:none"><b>Bài AI đã sinh:</b> <span id="kdAiCount"></span> ' +
+      '<button class="sec sm" id="kdAiToggle" type="button">Xem trước</button> ' +
+      '<button class="sec sm" id="kdAiCopy" type="button">Sao chép</button>' +
+      '<textarea id="kdAiPreview" class="kd-ai-preview" readonly style="display:none;margin-top:6px"></textarea></div>' +
 
-      '<h3>📄 Xuất đề</h3>' +
+      '<h3>📄 Tạo đề &amp; xuất Word</h3>' +
       '<div class="kd-row">' +
       '<label class="qchip"><input type="checkbox" id="kdPt"> Ghi điểm</label>' +
       '<label class="qchip"><input type="checkbox" id="kdDa" checked> Kèm đáp án</label>' +
       '<label class="qchip"><input type="checkbox" id="kdLg" checked> Kèm lời giải</label>' +
-      '<button class="sm" id="kdMake" type="button">📝 Tạo nội dung đề</button>' +
-      '<button class="sec sm" id="kdCopy" type="button">📋 Sao chép</button>' +
-      '<button class="sec sm" id="kdTxt" type="button">⬇ Tải .txt</button>' +
-      '<button class="green sm" id="kdSend" type="button">➡ Gửi sang Chuyển LaTeX (Công cụ Word)</button></div>' +
-      '<textarea id="kdOut" style="min-height:240px" placeholder="Chọn bài ở trên rồi bấm Tạo nội dung đề. Công thức viết dạng LaTeX $...$"></textarea>' +
-      '<div class="note" id="kdOutMsg">Hình vẽ không nằm trong văn bản: bài có hình sẽ được ghi chú tên file ảnh (trong data/…/hinh/) để bạn chèn thủ công. Hãy kiểm tra lại đề, đặc biệt các bài do AI sinh, trước khi phát cho học sinh.</div>';
-
-    // khôi phục key / model
-    var key = '';
-    try { key = localStorage.getItem('kd_key') || ''; } catch (e) { }
-    if (key) { $('kdKey').value = key; $('kdRem').checked = true; }
-    else { var f = findStoredKey(); if (f) $('kdKey').value = f; }
-    try { var m = localStorage.getItem('kd_model'); if (m && !/^gemini-2\.5-flash$/.test(m)) $('kdModel').value = m; var tr = localStorage.getItem('kd_tier'); if (tr) $('kdTier').value = tr; } catch (e) { }
+      '<button class="sm" id="kdRandom5" type="button">🎲 Tạo đề ngẫu nhiên 5 câu</button>' +
+      '<button class="green sm" id="kdSend" type="button">📄 Xuất file Word</button></div>' +
+      '<div class="note" id="kdOutMsg">Chọn bài ở trên (hoặc để AI chọn) rồi bấm "Tạo đề ngẫu nhiên 5 câu". Nút "Xuất file Word" sẽ gửi nội dung sang tab Chuyển LaTeX → Word / PDF.</div>';
 
     bind();
-  }
-
-  function findStoredKey() {
-    var re = /^AIza[0-9A-Za-z_\-]{30,}$/;
-    try {
-      var g = $('gAiK'); if (g && re.test((g.value || '').trim())) return g.value.trim();
-      var stores = [localStorage, sessionStorage];
-      for (var s = 0; s < stores.length; s++) {
-        for (var i = 0; i < stores[s].length; i++) {
-          var v = stores[s].getItem(stores[s].key(i));
-          if (v && re.test(v.trim())) return v.trim();
-        }
-      }
-    } catch (e) { }
-    return '';
   }
 
   function bind() {
@@ -275,42 +249,23 @@
       [].forEach.call(document.querySelectorAll('#mKho .kdMd'), function (c) { c.checked = false; });
       fillChuong(); readFilters();
     };
-    $('kdMore').onclick = function () { S.shown += 40; renderList(); };
-    $('kdSelAll').onclick = function () { S.filtered.slice(0, S.shown).forEach(function (b) { setSel(b.id, true); }); renderList(); };
-    $('kdSelNone').onclick = function () { S.sel = {}; S.order = []; S.onlySel = false; renderList(); };
-    $('kdOnly').onclick = function () { S.onlySel = !S.onlySel; renderList(); };
+    $('kdSelAll').onclick = function () { S.filtered.forEach(function (b) { setSel(b.id, true); }); renderSelList(); refresh(); };
+    $('kdSelNone').onclick = function () { S.sel = {}; S.order = []; renderSelList(); refresh(); };
     $('kdPick').onclick = aiPick;
     $('kdGen').onclick = function () { genSimilar(S.order.slice()); };
     $('kdAiClear').onclick = function () { S.ai = []; renderAi(); };
-    $('kdMake').onclick = compose;
-    $('kdCopy').onclick = copyOut;
-    $('kdTxt').onclick = downloadTxt;
-    $('kdSend').onclick = sendLatex;
-    $('kdRem').onchange = saveKey; $('kdKey').onchange = saveKey; $('kdModel').onchange = saveKey; $('kdTier').onchange = saveKey; $('kdModels').onclick = detectModels;
-
-    $('kdList').addEventListener('change', function (e) {
-      var c = e.target.closest ? e.target.closest('.kd-pick') : null; if (!c) return;
-      var card = c.closest('.kd-card'); setSel(card.getAttribute('data-id'), c.checked);
-      card.classList.toggle('pick', c.checked); countText();
-    });
-    $('kdList').addEventListener('click', function (e) {
-      var g = e.target.closest ? e.target.closest('.kd-gen1') : null; if (!g) return;
-      e.preventDefault(); genSimilar([g.getAttribute('data-id')]);
-    });
-    $('kdAiList').addEventListener('change', function (e) {
-      var c = e.target.closest ? e.target.closest('.kd-aipick') : null; if (!c) return;
-      var x = S.ai[+c.getAttribute('data-i')]; if (x) x.picked = c.checked;
-    });
-    $('kdAiList').addEventListener('click', function (e) {
-      var d = e.target.closest ? e.target.closest('.kd-aidel') : null; if (!d) return;
-      S.ai.splice(+d.getAttribute('data-i'), 1); renderAi();
-    });
-  }
-  function saveKey() {
-    try {
-      if ($('kdRem').checked) localStorage.setItem('kd_key', $('kdKey').value.trim()); else localStorage.removeItem('kd_key');
-      localStorage.setItem('kd_model', $('kdModel').value.trim()); localStorage.setItem('kd_tier', $('kdTier').value);
-    } catch (e) { }
+    $('kdAiToggle').onclick = function () {
+      var ta = $('kdAiPreview');
+      if (ta.style.display === 'none') { ta.value = composeAiText(); ta.style.display = 'block'; this.textContent = 'Ẩn'; }
+      else { ta.style.display = 'none'; this.textContent = 'Xem trước'; }
+    };
+    $('kdAiCopy').onclick = function () {
+      var v = composeAiText();
+      if (navigator.clipboard) navigator.clipboard.writeText(v).then(function () { $('kdAiMsg').textContent = 'Đã sao chép bài AI.'; });
+      else { var ta = $('kdAiPreview'); ta.value = v; ta.select(); document.execCommand('copy'); }
+    };
+    $('kdRandom5').onclick = function () { compose(true); };
+    $('kdSend').onclick = function () { sendLatex(); };
   }
 
   function fillFilters() {
@@ -349,7 +304,7 @@
     S.f.lop = $('kdLop').value; S.f.loai = $('kdLoai').value; S.f.chuong = $('kdChuong').value;
     S.f.dang = $('kdDang').value; S.f.ts = $('kdTs').value; S.f.q = $('kdQ').value.trim().toLowerCase();
     S.f.md = [].filter.call(document.querySelectorAll('#mKho .kdMd'), function (c) { return c.checked; }).map(function (c) { return c.value; });
-    S.shown = 40; S.onlySel = false; refresh();
+    refresh();
   }
   function ys(b) { return b.y || []; }
   function hasChuong(b, ma) {
@@ -376,18 +331,30 @@
   }
   function refresh() {
     S.filtered = S.items.filter(match);
-    renderList(); renderAi();
+    var c = $('kdCount'); if (c) c.textContent = 'Đang lọc được ' + S.filtered.length + ' bài · đã chọn ' + S.order.length + ' bài';
+    renderSelList();
   }
   function setSel(id, on) {
     if (on) { if (!S.sel[id]) { S.sel[id] = true; S.order.push(id); } }
     else if (S.sel[id]) { delete S.sel[id]; S.order = S.order.filter(function (x) { return x !== id; }); }
   }
-  function countText() {
-    var c = $('kdCount'); if (!c) return;
-    c.textContent = 'Đang lọc được ' + S.filtered.length + ' bài · đã chọn ' + S.order.length + ' bài' + (S.ai.filter(function (x) { return x.picked; }).length ? ' + ' + S.ai.filter(function (x) { return x.picked; }).length + ' bài AI' : '');
+  function renderSelList() {
+    var box = $('kdSelBox'), list = $('kdSelList');
+    if (!box || !list) return;
+    if (!S.order.length) { box.style.display = 'none'; list.innerHTML = ''; return; }
+    box.style.display = '';
+    list.innerHTML = S.order.map(function (id) {
+      var b = S.byId[id]; if (!b) return '';
+      return '<div class="kd-sel-item"><span><b>' + esc(b.id) + '</b> · L' + esc(b.lop) + ' · ' + esc(b.mucdo || '?') + ' · ' + esc(dangNames(b)) + '</span>' +
+        '<button class="sec sm" type="button" data-id="' + esc(b.id) + '">✕</button></div>';
+    }).join('');
+    list.onclick = function (e) {
+      var btn = e.target.closest('button[data-id]'); if (!btn) return;
+      setSel(btn.getAttribute('data-id'), false); renderSelList(); refresh();
+    };
   }
 
-  /* --------------------------------------------------------- Hiển thị bài */
+  /* --------------------------------------------------------- Hiển thị bài (dùng cho AI preview) */
   function lbl(y) { return /^\d+$/.test(y.ma) ? y.ma + ')' : y.ma + ')'; }
   function bangHTML(bg) {
     if (!bg || !bg.tieu_de) return '';
@@ -409,49 +376,30 @@
     if (ans) h += '<details><summary>Đáp án &amp; lời giải</summary>' + ans + '</details>';
     return h;
   }
-  function cardHTML(b) {
-    var chips = '<span class="kd-chip">Lớp ' + esc(b.lop) + '</span><span class="kd-chip">' + esc(b.loai) + (b.nam ? ' ' + esc(b.nam) : '') + '</span>';
-    if (b.mucdo) chips += '<span class="kd-chip" title="' + esc(MD_NAME[b.mucdo] || '') + '">' + esc(b.mucdo) + '</span>';
-    if (b.diem) chips += '<span class="kd-chip">' + esc(b.diem) + ' đ</span>';
-    if (b.can_duyet) chips += '<span class="kd-chip kd-warn" title="' + esc(b.ghi_chu || 'Cần duyệt lại') + '">⚠ cần duyệt</span>';
-    return '<div class="kd-card' + (S.sel[b.id] ? ' pick' : '') + '" data-id="' + esc(b.id) + '">' +
-      '<label class="kd-h"><input type="checkbox" class="kd-pick"' + (S.sel[b.id] ? ' checked' : '') + '> <b>' + esc(b.id) + '</b> ' + chips + '</label>' +
-      '<div class="kd-tags">' + esc(dangNames(b)) + '</div>' +
-      '<div class="kd-body">' + bodyHTML(b, b._dir) + '</div>' +
-      '<div class="kd-row"><button class="sec sm kd-gen1" type="button" data-id="' + esc(b.id) + '">✨ Sinh bài tương tự</button>' +
-      (b.ghi_chu ? '<span class="note" style="margin:0">' + esc(b.ghi_chu) + '</span>' : '') + '</div></div>';
-  }
-  function renderList() {
-    var box = $('kdList'); if (!box) return;
-    var list = S.onlySel ? S.order.map(function (id) { return S.byId[id]; }).filter(Boolean) : S.filtered;
-    var part = list.slice(0, S.shown);
-    box.innerHTML = part.length ? part.map(cardHTML).join('') :
-      '<div class="note">' + (S.ready ? 'Không có bài nào khớp bộ lọc.' : '') + '</div>';
-    $('kdMore').style.display = list.length > part.length ? '' : 'none';
-    $('kdOnly').textContent = S.onlySel ? 'Xem tất cả bài đang lọc' : 'Chỉ xem bài đã chọn';
-    countText(); math(box);
-  }
   function renderAi() {
-    var box = $('kdAiList'); if (!box) return;
-    box.innerHTML = S.ai.map(function (x, i) {
-      var chips = '<span class="kd-chip">AI · từ ' + esc(x.from) + '</span>';
-      if (x.check) chips += '<span class="kd-chip ' + (x.check.ok ? 'kd-ok' : 'kd-bad') + '" title="' + esc(x.check.note) + '">' + (x.check.ok ? '✔ AI giải lại cho kết quả khớp' : '⚠ AI giải lại cho kết quả khác — hãy kiểm tra') + '</span>';
-      var more = x.check && !x.check.ok ? '<div class="note">AI giải lại ra: ' + nl(x.check.other) + '</div>' : '';
-      return '<div class="kd-card' + (x.picked ? ' pick' : '') + '">' +
-        '<label class="kd-h"><input type="checkbox" class="kd-aipick" data-i="' + i + '"' + (x.picked ? ' checked' : '') + '> <b>Bài AI #' + (i + 1) + '</b> ' + chips + '</label>' +
-        '<div class="kd-body">' + bodyHTML(x, null) + more + '</div>' +
-        '<div class="kd-row"><button class="sec sm kd-aidel" type="button" data-i="' + i + '">🗑 Xóa</button></div></div>';
-    }).join('');
-    countText(); math(box);
+    var box = $('kdAiBox'), cnt = $('kdAiCount');
+    if (!box) return;
+    if (!S.ai.length) { box.style.display = 'none'; return; }
+    box.style.display = '';
+    if (cnt) cnt.textContent = S.ai.length + ' bài';
   }
 
   /* ---------------------------------------------------------------- Gemini */
   function getKey() {
-    var k = ($('kdKey').value || '').trim();
-    if (!k) { var g = $('gAiK'); if (g && g.value) k = g.value.trim(); }
-    return k;
+    if (window.GKEY && typeof window.GKEY.get === 'function') return window.GKEY.get();
+    var g = $('gAiK'); if (g && g.value) return g.value.trim();
+    return '';
   }
-  /* ---- Chọn model tự động: dò danh sách model của key, dùng bản mới nhất còn hoạt động ---- */
+  function requireKey() {
+    var k = getKey();
+    if (k) return k;
+    if (window.GKEY && typeof window.GKEY.open === 'function') {
+      window.GKEY.open('Vui lòng nhập API key Gemini ở khung phía trên (dùng chung cho mọi tính năng AI).');
+    }
+    throw new Error('Chưa nhập API key Gemini. Hãy nhập ở khung phía trên đầu trang.');
+  }
+
+  /* ---- Tự động chọn model mới nhất còn hoạt động ---- */
   var BAD_MODEL = /(image|tts|audio|live|embed|aqa|imagen|veo|robotics|computer-use|learnlm|gemma|native|vision|deprecated)/i;
   function verOf(n) {
     var m = String(n).match(/gemini-(\d+)(?:\.(\d+))?/);
@@ -471,7 +419,7 @@
   }
   function listModels(force) {
     var key = getKey();
-    if (!key) return Promise.reject(new Error('Chưa nhập API key Gemini (ô "API key Gemini" ở trên).'));
+    if (!key) return Promise.reject(new Error('Chưa nhập API key Gemini.'));
     if (!force) {
       try {
         var c = JSON.parse(sessionStorage.getItem('kd_models') || 'null');
@@ -494,30 +442,21 @@
     });
   }
   function candidates() {
-    var m = ($('kdModel').value || '').trim();
-    if (m && m.toLowerCase() !== 'auto') return Promise.resolve([m]);
+    var tier = 'lite';
     return listModels(false).then(function (l) {
-      var r = rankModels(l, $('kdTier').value);
+      var r = rankModels(l, tier);
       if (!r.length) throw new Error('Key này không có model Gemini nào dùng được.');
       return r;
     }, function (e) {
-      if (e.fatal || /Chưa nhập/.test(e.message)) throw e;
+      if (e.fatal) throw e;
       return ['gemini-flash-lite-latest', 'gemini-flash-latest'];
     });
-  }
-  function detectModels() {
-    var n = $('kdModelNote'); n.textContent = 'Đang dò model…'; n.style.color = '';
-    listModels(true).then(function (l) {
-      var r = rankModels(l, $('kdTier').value);
-      $('kdModelList').innerHTML = l.map(function (x) { return '<option value="' + esc(x) + '">'; }).join('');
-      n.innerHTML = 'Key này dùng được <b>' + l.length + '</b> model. Tự chọn: <b>' + esc(r[0] || '—') + '</b>' + (r[1] ? ' (dự phòng: ' + esc(r.slice(1, 3).join(', ')) + ')' : '') + '.';
-    }).catch(function (e) { n.textContent = e.message; n.style.color = '#c62828'; });
   }
   function once(model, prompt, temp) {
     var key = getKey();
     var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(key);
     var gc = { responseMimeType: 'application/json' };
-    if (verOf(model) < 3 && temp != null) gc.temperature = temp;   // Gemini 3.x: để nhiệt độ mặc định
+    if (verOf(model) < 3 && temp != null) gc.temperature = temp;
     return fetch(url, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: gc })
@@ -539,13 +478,11 @@
       var t = c && c.content && c.content.parts ? c.content.parts.filter(function (p) { return !p.thought; }).map(function (p) { return p.text || ''; }).join('') : '';
       if (!t) { var e = new Error('Gemini không trả về nội dung (' + model + '; có thể bị bộ lọc an toàn chặn).'); e.retry = true; throw e; }
       S.model = model;
-      var n = $('kdModelNote'); if (n) { n.innerHTML = 'Đang dùng model: <b>' + esc(model) + '</b>'; n.style.color = ''; }
       return t;
     });
   }
   function callGemini(prompt, temp) {
-    if (!getKey()) return Promise.reject(new Error('Chưa nhập API key Gemini (ô "API key Gemini" ở trên).'));
-    saveKey();
+    if (!getKey()) return Promise.reject(new Error('Chưa nhập API key Gemini. Hãy nhập ở khung phía trên đầu trang.'));
     return candidates().then(function (c) {
       function go(i) {
         return once(c[i], prompt, temp).catch(function (e) {
@@ -559,7 +496,6 @@
   function parseJSON(t) {
     t = String(t).replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
     try { return JSON.parse(t); } catch (e) { }
-    // sửa dấu gạch chéo ngược của LaTeX chưa được escape
     var fixed = t.replace(/\\(?!["\\\/bfnrtu])/g, '\\\\');
     try { return JSON.parse(fixed); } catch (e2) { }
     var s = t.search(/[\[{]/), e = Math.max(t.lastIndexOf(']'), t.lastIndexOf('}'));
@@ -577,6 +513,7 @@
     var req = $('kdReq').value.trim();
     if (!S.ready) { aiMsg('Kho chưa tải xong.', true); return; }
     if (!req) { aiMsg('Hãy gõ yêu cầu, ví dụ: lấy 5 bài hệ thức Vi-ét mức vận dụng.', true); return; }
+    try { requireKey(); } catch (e) { aiMsg(e.message, true); return; }
     var pool = S.filtered.slice(0, 150);
     if (!pool.length) { aiMsg('Bộ lọc hiện không có bài nào để AI chọn.', true); return; }
     var lines = pool.map(function (b) {
@@ -592,8 +529,8 @@
       var j = parseJSON(t), ids = (j.ids || []).filter(function (id) { return S.byId[id]; });
       if (!ids.length) { aiMsg('AI không chọn được bài nào khớp. ' + (j.ghi_chu || ''), true); return; }
       ids.forEach(function (id) { setSel(id, true); });
-      S.onlySel = true; renderList();
-      aiMsg('AI đã chọn ' + ids.length + ' bài. ' + (j.ghi_chu || '') + ' (bấm "Xem tất cả bài đang lọc" để quay lại danh sách đầy đủ).');
+      renderSelList(); refresh();
+      aiMsg('AI đã chọn ' + ids.length + ' bài. ' + (j.ghi_chu || ''));
     }).catch(function (e) { aiMsg(e.message, true); }).then(function () { $('kdPick').disabled = false; });
   }
 
@@ -620,7 +557,7 @@
       '- Nếu bài mẫu có hình vẽ hoặc biểu đồ, mô tả hình bằng lời trong "hinh_mo_ta" (không vẽ). Nếu không có hình thì để chuỗi rỗng.\n' +
       'Trả về DUY NHẤT một mảng JSON, mỗi phần tử có dạng:\n' +
       '{"noidung":"...","y":[{"ma":"a","noidung":"...","dapan":"...","loigiai":"..."}],"dapan":"...","loigiai":"...","hinh_mo_ta":""}\n' +
-      'Nếu bài mẫu không chia ý thì "y" là []. Nếu bài mẫu chia ý thì giữ đúng các ý đó (đáp án và lời giải để trong từng ý, còn "dapan","loigiai" ở ngoài để rỗng).\n' +
+      'Nếu bài mẫu không chia ý thì "y" là []. Nếu bài mẫu chia ý thì giữ đúng các ý đó.\n' +
       'Trong JSON, mỗi dấu gạch chéo ngược của LaTeX phải viết thành hai dấu (\\\\), ví dụ \\\\frac.';
     return callGemini(prompt, 0.7).then(function (t) {
       var arr = parseJSON(t); if (!Array.isArray(arr)) arr = arr.bai || arr.items || [arr];
@@ -661,7 +598,8 @@
   function genSimilar(ids) {
     if (genBusy) return;
     ids = ids.filter(function (id) { return S.byId[id]; });
-    if (!ids.length) { aiMsg('Hãy tick chọn ít nhất một bài (hoặc bấm nút "Sinh bài tương tự" trên bài đó).', true); return; }
+    if (!ids.length) { aiMsg('Hãy tick chọn ít nhất một bài trước khi sinh bài tương tự.', true); return; }
+    try { requireKey(); } catch (e) { aiMsg(e.message, true); return; }
     if (ids.length > 6) { aiMsg('Mỗi lần chỉ nên sinh cho tối đa 6 bài; tôi sẽ làm 6 bài đầu trong số đã chọn.'); ids = ids.slice(0, 6); }
     var n = Math.max(1, Math.min(5, parseInt($('kdNVar').value, 10) || 3));
     var verify = $('kdVerify').checked, k = 0, added = 0;
@@ -690,70 +628,130 @@
     var a = S.order.map(function (id) { return S.byId[id]; }).filter(Boolean);
     return a.concat(S.ai.filter(function (x) { return x.picked; }));
   }
-  function compose() {
+  function itemToText(b, n, pt, da, lg) {
+    var head = 'Câu ' + n + '. ' + (pt && b.diem ? '(' + String(b.diem).replace('.', ',') + ' điểm) ' : '');
+    var t = head + (b.noidung || '');
+    if (b.bang && b.bang.tieu_de) {
+      t += '\n' + b.bang.tieu_de.join(' | ');
+      (b.bang.hang || []).forEach(function (r) { t += '\n' + r.join(' | '); });
+    }
+    if (b.hinh) t += '\n(Hình vẽ: ' + b._dir + b.hinh + ')';
+    if (b.hinh_mo_ta) t += '\n(Hình vẽ: ' + b.hinh_mo_ta + ')';
+    ys(b).forEach(function (y) { t += '\n' + lbl(y) + ' ' + (y.noidung || ''); });
+    var ans = '', has = false;
+    ys(b).forEach(function (y) {
+      var part = '';
+      if (da && y.dapan) part += ' Đáp án: ' + y.dapan;
+      if (lg && y.loigiai) part += '\n   Lời giải: ' + y.loigiai;
+      if (part) { ans += '\n' + lbl(y) + part; has = true; }
+    });
+    if (da && b.dapan) { ans += '\nĐáp án: ' + b.dapan; has = true; }
+    if (lg && b.loigiai) { ans += (ans ? '\n' : '\n') + 'Lời giải: ' + b.loigiai; has = true; }
+    return { de: t, dk: has ? 'Câu ' + n + '.' + ans : null };
+  }
+  function compose(random5) {
     var items = pickedItems();
-    if (!items.length) { $('kdOutMsg').textContent = 'Chưa chọn bài nào.'; return ''; }
+    if (!items.length) {
+      if (random5) {
+        // Nếu chưa chọn bài nào → AI tự sinh 5 câu dựa trên bộ lọc hiện tại
+        composeByAI();
+        return;
+      }
+      $('kdOutMsg').textContent = 'Chưa chọn bài nào. Hãy tick chọn bài, hoặc bấm "Tạo đề ngẫu nhiên 5 câu" để AI tự sinh đề từ bộ lọc hiện tại.';
+      return;
+    }
+    if (random5 && items.length > 5) {
+      // Trộn ngẫu nhiên và lấy 5 bài
+      var shuffled = items.slice();
+      for (var i = shuffled.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp; }
+      items = shuffled.slice(0, 5);
+      $('kdOutMsg').textContent = 'Đã chọn ngẫu nhiên 5/' + pickedItems().length + ' bài.';
+    }
     var pt = $('kdPt').checked, da = $('kdDa').checked, lg = $('kdLg').checked;
     var de = [], dk = [];
     items.forEach(function (b, i) {
-      var n = i + 1, head = 'Câu ' + n + '. ' + (pt && b.diem ? '(' + String(b.diem).replace('.', ',') + ' điểm) ' : '');
-      var t = head + (b.noidung || '');
-      if (b.bang && b.bang.tieu_de) {
-        t += '\n' + b.bang.tieu_de.join(' | ');
-        (b.bang.hang || []).forEach(function (r) { t += '\n' + r.join(' | '); });
-      }
-      if (b.hinh) t += '\n(Hình vẽ: ' + b._dir + b.hinh + ')';
-      if (b.hinh_mo_ta) t += '\n(Hình vẽ: ' + b.hinh_mo_ta + ')';
-      ys(b).forEach(function (y) { t += '\n' + lbl(y) + ' ' + (y.noidung || ''); });
-      de.push(t);
-      var s = 'Câu ' + n + '.';
-      var has = false;
-      ys(b).forEach(function (y) {
-        var part = '';
-        if (da && y.dapan) part += ' Đáp án: ' + y.dapan;
-        if (lg && y.loigiai) part += '\n   Lời giải: ' + y.loigiai;
-        if (part) { s += '\n' + lbl(y) + part; has = true; }
-      });
-      var top = '';
-      if (da && b.dapan) top += 'Đáp án: ' + b.dapan;
-      if (lg && b.loigiai) top += (top ? '\n' : '') + 'Lời giải: ' + b.loigiai;
-      if (top) { s += '\n' + top; has = true; }
-      if (has) dk.push(s);
+      var r = itemToText(b, i + 1, pt, da, lg);
+      de.push(r.de); if (r.dk) dk.push(r.dk);
     });
     var out = de.join('\n\n') + '\n\n--- HẾT ---';
     if (dk.length) out += '\n\nĐÁP ÁN VÀ LỜI GIẢI\n\n' + dk.join('\n\n');
-    $('kdOut').value = out;
-    $('kdOutMsg').textContent = 'Đã tạo đề gồm ' + items.length + ' câu' + (S.ai.some(function (x) { return x.picked; }) ? ' (có bài do AI sinh, cần kiểm tra lại)' : '') + '.';
+    S.lastOut = out;
+    if (!random5) $('kdOutMsg').textContent = 'Đã tạo đề gồm ' + items.length + ' câu. Bấm "Xuất file Word" để gửi sang tab Chuyển LaTeX.';
     return out;
   }
-  function getOut() { var v = $('kdOut').value; return v && v.trim() ? v : compose(); }
-  function copyOut() {
-    var v = getOut(); if (!v) return;
-    var done = function () { $('kdOutMsg').textContent = 'Đã sao chép vào bộ nhớ tạm.'; };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(v).then(done, function () { $('kdOut').select(); document.execCommand('copy'); done(); });
-    else { $('kdOut').select(); document.execCommand('copy'); done(); }
+  function composeByAI() {
+    if (!S.filtered.length) { $('kdOutMsg').textContent = 'Bộ lọc hiện không có bài nào. Hãy nới bộ lọc hoặc chọn bài thủ công.'; return; }
+    try { requireKey(); } catch (e) { $('kdOutMsg').textContent = e.message; return; }
+    var ctx = [];
+    if (S.f.lop) ctx.push('lớp ' + S.f.lop);
+    if (S.f.loai) ctx.push('loại đề ' + S.f.loai);
+    if (S.f.chuong) ctx.push('chương ' + (S.CH[S.f.chuong] || S.f.chuong));
+    if (S.f.dang) ctx.push('dạng ' + (S.DG[S.f.dang] || S.f.dang));
+    if (S.f.md.length) ctx.push('mức độ ' + S.f.md.join(', '));
+    if (S.f.q) ctx.push('từ khóa "' + S.f.q + '"');
+    var ctxStr = ctx.length ? ctx.join(' · ') : 'Toán THCS tổng hợp';
+    $('kdOutMsg').textContent = 'AI đang tạo đề 5 câu theo bộ lọc: ' + ctxStr + '…';
+    $('kdRandom5').disabled = true;
+    var prompt = 'Bạn là giáo viên Toán THCS Việt Nam. Hãy soạn 1 đề gồm đúng 5 câu hỏi tự luận ngắn theo chương trình GDPT 2018, phù hợp với bối cảnh: ' + ctxStr + '.\n' +
+      'Yêu cầu:\n' +
+      '- Mỗi câu có nội dung rõ ràng, số liệu hợp lý, giải được.\n' +
+      '- Công thức viết bằng LaTeX đặt trong $...$.\n' +
+      '- Có đáp án và lời giải ngắn gọn cho từng câu.\n' +
+      '- Nếu bài có hình, mô tả bằng lời (không vẽ).\n' +
+      'Trả về DUY NHẤT một mảng JSON gồm 5 phần tử, mỗi phần tử dạng:\n' +
+      '{"noidung":"...","y":[{"ma":"a","noidung":"...","dapan":"...","loigiai":"..."}],"dapan":"...","loigiai":"...","hinh_mo_ta":""}\n' +
+      'Nếu câu không chia ý thì "y" là []. Trong JSON, mỗi dấu gạch chéo ngược của LaTeX phải viết thành hai dấu (\\\\).';
+    callGemini(prompt, 0.8).then(function (t) {
+      var arr = parseJSON(t); if (!Array.isArray(arr)) arr = arr.bai || arr.items || [];
+      arr = arr.filter(function (x) { return x && x.noidung; }).slice(0, 5);
+      if (arr.length < 5) throw new Error('AI chỉ trả về ' + arr.length + ' câu, cần 5 câu. Hãy thử lại.');
+      S.ai = arr.map(function (x) {
+        return {
+          from: 'AI-random', picked: true, noidung: String(x.noidung), dapan: x.dapan ? String(x.dapan) : '', loigiai: x.loigiai ? String(x.loigiai) : '',
+          hinh_mo_ta: x.hinh_mo_ta ? String(x.hinh_mo_ta) : '',
+          y: (x.y || []).map(function (y) { return { ma: String(y.ma || ''), noidung: String(y.noidung || ''), dapan: y.dapan ? String(y.dapan) : '', loigiai: y.loigiai ? String(y.loigiai) : '' }; })
+        };
+      });
+      renderAi();
+      var pt = $('kdPt').checked, da = $('kdDa').checked, lg = $('kdLg').checked;
+      var de = [], dk = [];
+      S.ai.forEach(function (b, i) {
+        var r = itemToText(b, i + 1, pt, da, lg);
+        de.push(r.de); if (r.dk) dk.push(r.dk);
+      });
+      var out = de.join('\n\n') + '\n\n--- HẾT ---';
+      if (dk.length) out += '\n\nĐÁP ÁN VÀ LỜI GIẢI\n\n' + dk.join('\n\n');
+      S.lastOut = out;
+      $('kdOutMsg').textContent = 'AI đã tạo đề 5 câu theo bộ lọc: ' + ctxStr + '. Bấm "Xuất file Word" để gửi sang tab Chuyển LaTeX.';
+    }).catch(function (e) {
+      $('kdOutMsg').textContent = 'Lỗi tạo đề AI: ' + e.message;
+    }).then(function () { $('kdRandom5').disabled = false; });
   }
-  function downloadTxt() {
-    var v = getOut(); if (!v) return;
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob(['\ufeff' + v], { type: 'text/plain;charset=utf-8' }));
-    a.download = 'de-tu-kho-de.txt'; document.body.appendChild(a); a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  function composeAiText() {
+    return S.ai.map(function (b, i) {
+      var r = itemToText(b, i + 1, false, true, true);
+      return r.de + (r.dk ? '\n' + r.dk : '');
+    }).join('\n\n');
+  }
+  function getOut() {
+    if (S.lastOut) return S.lastOut;
+    return compose(false);
   }
   function sendLatex() {
-    var v = getOut(); if (!v) return;
+    var v = getOut();
+    if (!v || !v.trim()) { $('kdOutMsg').textContent = 'Chưa có nội dung đề. Hãy bấm "Tạo đề ngẫu nhiên 5 câu" hoặc chọn bài rồi tạo đề trước.'; return; }
     var inp = $('input');
-    if (!inp) { $('kdOutMsg').textContent = 'Không tìm thấy ô nhập của công cụ Chuyển LaTeX. Hãy bấm "Sao chép" rồi dán vào công cụ đó.'; return; }
-    // Nếu công cụ đang giữ danh sách file (ô nhập bị khóa / chỉ để xem) thì xóa danh sách trước,
-    // vì word-ui.js ưu tiên file đã chọn hơn văn bản dán vào ô nhập.
+    if (!inp) { $('kdOutMsg').textContent = 'Không tìm thấy ô nhập của công cụ Chuyển LaTeX.'; return; }
     var clr = $('btnClearFiles');
     if (clr && (inp.readOnly || inp.dataset.fromFile === '1')) clr.click();
     inp.readOnly = false;
-    inp.value = v; inp.dispatchEvent(new Event('input', { bubbles: true }));
+    inp.value = v;
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
     var wt = $('wtSel');
     if (wt) { wt.value = 'wtLatex'; wt.dispatchEvent(new Event('change', { bubbles: true })); }
-    var tab = document.querySelector('.tab[data-tab="t3"]'); if (tab) tab.click();
-    $('kdOutMsg').textContent = 'Đã gửi sang Chuyển LaTeX → Word / PDF.';
+    var tab = document.querySelector('.tab[data-tab="t3"]');
+    if (tab) tab.click();
+    $('kdOutMsg').textContent = 'Đã gửi đề sang tab Chuyển LaTeX → Word / PDF. Hãy bấm "Chuyển Đổi & Xuất File" ở tab đó.';
   }
 
   /* ------------------------------------------------------------------ Khởi tạo */
