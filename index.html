@@ -332,7 +332,8 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <div class="wwrap"><canvas id="wheel"></canvas><div class="ptr"></div></div>
 <div class="bar" style="justify-content:center;margin:0"><button class="red" id="wSpin" type="button" style="font-size:18px;padding:13px 30px">🎯 QUAY NGẪU NHIÊN</button><button class="sec sm" id="wSnd" type="button"></button></div>
 </div></div>
-<div class="ov" id="wOv"><div class="ovbox"><div class="s">Mời em</div><div class="n" id="wWin"></div><div class="s">lên bảng ạ!</div><div class="bar" style="justify-content:center;margin-top:16px"><button class="sec" id="wClose" type="button" style="font-size:18px">Đóng</button></div></div></div>
+<style id="heart-blink-css">.heart-blink{display:inline-block;font-size:.8em;animation:heartBlink 1s ease-in-out infinite}@keyframes heartBlink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.8)}}</style>
+<div class="ov" id="wOv"><div class="ovbox"><div class="s">Mời em</div><div class="n" id="wWin"></div><div class="s">lên bảng <span class="heart-blink">❤️</span></div><div class="bar" style="justify-content:center;margin-top:16px"><button class="sec" id="wClose" type="button" style="font-size:18px">Đóng</button></div></div></div>
 </div>
 </div>
 <div class="ut" id="utTimer">
