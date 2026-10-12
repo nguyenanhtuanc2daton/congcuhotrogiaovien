@@ -9,6 +9,13 @@
    - Nút "Xuất file Word": chuyển nội dung sang dạng văn bản phối hợp LaTeX
      tương thích MathType (tách chữ thường và công thức bằng $, không dùng
      \textbf hay \qquad trong phần văn bản), rồi gửi sang tab Chuyển LaTeX
+   - BẢN SỬA LỖI XUẤT WORD:
+       + Chuẩn hóa LaTeX trước khi gửi (\backsim→\sim, \dfrac→\frac, \leqslant→\leq, \big...→bỏ, ...)
+         để tab Chuyển LaTeX → Word không báo "lệnh chưa hỗ trợ"
+       + Sửa lỗi đọc JSON của AI làm hỏng \frac, \triangle, \neq, \right... (bị hiểu thành \f, \t, \n, \r)
+       + Rà soát công thức trước khi gửi: dấu $ lẻ, ngoặc {} lệch, \begin/\end lệch, lệnh lạ
+       + Hình vẽ: kiểm tra/tải trước file hình, hiển thị ảnh thật ở ô xem trước của tab Chuyển LaTeX
+       + Sửa lỗi gửi nhầm đề cũ (S.lastOut không được làm mới khi đổi bài chọn)
    ===================================================================== */
 (function () {
   'use strict';
@@ -42,7 +49,8 @@
       '#mKho .kd-sel-item{display:flex;justify-content:space-between;gap:8px;padding:2px 0;font-size:13px;border-bottom:1px dashed var(--bd,#e0e0e0)}' +
       '#mKho .kd-sel-item:last-child{border-bottom:none}' +
       '#mKho .kd-ai-preview{width:100%;min-height:180px;font-family:inherit;font-size:13px}' +
-      '#mKho .kd-count{font-weight:600;color:var(--cy,#0a7)}';
+      '#mKho .kd-count{font-weight:600;color:var(--cy,#0a7)}' +
+      '#mKho #kdOutMsg{white-space:pre-line}';
     document.head.appendChild(st);
   }
 
@@ -197,10 +205,10 @@
       fillChuong(); readFilters();
     };
     $('kdSelAll').onclick = function () { S.filtered.forEach(function (b) { setSel(b.id, true); }); renderSelList(); refresh(); };
-    $('kdSelNone').onclick = function () { S.sel = {}; S.order = []; renderSelList(); refresh(); };
+    $('kdSelNone').onclick = function () { S.lastOut = ''; S.sel = {}; S.order = []; renderSelList(); refresh(); };
     $('kdPick').onclick = aiPick;
     $('kdGen').onclick = function () { genSimilar(S.order.slice()); };
-    $('kdAiClear').onclick = function () { S.ai = []; renderAi(); $('kdOutMsg').textContent = 'Đã xóa bài AI.'; };
+    $('kdAiClear').onclick = function () { S.lastOut = ''; S.ai = []; renderAi(); $('kdOutMsg').textContent = 'Đã xóa bài AI.'; };
     $('kdAiToggle').onclick = function () {
       var ta = $('kdAiPreview');
       if (ta.style.display === 'none') { ta.value = composeAiText(); ta.style.display = 'block'; this.textContent = 'Ẩn'; }
@@ -211,6 +219,7 @@
       if (navigator.clipboard) navigator.clipboard.writeText(v).then(function () { $('kdAiMsg').textContent = 'Đã sao chép bài AI.'; });
       else { var ta = $('kdAiPreview'); ta.value = v; ta.select(); document.execCommand('copy'); }
     };
+    $('kdDa').onchange = $('kdLg').onchange = function () { S.lastOut = ''; };
     $('kdRandom5').onclick = function () { compose(true); };
     $('kdSend').onclick = function () { sendLatex(); };
   }
@@ -258,6 +267,7 @@
     renderSelList();
   }
   function setSel(id, on) {
+    S.lastOut = '';
     if (on) { if (!S.sel[id]) { S.sel[id] = true; S.order.push(id); } }
     else if (S.sel[id]) { delete S.sel[id]; S.order = S.order.filter(function (x) { return x !== id; }); }
   }
@@ -392,13 +402,22 @@
       return go(0);
     });
   }
+  /* Các lệnh LaTeX bắt đầu bằng b/f/n/r/t/u dễ bị JSON.parse hiểu nhầm thành \b \f \n \r \t \u
+     (ví dụ "\frac" → ký tự form-feed + "rac"; "\triangle" → tab + "riangle"). Nhân đôi dấu \ trước khi parse. */
+  var TEX_ESC = 'frac|forall|flat|frown|fbox|triangle|times|theta|therefore|text|textbf|textit|textstyle|tan|tanh|tau|to|top|tilde|tfrac|tag|tiny|' +
+    'bar|begin|beta|because|binom|bigcup|bigcap|bigl|bigr|bigm|Bigl|Bigr|bigg|Bigg|big|Big|boxed|bmod|backsim|bot|bullet|bf|' +
+    'neq|ne|nu|not|notin|ni|neg|nabla|nearrow|nparallel|nmid|nsubseteq|nolimits|nonumber|notag|' +
+    'right|rho|rightarrow|Rightarrow|rangle|rbrace|rfloor|rceil|rvert|rVert|rm';
+  var TEX_RE = new RegExp('\\\\\\\\|\\\\(?=(?:' + TEX_ESC + ')(?![a-zA-Z]))|\\\\u(?![0-9a-fA-F]{4})', 'g');
+  function dblSlash(m) { return m === '\\\\' ? m : '\\\\' + m.slice(1); }
   function parseJSON(t) {
     t = String(t).replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
-    try { return JSON.parse(t); } catch (e) { }
-    var fixed = t.replace(/\\(?!["\\\/bfnrtu])/g, '\\\\');
+    var t2 = t.replace(TEX_RE, dblSlash);
+    try { return JSON.parse(t2); } catch (e) { }
+    var fixed = t2.replace(/\\\\|\\(?!["\/bfnrtu])/g, dblSlash);
     try { return JSON.parse(fixed); } catch (e2) { }
-    var s = t.search(/[\[{]/), e = Math.max(t.lastIndexOf(']'), t.lastIndexOf('}'));
-    if (s >= 0 && e > s) { try { return JSON.parse(t.slice(s, e + 1)); } catch (e3) { } }
+    var s = fixed.search(/[\[{]/), e = Math.max(fixed.lastIndexOf(']'), fixed.lastIndexOf('}'));
+    if (s >= 0 && e > s) { try { return JSON.parse(fixed.slice(s, e + 1)); } catch (e3) { } }
     throw new Error('Không đọc được kết quả AI trả về. Hãy thử lại.');
   }
   function aiMsg(t, err) { var m = $('kdAiMsg'); if (m) { m.textContent = t; m.style.color = err ? '#c62828' : ''; } }
@@ -527,7 +546,7 @@
           chain = chain.then(function () {
             aiMsg('AI đang tự giải lại để kiểm tra (' + b.id + ')…');
             return verifyOne(x).then(function () {
-              if (x.check && x.check.ok) { S.ai.push(x); added++; }
+              if (x.check && x.check.ok) { S.ai.push(x); S.lastOut = ''; added++; }
               else { rejected++; }
             });
           });
@@ -546,9 +565,71 @@
        được giữ trong $...$ để MathType nhận diện
      - Dấu \\ trong môi trường giữ nguyên (MathType hiểu)
   */
+  /* Bảng lệnh LaTeX "lạ" → lệnh cơ bản mà bộ chuyển đổi hiểu (kết quả chụp màn hình: \backsim chưa hỗ trợ) */
+  var TEX_MAP = [
+    [/\\(?:backsim|thicksim|varsim)(?![a-zA-Z])/g, '\\sim'],
+    [/\\backsimeq(?![a-zA-Z])/g, '\\simeq'],
+    [/\\(?:dfrac|tfrac|cfrac)(?![a-zA-Z])/g, '\\frac'],
+    [/\\leqslant(?![a-zA-Z])|\\leqq(?![a-zA-Z])|\\le(?![a-zA-Z])/g, '\\leq'],
+    [/\\geqslant(?![a-zA-Z])|\\geqq(?![a-zA-Z])|\\ge(?![a-zA-Z])/g, '\\geq'],
+    [/\\ne(?![a-zA-Z])/g, '\\neq'],
+    [/\\lbrace(?![a-zA-Z])/g, '\\{'],
+    [/\\rbrace(?![a-zA-Z])/g, '\\}'],
+    [/\\varnothing(?![a-zA-Z])/g, '\\emptyset'],
+    [/\\(?:implies|Longrightarrow)(?![a-zA-Z])/g, '\\Rightarrow'],
+    [/\\(?:iff|Longleftrightarrow)(?![a-zA-Z])/g, '\\Leftrightarrow'],
+    [/\\longrightarrow(?![a-zA-Z])/g, '\\rightarrow'],
+    [/\\land(?![a-zA-Z])/g, '\\wedge'],
+    [/\\lor(?![a-zA-Z])/g, '\\vee'],
+    [/\\(?:lvert|rvert)(?![a-zA-Z])/g, '|'],
+    [/\\(?:lVert|rVert)(?![a-zA-Z])/g, '\\|'],
+    [/\\measuredangle(?![a-zA-Z])/g, '\\angle'],
+    [/\\degree(?![a-zA-Z])/g, '^\\circ'],
+    [/\\(?:dotsc|dots)(?![a-zA-Z])/g, '\\ldots'],
+    [/\\dotsb(?![a-zA-Z])/g, '\\cdots'],
+    [/\\cdotp(?![a-zA-Z])/g, '\\cdot'],
+    [/\\(?:[Bb]ig{1,2}[lrm]?)(?![a-zA-Z])\s*/g, ''],
+    [/\\operatorname\*?\s*\{([^{}]*)\}/g, '\\mathrm{$1}'],
+    [/\\(?:overset|stackrel)\s*\{\s*\\(?:frown|smile)\s*\}\s*\{([^{}]*)\}/g, '\\widehat{$1}'],
+    [/\\overparen\s*\{([^{}]*)\}/g, '\\widehat{$1}']
+  ];
+  function fixLatex(t) {
+    // \( \) \[ \] → $ ; $$...$$ → $...$ (giữ nguyên \\ xuống dòng)
+    t = t.replace(/\\\\|\\[()\[\]]/g, function (m) { return m === '\\\\' ? m : '$'; });
+    t = t.replace(/\$\$([^$]+?)\$\$/g, '$$$1$');
+    TEX_MAP.forEach(function (r) { t = t.replace(r[0], r[1]); });
+    // \, \; \: \! và "\ " → khoảng trắng (không đụng tới \\)
+    t = t.replace(/\\\\|\\[,;:! ]/g, function (m) { return m === '\\\\' ? m : ' '; });
+    return t;
+  }
+  var KNOWN = {};
+  ('frac sqrt left right cdot times div pm mp leq geq neq approx equiv sim simeq cong triangle angle perp parallel widehat widetilde hat bar overline underline ' +
+   'vec overrightarrow overleftarrow circ text mathrm mathbf mathbb mathcal begin end cases aligned array matrix pmatrix sum prod int lim infty to ' +
+   'rightarrow leftarrow Rightarrow Leftarrow Leftrightarrow leftrightarrow in notin subset subseteq supset supseteq cup cap emptyset setminus forall exists neg ' +
+   'wedge vee alpha beta gamma delta epsilon varepsilon theta lambda mu pi rho sigma tau phi varphi omega Delta Gamma Theta Lambda Pi Sigma Phi Omega ' +
+   'ldots cdots vdots ddots log ln sin cos tan cot sec csc arcsin arccos arctan max min gcd lcm mod binom hline cdot ' +
+   'mid prime ast star oplus otimes odot nabla partial sqrt overbrace underbrace not ' +
+   'Longrightarrow').split(/\s+/).forEach(function (k) { KNOWN[k] = 1; });
+  function lintLatex(t) {
+    var w = [], bad = {};
+    (String(t).match(/\\[a-zA-Z]+/g) || []).forEach(function (c) { if (!KNOWN[c.slice(1)]) bad[c] = 1; });
+    var bl = Object.keys(bad);
+    if (bl.length) w.push('lệnh LaTeX ít gặp, nên kiểm tra khi chuyển đổi: ' + bl.slice(0, 8).join(' '));
+    var odd = 0;
+    String(t).split(/\n\s*\n/).forEach(function (p) { if (((p.replace(/\\\$/g, '').match(/\$/g) || []).length) % 2) odd++; });
+    if (odd) w.push(odd + ' đoạn có số dấu $ bị lẻ (công thức bị hở)');
+    var o = (String(t).match(/\\begin\{/g) || []).length, e = (String(t).match(/\\end\{/g) || []).length;
+    if (o !== e) w.push('\\begin/\\end không khớp (' + o + '/' + e + ')');
+    var u = String(t).replace(/\\[{}]/g, '');
+    var ob = (u.match(/\{/g) || []).length, cb = (u.match(/\}/g) || []).length;
+    if (ob !== cb) w.push('ngoặc { } không khớp (' + ob + '/' + cb + ')');
+    return w;
+  }
+  function lintMsg(t) { var w = lintLatex(t); return w.length ? '\n⚠ Rà soát: ' + w.join('; ') + '.' : ''; }
+
   function toMathTypeText(s) {
     if (s == null) return '';
-    var t = String(s);
+    var t = fixLatex(String(s));
     // Bỏ \textbf{...} → giữ nội dung bên trong, không có dấu sao
     t = t.replace(/\\textbf\s*\{([^{}]*)\}/g, '$1');
     t = t.replace(/\\textit\s*\{([^{}]*)\}/g, '$1');
@@ -584,9 +665,12 @@
       t += '\n' + b.bang.tieu_de.join(' | ');
       (b.bang.hang || []).forEach(function (r) { t += '\n' + r.join(' | '); });
     }
-    if (b.hinh) t += '\n(Hình vẽ: ' + b._dir + b.hinh + ')';
+    if (b.hinh) t += '\n(Hình vẽ: ' + figPath(b, b.hinh) + ')';
     if (b.hinh_mo_ta) t += '\n(Hình vẽ: ' + b.hinh_mo_ta + ')';
-    ys(b).forEach(function (y) { t += '\n' + lbl(y) + ' ' + (y.noidung || ''); });
+    ys(b).forEach(function (y) {
+      t += '\n' + lbl(y) + ' ' + (y.noidung || '');
+      if (y.hinh) t += '\n(Hình vẽ: ' + figPath(b, y.hinh) + ')';
+    });
     var ans = '', has = false;
     ys(b).forEach(function (y) {
       var part = '';
@@ -599,6 +683,11 @@
     return { de: t, dk: has ? 'Câu ' + n + '.' + ans : null };
   }
   function lbl(y) { return y.ma + ')'; }
+  function figPath(b, h) {
+    h = String(h).trim();
+    if (/^(https?:|data:|\/|data\/)/i.test(h)) return h;
+    return (b._dir || '') + h;
+  }
   function compose(random5) {
     var items = pickedItems();
     if (!items.length) {
@@ -620,7 +709,7 @@
     var out = de.join('\n\n') + '\n\n--- HẾT ---';
     if (dk.length) out += '\n\nĐÁP ÁN VÀ LỜI GIẢI\n\n' + dk.join('\n\n');
     S.lastOut = toMathTypeText(out);
-    if (!random5) $('kdOutMsg').textContent = 'Đã tạo đề gồm ' + items.length + ' câu. Bấm "Xuất file Word" để gửi sang tab Chuyển LaTeX.';
+    $('kdOutMsg').textContent = 'Đã tạo đề gồm ' + items.length + ' câu' + figInfo(S.lastOut) + '. Bấm "Xuất file Word" để gửi sang tab Chuyển LaTeX.' + lintMsg(S.lastOut);
     return S.lastOut;
   }
   function composeByAI() {
@@ -676,7 +765,7 @@
         var out = de.join('\n\n') + '\n\n--- HẾT ---';
         if (dk.length) out += '\n\nĐÁP ÁN VÀ LỜI GIẢI\n\n' + dk.join('\n\n');
         S.lastOut = toMathTypeText(out);
-        $('kdOutMsg').textContent = 'AI đã tạo đề 5 câu (đã tự giải lại kiểm tra). Bấm "Xuất file Word" để gửi sang tab Chuyển LaTeX.';
+        $('kdOutMsg').textContent = 'AI đã tạo đề 5 câu (đã tự giải lại kiểm tra). Bấm "Xuất file Word" để gửi sang tab Chuyển LaTeX.' + lintMsg(S.lastOut);
       });
     }).catch(function (e) {
       $('kdOutMsg').textContent = 'Lỗi tạo đề AI: ' + e.message;
@@ -692,23 +781,116 @@
     if (S.lastOut) return S.lastOut;
     return compose(false);
   }
+
+  /* ------------------------------------------------------------- Hình vẽ */
+  var FIG_RE_SRC = '\\(Hình vẽ: ([^)\\n]+?\\.(?:png|jpe?g|gif|webp|svg))\\)';
+  function figPaths(t) {
+    var re = new RegExp(FIG_RE_SRC, 'ig'), r = [], m;
+    while ((m = re.exec(String(t)))) { var p = m[1].trim(); if (r.indexOf(p) < 0) r.push(p); }
+    return r;
+  }
+  function figInfo(t) { var n = figPaths(t).length; return n ? ' (có ' + n + ' hình vẽ)' : ''; }
+  function loadFig(p) {
+    var F = window.KD_FIGS = window.KD_FIGS || {};
+    if (F[p]) return Promise.resolve(true);
+    return fetch(p, { cache: 'force-cache' }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.blob();
+    }).then(function (b) {
+      return new Promise(function (res, rej) {
+        var fr = new FileReader();
+        fr.onload = function () { F[p] = fr.result; res(true); };
+        fr.onerror = rej; fr.readAsDataURL(b);
+      });
+    }).catch(function () { return false; });
+  }
+  function figEl(doc, p) {
+    var box = doc.createElement('span');
+    box.className = 'kd-fig';
+    box.style.cssText = 'display:block;text-align:center;margin:10px 0';
+    var img = doc.createElement('img');
+    img.alt = 'Hình vẽ'; img.src = (window.KD_FIGS && window.KD_FIGS[p]) || p;
+    img.style.cssText = 'max-width:min(100%,420px);height:auto;border:1px solid #cfd8dc;border-radius:6px;background:#fff';
+    img.onerror = function () {
+      var w = doc.createElement('span');
+      w.style.cssText = 'display:block;color:#b71c1c;font-size:13px';
+      w.textContent = '⚠ Không tải được hình: ' + p + ' (kiểm tra đường dẫn / tên file trong thư mục hinh).';
+      if (box.parentNode) box.replaceChild(w, img);
+    };
+    box.appendChild(img);
+    return box;
+  }
+  function enhanceRoot(root) {
+    var doc = root.ownerDocument, nodes = [], n;
+    var w = doc.createTreeWalker(root, 4, null);   // 4 = SHOW_TEXT
+    while ((n = w.nextNode())) {
+      if (n.nodeValue.indexOf('Hình vẽ:') < 0) continue;
+      var pn = n.parentNode && n.parentNode.nodeName;
+      if (/^(TEXTAREA|INPUT|SCRIPT|STYLE|OPTION)$/.test(pn)) continue;
+      nodes.push(n);
+    }
+    nodes.forEach(function (tn) {
+      var s = tn.nodeValue, re = new RegExp(FIG_RE_SRC, 'ig'), last = 0, m, hit = false, frag = doc.createDocumentFragment();
+      while ((m = re.exec(s))) {
+        hit = true;
+        if (m.index > last) frag.appendChild(doc.createTextNode(s.slice(last, m.index)));
+        frag.appendChild(figEl(doc, m[1].trim()));
+        last = re.lastIndex;
+      }
+      if (!hit) return;
+      if (last < s.length) frag.appendChild(doc.createTextNode(s.slice(last)));
+      tn.parentNode.replaceChild(frag, tn);
+    });
+  }
+  function enhanceFigs() {
+    var host = $('t3') || document.body;
+    try { enhanceRoot(host); } catch (e) { }
+    try {
+      var ifr = host.querySelectorAll('iframe');
+      for (var i = 0; i < ifr.length; i++) {
+        var d = ifr[i].contentDocument;
+        if (d && d.body) enhanceRoot(d.body);
+      }
+    } catch (e) { }
+  }
+  var figTimer = 0;
+  function installFigPreview() {
+    var host = $('t3');
+    if (!host || host._kdObs || !window.MutationObserver) return;
+    host._kdObs = new MutationObserver(function () {
+      clearTimeout(figTimer);
+      figTimer = setTimeout(enhanceFigs, 120);
+    });
+    host._kdObs.observe(host, { childList: true, subtree: true, characterData: true });
+  }
+
   function sendLatex() {
     var v = getOut();
     if (!v || !v.trim()) { $('kdOutMsg').textContent = 'Chưa có nội dung đề. Hãy bấm "Tạo đề ngẫu nhiên 5 câu" hoặc để AI chọn bài trước.'; return; }
-    // Đảm bảo nội dung đã ở dạng MathType
     v = toMathTypeText(v);
-    var inp = $('input');
-    if (!inp) { $('kdOutMsg').textContent = 'Không tìm thấy ô nhập của công cụ Chuyển LaTeX.'; return; }
-    var clr = $('btnClearFiles');
-    if (clr && (inp.readOnly || inp.dataset.fromFile === '1')) clr.click();
-    inp.readOnly = false;
-    inp.value = v;
-    inp.dispatchEvent(new Event('input', { bubbles: true }));
-    var wt = $('wtSel');
-    if (wt) { wt.value = 'wtLatex'; wt.dispatchEvent(new Event('change', { bubbles: true })); }
-    var tab = document.querySelector('.tab[data-tab="t3"]');
-    if (tab) tab.click();
-    $('kdOutMsg').textContent = 'Đã gửi đề sang tab Chuyển LaTeX → Word / PDF (dạng MathType: chữ thường + $công thức$). Hãy bấm "Chuyển Đổi & Xuất File" ở tab đó.';
+    var paths = figPaths(v);
+    $('kdOutMsg').textContent = paths.length ? 'Đang kiểm tra / tải ' + paths.length + ' hình vẽ…' : 'Đang gửi đề…';
+    Promise.all(paths.map(loadFig)).then(function (ok) {
+      var bad = paths.filter(function (p, i) { return !ok[i]; });
+      var inp = $('input');
+      if (!inp) { $('kdOutMsg').textContent = 'Không tìm thấy ô nhập của công cụ Chuyển LaTeX.'; return; }
+      var clr = $('btnClearFiles');
+      if (clr && (inp.readOnly || inp.dataset.fromFile === '1')) clr.click();
+      inp.readOnly = false;
+      inp.value = v;
+      inp.dispatchEvent(new Event('input', { bubbles: true }));
+      var wt = $('wtSel');
+      if (wt) { wt.value = 'wtLatex'; wt.dispatchEvent(new Event('change', { bubbles: true })); }
+      var tab = document.querySelector('.tab[data-tab="t3"]');
+      if (tab) tab.click();
+      installFigPreview();
+      [150, 600, 1500].forEach(function (ms) { setTimeout(enhanceFigs, ms); });
+      var msg = 'Đã gửi đề sang tab Chuyển LaTeX → Word / PDF (chữ thường + $công thức$).';
+      if (paths.length) msg += '\n🖼 ' + (paths.length - bad.length) + '/' + paths.length + ' hình vẽ đã tải và hiện ở ô xem trước.';
+      if (bad.length) msg += '\n⚠ Không tìm thấy hình: ' + bad.join(', ') + ' — kiểm tra tên file trong thư mục hinh.';
+      msg += '\nHãy kiểm tra ô xem trước, rồi bấm "Chuyển Đổi & Xuất File" ở tab đó.' + lintMsg(v);
+      $('kdOutMsg').textContent = msg;
+    });
   }
 
   /* ------------------------------------------------------------------ Khởi tạo */
@@ -721,6 +903,7 @@
       sel.appendChild(o);
       var p = document.createElement('div'); p.className = 'mt'; p.id = 'mKho'; t5.appendChild(p);
       build(p);
+      installFigPreview();
       sel.addEventListener('change', function () {
         var k = $('mKho'), kids = t5.children;
         if (sel.value === 'mKho') {
