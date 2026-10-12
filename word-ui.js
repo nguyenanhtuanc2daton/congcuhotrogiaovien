@@ -84,18 +84,31 @@ function applyTNRToEntries(entries){
   });
 }
 const TXT_STYLES='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr>'+TNR_RF+'<w:sz w:val="26"/><w:szCs w:val="26"/><w:lang w:val="vi-VN" w:eastAsia="vi-VN" w:bidi="ar-SA"/></w:rPr></w:rPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style></w:styles>';
+/* Tải trước các ảnh trong "(Hình vẽ: ...)" của mọi mục văn bản; trả về danh sách ảnh lỗi */
+async function preloadAllFigures(items){
+  const miss=[];
+  for(const it of items) if(it.kind!=='docx' && it.text) miss.push(...await preloadFigures(it.text));
+  return Array.from(new Set(miss));
+}
+function figMissNote(miss){ return miss.length? ' ⚠ Không tải được hình: '+miss.join('; ')+' (giữ nguyên dòng chữ trong kết quả).' : ''; }
 function itemToDocxBytes(item){
   if(item.kind==='docx'){
     const {xml}=convertDocumentXML(item.docXml);
     return makeZip(applyTNRToEntries(item.entries.map(e=>e.name==='word/document.xml' ? {name:e.name, data:strToBytes(xml)} : e)));
   }
   if(!item.text.trim()) throw new Error('Không có nội dung để xuất.');
+  const docXml=forceTNR(buildDocumentXMLFromPlainText(item.text));
+  const figs=figsUsed(item.text);                       // ảnh cần nhúng (đã tải trước)
+  const exts=Array.from(new Set(figs.map(f=>f.ext)));
+  const ct=exts.length ? TXT_CONTENT_TYPES.replace('<Override', exts.map(x=>'<Default Extension="'+x+'" ContentType="'+FIG_MIME[x]+'"/>').join('')+'<Override') : TXT_CONTENT_TYPES;
+  const rels=figs.length ? TXT_DOC_RELS.replace('</Relationships>', figs.map(f=>'<Relationship Id="rIdFig'+f.id+'" Type="'+FIG_IMG_REL+'" Target="media/hinh'+f.id+'.'+f.ext+'"/>').join('')+'</Relationships>') : TXT_DOC_RELS;
   return makeZip([
-    {name:'[Content_Types].xml', data:strToBytes(TXT_CONTENT_TYPES)},
+    {name:'[Content_Types].xml', data:strToBytes(ct)},
     {name:'_rels/.rels', data:strToBytes(TXT_ROOT_RELS)},
-    {name:'word/_rels/document.xml.rels', data:strToBytes(TXT_DOC_RELS)},
+    {name:'word/_rels/document.xml.rels', data:strToBytes(rels)},
     {name:'word/styles.xml', data:strToBytes(TXT_STYLES)},
-    {name:'word/document.xml', data:strToBytes(forceTNR(buildDocumentXMLFromPlainText(item.text)))}
+    {name:'word/document.xml', data:strToBytes(docXml)},
+    ...figs.map(f=>({name:'word/media/hinh'+f.id+'.'+f.ext, data:f.bytes}))
   ]);
 }
 function itemToBlocks(item){
@@ -105,11 +118,13 @@ function itemToBlocks(item){
 function showEqReport(){ const el=$$('eqReport'); if(!el) return; const h=eqSummaryHTML(); el.innerHTML=h; el.style.display=h?'block':'none'; }
 function setBusy(b){ $$('btnConvert').disabled=b; $$('btnExport').disabled=b; $$('btnChoose').disabled=b; $$('btnClearFiles').disabled=b; }
 
-function previewConvert(){
+async function previewConvert(){
   const st=$$('exportStatus'), prev=$$('preview');
   const items=getItems();
   if(!items.length){ prev.innerHTML='<span style="color:#999">(Chưa có nội dung)</span>'; st.className='status err'; st.textContent='Chưa có file hoặc nội dung để chuyển đổi.'; return; }
   let html='', totalEq=0, totalParas=0, images=0; const errs=[];
+  st.className='status info'; st.textContent='Đang tải hình vẽ...';
+  const figMiss=await preloadAllFigures(items);
   eqLogReset();
   for(const it of items){
     try{
@@ -129,7 +144,7 @@ function previewConvert(){
   st.className='status ok';
   st.textContent='Đã chuyển đổi '+(items.length-errs.length)+'/'+items.length+' file. Tìm thấy '+totalEq+' công thức'+(totalParas?' trong '+totalParas+' đoạn văn':'')+'.'
     +(images?' Lưu ý: '+images+' ảnh/đối tượng trong file .docx không hiển thị ở bản xem trước và bản PDF (bản Word vẫn giữ nguyên).':'')
-    +(errs.length?' Lỗi: '+errs.join(' | '):'');
+    +(errs.length?' Lỗi: '+errs.join(' | '):'')+figMissNote(figMiss);
 }
 
 async function exportAll(){
@@ -140,7 +155,9 @@ async function exportAll(){
   const outputs=[], fails=[], used=new Set(); let images=0;
   const uniq=n=>{ let out=n, k=2; const dot=n.lastIndexOf('.'); while(used.has(out)){ out=n.slice(0,dot)+'-'+(k++)+n.slice(dot); } used.add(out); return out; };
   setBusy(true); st.className='status info'; eqLogReset();
+  let figMiss=[];
   try{
+    st.textContent='Đang tải hình vẽ...'; figMiss=await preloadAllFigures(items);
     for(let i=0;i<items.length;i++){
       const it=items[i], pre='('+(i+1)+'/'+items.length+') '+it.name+': ';
       const stem=it.pasted? 'giao-an' : baseName(it.name)+'-da-chuyen-doi';
@@ -167,7 +184,7 @@ async function exportAll(){
     st.className='status '+(fails.length?'info':'ok');
     st.textContent='Đã xuất '+outputs.length+' file'+(outputs.length>1&&$$('zipOpt').checked?' (nén trong ket-qua-chuyen-doi.zip)':'')+'.'
       +(images && fmt!=='docx'?' Lưu ý: ảnh/đối tượng trong file .docx không xuất được sang PDF (file Word vẫn giữ nguyên).':'')
-      +(fails.length?' Không xử lý được: '+fails.join(' | '):'');
+      +(fails.length?' Không xử lý được: '+fails.join(' | '):'')+figMissNote(figMiss);
   }catch(err){
     st.className='status err';
     st.textContent='Lỗi khi xuất file: '+err.message;

@@ -872,6 +872,8 @@ function buildDocumentXMLFromPlainText(fullText){
     if(seg.type==='text'){
       const parts=seg.content.split(/\r\n|\r|\n/);
       for(let k=0;k<parts.length;k++){
+        const fig=(curRuns==='')?figMatch(parts[k]):null;      // dòng "(Hình vẽ: ...)" -> nhúng ảnh
+        if(fig){ body+=figParaXML(fig); continue; }
         if(parts[k].length>0) curRuns+='<w:r><w:t xml:space="preserve">'+xesc(parts[k])+'</w:t></w:r>';
         if(k<parts.length-1) flushPara();
       }
@@ -886,5 +888,76 @@ function buildDocumentXMLFromPlainText(fullText){
   }
   flushPara();
   return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-    '<w:document xmlns:w="'+WNS+'" xmlns:m="'+MNS+'"><w:body>'+body+'<w:sectPr/></w:body></w:document>';
+    '<w:document xmlns:w="'+WNS+'" xmlns:m="'+MNS+'" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"><w:body>'+body+'<w:sectPr/></w:body></w:document>';
+}
+
+
+/* ======================= Hình vẽ: dòng "(Hình vẽ: đường/dẫn/ảnh.png)" -> nhúng ảnh vào Word / xem trước / PDF ======================= */
+const FIG_LINE_RE=/^\s*\(\s*Hình vẽ\s*:\s*(.+?)\s*\)\s*$/i;
+const FIG_MIME={png:'image/png',jpg:'image/jpeg',gif:'image/gif'};
+const FIG_MAX_W=450, FIG_MAX_H=340;      // px ở 96 dpi (~12 cm x 9 cm)
+const FIG_CACHE=new Map();               // đường dẫn -> {id,path,ext,bytes,w,h,dataUrl}
+let FIG_SEQ=0, FIG_DOCPR=0;
+
+function figPathOf(line){ const m=FIG_LINE_RE.exec(String(line).normalize('NFC')); return m? m[1].trim() : null; }
+function figMatch(line){ const p=figPathOf(line); return p&&FIG_CACHE.has(p)? FIG_CACHE.get(p) : null; }
+function figPaths(text){ const out=[]; String(text).split(/\r\n|\r|\n/).forEach(l=>{ const p=figPathOf(l); if(p&&!out.includes(p)) out.push(p); }); return out; }
+function figsUsed(text){ return figPaths(text).filter(p=>FIG_CACHE.has(p)).map(p=>FIG_CACHE.get(p)); }
+function figSize(f){ const k=Math.min(1,FIG_MAX_W/f.w,FIG_MAX_H/f.h); return {w:Math.round(f.w*k), h:Math.round(f.h*k)}; }
+function figSniff(b){
+  if(b[0]===0x89&&b[1]===0x50&&b[2]===0x4E&&b[3]===0x47) return 'png';
+  if(b[0]===0xFF&&b[1]===0xD8) return 'jpg';
+  if(b[0]===0x47&&b[1]===0x49&&b[2]===0x46) return 'gif';
+  return null;
+}
+function figB64(b){ let s=''; for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(s); }
+function figLoadEl(src){ return new Promise((ok,no)=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=()=>no(new Error('không đọc được ảnh')); im.src=src; }); }
+
+async function loadFigure(path){
+  if(FIG_CACHE.has(path)) return FIG_CACHE.get(path);
+  const res=await fetch(path.replace(/ /g,'%20'));
+  if(!res.ok) throw new Error('không tìm thấy file, mã '+res.status);
+  let bytes=new Uint8Array(await res.arrayBuffer()), ext=figSniff(bytes), w, h, dataUrl;
+  if(ext){
+    dataUrl='data:'+FIG_MIME[ext]+';base64,'+figB64(bytes);
+    const im=await figLoadEl(dataUrl); w=im.naturalWidth; h=im.naturalHeight;
+  } else {                                   // webp/svg/bmp... -> đổi sang PNG qua canvas
+    const type=res.headers.get('content-type')||(/\.svg$/i.test(path)?'image/svg+xml':'');
+    const url=URL.createObjectURL(new Blob([bytes],{type}));
+    try{
+      const im=await figLoadEl(url); w=im.naturalWidth||600; h=im.naturalHeight||400;
+      const k=Math.max(1,Math.min(4,1400/Math.max(w,h))), cv=document.createElement('canvas');
+      cv.width=Math.round(w*k); cv.height=Math.round(h*k);
+      const cx=cv.getContext('2d'); cx.fillStyle='#fff'; cx.fillRect(0,0,cv.width,cv.height); cx.drawImage(im,0,0,cv.width,cv.height);
+      const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+      bytes=new Uint8Array(await blob.arrayBuffer()); ext='png'; dataUrl='data:image/png;base64,'+figB64(bytes);
+    } finally { URL.revokeObjectURL(url); }
+  }
+  if(!w||!h) throw new Error('ảnh không có kích thước');
+  const f={id:++FIG_SEQ, path, ext, bytes, w, h, dataUrl};
+  FIG_CACHE.set(path,f); return f;
+}
+/* Tải trước mọi ảnh được nhắc trong văn bản; trả về danh sách ảnh không tải được */
+async function preloadFigures(text){
+  const miss=[];
+  for(const p of figPaths(text)){
+    if(FIG_CACHE.has(p)) continue;
+    try{ await loadFigure(p); }catch(e){ miss.push(p+' ('+(e.message||e)+')'); }
+  }
+  return miss;
+}
+const FIG_IMG_REL='http://schemas.openxmlformats.org/officeDocument/2006/relationships/image';
+function figParaXML(f){
+  const s=figSize(f), cx=Math.round(s.w*9525), cy=Math.round(s.h*9525), id=++FIG_DOCPR, rid='rIdFig'+f.id, nm='hinh'+f.id+'.'+f.ext;
+  return '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0">'
+    +'<wp:extent cx="'+cx+'" cy="'+cy+'"/><wp:docPr id="'+id+'" name="Hinh '+id+'"/>'
+    +'<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+    +'<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="'+id+'" name="'+nm+'"/><pic:cNvPicPr/></pic:nvPicPr>'
+    +'<pic:blipFill><a:blip r:embed="'+rid+'"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>'
+    +'<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="'+cx+'" cy="'+cy+'"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic>'
+    +'</a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
+}
+function figHTML(f){
+  const s=figSize(f);
+  return '<div class="pp" style="text-align:center"><img src="'+f.dataUrl+'" width="'+s.w+'" height="'+s.h+'" style="max-width:100%;height:auto" alt=""></div>';
 }

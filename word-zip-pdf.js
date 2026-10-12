@@ -194,7 +194,11 @@ function textToBlocks(text){
   for(const seg of segs){
     if(seg.type==='text'){
       const parts=seg.content.split(/\r\n|\r|\n/);
-      for(let k=0;k<parts.length;k++){ cur+=esc(parts[k]); if(k<parts.length-1) flush(); }
+      for(let k=0;k<parts.length;k++){
+        const fig=(cur==='')?figMatch(parts[k]):null;          // dòng "(Hình vẽ: ...)" -> hiện ảnh
+        if(fig){ blocks.push({h:figHTML(fig), gap:6}); continue; }
+        cur+=esc(parts[k]); if(k<parts.length-1) flush();
+      }
     } else {
       eq++;
       if(seg.display){ if(cur.trim()!=='') flush(); else cur=''; blocks.push({h:eqBlock(seg.content), gap:6}); }
