@@ -118,9 +118,9 @@
       return Promise.all(files.map(function (p) {
         return fetchJSON(p).then(function (d) {
           var dir = p.replace(/[^\/]+$/, '');
-          (d.bai || []).forEach(function (b) {
+          (d.bai || []).forEach(function (b, pos) {
             if (S.byId[b.id]) return;
-            b._dir = dir; b._file = p; S.byId[b.id] = b; S.items.push(b);
+            b._dir = dir; b._file = p; b._pos = pos + 1; S.byId[b.id] = b; S.items.push(b);
           });
         }).catch(function () { S.errs.push(p); });
       }));
@@ -188,9 +188,9 @@
       '<div class="kd-row">' +
       '<label class="qchip"><input type="checkbox" id="kdDa" checked> Kèm đáp án</label>' +
       '<label class="qchip"><input type="checkbox" id="kdLg" checked> Kèm lời giải</label>' +
-      '<button class="sm" id="kdRandom5" type="button">🎲 Tạo đề ngẫu nhiên 5 câu</button>' +
+      '<button class="sm" id="kdRandom5" type="button">🎲 Tạo đề ngẫu nhiên</button>' +
       '<button class="green sm" id="kdSend" type="button">📄 Xuất file Word</button></div>' +
-      '<div class="note" id="kdOutMsg">Chọn bài ở trên (hoặc để AI chọn) rồi bấm "Tạo đề ngẫu nhiên 5 câu". Nút "Xuất file Word" sẽ chuyển công thức sang dạng LaTeX tương thích MathType và gửi sang tab Chuyển LaTeX → Word / PDF.</div>';
+      '<div class="note" id="kdOutMsg">Chọn bài ở trên (hoặc để AI chọn) rồi bấm "Tạo đề ngẫu nhiên". Nút "Xuất file Word" sẽ chuyển công thức sang dạng LaTeX tương thích MathType và gửi sang tab Chuyển LaTeX → Word / PDF.</div>';
 
     bind();
   }
@@ -688,17 +688,45 @@
     if (/^(https?:|data:|\/|data\/)/i.test(h)) return h;
     return (b._dir || '') + h;
   }
-  function compose(random5) {
-    var items = pickedItems();
-    if (!items.length) {
-      if (random5) { composeByAI(); return; }
-      $('kdOutMsg').textContent = 'Chưa có bài nào. Hãy để AI chọn bài, hoặc bấm "Tạo đề ngẫu nhiên 5 câu" để AI tự sinh đề.';
-      return;
+  // Số thứ tự câu của bài trong đề gốc (câu 1, 2, 3...)
+  function cauNo(b) {
+    var v = b.cau != null ? b.cau : (b.stt != null ? b.stt : (b.so_cau != null ? b.so_cau : (b.thu_tu != null ? b.thu_tu : null)));
+    if (v != null) { var n = parseInt(String(v).replace(/\D/g, ''), 10); if (n) return n; }
+    var m = /(?:^|[-_.\s])(?:c|cau|câu)[-_ ]?0*(\d+)$/i.exec(String(b.id || ''));
+    if (m) return parseInt(m[1], 10);
+    return b._pos || 0; // vị trí trong file đề
+  }
+  function pickRandomExam() {
+    var pool = S.filtered.length ? S.filtered : [];
+    var used = {}, items = [], miss = [];
+    for (var k = 1; k <= 5; k++) {
+      var cand = pool.filter(function (b) { return cauNo(b) === k && !used[b.id]; });
+      if (!cand.length) { miss.push(k); continue; }
+      var b = cand[Math.floor(Math.random() * cand.length)];
+      used[b.id] = 1; items.push(b);
     }
-    if (random5 && items.length > 5) {
-      var shuffled = items.slice();
-      for (var i = shuffled.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp; }
-      items = shuffled.slice(0, 5);
+    // Thiếu câu ở vị trí nào thì lấy tạm bài ngẫu nhiên còn lại trong bộ lọc
+    if (miss.length) {
+      var rest = pool.filter(function (b) { return !used[b.id]; });
+      for (var i = rest.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = rest[i]; rest[i] = rest[j]; rest[j] = t; }
+      items = items.concat(rest.slice(0, miss.length));
+    }
+    return { items: items, miss: miss };
+  }
+  function compose(random5) {
+    var items, note = '';
+    if (random5) {
+      if (!S.filtered.length) { $('kdOutMsg').textContent = 'Bộ lọc hiện không có bài nào. Hãy nới bộ lọc.'; return; }
+      var r = pickRandomExam(); items = r.items;
+      if (!items.length) { $('kdOutMsg').textContent = 'Không chọn được câu nào theo bộ lọc hiện tại.'; return; }
+      var srcs = items.map(function (b, i) { return (i + 1) + ':' + b.id; }).join(' · ');
+      note = ' [' + srcs + ']' + (r.miss.length ? ' (không có câu ' + r.miss.join(', ') + ' trong bộ lọc, đã lấy bài khác thay thế)' : '');
+    } else {
+      items = pickedItems();
+      if (!items.length) {
+        $('kdOutMsg').textContent = 'Chưa có bài nào. Hãy để AI chọn bài, hoặc bấm \"Tạo đề ngẫu nhiên\".';
+        return;
+      }
     }
     var da = $('kdDa').checked, lg = $('kdLg').checked;
     var de = [], dk = [];
@@ -709,7 +737,7 @@
     var out = de.join('\n\n') + '\n\n--- HẾT ---';
     if (dk.length) out += '\n\nĐÁP ÁN VÀ LỜI GIẢI\n\n' + dk.join('\n\n');
     S.lastOut = toMathTypeText(out);
-    $('kdOutMsg').textContent = 'Đã tạo đề gồm ' + items.length + ' câu' + figInfo(S.lastOut) + '. Bấm "Xuất file Word" để gửi sang tab Chuyển LaTeX.' + lintMsg(S.lastOut);
+    $('kdOutMsg').textContent = 'Đã tạo đề gồm ' + items.length + ' câu' + figInfo(S.lastOut) + '.' + note + ' Bấm "Xuất file Word" để gửi sang tab Chuyển LaTeX.' + lintMsg(S.lastOut);
     return S.lastOut;
   }
   function composeByAI() {
@@ -866,7 +894,7 @@
 
   function sendLatex() {
     var v = getOut();
-    if (!v || !v.trim()) { $('kdOutMsg').textContent = 'Chưa có nội dung đề. Hãy bấm "Tạo đề ngẫu nhiên 5 câu" hoặc để AI chọn bài trước.'; return; }
+    if (!v || !v.trim()) { $('kdOutMsg').textContent = 'Chưa có nội dung đề. Hãy bấm "Tạo đề ngẫu nhiên" hoặc để AI chọn bài trước.'; return; }
     v = toMathTypeText(v);
     var paths = figPaths(v);
     $('kdOutMsg').textContent = paths.length ? 'Đang kiểm tra / tải ' + paths.length + ' hình vẽ…' : 'Đang gửi đề…';
