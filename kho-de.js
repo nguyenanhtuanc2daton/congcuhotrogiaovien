@@ -27,7 +27,7 @@
   var S = {
     ready: false, loading: false, ct: null, items: [], byId: {}, errs: [],
     CH: {}, DG: {}, sel: {}, order: [], ai: [], filtered: [],
-    f: { lop: '', loai: '', chuong: '', dang: '', kieu: '', muc: '' },
+    f: { lop: '', loai: '', chuong: '', dang: '', kieu: '', muc: '', cau: '' },
     model: '', lastOut: '', outFrom: 'picked', exams: [], figBad: {}, HINH: {}
   };
   var MD_NAME = { NB: 'Nhận biết', TH: 'Thông hiểu', VD: 'Vận dụng', VDC: 'Vận dụng cao' };
@@ -179,7 +179,8 @@
       '<div class="kd-row" id="kdChips"></div>' +
       '<div class="kd-row"><label>Dạng toán <select id="kdDang"><option value="">Tất cả</option></select></label></div>' +
       '<div class="kd-row"><label>Kiểu câu <select id="kdKieu"><option value="">Tất cả</option></select></label>' +
-      '<label>Mức độ <select id="kdMuc"><option value="">Tất cả</option></select></label></div>' +
+      '<label>Mức độ <select id="kdMuc"><option value="">Tất cả</option></select></label>' +
+      '<label>Bài số <select id="kdCau"><option value="">Tất cả</option>' + [1,2,3,4,5,6,7,8,9,10,11,12].map(function (n) { return '<option value="' + n + '">Bài ' + n + '</option>'; }).join('') + '</select></label></div>' +
       '<div class="kd-row"><label>Số bài <input type="number" id="kdQN" value="5" min="1" max="30" style="width:60px"></label>' +
       '<button class="sm" id="kdQuick" type="button">🎯 Bốc bài bất kì</button>' +
       '<button class="sec sm" id="kdAudit" type="button">📊 Kiểm tra kho</button></div>' +
@@ -238,10 +239,10 @@
     $('kdLop').onchange = function () { fillChuong(); readFilters(); };
     $('kdChuong').onchange = function () { fillDang(); readFilters(); };
     $('kdLoai').onchange = function () { fillDang(); loadStruct(); readFilters(); };
-    $('kdDang').onchange = $('kdKieu').onchange = $('kdMuc').onchange = readFilters;
+    $('kdDang').onchange = $('kdKieu').onchange = $('kdMuc').onchange = $('kdCau').onchange = readFilters;
     $('kdClear').onclick = function () {
       $('kdLop').value = ''; $('kdLoai').value = ''; $('kdReq').value = '';
-      $('kdKieu').value = ''; $('kdMuc').value = '';
+      $('kdKieu').value = ''; $('kdMuc').value = ''; $('kdCau').value = '';
       fillChuong(); loadStruct(); readFilters();
     };
     $('kdChips').onclick = function (e) {
@@ -331,12 +332,13 @@
     var n = Math.max(1, Math.min(30, parseInt($('kdQN').value, 10) || 5)), o = readOpts();
     var pool = S.filtered.filter(function (b) { return !S.sel[b.id] && (!o.qc || usable(b, o)); });
     for (var i = pool.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
-    var got = [], seen = {};
-    pool.forEach(function (b) { var k = dangKey(b); if (got.length < n && (!k || !seen[k])) { got.push(b); if (k) seen[k] = 1; } });
+    var got = [], seen = {}, files = {};
+    pool.forEach(function (b) { var k = dangKey(b); if (got.length < n && !files[b._file] && (!k || !seen[k])) { got.push(b); files[b._file] = 1; if (k) seen[k] = 1; } });
+    pool.forEach(function (b) { if (got.length < n && got.indexOf(b) < 0 && !files[b._file]) { got.push(b); files[b._file] = 1; } });
     pool.forEach(function (b) { if (got.length < n && got.indexOf(b) < 0) got.push(b); });
     got.forEach(function (b) { setSel(b.id, true); });
     renderSelList(); refresh();
-    $('kdAuditMsg').textContent = got.length ? 'Đã thêm ' + got.length + ' bài ngẫu nhiên (ưu tiên khác dạng) vào "Bài đã chọn" ở trên. Bấm "Xuất file Word" để lấy đề, hoặc 🎯 để bốc thêm.' : 'Không còn bài phù hợp (đều đã chọn hoặc bị loại do thiếu đáp án).';
+    $('kdAuditMsg').textContent = got.length ? 'Đã thêm ' + got.length + ' bài ngẫu nhiên (ưu tiên từ các đề khác nhau, khác dạng) vào "Bài đã chọn" ở trên. Bấm "Xuất file Word" để lấy đề, hoặc 🎯 để bốc thêm.' : 'Không còn bài phù hợp (đều đã chọn hoặc bị loại do thiếu đáp án).';
   }
   function auditKho() {
     if (!S.items.length) { $('kdAuditMsg').textContent = 'Kho chưa tải xong.'; return; }
@@ -377,7 +379,7 @@
   /* ---------------------------------------------------------------- Lọc bài */
   function readFilters() {
     S.f.lop = $('kdLop').value; S.f.loai = $('kdLoai').value; S.f.chuong = $('kdChuong').value;
-    S.f.dang = $('kdDang').value; S.f.kieu = $('kdKieu').value; S.f.muc = $('kdMuc').value;
+    S.f.dang = $('kdDang').value; S.f.kieu = $('kdKieu').value; S.f.muc = $('kdMuc').value; S.f.cau = $('kdCau').value;
     refresh();
   }
   function ys(b) { return b.y || []; }
@@ -399,6 +401,7 @@
     if (f.dang && !hasDang(b, f.dang)) return false;
     if (f.kieu && String(b.kieu || '').toUpperCase() !== f.kieu) return false;
     if (f.muc && String(b.mucdo || '').toUpperCase() !== f.muc) return false;
+    if (f.cau && cauNo(b) !== +f.cau) return false;
     return true;
   }
   function refresh() {
