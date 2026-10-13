@@ -28,7 +28,7 @@
     ready: false, loading: false, ct: null, items: [], byId: {}, errs: [],
     CH: {}, DG: {}, sel: {}, order: [], ai: [], filtered: [],
     f: { lop: '', loai: '', chuong: '' },
-    model: '', lastOut: ''
+    model: '', lastOut: '', outFrom: 'picked', exams: [], figBad: {}
   };
   var MD_NAME = { NB: 'Nhận biết', TH: 'Thông hiểu', VD: 'Vận dụng', VDC: 'Vận dụng cao' };
 
@@ -50,7 +50,12 @@
       '#mKho .kd-sel-item:last-child{border-bottom:none}' +
       '#mKho .kd-ai-preview{width:100%;min-height:180px;font-family:inherit;font-size:13px}' +
       '#mKho .kd-count{font-weight:600;color:var(--cy,#0a7)}' +
-      '#mKho #kdOutMsg{white-space:pre-line}';
+      '#mKho #kdOutMsg,#mKho #kdRevMsg{white-space:pre-line}' +
+      '#mKho .kd-exam{border:1px solid var(--bd,#cfd8dc);border-radius:10px;padding:8px 10px;margin:8px 0}' +
+      '#mKho .kd-q{padding:6px 0;border-bottom:1px dashed var(--bd,#e0e0e0)}' +
+      '#mKho .kd-q:last-child{border-bottom:none}' +
+      '#mKho .kd-qh{font-size:13px}#mKho .kd-qt{font-size:13px;opacity:.8;margin:2px 0}' +
+      '#mKho .kd-qb{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}';
     document.head.appendChild(st);
   }
 
@@ -188,9 +193,25 @@
       '<div class="kd-row">' +
       '<label class="qchip"><input type="checkbox" id="kdDa" checked> Kèm đáp án</label>' +
       '<label class="qchip"><input type="checkbox" id="kdLg" checked> Kèm lời giải</label>' +
+      '<label class="qchip"><input type="checkbox" id="kdPts" checked> Hiện thang điểm</label></div>' +
+
+      '<h3>🎲 Tạo đề ngẫu nhiên</h3>' +
+      '<div class="kd-row"><label>Số câu <input type="number" id="kdN" value="5" min="1" max="15" style="width:60px"></label>' +
+      '<label>Tổng điểm <input type="number" id="kdTotal" value="10" min="1" max="100" step="0.5" style="width:70px"></label></div>' +
+      '<div class="kd-row">' +
+      '<label class="qchip"><input type="checkbox" id="kdQC" checked> Lọc bài kém</label>' +
+      '<label class="qchip"><input type="checkbox" id="kdUniq" checked> Không trùng dạng/chương</label>' +
+      '<label class="qchip"><input type="checkbox" id="kdMix" checked> Cân bằng mức độ</label>' +
+      '<label class="qchip"><input type="checkbox" id="kdAvoid" checked> Tránh bài đã dùng</label></div>' +
+      '<div class="kd-row">' +
       '<button class="sm" id="kdRandom5" type="button">🎲 Tạo đề ngẫu nhiên</button>' +
-      '<button class="green sm" id="kdSend" type="button">📄 Xuất file Word</button></div>' +
-      '<div class="note" id="kdOutMsg">Chọn bài ở trên (hoặc để AI chọn) rồi bấm "Tạo đề ngẫu nhiên". Nút "Xuất file Word" sẽ chuyển công thức sang dạng LaTeX tương thích MathType và gửi sang tab Chuyển LaTeX → Word / PDF.</div>';
+      '<button class="sec sm" id="kdMakeB" type="button">➕ Tạo mã đề B</button>' +
+      '<button class="sec sm" id="kdReview" type="button">🧐 AI kiểm duyệt đề</button>' +
+      '<button class="sec sm" id="kdResetQ" type="button">🧹 Xóa lịch sử/cờ lỗi</button></div>' +
+      '<div id="kdExamBox"></div>' +
+      '<div class="note" id="kdRevMsg"></div>' +
+      '<div class="kd-row"><button class="green sm" id="kdSend" type="button">📄 Xuất file Word</button></div>' +
+      '<div class="note" id="kdOutMsg">Chọn bộ lọc (ví dụ Loại đề = tuyển sinh vào 10) rồi bấm "Tạo đề ngẫu nhiên": câu 1 lấy từ một đề bất kỳ, câu 2 từ một đề bất kỳ khác, v.v. Nút "Xuất file Word" sẽ chuyển công thức sang dạng LaTeX tương thích MathType và gửi sang tab Chuyển LaTeX → Word / PDF.</div>';
 
     bind();
   }
@@ -205,7 +226,7 @@
       fillChuong(); readFilters();
     };
     $('kdSelAll').onclick = function () { S.filtered.forEach(function (b) { setSel(b.id, true); }); renderSelList(); refresh(); };
-    $('kdSelNone').onclick = function () { S.lastOut = ''; S.sel = {}; S.order = []; renderSelList(); refresh(); };
+    $('kdSelNone').onclick = function () { S.lastOut = ''; S.outFrom = 'picked'; S.sel = {}; S.order = []; renderSelList(); refresh(); };
     $('kdPick').onclick = aiPick;
     $('kdGen').onclick = function () { genSimilar(S.order.slice()); };
     $('kdAiClear').onclick = function () { S.lastOut = ''; S.ai = []; renderAi(); $('kdOutMsg').textContent = 'Đã xóa bài AI.'; };
@@ -219,8 +240,12 @@
       if (navigator.clipboard) navigator.clipboard.writeText(v).then(function () { $('kdAiMsg').textContent = 'Đã sao chép bài AI.'; });
       else { var ta = $('kdAiPreview'); ta.value = v; ta.select(); document.execCommand('copy'); }
     };
-    $('kdDa').onchange = $('kdLg').onchange = function () { S.lastOut = ''; };
-    $('kdRandom5').onclick = function () { compose(true); };
+    $('kdDa').onchange = $('kdLg').onchange = function () { S.lastOut = ''; if (S.exams.length) renderExams(false); };
+    $('kdPts').onchange = $('kdTotal').onchange = function () { S.lastOut = ''; if (S.exams.length) renderExams(false); };
+    $('kdRandom5').onclick = genExam;
+    $('kdMakeB').onclick = genB;
+    $('kdReview').onclick = reviewExam;
+    $('kdResetQ').onclick = resetQuality;
     $('kdSend').onclick = function () { sendLatex(); };
   }
 
@@ -267,7 +292,7 @@
     renderSelList();
   }
   function setSel(id, on) {
-    S.lastOut = '';
+    S.lastOut = ''; S.outFrom = 'picked';
     if (on) { if (!S.sel[id]) { S.sel[id] = true; S.order.push(id); } }
     else if (S.sel[id]) { delete S.sel[id]; S.order = S.order.filter(function (x) { return x !== id; }); }
   }
@@ -658,8 +683,8 @@
     var a = S.order.map(function (id) { return S.byId[id]; }).filter(Boolean);
     return a.concat(S.ai);
   }
-  function itemToText(b, n, da, lg) {
-    var head = 'Câu ' + n + '. ';
+  function itemToText(b, n, da, lg, pts) {
+    var head = 'Câu ' + n + (pts ? ' (' + fmtPt(pts) + ' điểm)' : '') + '. ';
     var t = head + (b.noidung || '');
     if (b.bang && b.bang.tieu_de) {
       t += '\n' + b.bang.tieu_de.join(' | ');
@@ -696,108 +721,265 @@
     if (m) return parseInt(m[1], 10);
     return b._pos || 0; // vị trí trong file đề
   }
-  function pickRandomExam() {
-    var pool = S.filtered.length ? S.filtered : [];
-    var used = {}, items = [], miss = [];
-    for (var k = 1; k <= 5; k++) {
-      var cand = pool.filter(function (b) { return cauNo(b) === k && !used[b.id]; });
-      if (!cand.length) { miss.push(k); continue; }
-      var b = cand[Math.floor(Math.random() * cand.length)];
-      used[b.id] = 1; items.push(b);
-    }
-    // Thiếu câu ở vị trí nào thì lấy tạm bài ngẫu nhiên còn lại trong bộ lọc
-    if (miss.length) {
-      var rest = pool.filter(function (b) { return !used[b.id]; });
-      for (var i = rest.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = rest[i]; rest[i] = rest[j]; rest[j] = t; }
-      items = items.concat(rest.slice(0, miss.length));
-    }
-    return { items: items, miss: miss };
+  /* ------------------------------------------------ Tạo đề ngẫu nhiên (nâng cao) */
+  function lsGet(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+  function toSet(a) { var o = {}; (a || []).forEach(function (x) { o[x] = 1; }); return o; }
+  function fmtPt(x) { return String(Math.round(x * 100) / 100).replace('.', ','); }
+  function grp(b) {
+    var m = String(b.mucdo || '').toUpperCase();
+    return (m === 'NB' || m === 'TH') ? 'TH' : (m === 'VD' ? 'VD' : (m === 'VDC' ? 'VDC' : ''));
   }
-  function compose(random5) {
-    var items, note = '';
-    if (random5) {
-      if (!S.filtered.length) { $('kdOutMsg').textContent = 'Bộ lọc hiện không có bài nào. Hãy nới bộ lọc.'; return; }
-      var r = pickRandomExam(); items = r.items;
-      if (!items.length) { $('kdOutMsg').textContent = 'Không chọn được câu nào theo bộ lọc hiện tại.'; return; }
-      var srcs = items.map(function (b, i) { return (i + 1) + ':' + b.id; }).join(' · ');
-      note = ' [' + srcs + ']' + (r.miss.length ? ' (không có câu ' + r.miss.join(', ') + ' trong bộ lọc, đã lấy bài khác thay thế)' : '');
-    } else {
-      items = pickedItems();
-      if (!items.length) {
-        $('kdOutMsg').textContent = 'Chưa có bài nào. Hãy để AI chọn bài, hoặc bấm \"Tạo đề ngẫu nhiên\".';
-        return;
-      }
+  function dangKey(b) { return b.dang_ts10 || b.dang || ''; }
+  function hasAns(b) { return !!(b.dapan || b.loigiai || ys(b).some(function (y) { return y.dapan || y.loigiai; })); }
+  function itemFigs(b) {
+    var r = [];
+    if (b.hinh) r.push(figPath(b, b.hinh));
+    ys(b).forEach(function (y) { if (y.hinh) r.push(figPath(b, y.hinh)); });
+    return r;
+  }
+  function usable(b, o) {
+    if (!b.noidung || !String(b.noidung).trim()) return false;
+    if (o.bad[b.id] || S.figBad[b.id]) return false;
+    if ((o.da || o.lg) && !hasAns(b)) return false;
+    return true;
+  }
+  function readOpts() {
+    var n = parseInt($('kdN').value, 10); if (!(n >= 1)) n = 5; if (n > 15) n = 15;
+    return {
+      n: n, total: parseFloat(String($('kdTotal').value).replace(',', '.')) || 10,
+      qc: $('kdQC').checked, uniq: $('kdUniq').checked, mix: $('kdMix').checked, avoid: $('kdAvoid').checked, pts: $('kdPts').checked,
+      da: $('kdDa').checked, lg: $('kdLg').checked,
+      bad: toSet(lsGet('kd_bad')), used: toSet(lsGet('kd_used'))
+    };
+  }
+  function targetGrp(k, n) {
+    var low = Math.max(1, Math.round(n * 0.4)), vdc = Math.round(n * 0.2), vd = n - low - vdc;
+    if (k <= low) return 'TH';
+    if (k <= low + vd) return 'VD';
+    return 'VDC';
+  }
+  function rnd(a) { return a[Math.floor(Math.random() * a.length)]; }
+  // Chọn 1 bài cho vị trí câu k. others: các bài đã có trong đề (không tính vị trí đang chọn)
+  function pickFor(k, others, o, prefMuc, excl, curId) {
+    var used = {};
+    others.forEach(function (b) { used[b.id] = 1; });
+    (excl || []).forEach(function (id) { used[id] = 1; });
+    if (curId) used[curId] = 1;
+    var pool = S.filtered.filter(function (b) { return !used[b.id] && (!o.qc || usable(b, o)); });
+    if (!pool.length) return null;
+    var c = pool.filter(function (b) { return cauNo(b) === k; }), miss = false;
+    if (!c.length) { c = pool; miss = true; }
+    function narrow(fn) { var r = c.filter(fn); if (r.length) c = r; }
+    if (o.uniq) {
+      var dg = {}; others.forEach(function (b) { if (dangKey(b)) dg[dangKey(b)] = 1; });
+      narrow(function (b) { return !dangKey(b) || !dg[dangKey(b)]; });
     }
-    var da = $('kdDa').checked, lg = $('kdLg').checked;
+    if (o.avoid) narrow(function (b) { return !o.used[b.id]; });
+    if (prefMuc) narrow(function (b) { return String(b.mucdo || '').toUpperCase() === prefMuc; });
+    else if (o.mix) { var g = targetGrp(k, o.n); narrow(function (b) { return !grp(b) || grp(b) === g; }); }
+    if (o.uniq) {
+      narrow(function (b) {
+        return others.filter(function (x) { return x.chuong && x.chuong === b.chuong; }).length < 2;
+      });
+    }
+    return { b: rnd(c), miss: miss };
+  }
+  function othersOf(slots, i) { return slots.filter(function (s, j) { return s && j !== i; }).map(function (s) { return s.b; }); }
+  // Kiểm tra file hình của từng câu; hình không tải được → loại bài đó và bốc câu khác
+  function fixFigs(ex, o, excl, prefs, pass) {
+    pass = pass || 0;
+    var todo = [];
+    ex.slots.forEach(function (s, i) { if (s && !s.locked) todo.push(i); });
+    return Promise.all(todo.map(function (i) {
+      var fs = itemFigs(ex.slots[i].b);
+      return Promise.all(fs.map(loadFig)).then(function (ok) { return { i: i, bad: ok.some(function (x) { return !x; }) }; });
+    })).then(function (rs) {
+      var redo = rs.filter(function (r) { return r.bad; });
+      if (!redo.length || pass >= 3) return;
+      redo.forEach(function (r) {
+        S.figBad[ex.slots[r.i].b.id] = 1;
+        var p = pickFor(r.i + 1, othersOf(ex.slots, r.i), o, prefs && prefs[r.i], excl, null);
+        if (p) ex.slots[r.i] = { b: p.b, locked: false, miss: p.miss };
+      });
+      return fixFigs(ex, o, excl, prefs, pass + 1);
+    });
+  }
+  function buildExam(label, o, keep, excl, prefs) {
+    var slots = [];
+    for (var i = 0; i < o.n; i++) slots[i] = (keep && keep.slots[i] && keep.slots[i].locked) ? keep.slots[i] : null;
+    for (var j = 0; j < o.n; j++) {
+      if (slots[j]) continue;
+      var p = pickFor(j + 1, othersOf(slots, j), o, prefs && prefs[j], excl, null);
+      if (p) slots[j] = { b: p.b, locked: false, miss: p.miss };
+    }
+    var ex = { label: label, slots: slots.filter(Boolean) };
+    return fixFigs(ex, o, excl, prefs).then(function () { return ex; });
+  }
+  function genExam() {
+    if (!S.filtered.length) { $('kdOutMsg').textContent = 'Bộ lọc hiện không có bài nào. Hãy nới bộ lọc.'; return; }
+    var o = readOpts();
+    $('kdOutMsg').textContent = 'Đang chọn câu và kiểm tra hình vẽ…';
+    $('kdRandom5').disabled = true;
+    var keep = S.exams[0] && S.exams[0].slots.length === o.n ? S.exams[0] : null;
+    buildExam('A', o, keep, [], null).then(function (ex) {
+      if (!ex.slots.length) { $('kdOutMsg').textContent = 'Không chọn được câu nào theo bộ lọc hiện tại (có thể bài đều thiếu đáp án/hình). Hãy nới bộ lọc hoặc tắt "Lọc bài kém".'; return; }
+      S.exams = [ex]; S.lastOut = ''; S.outFrom = 'exam';
+      renderExams(true);
+    }).then(function () { $('kdRandom5').disabled = false; }, function () { $('kdRandom5').disabled = false; });
+  }
+  function genB() {
+    if (!S.exams.length) { $('kdOutMsg').textContent = 'Hãy tạo mã đề A trước.'; return; }
+    var o = readOpts(), A = S.exams[0];
+    var excl = A.slots.map(function (s) { return s.b.id; });
+    var prefs = A.slots.map(function (s) { return String(s.b.mucdo || '').toUpperCase() || null; });
+    o.n = A.slots.length;
+    $('kdOutMsg').textContent = 'Đang tạo mã đề B (cùng mức độ từng câu, khác bài với mã đề A)…';
+    buildExam('B', o, null, excl, prefs).then(function (ex) {
+      S.exams = [A, ex]; S.lastOut = ''; S.outFrom = 'exam';
+      renderExams(true);
+    });
+  }
+  function swapSlot(ei, i, markBad) {
+    var ex = S.exams[ei]; if (!ex) return;
+    var o = readOpts(), cur = ex.slots[i].b;
+    if (markBad) { var a = lsGet('kd_bad') || []; if (a.indexOf(cur.id) < 0) a.push(cur.id); lsSet('kd_bad', a); o.bad[cur.id] = 1; }
+    var excl = [];
+    if (ei === 1) S.exams[0].slots.forEach(function (s) { excl.push(s.b.id); });
+    var pref = (ei === 1 && S.exams[0].slots[i]) ? (String(S.exams[0].slots[i].b.mucdo || '').toUpperCase() || null) : null;
+    var p = pickFor(i + 1, othersOf(ex.slots, i), o, pref, excl, cur.id);
+    if (!p) { $('kdOutMsg').textContent = 'Không còn bài nào khác để thay cho câu ' + (i + 1) + '.'; return; }
+    ex.slots[i] = { b: p.b, locked: false, miss: p.miss };
+    var done = function () { S.lastOut = ''; S.outFrom = 'exam'; renderExams(false); };
+    Promise.all(itemFigs(p.b).map(loadFig)).then(function (ok) {
+      if (ok.some(function (x) { return !x; })) { S.figBad[p.b.id] = 1; swapSlot(ei, i, false); } else done();
+    });
+  }
+  function calcPoints(items, total) {
+    var W = { NB: 1, TH: 1.25, VD: 1.5, VDC: 2 };
+    var w = items.map(function (b) { return W[String(b.mucdo || '').toUpperCase()] || 1.25; });
+    var sw = w.reduce(function (a, b) { return a + b; }, 0);
+    var pts = w.map(function (x) { return Math.max(0.25, Math.round(total * x / sw * 4) / 4); });
+    var diff = Math.round((total - pts.reduce(function (a, b) { return a + b; }, 0)) * 100) / 100;
+    var im = 0; w.forEach(function (x, i) { if (x >= w[im]) im = i; });
+    pts[im] = Math.round((pts[im] + diff) * 100) / 100;
+    return pts;
+  }
+  function buildOut(items, label) {
+    var da = $('kdDa').checked, lg = $('kdLg').checked, o = readOpts();
+    var pts = o.pts ? calcPoints(items, o.total) : null;
     var de = [], dk = [];
     items.forEach(function (b, i) {
-      var r = itemToText(b, i + 1, da, lg);
+      var r = itemToText(b, i + 1, da, lg, pts ? pts[i] : 0);
       de.push(r.de); if (r.dk) dk.push(r.dk);
     });
-    var out = de.join('\n\n') + '\n\n--- HẾT ---';
-    if (dk.length) out += '\n\nĐÁP ÁN VÀ LỜI GIẢI\n\n' + dk.join('\n\n');
+    var out = (label ? label + '\n\n' : '') + de.join('\n\n') + '\n\n--- HẾT ---';
+    if (dk.length) out += '\n\nĐÁP ÁN VÀ LỜI GIẢI' + (label ? ' — ' + label : '') + '\n\n' + dk.join('\n\n');
+    return out;
+  }
+  function composeExams() {
+    var multi = S.exams.length > 1;
+    var out = S.exams.map(function (ex) {
+      return buildOut(ex.slots.map(function (s) { return s.b; }), multi ? 'MÃ ĐỀ ' + ex.label : '');
+    }).join('\n\n\n');
     S.lastOut = toMathTypeText(out);
-    $('kdOutMsg').textContent = 'Đã tạo đề gồm ' + items.length + ' câu' + figInfo(S.lastOut) + '.' + note + ' Bấm "Xuất file Word" để gửi sang tab Chuyển LaTeX.' + lintMsg(S.lastOut);
     return S.lastOut;
   }
-  function composeByAI() {
-    if (!S.filtered.length) { $('kdOutMsg').textContent = 'Bộ lọc hiện không có bài nào. Hãy nới bộ lọc.'; return; }
-    try { requireKey(); } catch (e) { $('kdOutMsg').textContent = e.message; return; }
-    var ctx = [];
-    if (S.f.lop) ctx.push('lớp ' + S.f.lop);
-    if (S.f.loai) ctx.push('loại đề ' + S.f.loai);
-    if (S.f.chuong) ctx.push('chương ' + (S.CH[S.f.chuong] || S.f.chuong));
-    var ctxStr = ctx.length ? ctx.join(' · ') : 'Toán THCS tổng hợp';
-    $('kdOutMsg').textContent = 'AI đang tạo đề 5 câu theo bộ lọc: ' + ctxStr + '…';
-    $('kdRandom5').disabled = true;
-    var prompt = 'Bạn là giáo viên Toán THCS Việt Nam. Hãy soạn 1 đề gồm đúng 5 câu hỏi tự luận ngắn theo chương trình GDPT 2018, phù hợp với bối cảnh: ' + ctxStr + '.\n' +
-      'Yêu cầu:\n' +
-      '- Mỗi câu có nội dung rõ ràng, số liệu hợp lý, giải được.\n' +
-      '- Công thức viết bằng LaTeX đặt trong $...$.\n' +
-      '- Có đáp án và lời giải ngắn gọn cho từng câu.\n' +
-      '- Nếu bài có hình, mô tả bằng lời (không vẽ).\n' +
-      'Trả về DUY NHẤT một mảng JSON gồm 5 phần tử, mỗi phần tử dạng:\n' +
-      '{"noidung":"...","y":[{"ma":"a","noidung":"...","dapan":"...","loigiai":"..."}],"dapan":"...","loigiai":"...","hinh_mo_ta":""}\n' +
-      'Nếu câu không chia ý thì "y" là []. Trong JSON, mỗi dấu gạch chéo ngược của LaTeX phải viết thành hai dấu (\\\\).';
-    callGemini(prompt, 0.8).then(function (t) {
-      var arr = parseJSON(t); if (!Array.isArray(arr)) arr = arr.bai || arr.items || [];
-      arr = arr.filter(function (x) { return x && x.noidung; }).slice(0, 5);
-      if (arr.length < 5) throw new Error('AI chỉ trả về ' + arr.length + ' câu, cần 5 câu. Hãy thử lại.');
-      // AI tự giải lại để kiểm tra từng câu
-      var verified = [];
-      var chain = Promise.resolve();
-      arr.forEach(function (x) {
-        var item = {
-          from: 'AI-random', noidung: String(x.noidung), dapan: x.dapan ? String(x.dapan) : '', loigiai: x.loigiai ? String(x.loigiai) : '',
-          hinh_mo_ta: x.hinh_mo_ta ? String(x.hinh_mo_ta) : '',
-          y: (x.y || []).map(function (y) { return { ma: String(y.ma || ''), noidung: String(y.noidung || ''), dapan: y.dapan ? String(y.dapan) : '', loigiai: y.loigiai ? String(y.loigiai) : '' }; })
-        };
-        chain = chain.then(function () {
-          $('kdOutMsg').textContent = 'AI đang tự giải lại để kiểm tra… (' + (verified.length + 1) + '/5)';
-          return verifyOne(item).then(function () {
-            if (item.check && item.check.ok) verified.push(item);
-            else if (!item.check) verified.push(item); // không verify được thì vẫn giữ, nhưng cảnh báo
-          });
-        });
+  function shortText(b) {
+    var t = String(b.noidung || '').replace(/\$/g, '').replace(/\\[a-zA-Z]+/g, ' ').replace(/\s+/g, ' ').trim();
+    return t.length > 80 ? t.slice(0, 80) + '…' : t;
+  }
+  function examStats(ex, o) {
+    var items = ex.slots.map(function (s) { return s.b; }), md = {}, ch = {}, noAns = 0, figs = 0, miss = [];
+    items.forEach(function (b, i) {
+      var m = String(b.mucdo || '?').toUpperCase(); md[m] = (md[m] || 0) + 1;
+      var c = S.CH[b.chuong] || b.chuong || '?'; ch[c] = (ch[c] || 0) + 1;
+      if (!hasAns(b)) noAns++;
+      if (itemFigs(b).length) figs++;
+      if (ex.slots[i].miss) miss.push(i + 1);
+    });
+    var t = 'Mức độ: ' + Object.keys(md).map(function (k) { return k + ' ×' + md[k]; }).join(', ') +
+      ' · ' + Object.keys(ch).length + ' chương' + (figs ? ' · ' + figs + ' câu có hình' : '');
+    var w = [];
+    if (noAns) w.push(noAns + ' câu thiếu đáp án/lời giải');
+    if (miss.length) w.push('câu ' + miss.join(', ') + ' không có bài đúng vị trí trong bộ lọc nên lấy bài khác');
+    var dk = {}, dup = 0;
+    items.forEach(function (b) { var k = dangKey(b); if (k) { if (dk[k]) dup++; dk[k] = 1; } });
+    if (dup) w.push(dup + ' câu trùng dạng toán');
+    if (o.mix) {
+      var g = items.map(grp), vdc = g.filter(function (x) { return x === 'VDC'; }).length;
+      if (items.length >= 5 && !vdc) w.push('đề chưa có câu vận dụng cao');
+    }
+    return { text: t, warn: w };
+  }
+  function renderExams(announce) {
+    var box = $('kdExamBox'); if (!box) return;
+    if (!S.exams.length) { box.innerHTML = ''; return; }
+    var o = readOpts(), html = '', warns = [];
+    S.exams.forEach(function (ex, ei) {
+      var items = ex.slots.map(function (s) { return s.b; });
+      var pts = o.pts ? calcPoints(items, o.total) : null;
+      var st = examStats(ex, o);
+      html += '<div class="kd-exam"><b>Mã đề ' + ex.label + '</b> <span class="note" style="margin:0">' + esc(st.text) + '</span>';
+      ex.slots.forEach(function (s, i) {
+        var b = s.b;
+        html += '<div class="kd-q"><div class="kd-qh"><b>Câu ' + (i + 1) + (pts ? ' (' + fmtPt(pts[i]) + 'đ)' : '') + '</b> · ' + esc(b.id) + ' · ' + esc(b.mucdo || '?') + ' · ' + esc(dangNames(b) || '—') +
+          '</div><div class="kd-qt">' + esc(shortText(b)) + '</div><div class="kd-qb">' +
+          '<button class="sec sm" type="button" data-ex="' + ei + '" data-i="' + i + '" data-act="lock">' + (s.locked ? '🔒 Đã khóa' : '🔓 Khóa') + '</button>' +
+          '<button class="sec sm" type="button" data-ex="' + ei + '" data-i="' + i + '" data-act="swap">🔄 Đổi câu này</button>' +
+          '<button class="sec sm" type="button" data-ex="' + ei + '" data-i="' + i + '" data-act="bad">🚩 Bài lỗi</button></div></div>';
       });
-      return chain.then(function () {
-        if (verified.length < 5) throw new Error('Chỉ ' + verified.length + '/5 câu qua kiểm tra. Hãy thử lại.');
-        S.ai = verified;
-        renderAi();
-        var da = $('kdDa').checked, lg = $('kdLg').checked;
-        var de = [], dk = [];
-        S.ai.forEach(function (b, i) {
-          var r = itemToText(b, i + 1, da, lg);
-          de.push(r.de); if (r.dk) dk.push(r.dk);
-        });
-        var out = de.join('\n\n') + '\n\n--- HẾT ---';
-        if (dk.length) out += '\n\nĐÁP ÁN VÀ LỜI GIẢI\n\n' + dk.join('\n\n');
-        S.lastOut = toMathTypeText(out);
-        $('kdOutMsg').textContent = 'AI đã tạo đề 5 câu (đã tự giải lại kiểm tra). Bấm "Xuất file Word" để gửi sang tab Chuyển LaTeX.' + lintMsg(S.lastOut);
-      });
-    }).catch(function (e) {
-      $('kdOutMsg').textContent = 'Lỗi tạo đề AI: ' + e.message;
-    }).then(function () { $('kdRandom5').disabled = false; });
+      html += '</div>';
+      st.warn.forEach(function (w) { warns.push('Mã đề ' + ex.label + ': ' + w); });
+    });
+    box.innerHTML = html;
+    box.onclick = function (e) {
+      var btn = e.target.closest('button[data-act]'); if (!btn) return;
+      var ei = +btn.getAttribute('data-ex'), i = +btn.getAttribute('data-i'), act = btn.getAttribute('data-act');
+      if (act === 'lock') { S.exams[ei].slots[i].locked = !S.exams[ei].slots[i].locked; renderExams(false); }
+      else if (act === 'swap') swapSlot(ei, i, false);
+      else if (act === 'bad') swapSlot(ei, i, true);
+    };
+    if (announce || warns.length || true) {
+      var n = S.exams.reduce(function (a, ex) { return a + ex.slots.length; }, 0);
+      $('kdOutMsg').textContent = 'Đã tạo ' + S.exams.length + ' mã đề (' + n + ' câu). Giữ câu ưng ý bằng 🔒, đổi từng câu bằng 🔄 rồi bấm "Xuất file Word".' +
+        (warns.length ? '\n⚠ ' + warns.join('\n⚠ ') : '\n✅ Cấu trúc đề ổn: không trùng dạng, đủ đáp án.');
+    }
+  }
+  function markUsed() {
+    var a = lsGet('kd_used') || [];
+    S.exams.forEach(function (ex) { ex.slots.forEach(function (s) { var k = a.indexOf(s.b.id); if (k >= 0) a.splice(k, 1); a.push(s.b.id); }); });
+    lsSet('kd_used', a.slice(-80));
+  }
+  function resetQuality() {
+    try { localStorage.removeItem('kd_bad'); localStorage.removeItem('kd_used'); } catch (e) { }
+    S.figBad = {};
+    $('kdOutMsg').textContent = 'Đã xóa lịch sử bài đã dùng và cờ bài lỗi.';
+  }
+  function reviewExam() {
+    var items = S.exams.length ? S.exams[0].slots.map(function (s) { return s.b; }) : pickedItems();
+    var m = $('kdRevMsg');
+    if (!items.length) { m.textContent = 'Chưa có đề để kiểm duyệt. Hãy tạo đề trước.'; return; }
+    try { requireKey(); } catch (e) { m.textContent = e.message; return; }
+    var txt = items.map(function (b, i) { var r = itemToText(b, i + 1, true, false); return r.de + (r.dk ? '\n' + r.dk : ''); }).join('\n\n');
+    var prompt = 'Bạn là tổ trưởng chuyên môn Toán THCS Việt Nam, đang kiểm duyệt một đề thi ghép từ nhiều đề khác nhau.\n' +
+      'Hãy rà soát đề dưới đây về: (1) trùng dạng hoặc trùng ý giữa các câu; (2) độ khó có tăng dần và cân đối không; (3) câu thiếu dữ kiện, mâu thuẫn hoặc đáp án nghi sai; (4) ký hiệu, cách diễn đạt không thống nhất giữa các câu.\n' +
+      'Trả lời tiếng Việt, tối đa 8 gạch đầu dòng ngắn, nêu rõ số câu; không viết lại đề. Dòng cuối ghi \"KẾT LUẬN: ĐẠT\" hoặc \"KẾT LUẬN: CẦN SỬA\".\n\nĐỀ:\n' + txt;
+    m.textContent = 'AI đang kiểm duyệt đề…'; $('kdReview').disabled = true;
+    callGemini(prompt, 0.2).then(function (t) { m.textContent = '🧐 ' + String(t).trim(); })
+      .catch(function (e) { m.textContent = 'Lỗi kiểm duyệt: ' + e.message; })
+      .then(function () { $('kdReview').disabled = false; });
+  }
+  function compose() {
+    var items = pickedItems();
+    if (!items.length) {
+      $('kdOutMsg').textContent = 'Chưa có bài nào. Hãy để AI chọn bài, hoặc bấm "Tạo đề ngẫu nhiên".';
+      return;
+    }
+    S.outFrom = 'picked';
+    S.lastOut = toMathTypeText(buildOut(items, ''));
+    $('kdOutMsg').textContent = 'Đã tạo đề gồm ' + items.length + ' câu' + figInfo(S.lastOut) + '. Bấm "Xuất file Word" để gửi sang tab Chuyển LaTeX.' + lintMsg(S.lastOut);
+    return S.lastOut;
   }
   function composeAiText() {
     return toMathTypeText(S.ai.map(function (b, i) {
@@ -807,7 +989,8 @@
   }
   function getOut() {
     if (S.lastOut) return S.lastOut;
-    return compose(false);
+    if (S.outFrom === 'exam' && S.exams.length) return composeExams();
+    return compose();
   }
 
   /* ------------------------------------------------------------- Hình vẽ */
@@ -913,6 +1096,7 @@
       if (tab) tab.click();
       installFigPreview();
       [150, 600, 1500].forEach(function (ms) { setTimeout(enhanceFigs, ms); });
+      if (S.outFrom === 'exam') markUsed();
       var msg = 'Đã gửi đề sang tab Chuyển LaTeX → Word / PDF (chữ thường + $công thức$).';
       if (paths.length) msg += '\n🖼 ' + (paths.length - bad.length) + '/' + paths.length + ' hình vẽ đã tải và hiện ở ô xem trước.';
       if (bad.length) msg += '\n⚠ Không tìm thấy hình: ' + bad.join(', ') + ' — kiểm tra tên file trong thư mục hinh.';
