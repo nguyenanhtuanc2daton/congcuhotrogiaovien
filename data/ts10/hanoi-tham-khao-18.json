@@ -1,0 +1,271 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK18",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 18, bản nháp)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_18_ĐỖ_HỒNG_THANH.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK18-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Sau khi điều tra về thời gian đi từ nhà đến trường của học sinh lớp $9A$ có $40$ học sinh ta có bảng tần số tương đối ghép nhóm sau. Tìm tần số ghép nhóm và tần số tương đối ghép nhóm của nhóm $[10;20)$.",
+   "bang": {
+    "tieu_de": [
+     "Thời gian từ nhà đến trường (phút)",
+     "[0;10)",
+     "[10;20)",
+     "[20;30)"
+    ],
+    "hang": [
+     [
+      "Tần số tương đối",
+      "30%",
+      "45%",
+      "25%"
+     ]
+    ]
+   },
+   "dapan": "Tần số tương đối 45%; tần số 18",
+   "loigiai": "Tần số tương đối của $[10;20)$ là $45\\%$; tần số ghép nhóm $45\\%\\cdot40=18$."
+  },
+  {
+   "id": "TS10-HN-TK18-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Một túi đựng $5$ viên bi có cùng khối lượng và kích thước như nhau, được đánh số $1;2;3;4;5$. Xét phép thử: “Lấy ngẫu nhiên hai viên bi từ trong túi” và biến cố $A$: “Tích của hai số ghi trên hai viên bi lớn hơn $10$”. Tính xác suất của biến cố $A$.",
+   "dapan": "$P(A)=\\frac3{10}$ (đáp án gốc ghi $\\frac3{11}$, xem ghi chú)",
+   "loigiai": "$\\Omega=\\{(1;2),(1;3),(1;4),(1;5),(2;3),(2;4),(2;5),(3;4),(3;5),(4;5)\\}$, $n(\\Omega)=10$. Kết quả thuận lợi (tích $>10$): $(3;4),(3;5),(4;5)$. $P(A)=\\frac3{10}$.",
+   "ghi_chu": "CẦN DUYỆT: lời giải gốc liệt kê đúng 10 cặp nhưng ghi 'không gian mẫu có 11 phần tử' và kết luận P = 3/11. Tôi tính P = 3/10."
+  },
+  {
+   "id": "TS10-HN-TK18-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho biểu thức $A=\\dfrac{\\sqrt{x}-2}{\\sqrt{x}-1}$; $B=\\dfrac{\\sqrt{x}}{\\sqrt{x}+1}+\\dfrac{1}{1-\\sqrt{x}}+\\dfrac{2}{x-1}$ với $x\\ge0,\\ x\\neq1$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị biểu thức $A$ tại $x=9$.",
+     "dapan": "$A=\\frac12$",
+     "loigiai": "$A=\\frac{3-2}{3-1}=\\frac12$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $B=\\dfrac{\\sqrt{x}-1}{\\sqrt{x}+1}$.",
+     "dapan": "",
+     "loigiai": "$B=\\frac{\\sqrt{x}(\\sqrt{x}-1)-(\\sqrt{x}+1)+2}{(\\sqrt{x}+1)(\\sqrt{x}-1)}=\\frac{x-2\\sqrt{x}+1}{(\\sqrt{x}+1)(\\sqrt{x}-1)}=\\frac{\\sqrt{x}-1}{\\sqrt{x}+1}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Cho $P=A\\cdot B$. Tìm các giá trị nguyên của $x$ để $|P|+P=0$.",
+     "dapan": "$x\\in\\{0;2;3;4\\}$",
+     "loigiai": "$P=\\frac{\\sqrt{x}-2}{\\sqrt{x}+1}$. $|P|+P=0\\Leftrightarrow P\\le0\\Leftrightarrow\\sqrt{x}\\le2\\Leftrightarrow x\\le4$. Kết hợp $x\\ge0$, $x\\neq1$ và $x$ nguyên: $x\\in\\{0;2;3;4\\}$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK18-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Cận thị trong học sinh ngày càng tăng. Lớp $9A$ có $35$ học sinh, trong đó chỉ có $25\\%$ học sinh nam và $20\\%$ số học sinh nữ không bị cận thị. Biết tổng số học sinh nam và học sinh nữ không bị cận thị là $8$ học sinh. Tính số học sinh nữ không bị cận thị.",
+   "dapan": "3 học sinh",
+   "loigiai": "Gọi số học sinh nam, nữ là $x,y$. $\\begin{cases}x+y=35\\\\0{,}25x+0{,}2y=8\\end{cases}\\Rightarrow x=20,\\ y=15$. Số học sinh nữ không bị cận thị: $20\\%\\cdot15=3$."
+  },
+  {
+   "id": "TS10-HN-TK18-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Hưởng ứng phong trào trồng cây xanh vì môi trường xanh sạch đẹp. Một chi đoàn dự định trồng $600$ cây xanh trong thời gian quy định. Do mỗi ngày họ trồng được nhiều hơn dự định $30$ cây nên công việc được hoàn thành sớm hơn quy định $1$ ngày. Tính số ngày chi đoàn dự kiến hoàn thành công việc?",
+   "dapan": "5 ngày",
+   "loigiai": "Gọi số ngày dự định là $x$ ($x>1$). Dự định mỗi ngày $\\frac{600}{x}$ cây; thực tế $\\frac{600}{x}+30$ cây trong $x-1$ ngày. $(x-1)\\left(\\frac{600}{x}+30\\right)=600\\Leftrightarrow x^2-x-20=0$, được $x=5$ (nhận), $x=-4$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK18-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $3x^2+5x-6=0$ có hai nghiệm $x_1,x_2$. Không giải phương trình, tính: $P=\\dfrac{2x_2^2}{x_1+x_2}+2x_1$.",
+   "dapan": "$P=-\\frac{86}{15}$",
+   "loigiai": "Phương trình có $ac<0$ nên có hai nghiệm; Viète: $x_1+x_2=-\\frac53$, $x_1x_2=-2$. $P=\\frac{2x_2^2+2x_1(x_1+x_2)}{x_1+x_2}=\\frac{2(x_1^2+x_2^2+x_1x_2)}{x_1+x_2}=\\frac{2\\left[(x_1+x_2)^2-x_1x_2\\right]}{x_1+x_2}=\\frac{2\\left(\\frac{25}9+2\\right)}{-\\frac53}=-\\frac{86}{15}$."
+  },
+  {
+   "id": "TS10-HN-TK18-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk18-c4-1.png",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D3",
+   "dang_phu": [
+    "L9-C10-D1",
+    "L9-C10-D2",
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VD",
+   "noidung": "Một cái thùng dùng để đựng gạo có dạng nửa hình cầu với đường kính $50$ cm, phần gạo vun lên có dạng hình nón cao $12$ cm.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Tính thể tích phần gạo trong thùng.",
+     "dapan": "$\\frac{38750\\pi}{3}\\ \\text{cm}^3$",
+     "loigiai": "$R=25$ cm. Nửa cầu: $\\frac12\\cdot\\frac43\\pi\\cdot25^3=\\frac{31250\\pi}3$. Hình nón: $\\frac13\\pi\\cdot25^2\\cdot12=2500\\pi$. Tổng: $\\frac{38750\\pi}{3}\\ \\text{cm}^3$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Nhà bạn An dùng lon sữa bò dạng hình trụ với bán kính đáy là $5$ cm, chiều cao $14$ cm dùng để đong gạo mỗi ngày. Biết rằng mỗi ngày nhà An ăn $4$ lon gạo và mỗi lần đong thì lượng gạo chiếm $90\\%$ thể tích của lon. Hỏi cần ít nhất bao nhiêu ngày để nhà An có thể ăn hết số gạo trong thùng?",
+     "dapan": "11 ngày",
+     "loigiai": "Thể tích lon: $\\pi\\cdot5^2\\cdot14=350\\pi$. Gạo ăn mỗi ngày: $4\\cdot90\\%\\cdot350\\pi=1260\\pi$. Số ngày: $\\frac{38750\\pi/3}{1260\\pi}=\\frac{38750}{3780}\\approx10{,}25$, nên cần ít nhất $11$ ngày."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK18-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk18-c4-2.png",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho đường tròn tâm $(O)$ và dây $BC$ cố định không đi qua $O$. Trên cung lớn $BC$ lấy điểm $A$ sao cho $AB<AC$. Kẻ đường kính $AK$, $E$ là hình chiếu của $C$ trên $AK$. $M$ là trung điểm của $BC$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh bốn điểm $C,E,M,O$ cùng thuộc một đường tròn.",
+     "dapan": "",
+     "loigiai": "$\\triangle OBC$ cân tại $O$, $M$ là trung điểm $BC$ nên $OM\\perp BC$, $\\widehat{OMC}=90^\\circ$. $CE\\perp AK$ nên $\\widehat{OEC}=90^\\circ$. Gọi $I$ là trung điểm $OC$ thì $IO=IE=IM=IC$. Vậy $C,E,M,O$ cùng thuộc đường tròn tâm $I$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Kẻ $AD\\perp BC$ tại $D$. Chứng minh $AD\\cdot AK=AB\\cdot AC$ và $\\triangle MDE$ cân.",
+     "dapan": "",
+     "loigiai": "$\\triangle DBA\\backsim\\triangle CKA$ (g.g) vì $\\widehat{ADB}=\\widehat{ACK}=90^\\circ$ và $\\widehat{ABD}=\\widehat{AKC}$ (cùng chắn cung $AC$). Suy ra $\\frac{AD}{AC}=\\frac{AB}{AK}$, tức $AD\\cdot AK=AB\\cdot AC$. Với $\\triangle MDE$: $A,C,D,E$ cùng thuộc đường tròn đường kính $AC$ nên $\\widehat{CAE}=\\widehat{CDE}$ (1); trong $(O)$: $\\widehat{CBK}=\\widehat{CAE}$ (2). Từ (1),(2): $\\widehat{CBK}=\\widehat{CDE}$ nên $DE\\parallel BK$. Trong đường tròn $(I)$ ngoại tiếp $CEMO$: $\\widehat{EMC}=\\widehat{EOC}$ và $\\widehat{EOC}=2\\widehat{CDE}$ (góc ở tâm), nên $\\widehat{EMC}=2\\widehat{CDE}$. Vì $\\widehat{EMC}$ là góc ngoài của $\\triangle MDE$: $\\widehat{EMC}=\\widehat{MDE}+\\widehat{MED}$, nên $\\widehat{MDE}=\\widehat{MED}$ và $\\triangle MDE$ cân tại $M$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Gọi $F$ là hình chiếu của $B$ trên $AK$. Chứng minh khi $A$ di chuyển trên cung lớn $BC$ thì tâm đường tròn ngoại tiếp $\\triangle DEF$ là $1$ điểm cố định.",
+     "dapan": "Tâm là trung điểm $M$ của $BC$",
+     "loigiai": "Tương tự câu b, $\\triangle MDF$ cân tại $M$ nên $MD=MF$. Mà $MD=ME$ nên $MD=ME=MF$. Vậy $M$ là tâm đường tròn ngoại tiếp $\\triangle DEF$; $M$ là trung điểm của dây $BC$ cố định nên là điểm cố định."
+    }
+   ],
+   "ghi_chu": "Lời giải gốc ý b, c ở dạng chuỗi bước, tôi viết lại cho liền mạch; nên đối chiếu với hình."
+  },
+  {
+   "id": "TS10-HN-TK18-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C2",
+   "dang": "L9-C2-D2",
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Chứng minh rằng: $\\dfrac{a+b}{\\sqrt{a(3a+b)}+\\sqrt{b(3b+a)}}\\ge\\dfrac12$ với $a,b$ là các số dương.",
+   "dapan": "Dấu bằng xảy ra khi và chỉ khi a = b",
+   "loigiai": "$\\frac{a+b}{\\sqrt{a(3a+b)}+\\sqrt{b(3b+a)}}=\\frac{2(a+b)}{\\sqrt{4a(3a+b)}+\\sqrt{4b(3b+a)}}$. Theo Cô-si: $\\sqrt{4a(3a+b)}\\le\\frac{4a+(3a+b)}2=\\frac{7a+b}2$, $\\sqrt{4b(3b+a)}\\le\\frac{7b+a}2$. Cộng lại: tổng $\\le4a+4b$. Vậy biểu thức $\\ge\\frac{2(a+b)}{4a+4b}=\\frac12$, dấu bằng khi $a=b$.",
+   "ghi_chu": "Đề 18 là bản nháp: cuối đề có ghi chú của người soạn đề nghị thay câu V bằng bài hình không gian (vì bất đẳng thức đã được thống nhất bỏ đi)."
+  }
+ ]
+}

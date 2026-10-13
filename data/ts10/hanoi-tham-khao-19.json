@@ -1,0 +1,304 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK19",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 19)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_19_Nguyễn_văn_Tố.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK19-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk19-c1-bieudo.png",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D2"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Sau khi điều tra mật độ dân số (đơn vị: người/$\\text{km}^2$) của $37$ tỉnh, thành phố thuộc các vùng Bắc Trung Bộ và Duyên hải miền Trung, Tây Nguyên, Đông Nam Bộ, Đồng bằng sông Cửu Long (không kể Thành phố Hồ Chí Minh) ở năm $2021$, người ta có biểu đồ tần số ghép nhóm dưới đây.",
+   "bang": {
+    "tieu_de": [
+     "Nhóm",
+     "[100;280)",
+     "[280;460)",
+     "[460;640)",
+     "[640;820)",
+     "[820;1000]"
+    ],
+    "hang": [
+     [
+      "Tần số",
+      "20",
+      "5",
+      "6",
+      "3",
+      "3"
+     ]
+    ]
+   },
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Tìm tần số ghép nhóm của nhóm $[460;640)$.",
+     "dapan": "6",
+     "loigiai": "Đọc từ biểu đồ."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Tính tần số tương đối ghép nhóm của nhóm $[100;280)$ (làm tròn đến hàng đơn vị).",
+     "dapan": "54%",
+     "loigiai": "$f=\\frac{20}{37}\\cdot100\\%\\approx54\\%$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK19-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk19-c1-dia.png",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Hình vẽ dưới đây mô tả một đĩa tròn bằng bìa cứng được chia thành $12$ phần bằng nhau và ghi các số $1;2;3;\\dots;12$. Chiếc kim được gắn cố định vào trục quay ở tâm của đĩa. Xét phép thử: “Quay đĩa tròn một lần” và biến cố $A$: “Chiếc kim chỉ vào hình quạt ghi số là số nguyên tố”. Tính xác suất của biến cố $A$.",
+   "dapan": "$P(A)=\\frac5{12}$",
+   "loigiai": "$\\Omega=\\{1;2;\\dots;12\\}$, $n(\\Omega)=12$. Các số nguyên tố: $2;3;5;7;11$, $n(A)=5$. $P(A)=\\frac5{12}$."
+  },
+  {
+   "id": "TS10-HN-TK19-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{\\sqrt{x}-3}{\\sqrt{x}+3}$ và $B=\\dfrac{x-3}{\\sqrt{x}-3}+\\dfrac{9}{x-3\\sqrt{x}}+\\dfrac{3}{\\sqrt{x}}$ với $x>0;\\ x\\neq9$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=25$.",
+     "dapan": "$A=\\frac14$",
+     "loigiai": "$A=\\frac{5-3}{5+3}=\\frac14$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Rút gọn biểu thức $B$.",
+     "dapan": "$B=\\frac{x}{\\sqrt{x}-3}$",
+     "loigiai": "$B=\\frac{(x-3)\\sqrt{x}+9+3(\\sqrt{x}-3)}{\\sqrt{x}(\\sqrt{x}-3)}=\\frac{x\\sqrt{x}}{\\sqrt{x}(\\sqrt{x}-3)}=\\frac{x}{\\sqrt{x}-3}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Xét biểu thức $P=A\\cdot B$. Chứng minh $P>0$.",
+     "dapan": "",
+     "loigiai": "$P=\\frac{\\sqrt{x}-3}{\\sqrt{x}+3}\\cdot\\frac{x}{\\sqrt{x}-3}=\\frac{x}{\\sqrt{x}+3}$. Với $x>0$, $x\\neq9$ ta có $\\sqrt{x}+3>0$ nên $P>0$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK19-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Bác Tuấn vay tổng số tiền là $5$ tỉ đồng từ hai ngân hàng Sacombank và Vietcombank đầu tư vào bất động sản. Sau một năm, tổng số tiền lãi phải trả cho cả hai ngân hàng trên là $570$ triệu đồng. Lãi suất cho vay của ngân hàng Sacombank là $12\\%$/năm và của Vietcombank là $11\\%$/năm. Tính số tiền bác Tuấn đã vay của mỗi ngân hàng.",
+   "dapan": "Sacombank: 2 tỉ đồng; Vietcombank: 3 tỉ đồng",
+   "loigiai": "Gọi số tiền vay Sacombank, Vietcombank là $x,y$ (tỉ đồng). $\\begin{cases}x+y=5\\\\0{,}12x+0{,}11y=0{,}57\\end{cases}\\Rightarrow x=2,\\ y=3$."
+  },
+  {
+   "id": "TS10-HN-TK19-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một công nhân dự định làm $72$ sản phẩm trong một thời gian dự định. Nhưng thực tế xí nghiệp lại giao $80$ sản phẩm. Mặc dù người đó mỗi giờ đã làm thêm một sản phẩm so với dự kiến, nhưng thời gian hoàn thành công việc vẫn chậm so với dự định là $12$ phút. Tính số sản phẩm dự kiến làm trong $1$ giờ của người đó. Biết mỗi giờ người đó làm không quá $20$ sản phẩm. (Giả định rằng số sản phẩm mà công nhân đó làm được trong mỗi giờ là bằng nhau).",
+   "dapan": "15 sản phẩm mỗi giờ",
+   "loigiai": "Gọi số sản phẩm dự kiến làm trong $1$ giờ là $x$ ($x\\in\\mathbb{N}^*$, $x<20$). $\\frac{80}{x+1}-\\frac{72}{x}=\\frac15\\Leftrightarrow x^2-39x+360=0$, được $x=24$ (loại) và $x=15$ (nhận)."
+  },
+  {
+   "id": "TS10-HN-TK19-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_phu": [
+    "L9-C6-D2"
+   ],
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "a) Hãy tìm một phương trình bậc hai $ax^2+bx+c=0$ với các hệ số $a,b,c$ là số nguyên nhận $x=\\dfrac{\\sqrt5-2}{3}$ làm nghiệm. b) Tính tổng lập phương hai nghiệm của phương trình vừa tìm được ở câu a).",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "VD",
+     "noidung": "Hãy tìm một phương trình bậc hai $ax^2+bx+c=0$ với các hệ số $a,b,c$ là số nguyên nhận $x=\\frac{\\sqrt5-2}{3}$ làm nghiệm.",
+     "dapan": "$9x^2+12x-1=0$",
+     "loigiai": "$3x+2=\\sqrt5\\Rightarrow(3x+2)^2=5\\Rightarrow9x^2+12x-1=0$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Tính tổng lập phương hai nghiệm của phương trình vừa tìm được ở câu a).",
+     "dapan": "$-\\frac{76}{27}$",
+     "loigiai": "Viète: $x_1+x_2=-\\frac43$, $x_1x_2=-\\frac19$. $x_1^3+x_2^3=(x_1+x_2)^3-3x_1x_2(x_1+x_2)=-\\frac{64}{27}-\\frac{12}{27}=-\\frac{76}{27}$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK19-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk19-c4-1.png",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C10-D3",
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VD",
+   "noidung": "Một khối gỗ dạng hình trụ, bán kính đường tròn đáy $r=10$ cm, chiều cao $h=20$ cm. Người ta khoét rỗng hai nửa hình cầu như hình vẽ.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Tính thể tích của khối gỗ lúc chưa khoét (làm tròn đến hàng đơn vị).",
+     "dapan": "$\\approx6283\\ \\text{cm}^3$",
+     "loigiai": "$V=\\pi r^2h=\\pi\\cdot10^2\\cdot20=2000\\pi\\approx6283\\ \\text{cm}^3$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Hãy tính diện tích bề mặt của khối gỗ còn lại sau khi khoét (diện tích cả ngoài lẫn trong), làm tròn đến hàng đơn vị.",
+     "dapan": "$\\approx2513\\ \\text{cm}^2$",
+     "loigiai": "Bề mặt gồm mặt xung quanh hình trụ và hai nửa mặt cầu bán kính $10$ cm: $S=2\\pi rh+4\\pi r^2=2\\pi\\cdot10\\cdot20+4\\pi\\cdot10^2=800\\pi\\approx2513\\ \\text{cm}^2$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK19-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk19-c4-2.png",
+   "can_duyet": false,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Tứ giác $ABCD$ nội tiếp đường tròn tâm $O$ đường kính $AD$. Hai đường chéo $AC,BD$ cắt nhau tại $E$. Từ $E$ kẻ $EF$ vuông góc với $AD$ ($F\\in AD$). Đường thẳng $CF$ cắt đường tròn tại điểm thứ hai là $M$. Giao điểm của $BD$ và $CF$ là $N$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $CEFD$ là tứ giác nội tiếp.",
+     "dapan": "",
+     "loigiai": "$\\widehat{ACD}=90^\\circ$ (góc nội tiếp chắn nửa đường tròn) nên $\\triangle ECD$ vuông tại $C$. Gọi $I$ là trung điểm $ED$ thì $CI=IE=ID=\\frac12ED$. $\\triangle EFD$ vuông tại $F$ nên $FI=IE=ID=\\frac12ED$. Suy ra $CI=FI=IE=ID$, vậy $CEFD$ nội tiếp đường tròn tâm $I$, đường kính $ED$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh $FA$ là tia phân giác của $\\widehat{BFM}$.",
+     "dapan": "",
+     "loigiai": "$CEFD$ nội tiếp nên $\\widehat{CED}=\\widehat{CFD}$ (cùng chắn $\\widehat{CD}$). Tương tự $ABEF$ nội tiếp ($\\widehat{ABE}=\\widehat{AFE}=90^\\circ$) nên $\\widehat{BEA}=\\widehat{BFA}$. Mà $\\widehat{BEA}=\\widehat{CED}$ và $\\widehat{AFM}=\\widehat{CFD}$ (đối đỉnh). Do đó $\\widehat{BFA}=\\widehat{AFM}$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Chứng minh $BE\\cdot DN=EN\\cdot BD$.",
+     "dapan": "",
+     "loigiai": "$\\widehat{EFC}=\\widehat{EDC}$ và $\\widehat{EFB}=\\widehat{BAE}=\\widehat{BAC}=\\widehat{BDC}=\\widehat{EDC}$, nên $FE$ là phân giác trong của $\\widehat{BFN}$. Trong $\\triangle BFN$: $\\frac{BE}{EN}=\\frac{FB}{FN}$. Vì $EF\\perp FD$ nên $FD$ là phân giác ngoài tại $F$: $\\frac{BD}{DN}=\\frac{FB}{FN}$. Suy ra $\\frac{BE}{EN}=\\frac{BD}{DN}$, tức $BE\\cdot DN=EN\\cdot BD$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK19-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C2-D2"
+   ],
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Một cửa hàng xăng dầu cần xây một bồn chứa dầu hình trụ bằng thép có thể tích $54\\pi\\ (\\text{m}^3)$ và giá mỗi mét vuông thép là $500$ ngàn đồng. Hỏi số tiền thấp nhất mà cửa hàng phải trả? (kết quả làm tròn đến hàng đơn vị).",
+   "dapan": "Khoảng 84 823 002 đồng (bán kính đáy 3 m)",
+   "loigiai": "Gọi bán kính đáy là $x$ (m), chiều cao $h=\\frac{54}{x^2}$. $S_{tp}=2\\pi x^2+2\\pi xh=2\\pi x^2+\\frac{108\\pi}{x}=2\\pi x^2+\\frac{54\\pi}{x}+\\frac{54\\pi}{x}\\ge3\\sqrt[3]{2\\pi x^2\\cdot\\frac{54\\pi}{x}\\cdot\\frac{54\\pi}{x}}=54\\pi$. Dấu bằng khi $2\\pi x^2=\\frac{54\\pi}{x}\\Leftrightarrow x=3$. Số tiền thấp nhất: $54\\pi\\cdot500\\,000\\approx84\\,823\\,002$ đồng."
+  }
+ ]
+}

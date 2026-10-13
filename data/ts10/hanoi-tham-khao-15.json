@@ -1,0 +1,259 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK15",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 15)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_15_KIMANH.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK15-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Sau khi thống kê độ dài (đơn vị: centimét) của $60$ lá dương xỉ trưởng thành, người ta có bảng tần số ghép nhóm như sau. Tìm tần số ghép nhóm và tần số tương đối ghép nhóm của nhóm $[30;40)$.",
+   "bang": {
+    "tieu_de": [
+     "Nhóm",
+     "[10;20)",
+     "[20;30)",
+     "[30;40)",
+     "[40;50)",
+     "Cộng"
+    ],
+    "hang": [
+     [
+      "Tần số (n)",
+      "7",
+      "16",
+      "27",
+      "10",
+      "60"
+     ]
+    ]
+   },
+   "dapan": "Tần số 27; tần số tương đối 45%",
+   "loigiai": "Tần số ghép nhóm của $[30;40)$ là $27$; tần số tương đối $\\frac{27\\cdot100}{60}\\%=45\\%$."
+  },
+  {
+   "id": "TS10-HN-TK15-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Trên mặt phẳng cho năm điểm phân biệt $A,B,C,D,E$ trong đó không có $3$ điểm nào thẳng hàng. Hai điểm $A,B$ được tô màu đỏ; ba điểm $C,D,E$ được tô màu xanh. Bạn Châu chọn ra ngẫu nhiên một điểm tô màu đỏ, sau đó chọn ngẫu nhiên một điểm tô màu xanh để nối thành một đoạn thẳng. Tính xác suất của biến cố $X$: “Trong hai điểm được chọn ra có điểm $A$”.",
+   "dapan": "$P(X)=\\frac12$",
+   "loigiai": "Không gian mẫu: $\\{AC;AD;AE;BC;BD;BE\\}$, $6$ phần tử đồng khả năng. Kết quả thuận lợi cho $X$: $AC;AD;AE$ ($3$ kết quả). $P(X)=\\frac36=\\frac12$."
+  },
+  {
+   "id": "TS10-HN-TK15-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{\\sqrt{x}+1}{\\sqrt{x}-2}$ và $B=\\dfrac{\\sqrt{x}+2}{\\sqrt{x}-3}+\\dfrac{\\sqrt{x}-8}{(\\sqrt{x}-2)(\\sqrt{x}-3)}$ với $x\\ge0,\\ x\\neq4,\\ x\\neq9$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=25$.",
+     "dapan": "$A=2$",
+     "loigiai": "$A=\\frac{5+1}{5-2}=2$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Rút gọn biểu thức $B$.",
+     "dapan": "$B=\\frac{\\sqrt{x}+4}{\\sqrt{x}-2}$",
+     "loigiai": "$B=\\frac{(\\sqrt{x}+2)(\\sqrt{x}-2)+\\sqrt{x}-8}{(\\sqrt{x}-2)(\\sqrt{x}-3)}=\\frac{x+\\sqrt{x}-12}{(\\sqrt{x}-2)(\\sqrt{x}-3)}=\\frac{(\\sqrt{x}+4)(\\sqrt{x}-3)}{(\\sqrt{x}-2)(\\sqrt{x}-3)}=\\frac{\\sqrt{x}+4}{\\sqrt{x}-2}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Tìm tất cả các giá trị nguyên của $x$ để $B<A$.",
+     "dapan": "$x\\in\\{0;1;2;3\\}$",
+     "loigiai": "$B<A\\Leftrightarrow\\frac{\\sqrt{x}+4}{\\sqrt{x}-2}-\\frac{\\sqrt{x}+1}{\\sqrt{x}-2}<0\\Leftrightarrow\\frac{3}{\\sqrt{x}-2}<0\\Leftrightarrow\\sqrt{x}<2\\Leftrightarrow x<4$. Kết hợp điều kiện và $x$ nguyên: $x\\in\\{0;1;2;3\\}$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK15-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Để mở rộng kinh doanh, một cửa hàng đã vay $600$ triệu đồng kì hạn $12$ tháng từ hai ngân hàng $A$ và $B$ với lãi suất lần lượt là $8\\%$/năm và $9\\%$/năm. Tổng số tiền lãi một năm phải trả cho cả hai ngân hàng là $50$ triệu đồng. Tính số tiền của cửa hàng đã vay từ mỗi ngân hàng.",
+   "dapan": "Ngân hàng A: 400 triệu đồng; ngân hàng B: 200 triệu đồng",
+   "loigiai": "Gọi số tiền vay từ $A,B$ là $x,y$ (triệu đồng). $\\begin{cases}x+y=600\\\\0{,}08x+0{,}09y=50\\end{cases}\\Rightarrow x=400,\\ y=200$."
+  },
+  {
+   "id": "TS10-HN-TK15-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một tổ sản xuất phải làm $600$ sản phẩm trong một thời gian quy định với năng suất như nhau. Sau khi làm được $400$ sản phẩm, tổ đã tăng năng suất thêm mỗi ngày $10$ sản phẩm, do đó đã hoàn thành công việc sớm hơn một ngày theo quy định. Tính số sản phẩm làm trong mỗi ngày theo quy định.",
+   "dapan": "40 sản phẩm mỗi ngày",
+   "loigiai": "Gọi số sản phẩm làm mỗi ngày theo quy định là $x$ ($x>0$). $\\frac{600}{x}-\\left(\\frac{400}{x}+\\frac{200}{x+10}\\right)=1\\Leftrightarrow\\frac{200}{x}-\\frac{200}{x+10}=1\\Leftrightarrow x^2+10x-2000=0$, được $x=40$ (nhận), $x=-50$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK15-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $x^2-4\\sqrt3x+8=0$ có $2$ nghiệm $x_1,x_2$, không giải phương trình hãy tính giá trị biểu thức $Q=x_1^3+x_2^3$.",
+   "dapan": "$Q=96\\sqrt3$",
+   "loigiai": "$\\Delta'=(2\\sqrt3)^2-8=4>0$. Viète: $x_1+x_2=4\\sqrt3$, $x_1x_2=8$. $Q=(x_1+x_2)^3-3x_1x_2(x_1+x_2)=(4\\sqrt3)^3-3\\cdot8\\cdot4\\sqrt3=192\\sqrt3-96\\sqrt3=96\\sqrt3$."
+  },
+  {
+   "id": "TS10-HN-TK15-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk15-c4-1.png",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C10-D2",
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Tính thể tích của mô hình tên lửa trong hình bên (thân là hình trụ cao $9$ cm, đầu là hình nón cao $5$ cm, đường kính đáy $6$ cm).",
+   "dapan": "$96\\pi\\ \\text{cm}^3$",
+   "loigiai": "$R=3$ cm. Thân (trụ): $V_1=\\pi R^2h=\\pi\\cdot9\\cdot9=81\\pi$. Đầu (nón): $V_2=\\frac13\\pi R^2h=\\frac13\\pi\\cdot9\\cdot5=15\\pi$. $V=81\\pi+15\\pi=96\\pi\\ \\text{cm}^3$."
+  },
+  {
+   "id": "TS10-HN-TK15-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk15-c4-2.png",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho tam giác $ABC$ nhọn ($AB<AC$) nội tiếp đường tròn $(O)$. Hai đường cao $BE$ và $CF$ của tam giác $ABC$ cắt nhau tại điểm $H$. Gọi $K$ là trung điểm $BC$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $\\triangle AEF$ đồng dạng $\\triangle ABC$.",
+     "dapan": "",
+     "loigiai": "$\\widehat{BEC}=\\widehat{BFC}=90^\\circ$ nên $BFEC$ nội tiếp, suy ra $\\widehat{AEF}=\\widehat{ABC}$; cùng góc $A$ chung nên $\\triangle AEF\\backsim\\triangle ABC$ (g.g)."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh đường thẳng $OA$ vuông góc với đường thẳng $EF$.",
+     "dapan": "",
+     "loigiai": "$\\widehat{AEF}=\\widehat{ABC}$; $\\triangle OAC$ cân tại $O$ nên $\\widehat{EAO}=\\frac{180^\\circ-\\widehat{AOC}}{2}=90^\\circ-\\widehat{ABC}$. Suy ra $\\widehat{AEF}+\\widehat{EAO}=90^\\circ$, tức $AO\\perp EF$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Đường phân giác góc $FHB$ cắt $AB$ và $AC$ lần lượt tại $M$ và $N$. Gọi $I$ là trung điểm của $MN$, $J$ là trung điểm của $AH$. Chứng minh tứ giác $AFHI$ nội tiếp và ba điểm $I,J,K$ thẳng hàng.",
+     "dapan": "",
+     "loigiai": "$\\triangle AMN$ cân tại $A$ nên $AI\\perp MN$, suy ra $\\widehat{AFH}=\\widehat{AIH}=90^\\circ$ nên $AFHI$ nội tiếp. Có $\\widehat{MAH}=\\widehat{NAO}$ nên $\\widehat{IAH}=\\widehat{IAO}$, suy ra $IJ\\parallel AO$, mà $AO\\perp EF$ nên $IJ\\perp EF$. Lại có $JE=JF$, $KE=KF$ nên $IJ$ và $JK$ cùng là trung trực của $EF$, vậy $I,J,K$ thẳng hàng."
+    }
+   ],
+   "ghi_chu": "Đề này trùng nội dung câu IV.2 của đề TK04; lời giải gốc ý c rút gọn nên cần duyệt lại."
+  },
+  {
+   "id": "TS10-HN-TK15-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 0.5,
+   "chuong": "L9-C2",
+   "dang": "L9-C2-D2",
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Cho biểu thức $B=(1+x)\\left(1+\\dfrac1y\\right)+(1+y)\\left(1+\\dfrac1x\\right)$. Với $x>0,\\ y>0$ và $x^2+y^2=1$. Tìm giá trị nhỏ nhất của $B$.",
+   "dapan": "$\\min B=4+3\\sqrt2$ khi $x=y=\\frac{\\sqrt2}{2}$ (đáp án tôi tự giải)",
+   "loigiai": "Đặt $s=x+y$, $p=xy$. Vì $x^2+y^2=1$ nên $p=\\frac{s^2-1}{2}$ và $1<s\\le\\sqrt2$. $B=2+s+\\frac{s}{p}+\\frac1p=2+s+\\frac{s+1}{p}=2+s+\\frac{2}{s-1}$. Đặt $t=s-1\\in(0;\\sqrt2-1]$: $B=3+t+\\frac2t$, hàm giảm trên $(0;\\sqrt2)$ nên nhỏ nhất khi $t=\\sqrt2-1$: $B=3+(\\sqrt2-1)+2(\\sqrt2+1)=4+3\\sqrt2$, đạt khi $x=y=\\frac{\\sqrt2}{2}$.",
+   "ghi_chu": "CẦN DUYỆT: lời giải trong file gốc ở câu V là của một bài khác (P = √(a+1) + √(b+1) với a² + b² = 2), không khớp đề B = (1+x)(1+1/y) + (1+y)(1+1/x). Tôi tự giải lại bài theo đề."
+  }
+ ]
+}

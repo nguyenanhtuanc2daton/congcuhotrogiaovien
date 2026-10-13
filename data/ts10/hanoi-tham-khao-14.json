@@ -1,0 +1,266 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK14",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 14)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_14_Nguyễn_Duy_Hoàng_đã_sửa.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK14-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk14-c1-bieudo.png",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D2"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Một siêu thị thống kê hóa đơn mua hàng (đơn vị: nghìn đồng) của $150$ khách hàng đầu tiên trong ngày. Số liệu được ghi lại trong biểu đồ tần số ghép nhóm sau. Tính tần số tương đối của nhóm có tần số lớn nhất (làm tròn đến số thập phân thứ nhất).",
+   "bang": {
+    "tieu_de": [
+     "Nhóm (nghìn đồng)",
+     "[150;300)",
+     "[300;450)",
+     "[450;600)",
+     "[600;750)",
+     "[750;900)"
+    ],
+    "hang": [
+     [
+      "Tần số",
+      "15",
+      "27",
+      "38",
+      "40",
+      "30"
+     ]
+    ]
+   },
+   "dapan": "26,7% (nhóm [600;750))",
+   "loigiai": "Nhóm có tần số lớn nhất là $[600;750)$ với tần số $40$. Tần số tương đối: $\\frac{40\\cdot100}{150}\\%\\approx26{,}7\\%$."
+  },
+  {
+   "id": "TS10-HN-TK14-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Cho tập hợp $A=\\{4;5;6\\}$. Từ các chữ số của tập hợp $A$ viết ngẫu nhiên một số tự nhiên có $2$ chữ số. Tính xác suất để số được viết có hai chữ số khác nhau.",
+   "dapan": "$\\frac23$",
+   "loigiai": "$\\Omega=\\{44;45;46;54;55;56;64;65;66\\}$, $n(\\Omega)=9$. Các kết quả thuận lợi: $45;46;54;56;64;65$ ($6$ kết quả). $P=\\frac69=\\frac23$."
+  },
+  {
+   "id": "TS10-HN-TK14-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{x+3}{\\sqrt{x}-2}$ và $B=\\dfrac{\\sqrt{x}+3}{\\sqrt{x}-2}-\\dfrac{3\\sqrt{x}+6}{x-4}$ với $x>0,\\ x\\neq4$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=16$.",
+     "dapan": "$A=\\frac{19}2$",
+     "loigiai": "$A=\\frac{16+3}{\\sqrt{16}-2}=\\frac{19}{2}$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Rút gọn biểu thức $B$.",
+     "dapan": "$B=\\frac{\\sqrt{x}}{\\sqrt{x}-2}$",
+     "loigiai": "$B=\\frac{(\\sqrt{x}+3)(\\sqrt{x}+2)-3\\sqrt{x}-6}{(\\sqrt{x}-2)(\\sqrt{x}+2)}=\\frac{x+2\\sqrt{x}}{(\\sqrt{x}-2)(\\sqrt{x}+2)}=\\frac{\\sqrt{x}}{\\sqrt{x}-2}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "So sánh biểu thức $\\dfrac AB$ với $3$.",
+     "dapan": "$\\frac AB>3$",
+     "loigiai": "$\\frac AB=\\frac{x+3}{\\sqrt{x}}$. $\\frac AB-3=\\frac{x-3\\sqrt{x}+3}{\\sqrt{x}}=\\frac{\\left(\\sqrt{x}-\\frac32\\right)^2+\\frac34}{\\sqrt{x}}>0$ nên $\\frac AB>3$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK14-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L8-C7",
+   "dang": "L8-C7-D4",
+   "dang_phu": [
+    "L9-C2-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Một cửa hàng xe máy điện cung cấp gói thuê pin theo tháng cho khách hàng dưới hai hình thức: Gói linh hoạt: mức giá là $189\\,000$ đồng/tháng, cho phép xe di chuyển tối đa $400$ km. Nếu vượt số ki-lô-mét này, người dùng sẽ trả thêm $374$ đồng cho mỗi ki-lô-mét vượt. Gói cố định: mức giá là $350\\,000$ đồng/tháng, không giới hạn số ki-lô-mét di chuyển. Trung bình mỗi tháng anh Tâm di chuyển $800$ km bằng xe máy điện. Hỏi anh Tâm nên thuê pin theo hình thức nào thì tiết kiệm hơn? Và tiết kiệm được bao nhiêu tiền mỗi tháng?",
+   "dapan": "Nên thuê gói linh hoạt; tiết kiệm 11 400 đồng mỗi tháng",
+   "loigiai": "Gói cố định: $350\\,000$ đồng. Gói linh hoạt: $189\\,000+374\\cdot(800-400)=338\\,600$ đồng. Gói linh hoạt tiết kiệm hơn, tiết kiệm $350\\,000-338\\,600=11\\,400$ đồng."
+  },
+  {
+   "id": "TS10-HN-TK14-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một đội công nhân theo kế hoạch làm $480$ sản phẩm trong một thời gian nhất định. Khi làm được $60$ sản phẩm, do yêu cầu đẩy nhanh tiến độ công việc nên mỗi ngày đội đã làm thêm được nhiều hơn dự kiến $5$ sản phẩm, vì vậy đã hoàn thành sớm hơn so với dự kiến $2$ ngày. Hỏi ban đầu đội dự định mỗi ngày làm bao nhiêu sản phẩm?",
+   "dapan": "30 sản phẩm mỗi ngày",
+   "loigiai": "Gọi số sản phẩm dự định làm mỗi ngày là $x$ ($x\\in\\mathbb{N}^*$). Thời gian dự kiến $\\frac{480}{x}$ ngày; thời gian thực tế $\\frac{60}{x}+\\frac{420}{x+5}$ ngày. Ta có $\\frac{480}{x}-\\frac{60}{x}-\\frac{420}{x+5}=2\\Leftrightarrow\\frac{420}{x}-\\frac{420}{x+5}=2\\Leftrightarrow x^2+5x-1050=0$, được $x=30$ (nhận), $x=-35$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK14-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D6",
+   "dang_phu": [
+    "L9-C6-D3"
+   ],
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Tìm các giá trị của tham số $m$ sao cho phương trình $x^2-2mx-4m-5=0$ có hai nghiệm $x_1,x_2$ thoả mãn $x_1^2-2(m-1)x_1+2x_2-4m=5+2x_1x_2$.",
+   "dapan": "$m=-\\frac56$",
+   "loigiai": "$\\Delta'=m^2+4m+5=(m+2)^2+1>0$ nên phương trình luôn có hai nghiệm. Viète: $x_1+x_2=2m$, $x_1x_2=-4m-5$. Vì $x_1^2-2mx_1-4m-5=0$ nên điều kiện đã cho trở thành $2x_1+2x_2-2x_1x_2=0\\Leftrightarrow x_1+x_2=x_1x_2\\Leftrightarrow2m=-4m-5\\Leftrightarrow m=-\\frac56$."
+  },
+  {
+   "id": "TS10-HN-TK14-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk14-c4-1.png",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Một trục lăn sơn nước có dạng một hình trụ. Đường kính của đường tròn đáy trục lăn là $5$ cm, chiều dài trục lăn là $23$ cm (hình bên). Sau khi lăn trục lăn trọn $15$ vòng trên một bức tường phẳng thì diện tích phủ sơn là bao nhiêu $\\text{cm}^2$ (giả sử các đường lăn sơn không chồng lấn lên nhau, lấy $\\pi=3{,}14$).",
+   "dapan": "$5416{,}5\\ \\text{cm}^2$",
+   "loigiai": "$R=2{,}5$ cm. Diện tích xung quanh trục lăn: $S_{xq}=2\\pi Rh=2\\cdot3{,}14\\cdot2{,}5\\cdot23=361{,}1\\ \\text{cm}^2$. Lăn $15$ vòng: $361{,}1\\cdot15=5416{,}5\\ \\text{cm}^2$."
+  },
+  {
+   "id": "TS10-HN-TK14-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk14-c4-2.png",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho tam giác $ABC$ nhọn. Đường tròn $(O)$ đường kính $BC$ cắt $AB$, $AC$ lần lượt tại $E$ và $D$; $BD$ cắt $CE$ tại $H$, $AH$ cắt $BC$ tại $I$. Từ $A$ kẻ tiếp tuyến $AM$, $AN$ của đường tròn $(O)$ ($M$, $N$ là tiếp điểm).",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh tứ giác $AEHD$ nội tiếp.",
+     "dapan": "",
+     "loigiai": "$\\widehat{BEC}=\\widehat{BDC}=90^\\circ$ (góc nội tiếp chắn nửa đường tròn) nên $\\widehat{AEH}=\\widehat{ADH}=90^\\circ$. Suy ra $E,D$ thuộc đường tròn đường kính $AH$, tức $A,E,H,D$ cùng thuộc một đường tròn."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh $AB\\cdot BE=BI\\cdot BC$, từ đó suy ra $AB\\cdot BE+AC\\cdot CD=BC^2$.",
+     "dapan": "",
+     "loigiai": "$H$ là trực tâm $\\triangle ABC$ nên $AI\\perp BC$. $\\triangle ABI\\backsim\\triangle CBE$ (g.g) nên $\\frac{AB}{CB}=\\frac{BI}{BE}$, suy ra $AB\\cdot BE=BI\\cdot BC$ (1). Tương tự $AC\\cdot CD=CI\\cdot BC$ (2). Cộng (1) và (2): $AB\\cdot BE+AC\\cdot CD=(BI+CI)\\cdot BC=BC^2$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Chứng minh ba điểm $M,H,N$ thẳng hàng.",
+     "dapan": "",
+     "loigiai": "Năm điểm $A,M,I,O,N$ cùng thuộc đường tròn đường kính $AO$ nên $\\widehat{AMI}+\\widehat{ANI}=180^\\circ$ (*). $\\triangle AEH\\backsim\\triangle AIB$ (g.g) nên $AE\\cdot AB=AI\\cdot AH$ (3); $\\triangle AME\\backsim\\triangle ABM$ (g.g) nên $AB\\cdot AE=AM^2$ (4). Từ (3),(4): $AM^2=AI\\cdot AH$, nên $\\triangle AMI\\backsim\\triangle AHM$ (c-g-c), suy ra $\\widehat{AMI}=\\widehat{AHM}$ (**). Tương tự $\\widehat{ANI}=\\widehat{AHN}$ (***). Từ (*),(**),(***): $\\widehat{AHM}+\\widehat{AHN}=180^\\circ$, tức $M,H,N$ thẳng hàng."
+    }
+   ],
+   "ghi_chu": "Lời giải gốc ý c ở dạng chuỗi bước ngắn; tôi viết lại cho liền mạch, nên đối chiếu với hình."
+  },
+  {
+   "id": "TS10-HN-TK14-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk14-c5.png",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D1",
+   "dang_phu": [
+    "L9-C6-D5"
+   ],
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Cửa hầm lò khai thác than có dạng Parabol, khoảng cách từ điểm cao nhất của cửa đến mặt đất là $4$ mét, khoảng cách giữa hai chân cửa là $4$ mét. Người ta muốn gia cố cho cửa lò bằng một khung thép hình chữ nhật sao cho hai đỉnh dưới của khung thép chạm đất, hai đỉnh trên của khung thép chống vào mái hầm (hình vẽ minh họa). Tìm kích thước của khung thép sao cho diện tích của hình chữ nhật tạo bởi khung thép lớn nhất.",
+   "dapan": "Chiều rộng $\\frac{4\\sqrt3}{3}$ m, chiều cao $\\frac83$ m (diện tích lớn nhất $\\frac{32\\sqrt3}{9}\\ \\text{m}^2$)",
+   "loigiai": "Chọn hệ tọa độ có gốc ở đỉnh parabol, parabol qua $(\\pm2;-4)$ nên $(P):y=-x^2$. Gọi $C(x;-x^2)$, $0<x<2$: $BC=2x$, $CD=4-x^2$, $S=2x(4-x^2)$. $S^2=16x^2\\cdot\\frac{4-x^2}{2}\\cdot\\frac{4-x^2}{2}\\le16\\left(\\frac{x^2+\\frac{4-x^2}{2}+\\frac{4-x^2}{2}}{3}\\right)^3=\\frac{1024}{27}$, nên $S\\le\\frac{32\\sqrt3}{9}$, dấu bằng khi $x=\\frac{2\\sqrt3}{3}$. Khi đó $BC=\\frac{4\\sqrt3}{3}$ m, $CD=\\frac83$ m."
+  }
+ ]
+}

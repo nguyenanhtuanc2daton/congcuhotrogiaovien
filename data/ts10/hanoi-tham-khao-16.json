@@ -1,0 +1,258 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK16",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 16)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_16_HƯƠNG_ĐẶNG_1.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK16-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk16-c1-bieudo.png",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D2",
+   "dang_phu": [
+    "L9-C7-D3"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Nam thống kê lại độ dài quãng đường (đơn vị: km) mình đi bộ mỗi ngày trong tháng $9$ và biểu diễn dưới dạng biểu đồ tần số tương đối ghép nhóm sau. Tìm nhóm có tần số tương đối ghép nhóm lớn nhất. Xác định tần số và tần số tương đối ghép nhóm của nhóm đó.",
+   "bang": {
+    "tieu_de": [
+     "Nhóm (km)",
+     "[4;5)",
+     "[5;6)",
+     "[6;7)",
+     "[7;8)",
+     "[8;9)"
+    ],
+    "hang": [
+     [
+      "Tần số tương đối (%)",
+      "17",
+      "40",
+      "27",
+      "10",
+      "6"
+     ]
+    ]
+   },
+   "dapan": "Nhóm [5;6): tần số tương đối 40%, tần số 12",
+   "loigiai": "Nhóm có tần số tương đối lớn nhất là $[5;6)$ với $f=40\\%$. Tháng $9$ có $30$ ngày nên tần số $n=40\\%\\cdot30=12$."
+  },
+  {
+   "id": "TS10-HN-TK16-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Một hộp có $20$ viên bi với kích thước và khối lượng như nhau. Bạn Ngân viết lên các viên bi đó các số $1,2,3,\\dots,20$; hai viên bi khác nhau thì viết hai số khác nhau. Xét phép thử “Lấy ngẫu nhiên một viên bi trong hộp”. Tính xác suất biến cố: “Số xuất hiện trên viên bi được lấy ra chia $7$ dư $1$”.",
+   "dapan": "$\\frac3{20}$",
+   "loigiai": "$\\Omega=\\{1;2;\\dots;20\\}$. Các số chia $7$ dư $1$: $1;8;15$ ($3$ kết quả). $P=\\frac3{20}$."
+  },
+  {
+   "id": "TS10-HN-TK16-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{2}{\\sqrt{x}-2}$ và $B=\\dfrac{3}{\\sqrt{x}-2}+\\dfrac{\\sqrt{x}+1}{\\sqrt{x}+2}-\\dfrac{2\\sqrt{x}}{4-x}$ với $x\\ge0,\\ x\\neq4$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=64$.",
+     "dapan": "$A=\\frac13$",
+     "loigiai": "$A=\\frac{2}{\\sqrt{64}-2}=\\frac13$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Chứng minh rằng $B=\\dfrac{\\sqrt{x}+2}{\\sqrt{x}-2}$.",
+     "dapan": "",
+     "loigiai": "$B=\\frac{3(\\sqrt{x}+2)+(\\sqrt{x}+1)(\\sqrt{x}-2)+2\\sqrt{x}}{(\\sqrt{x}-2)(\\sqrt{x}+2)}=\\frac{x+4\\sqrt{x}+4}{(\\sqrt{x}-2)(\\sqrt{x}+2)}=\\frac{\\sqrt{x}+2}{\\sqrt{x}-2}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Cho $P=\\dfrac AB$. Tìm các giá trị của $x$ để $P\\ge\\dfrac{2}{x+2}$.",
+     "dapan": "$x=0$ hoặc $x\\ge1,\\ x\\neq4$",
+     "loigiai": "$P=\\frac{2}{\\sqrt{x}+2}$. $P\\ge\\frac2{x+2}\\Leftrightarrow x+2\\ge\\sqrt{x}+2\\Leftrightarrow\\sqrt{x}(\\sqrt{x}-1)\\ge0$, được $x=0$ hoặc $\\sqrt{x}\\ge1$. Kết hợp điều kiện: $x=0$ hoặc $x\\ge1,\\ x\\neq4$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK16-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Nhân dịp ngày Giỗ Tổ Hùng Vương, một siêu thị điện máy đã giảm giá nhiều mặt hàng để kích cầu mua sắm. Giá niêm yết của một chiếc tủ lạnh và một chiếc máy giặt có tổng số tiền là $25{,}4$ triệu đồng. Tuy nhiên, trong dịp này tủ lạnh giảm $40\\%$ giá niêm yết và máy giặt giảm $25\\%$ giá niêm yết. Vì thế, cô Liên đã mua hai mặt hàng trên với tổng số tiền là $16{,}77$ triệu đồng. Hỏi giá niêm yết của mỗi mặt hàng trên là bao nhiêu?",
+   "dapan": "Tủ lạnh: 15,2 triệu đồng; máy giặt: 10,2 triệu đồng",
+   "loigiai": "Gọi giá niêm yết tủ lạnh, máy giặt là $x,y$ (triệu đồng). $\\begin{cases}x+y=25{,}4\\\\0{,}6x+0{,}75y=16{,}77\\end{cases}\\Rightarrow x=15{,}2,\\ y=10{,}2$."
+  },
+  {
+   "id": "TS10-HN-TK16-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một xí nghiệp sản xuất nước mắm dự định thu mua $120$ tấn cá trong một thời gian nhất định, nhờ đổi mới phương pháp thu mua xí nghiệp đã mua vượt mức $6$ tấn mỗi tuần. Vì vậy xí nghiệp đã hoàn thành kế hoạch sớm hơn $1$ tuần và vượt mức $10$ tấn cá. Tính số cá mà xí nghiệp phải mua mỗi tuần theo kế hoạch.",
+   "dapan": "20 tấn cá mỗi tuần",
+   "loigiai": "Gọi số tấn cá phải mua mỗi tuần theo kế hoạch là $x$ ($0<x<120$). Thực tế mua $130$ tấn, mỗi tuần $x+6$ tấn. $\\frac{120}{x}-\\frac{130}{x+6}=1\\Leftrightarrow x^2+16x-720=0$, được $x=20$ (nhận), $x=-36$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK16-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $4x^2-5x-3=0$ có hai nghiệm $x_1,x_2$. Không giải phương trình, hãy tính giá trị của các biểu thức $S=x_1+x_2$; $P=x_1x_2$; $F=(x_1+1)(x_2+1)-(x_1-x_2)^2$.",
+   "dapan": "$S=\\frac54$; $P=-\\frac34$; $F=-\\frac{49}{16}$",
+   "loigiai": "$\\Delta=73>0$. Viète: $S=\\frac54$, $P=-\\frac34$. $F=P+S+1-(S^2-4P)=-\\frac34+\\frac54+1-\\frac{25}{16}-3=-\\frac{49}{16}$."
+  },
+  {
+   "id": "TS10-HN-TK16-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C10-D2",
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Để làm một mô hình cái bút chì trang trí, người ta dùng một khối gỗ hình trụ và một khối gỗ hình nón có cùng đường kính đáy chồng khít lên nhau. Khối gỗ hình trụ có đường kính đáy là $20$ cm, chiều cao là $30$ cm. Khối gỗ hình nón có chiều cao là $15$ cm. Tính thể tích gỗ cần dùng để làm mô hình này.",
+   "dapan": "$3500\\pi\\ \\text{cm}^3$",
+   "loigiai": "$R=10$ cm. $V_{\\text{trụ}}=\\pi\\cdot10^2\\cdot30=3000\\pi$; $V_{\\text{nón}}=\\frac13\\pi\\cdot10^2\\cdot15=500\\pi$. Tổng: $3500\\pi\\ \\text{cm}^3$."
+  },
+  {
+   "id": "TS10-HN-TK16-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk16-c4-2.png",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho đường tròn $(O)$, dây $CD$ cố định. Gọi $B$ là điểm chính giữa cung nhỏ $CD$, kẻ đường kính $AB$ cắt $CD$ tại $I$. Lấy điểm $H$ bất kỳ trên cung lớn $CD$, $HB$ cắt $CD$ tại $E$. Đường thẳng $AH$ cắt đường thẳng $CD$ tại $P$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh: Tứ giác $PHIB$ nội tiếp.",
+     "dapan": "",
+     "loigiai": "$\\widehat{AHB}=90^\\circ$ (góc nội tiếp chắn nửa đường tròn) nên $\\widehat{PHB}=90^\\circ$; $AB\\perp CD$ ($B$ chính giữa cung $CD$) nên $\\widehat{PIB}=90^\\circ$. Suy ra $H,I$ cùng thuộc đường tròn đường kính $PB$, tức $PHIB$ nội tiếp."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh: $AH\\cdot AP=AI\\cdot AB$.",
+     "dapan": "",
+     "loigiai": "$\\triangle AHI\\backsim\\triangle ABP$ (g.g) ($\\widehat{HAI}$ chung, $\\widehat{AHI}=\\widehat{ABP}$ cùng bù $\\widehat{PHI}$ do $PHIB$ nội tiếp) nên $\\frac{AH}{AB}=\\frac{AI}{AP}$, suy ra $AH\\cdot AP=AI\\cdot AB$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Gọi $K$ là giao điểm của đường thẳng $AE$ và $BP$. Kẻ $KM\\perp AB$ cắt $AB$ tại $M$, cắt đường tròn $(O)$ tại $N$. Chứng minh $N,I,H$ thẳng hàng.",
+     "dapan": "",
+     "loigiai": "Tứ giác $PHIB$ nội tiếp nên $\\widehat{HIP}=\\widehat{HBP}$ (1). $E$ là trực tâm $\\triangle ABP$ nên $AE\\perp BP$, $\\widehat{EKB}=\\widehat{EIB}=90^\\circ$ nên $BKEI$ nội tiếp, $\\widehat{EIK}=\\widehat{EBK}$ (2). $\\widehat{AKB}=90^\\circ$ nên $K\\in(O)$; $AB\\perp KN$ tại $M$ nên $MK=MN$, suy ra $\\triangle IMK=\\triangle IMN$ và $\\widehat{EIK}=\\widehat{DIN}$ (3). Từ (1),(2),(3): $\\widehat{HIP}=\\widehat{DIN}$, nên $\\widehat{HIP}+\\widehat{PIN}=\\widehat{DIN}+\\widehat{PIN}=180^\\circ$, tức $H,I,N$ thẳng hàng."
+    }
+   ],
+   "ghi_chu": "Ý c: lời giải gốc dùng nhiều ký hiệu góc khó đọc (và hình có điểm D trùng tên với đỉnh đường tròn), tôi viết lại gọn; cần duyệt."
+  },
+  {
+   "id": "TS10-HN-TK16-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C2",
+   "dang": "L9-C2-D2",
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Một công ty sản xuất dụng cụ thể thao nhận được một đơn hàng đặt hàng sản xuất $8000$ quả bóng tennis. Công ty này sở hữu một số máy móc, mỗi máy móc có thể sản xuất $30$ quả bóng trong một giờ. Chi phí thiết lập các máy này là $200$ nghìn đồng cho mỗi máy. Khi được thiết lập, hoạt động sản xuất sẽ hoàn toàn diễn ra tự động dưới sự giám sát. Số tiền phải trả cho người giám sát là $192$ nghìn đồng một giờ (người này sẽ giám sát tất cả các máy hoạt động). Số máy móc công ty nên sử dụng là bao nhiêu để chi phí sản xuất là thấp nhất?",
+   "dapan": "16 máy (chi phí thấp nhất 6 400 000 đồng)",
+   "loigiai": "Gọi số máy là $x$ ($x>0$). Thời gian sản xuất $\\frac{8000}{30x}$ giờ. Chi phí $B=200\\,000x+\\frac{8000}{30x}\\cdot192\\,000=200\\,000x+\\frac{51\\,200\\,000}{x}\\ge2\\sqrt{200\\,000\\cdot51\\,200\\,000}=6\\,400\\,000$. Dấu bằng khi $200\\,000x=\\frac{51\\,200\\,000}{x}\\Leftrightarrow x^2=256$, $x=16$."
+  }
+ ]
+}
