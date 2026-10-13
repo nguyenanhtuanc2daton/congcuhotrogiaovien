@@ -28,7 +28,7 @@
     ready: false, loading: false, ct: null, items: [], byId: {}, errs: [],
     CH: {}, DG: {}, sel: {}, order: [], ai: [], filtered: [],
     f: { lop: '', loai: '', chuong: '', dang: '', kieu: '', muc: '' },
-    model: '', lastOut: '', outFrom: 'picked', exams: [], figBad: {}
+    model: '', lastOut: '', outFrom: 'picked', exams: [], figBad: {}, HINH: {}
   };
   var MD_NAME = { NB: 'Nhận biết', TH: 'Thông hiểu', VD: 'Vận dụng', VDC: 'Vận dụng cao' };
 
@@ -152,6 +152,10 @@
       });
     });
     if (ct.ts10) (ct.ts10.dang || []).forEach(function (d) { S.DG[d.ma] = d.ten; });
+    S.HINH = {};
+    (ct.lop || []).forEach(function (L) {
+      (L.chuong || []).forEach(function (c) { if (/hình (học|phẳng|khối)|tam giác|tứ giác|đường tròn|góc|thalès|đồng dạng|lượng giác|đối xứng/i.test(c.ten || '')) S.HINH[c.ma] = 1; });
+    });
   }
   function dangNames(b) {
     var a = [];
@@ -208,7 +212,8 @@
 
       '<h3>🎲 Tạo đề ngẫu nhiên</h3>' +
       '<div class="kd-row"><label>Số câu <input type="number" id="kdN" value="5" min="1" max="15" style="width:60px"></label>' +
-      '<label>Tổng điểm <input type="number" id="kdTotal" value="10" min="1" max="100" step="0.5" style="width:70px"></label></div>' +
+      '<label>Tổng điểm <input type="number" id="kdTotal" value="10" min="1" max="100" step="0.5" style="width:70px"></label>' +
+      '<label>Câu hình học là câu số <input type="number" id="kdHinh" value="4" min="0" max="15" style="width:60px"></label></div>' +
       '<div class="kd-row"><input type="text" id="kdStruct" placeholder="Cấu trúc theo kiểu câu (tuỳ chọn), ví dụ: TN:12, DS:2, TLN:4, TL:3"></div>' +
       '<div class="kd-row">' +
       '<label class="qchip"><input type="checkbox" id="kdQC" checked> Lọc bài kém</label>' +
@@ -263,7 +268,7 @@
       else { var ta = $('kdAiPreview'); ta.value = v; ta.select(); document.execCommand('copy'); }
     };
     $('kdDa').onchange = $('kdLg').onchange = function () { S.lastOut = ''; if (S.exams.length) renderExams(false); };
-    $('kdPts').onchange = $('kdTotal').onchange = function () { S.lastOut = ''; if (S.exams.length) renderExams(false); };
+    $('kdPts').onchange = $('kdTotal').onchange = $('kdHinh').onchange = function () { S.lastOut = ''; if (S.exams.length) renderExams(false); };
     $('kdRandom5').onclick = genExam;
     $('kdMakeB').onclick = genB;
     $('kdReview').onclick = reviewExam;
@@ -841,6 +846,12 @@
     var m = String(b.mucdo || '').toUpperCase();
     return (m === 'NB' || m === 'TH') ? 'TH' : (m === 'VD' ? 'VD' : (m === 'VDC' ? 'VDC' : ''));
   }
+  function isHinh(b) {
+    var dk = dangKey(b);
+    if (/^TS10-D(7|8)$/.test(b.dang_ts10 || dk)) return true;
+    var ch = b.chuong || String(b.dang || '').replace(/-D\d+$/, '');
+    return !!S.HINH[ch];
+  }
   function dangKey(b) { return b.dang_ts10 || b.dang || ''; }
   function hasAns(b) { return !!(b.dapan || b.loigiai || ys(b).some(function (y) { return y.dapan || y.loigiai; })); }
   function itemFigs(b) {
@@ -858,11 +869,12 @@
   function readOpts() {
     var n = parseInt($('kdN').value, 10); if (!(n >= 1)) n = 5; if (n > 15) n = 15;
     var st = parseStruct(); if (st.length) n = st.length;
+    var hp = parseInt($('kdHinh').value, 10); if (!(hp >= 1) || hp > n || st.length) hp = 0;
     var oo = {
       n: n, total: parseFloat(String($('kdTotal').value).replace(',', '.')) || 10,
       qc: $('kdQC').checked, uniq: $('kdUniq').checked, mix: $('kdMix').checked, avoid: $('kdAvoid').checked, pts: $('kdPts').checked,
       da: $('kdDa').checked, lg: $('kdLg').checked,
-      bad: toSet(lsGet('kd_bad')), used: toSet(lsGet('kd_used')), struct: st.length ? st : null
+      bad: toSet(lsGet('kd_bad')), used: toSet(lsGet('kd_used')), struct: st.length ? st : null, hinhPos: hp
     };
     return oo;
   }
@@ -885,6 +897,13 @@
     var c = kieu ? pool : pool.filter(function (b) { return cauNo(b) === k; }), miss = false;
     if (!c.length) { c = pool; miss = !kieu; }
     function narrow(fn) { var r = c.filter(fn); if (r.length) c = r; }
+    if (o.hinhPos) {
+      if (k === o.hinhPos) {
+        var hc = c.filter(isHinh);
+        if (!hc.length) { hc = pool.filter(isHinh); if (hc.length) miss = true; }
+        if (hc.length) c = hc;
+      } else narrow(function (b) { return !isHinh(b); });
+    }
     if (o.uniq) {
       var dg = {}; others.forEach(function (b) { if (dangKey(b)) dg[dangKey(b)] = 1; });
       narrow(function (b) { return !dangKey(b) || !dg[dangKey(b)]; });
@@ -1034,6 +1053,7 @@
     var dk = {}, dup = 0;
     items.forEach(function (b) { var k = dangKey(b); if (k) { if (dk[k]) dup++; dk[k] = 1; } });
     if (dup) w.push(dup + ' câu trùng dạng toán');
+    if (o.hinhPos && items[o.hinhPos - 1] && !isHinh(items[o.hinhPos - 1])) w.push('câu ' + o.hinhPos + ' chưa phải câu hình học (bộ lọc không có bài hình ở vị trí này)');
     if (o.mix) {
       var g = items.map(grp), vdc = g.filter(function (x) { return x === 'VDC'; }).length;
       if (items.length >= 5 && !vdc) w.push('đề chưa có câu vận dụng cao');
