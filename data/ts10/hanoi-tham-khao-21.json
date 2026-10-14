@@ -1,0 +1,327 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK21",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 21, bản nháp)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_21_PHẠM_HÒA.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK21-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Chiều cao (đơn vị: mét) của $35$ cây bạch đàn được cho như sau. Hãy ghép các số liệu trên thành năm nhóm ứng với năm nửa khoảng có độ dài bằng nhau.",
+   "bang": {
+    "tieu_de": [
+     "#",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5",
+     "6",
+     "7",
+     "8",
+     "9"
+    ],
+    "hang": [
+     [
+      "Hàng 1",
+      "6,6",
+      "7,5",
+      "8,2",
+      "8,2",
+      "7,8",
+      "7,9",
+      "9,0",
+      "8,9",
+      "8,2"
+     ],
+     [
+      "Hàng 2",
+      "7,2",
+      "7,5",
+      "8,3",
+      "7,4",
+      "8,7",
+      "7,7",
+      "7,0",
+      "9,4",
+      "8,7"
+     ],
+     [
+      "Hàng 3",
+      "8,0",
+      "7,7",
+      "7,8",
+      "8,3",
+      "8,6",
+      "8,1",
+      "8,1",
+      "9,5",
+      "6,9"
+     ],
+     [
+      "Hàng 4",
+      "8,0",
+      "7,6",
+      "7,9",
+      "7,3",
+      "8,5",
+      "8,4",
+      "8,0",
+      "8,8",
+      ""
+     ]
+    ]
+   },
+   "dapan": "Năm nhóm: $[6{,}6;7{,}2)$, $[7{,}2;7{,}8)$, $[7{,}8;8{,}4)$, $[8{,}4;9)$, $[9;9{,}6)$ (tần số tôi đếm: 3; 8; 14; 7; 3)",
+   "loigiai": "Giá trị nhỏ nhất $6{,}6$, lớn nhất $9{,}5$; chọn khoảng $[6{,}6;9{,}6)$ chia thành $5$ nửa khoảng dài $0{,}6$ mỗi nửa khoảng."
+  },
+  {
+   "id": "TS10-HN-TK21-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Một hộp có $20$ viên bi với kích thước và khối lượng như nhau. Bạn Ngân viết lên các viên bi đó các số $1,2,3,\\dots,20$; hai viên bi khác nhau thì viết hai số khác nhau. Xét phép thử “Lấy ngẫu nhiên một viên bi trong hộp”. Tính xác suất biến cố: “Số xuất hiện trên viên bi được lấy ra chia $7$ dư $1$”.",
+   "dapan": "$\\frac3{20}$",
+   "loigiai": "Các số chia $7$ dư $1$: $1;8;15$. $P=\\frac3{20}$."
+  },
+  {
+   "id": "TS10-HN-TK21-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{3\\sqrt{x}-9}{x-4}$ và $B=\\dfrac{x+1}{(\\sqrt{x}+2)(\\sqrt{x}-3)}+\\dfrac{\\sqrt{x}+3}{\\sqrt{x}+2}-\\dfrac{\\sqrt{x}-2}{\\sqrt{x}-3}$ ($x\\ge0;\\ x\\neq4;\\ x\\neq9$).",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=1$.",
+     "dapan": "$A=2$",
+     "loigiai": "$A=\\frac{3\\cdot1-9}{1-4}=\\frac{-6}{-3}=2$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $B=\\dfrac{\\sqrt{x}-2}{\\sqrt{x}-3}$.",
+     "dapan": "",
+     "loigiai": "$B=\\frac{x+1+(\\sqrt{x}+3)(\\sqrt{x}-3)-(\\sqrt{x}-2)(\\sqrt{x}+2)}{(\\sqrt{x}+2)(\\sqrt{x}-3)}=\\frac{x-4}{(\\sqrt{x}+2)(\\sqrt{x}-3)}=\\frac{\\sqrt{x}-2}{\\sqrt{x}-3}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Tìm giá trị lớn nhất của biểu thức $P=A\\cdot B$.",
+     "dapan": "$\\max P=\\frac32$ khi $x=0$",
+     "loigiai": "$P=\\frac{3(\\sqrt{x}-3)}{(\\sqrt{x}-2)(\\sqrt{x}+2)}\\cdot\\frac{\\sqrt{x}-2}{\\sqrt{x}-3}=\\frac{3}{\\sqrt{x}+2}\\le\\frac32$ vì $\\sqrt{x}+2\\ge2$. Dấu bằng khi $x=0$."
+    }
+   ],
+   "ghi_chu": "CẦN DUYỆT: lời giải gốc ý 1 ghi A(1) = −6/−2 = 3 (tính sai 1 − 4). Đúng là A(1) = 2."
+  },
+  {
+   "id": "TS10-HN-TK21-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_phu": [
+    "L8-C7-D2"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VD",
+   "noidung": "Bác Bình An vay ở một ngân hàng $500$ triệu đồng để sản xuất trong thời hạn một năm. Lẽ ra đúng một năm sau bác phải trả cả tiền vốn lẫn tiền lãi, song bác đã được ngân hàng cho kéo dài thời hạn thêm $1$ năm nữa, số tiền lãi của năm đầu được gộp vào với tiền vốn để tính lãi năm sau và lãi suất vẫn như cũ. Hết hai năm bác Bình An phải trả tất cả $605$ triệu đồng. Hỏi lãi suất cho vay của ngân hàng đó là bao nhiêu phần trăm một năm?",
+   "dapan": "10% một năm",
+   "loigiai": "Gọi lãi suất là $x$ ($x>0$). Sau năm thứ nhất: $500+500x$. Sau năm thứ hai: $500(1+x)^2=605\\Leftrightarrow500x^2+1000x-105=0$, được $x=0{,}1$ (nhận), $x=-2{,}1$ (loại). Lãi suất $10\\%$ một năm."
+  },
+  {
+   "id": "TS10-HN-TK21-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VD",
+   "noidung": "Một người mua hai loại hàng và phải trả tổng cộng $2{,}17$ triệu đồng, kể cả thuế giá trị gia tăng (VAT) với mức $10\\%$ đối với loại hàng thứ nhất và $8\\%$ đối với loại hàng thứ hai. Nếu thuế VAT là $9\\%$ đối với cả hai loại hàng thì người đó phải trả tổng cộng $2{,}18$ triệu đồng. Hỏi nếu không kể thuế VAT thì người đó phải trả bao nhiêu tiền cho mỗi loại hàng?",
+   "dapan": "Loại thứ nhất: 0,5 triệu đồng; loại thứ hai: 1,5 triệu đồng (đáp án tôi tính theo đúng đề)",
+   "loigiai": "Gọi số tiền chưa kể VAT của loại thứ nhất, thứ hai là $x,y$ (triệu đồng). Thuế $10\\%$ cho loại $1$, $8\\%$ cho loại $2$: $1{,}1x+1{,}08y=2{,}17$. Thuế $9\\%$ cho cả hai: $1{,}09(x+y)=2{,}18\\Rightarrow x+y=2$. Thế $y=2-x$: $0{,}02x=0{,}01\\Rightarrow x=0{,}5$, $y=1{,}5$.",
+   "ghi_chu": "CẦN DUYỆT: lời giải gốc lập hệ 1,08x + 1,1y = 2,17 (gán 8% cho x, 10% cho y, ngược với đề) rồi kết luận loại thứ nhất 1,5 triệu và loại thứ hai 0,5 triệu. Theo đúng đề (loại 1 chịu 10%, loại 2 chịu 8%) thì loại 1 là 0,5 triệu và loại 2 là 1,5 triệu."
+  },
+  {
+   "id": "TS10-HN-TK21-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D6",
+   "dang_phu": [
+    "L9-C6-D3"
+   ],
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $x^2-2(m+1)x+6m-4=0$ (với $m$ là tham số). Tìm tất cả các giá trị của $m$ để phương trình có hai nghiệm $x_1,x_2$ thoả mãn $x_1^2-x_2^2=3x_1x_2(x_2-x_1)$.",
+   "dapan": "$m=\\frac12$",
+   "loigiai": "$\\Delta'=(m-2)^2+1>0$ nên phương trình luôn có hai nghiệm phân biệt. Viète: $x_1+x_2=2(m+1)$, $x_1x_2=6m-4$. Điều kiện $\\Leftrightarrow(x_1-x_2)(x_1+x_2+3x_1x_2)=0$. Vì $x_1\\neq x_2$ nên $x_1+x_2+3x_1x_2=0\\Leftrightarrow2(m+1)+3(6m-4)=0\\Leftrightarrow m=\\frac12$."
+  },
+  {
+   "id": "TS10-HN-TK21-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk21-c4-1.png",
+   "can_duyet": true,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D3",
+   "dang_phu": [
+    "L9-C10-D1",
+    "L9-C10-D2",
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VD",
+   "noidung": "Trên bàn có một cốc nước hình trụ chứa đầy nước, có chiều cao trong bằng $3$ lần đường kính trong của đáy; một viên bi hình cầu và một khối nón đều bằng thủy tinh. Biết viên bi và khối nón đều có đường kính bằng đường kính trong của cốc nước. Người ta thả từ từ viên bi và khối nón đó vào cốc nước (như hình vẽ) thì thấy nước trong cốc tràn ra ngoài.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Tính thể tích nước còn lại trong cốc (theo bán kính $R$ của cốc).",
+     "dapan": "$\\frac{10}3\\pi R^3$",
+     "loigiai": "Cốc: $V_1=\\pi R^2\\cdot6R=6\\pi R^3$. Viên bi: $V_2=\\frac43\\pi R^3$. Khối nón (bán kính đáy $R$, cao $4R$): $V_3=\\frac13\\pi R^2\\cdot4R=\\frac43\\pi R^3$. Nước còn lại: $6\\pi R^3-\\frac43\\pi R^3-\\frac43\\pi R^3=\\frac{10}3\\pi R^3$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Tính tỉ số thể tích của lượng nước còn lại trong cốc và lượng nước ban đầu.",
+     "dapan": "$\\frac59$",
+     "loigiai": "$\\frac{V_4}{V_1}=\\frac{\\frac{10}3\\pi R^3}{6\\pi R^3}=\\frac59$."
+    }
+   ],
+   "ghi_chu": "CẦN DUYỆT: đề không nêu chiều cao khối nón; lời giải gốc dùng chiều cao 4R (theo hình, bi cao 2R và nón cao 4R xếp vừa khít cốc cao 6R). Tôi giữ giả thiết đó."
+  },
+  {
+   "id": "TS10-HN-TK21-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk21-c4-2.png",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C4-D1",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Trên nửa đường tròn $(O;R)$ đường kính $BC$, lấy điểm $A$ sao cho $BA=R$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh tam giác $ABC$ vuông tại $A$ và tính số đo các góc $B,C$ của tam giác vuông $ABC$.",
+     "dapan": "$\\widehat{C}=30^\\circ$, $\\widehat{B}=60^\\circ$",
+     "loigiai": "$OA=OB=OC=\\frac{BC}2$ nên $\\triangle ABC$ vuông tại $A$. $\\sin C=\\frac{AB}{BC}=\\frac R{2R}=\\frac12\\Rightarrow\\widehat{C}=30^\\circ$, $\\widehat{B}=60^\\circ$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Qua $B$ kẻ tiếp tuyến với nửa đường tròn $(O)$, nó cắt tia $CA$ tại $D$. Qua $D$ kẻ tiếp tuyến $DE$ với nửa đường tròn $(O)$ ($E$ là tiếp điểm). Gọi $I$ là giao điểm của $OD$ và $BE$. Chứng minh rằng $DI\\cdot DO=DA\\cdot DC$.",
+     "dapan": "",
+     "loigiai": "$DB,DE$ là hai tiếp tuyến cắt nhau nên $DB=DE$, $OB=OE$, suy ra $OD\\perp BE$ tại $I$. $\\triangle DBO$ vuông tại $B$, $BI$ là đường cao: $DI\\cdot DO=DB^2$ (1). $\\triangle DBC$ vuông tại $B$, $BA$ là đường cao: $DB^2=DA\\cdot DC$ (2). Từ (1),(2): $DI\\cdot DO=DA\\cdot DC$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Kẻ $EH$ vuông góc với $BC$ tại $H$. $EH$ cắt $CD$ tại $G$. Chứng minh $IG$ song song với $BC$.",
+     "dapan": "",
+     "loigiai": "Kéo dài $CE$ cắt $BD$ tại $F$: $\\widehat{BEC}=90^\\circ$ nên $\\widehat{BEF}=90^\\circ$ và $DB=DE$ suy ra $ED$ là trung tuyến của $\\triangle FEB$ vuông tại $E$, nên $BD=DF$. Vì $GH\\parallel BD$: $\\frac{GH}{BD}=\\frac{GC}{DC}$; vì $GE\\parallel DF$: $\\frac{GE}{DF}=\\frac{GC}{DC}$. Mà $BD=DF$ nên $GH=GE$, tức $G$ là trung điểm $EH$. Lại có $IB=IE$ nên $IG$ là đường trung bình của $\\triangle EBH$, suy ra $IG\\parallel BC$."
+    }
+   ],
+   "ghi_chu": "Đề gốc bị cắt chữ ở đầu ý b ('Chứng minh rằng ...'); nội dung cần chứng minh tôi lấy từ lời giải (DI·DO = DA·DC). Ý c lời giải gốc rút gọn, cần duyệt."
+  },
+  {
+   "id": "TS10-HN-TK21-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C2",
+   "dang": "L9-C2-D4",
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VD",
+   "noidung": "Trong cuộc thi “Đố vui để học”, mỗi thí sinh phải trả lời $12$ câu hỏi của ban tổ chức. Mỗi câu hỏi gồm bốn phương án, trong đó chỉ có một phương án đúng. Với mỗi câu hỏi, nếu trả lời đúng thì cộng $5$ điểm, trả lời sai bị trừ $2$ điểm. Khi bắt đầu cuộc thi, mỗi thí sinh có sẵn $20$ điểm. Thí sinh nào đạt từ $50$ điểm trở lên sẽ được vào vòng thi tiếp theo. Hỏi thí sinh phải trả lời đúng ít nhất bao nhiêu câu thì được vào vòng thi tiếp theo?",
+   "dapan": "Ít nhất 8 câu",
+   "loigiai": "Gọi $x$ là số câu trả lời đúng ($x\\in\\mathbb{N}^*$, $x\\le12$), số câu sai là $12-x$. $5x-2(12-x)+20\\ge50\\Leftrightarrow7x\\ge54\\Leftrightarrow x\\ge\\frac{54}7\\approx7{,}7$. Vậy cần trả lời đúng ít nhất $8$ câu.",
+   "ghi_chu": "Đề 21 là bản nháp: cuối lời giải có ghi chú của người soạn đề nghị thay câu V bằng bài hình học không gian (vì bài này dễ)."
+  }
+ ]
+}

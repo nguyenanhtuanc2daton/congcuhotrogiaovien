@@ -1,0 +1,323 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK22",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 22)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_22_LingPham1.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK22-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Kết quả đo tốc độ của $25$ xe ô tô (đơn vị: km/h) khi đi qua một trạm quan sát đã được thống kê dưới bảng sau.",
+   "bang": {
+    "tieu_de": [
+     "#",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5"
+    ],
+    "hang": [
+     [
+      "Hàng 1",
+      "46",
+      "55",
+      "57",
+      "50",
+      "45"
+     ],
+     [
+      "Hàng 2",
+      "41",
+      "44",
+      "46",
+      "40",
+      "58"
+     ],
+     [
+      "Hàng 3",
+      "50",
+      "56",
+      "52",
+      "59",
+      "44"
+     ],
+     [
+      "Hàng 4",
+      "52",
+      "40",
+      "42",
+      "47",
+      "54"
+     ],
+     [
+      "Hàng 5",
+      "45",
+      "48",
+      "58",
+      "49",
+      "40"
+     ]
+    ]
+   },
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Hãy ghép các số liệu thành bốn nhóm ứng với bốn nửa khoảng có độ dài bằng nhau.",
+     "dapan": "$[40;45)$, $[45;50)$, $[50;55)$, $[55;60)$",
+     "loigiai": "Số liệu nhỏ nhất $41$, lớn nhất $59$ nên chọn $[40;60)$ rồi chia thành $4$ nửa khoảng dài $5$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Lập bảng tần số ghép nhóm của mẫu số liệu ghép nhóm ở câu a.",
+     "dapan": "Tần số: 7; 7; 5; 6",
+     "loigiai": "Số xe có tốc độ từ $40$ đến dưới $45$ km/h: $7$; từ $45$ đến dưới $50$: $7$; từ $50$ đến dưới $55$: $5$; từ $55$ đến dưới $60$: $6$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK22-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Viết ngẫu nhiên một số tự nhiên lẻ có $2$ chữ số. Xét biến cố $A$: “Số tự nhiên viết ra là bình phương của một số tự nhiên”. Tính xác suất của biến cố $A$.",
+   "dapan": "$P(A)=\\frac1{15}$",
+   "loigiai": "$\\Omega=\\{11;13;15;\\dots;97;99\\}$, $n(\\Omega)=\\frac{99-11}{2}+1=45$. Các số lẻ có hai chữ số là bình phương: $25;49;81$ ($3$ kết quả). $P(A)=\\frac3{45}=\\frac1{15}$."
+  },
+  {
+   "id": "TS10-HN-TK22-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho biểu thức $M=\\dfrac{\\sqrt{x}-1}{\\sqrt{x}}$; $P=\\dfrac{\\sqrt{x}-2}{\\sqrt{x}+1}+\\dfrac{2+8\\sqrt{x}}{x-1}-\\dfrac{2}{1-\\sqrt{x}}$ với $x>0;\\ x\\neq1$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính $M$ khi $x=0{,}49$.",
+     "dapan": "$M=-\\frac37$",
+     "loigiai": "$M=\\frac{0{,}7-1}{0{,}7}=-\\frac37$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $P=\\dfrac{\\sqrt{x}+6}{\\sqrt{x}-1}$.",
+     "dapan": "",
+     "loigiai": "$P=\\frac{(\\sqrt{x}-2)(\\sqrt{x}-1)+2+8\\sqrt{x}+2(\\sqrt{x}+1)}{(\\sqrt{x}-1)(\\sqrt{x}+1)}=\\frac{x+7\\sqrt{x}+6}{(\\sqrt{x}-1)(\\sqrt{x}+1)}=\\frac{(\\sqrt{x}+6)(\\sqrt{x}+1)}{(\\sqrt{x}-1)(\\sqrt{x}+1)}=\\frac{\\sqrt{x}+6}{\\sqrt{x}-1}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Đặt $Q=M\\cdot P+\\dfrac{x-5}{\\sqrt{x}}$. So sánh $Q$ với $3$.",
+     "dapan": "$Q>3$ (lời giải gốc ghi $Q\\ge3$)",
+     "loigiai": "$Q=\\frac{\\sqrt{x}+6}{\\sqrt{x}}+\\frac{x-5}{\\sqrt{x}}=\\frac{x+\\sqrt{x}+1}{\\sqrt{x}}$. $Q-3=\\frac{x-2\\sqrt{x}+1}{\\sqrt{x}}=\\frac{(\\sqrt{x}-1)^2}{\\sqrt{x}}>0$ vì $x\\neq1$, $x>0$. Vậy $Q>3$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK22-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L8-C7",
+   "dang": "L8-C7-D2",
+   "dang_phu": [
+    "L9-C2-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Cách đây hai năm, bác Chín gửi một số tiền vào ngân hàng với lãi suất $6\\%$ một năm. Bây giờ số tiền bác Chín có được cả gốc lẫn lãi là $33{,}708$ triệu đồng. Hỏi ban đầu bác Chín gửi vào bao nhiêu tiền? (Biết số tiền lãi năm trước được tính gộp vào gốc cho năm sau).",
+   "dapan": "30 triệu đồng",
+   "loigiai": "Gọi số tiền gửi ban đầu là $x$ (triệu đồng). Sau năm thứ nhất: $1{,}06x$. Sau năm thứ hai: $1{,}06^2x=1{,}1236x=33{,}708\\Rightarrow x=30$."
+  },
+  {
+   "id": "TS10-HN-TK22-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Hai đội công nhân dệt may cần sản xuất một số lượng khẩu trang theo đơn đặt hàng. Nếu làm chung thì sau $4$ giờ họ sẽ làm xong. Nhưng hai đội mới làm chung được $3$ giờ thì đội $1$ nghỉ, đội $2$ tiếp tục làm trong $3$ giờ nữa mới xong công việc. Hỏi mỗi đội nếu làm một mình thì phải bao lâu mới xong công việc?",
+   "dapan": "Đội 1: 6 giờ; đội 2: 12 giờ",
+   "loigiai": "Gọi thời gian làm một mình của đội $1,2$ là $x,y$ (giờ), $x,y>4$. $\\begin{cases}4\\left(\\frac1x+\\frac1y\\right)=1\\\\3\\cdot\\frac1x+6\\cdot\\frac1y=1\\end{cases}\\Rightarrow x=6,\\ y=12$."
+  },
+  {
+   "id": "TS10-HN-TK22-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Gọi $x_1,x_2$ là hai nghiệm của phương trình $3x^2+5x-6=0$. Không giải phương trình, tính giá trị của biểu thức $D=\\dfrac{x_1}{x_2+2}+\\dfrac{x_2}{x_1+2}$.",
+   "dapan": "$D=-\\frac{31}{12}$",
+   "loigiai": "$ac<0$ nên có hai nghiệm; $x_1+x_2=-\\frac53$, $x_1x_2=-2$. $D=\\frac{x_1^2+x_2^2+2(x_1+x_2)}{x_1x_2+2(x_1+x_2)+4}=\\frac{(x_1+x_2)^2-2x_1x_2+2(x_1+x_2)}{x_1x_2+2(x_1+x_2)+4}=\\frac{\\frac{25}9+4-\\frac{10}3}{-2-\\frac{10}3+4}=-\\frac{31}{12}$."
+  },
+  {
+   "id": "TS10-HN-TK22-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk22-c4-1.png",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C10-D2",
+    "L9-C10-D3",
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VD",
+   "noidung": "Một hộp kem hình trụ có đường kính $12$ cm và chiều cao $15$ cm đựng đầy kem được đặt trên mặt bàn phẳng.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Tính thể tích hộp kem.",
+     "dapan": "$540\\pi\\ \\text{cm}^3$",
+     "loigiai": "$V=\\pi R^2h=\\pi\\cdot6^2\\cdot15=540\\pi\\ \\text{cm}^3$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Hộp kem chứa kem sẽ được chia vào các bánh ốc quế hình nón có chiều cao $12$ cm và đường kính $6$ cm, có hình bán cầu trên đỉnh như hình vẽ. Hãy tìm số que kem có thể chia được.",
+     "dapan": "10 que",
+     "loigiai": "Thể tích một que kem: nón $\\frac13\\pi\\cdot3^2\\cdot12=36\\pi$ cộng nửa cầu $\\frac12\\cdot\\frac43\\pi\\cdot3^3=18\\pi$, tổng $54\\pi\\ \\text{cm}^3$. Số que: $\\frac{540\\pi}{54\\pi}=10$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK22-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk22-c4-2.png",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho đường tròn $(O;R)$, đường kính $AB$ vuông góc với dây $CD$ tại điểm $I$ ($I$ nằm giữa $A$ và $O$). Lấy điểm $E$ bất kì trên cung nhỏ $BC$ ($E$ khác $B$ và $C$), $AE$ cắt $CD$ tại $K$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh bốn điểm $K,E,B,I$ cùng thuộc một đường tròn.",
+     "dapan": "",
+     "loigiai": "$\\widehat{AEB}=90^\\circ$ (góc nội tiếp chắn nửa đường tròn) nên $\\widehat{KEB}=90^\\circ$; $AB\\perp CD$ tại $I$ nên $\\widehat{KIB}=90^\\circ$. Suy ra $K,E,B,I$ cùng thuộc đường tròn đường kính $KB$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh $AK\\cdot AE=AI\\cdot AB$.",
+     "dapan": "",
+     "loigiai": "$\\triangle AKI\\backsim\\triangle ABE$ (g.g) ($\\widehat{A}$ chung, $\\widehat{AIK}=\\widehat{AEB}=90^\\circ$) nên $\\frac{AK}{AB}=\\frac{AI}{AE}$, suy ra $AK\\cdot AE=AI\\cdot AB$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Gọi $P$ là giao điểm của tia $BE$ và tia $DC$, $Q$ là giao điểm của $AP$ và $BK$. Chứng minh $IK$ là phân giác của $\\widehat{EIQ}$. Chứng minh $OQ$ là tiếp tuyến của đường tròn ngoại tiếp tam giác $PQE$.",
+     "dapan": "",
+     "loigiai": "$PI\\perp AB$ và $AE\\perp PB$ cắt nhau tại $K$ nên $K$ là trực tâm $\\triangle APB$, suy ra $BQ\\perp AP$, $\\widehat{AQB}=90^\\circ$ (nên $Q\\in(O;R)$) và $\\widehat{AIK}=90^\\circ$. Do đó $A,I,Q,K$ cùng thuộc đường tròn đường kính $AK$: $\\widehat{QAK}=\\widehat{QIK}$ (cùng chắn $QK$). $KEBI$ nội tiếp nên $\\widehat{KIE}=\\widehat{KBE}$; $\\widehat{QAK}=\\widehat{KBE}$ (cùng chắn $QE$). Suy ra $\\widehat{KIE}=\\widehat{KIQ}$, tức $IK$ là phân giác của $\\widehat{EIQ}$. Về tiếp tuyến: $OQ=OB$ nên $\\widehat{OQK}=\\widehat{OBQ}$; $\\triangle IBK\\backsim\\triangle QPK$ (g.g) cho $\\widehat{IBK}=\\widehat{QPK}$, nên $\\widehat{OQK}=\\widehat{QPK}$ (*); lại có $\\widehat{KQE}=\\widehat{KPE}$ (**). Từ (*) và (**): $\\widehat{OQE}=\\widehat{QPE}=\\frac12\\text{sđ}\\,\\widehat{QE}$ (góc nội tiếp của $(PQE)$), nên $OQ$ là tiếp tuyến của đường tròn ngoại tiếp $\\triangle PQE$."
+    }
+   ],
+   "ghi_chu": "Ý c rất dài; lời giải gốc nhiều bước góc, tôi chỉ tóm tắt ý chính. Cần duyệt lại với bản gốc."
+  },
+  {
+   "id": "TS10-HN-TK22-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 0.5,
+   "chuong": "L9-C2",
+   "dang": "L9-C2-D4",
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VDC",
+   "noidung": "Một xưởng sản xuất hai loại sản phẩm, mỗi kg sản phẩm loại I cần $2$ kg nguyên liệu và $30$ giờ, đem lại mức lợi nhuận $40\\,000$ đồng. Mỗi kg sản phẩm loại II cần $4$ kg nguyên liệu và $15$ giờ, đem lại mức lợi nhuận $30\\,000$ đồng. Xưởng có $200$ kg nguyên liệu và $120$ giờ làm việc. Nên sản xuất mỗi loại sản phẩm bao nhiêu để có mức lợi nhuận cao nhất?",
+   "dapan": "Theo lời giải gốc (dùng 1200 giờ): 20 kg loại I và 40 kg loại II, lợi nhuận 2 000 000 đồng",
+   "loigiai": "Gọi $x,y\\ge0$ là số kg loại I, II. Ràng buộc nguyên liệu: $2x+4y\\le200\\Leftrightarrow x+2y\\le100$. Ràng buộc thời gian (lời giải gốc): $30x+15y\\le1200\\Leftrightarrow2x+y\\le80$. Lợi nhuận $L=40\\,000x+30\\,000y$ đạt max tại một đỉnh của miền nghiệm: $L(0;0)=0$, $L(40;0)=1\\,600\\,000$, $L(0;50)=1\\,500\\,000$, $L(20;40)=2\\,000\\,000$. Vậy $x=20$, $y=40$.",
+   "ghi_chu": "CẦN DUYỆT: đề ghi '120 giờ' nhưng lời giải gốc dùng 1200 giờ (30x + 15y ≤ 1200). Nếu đúng 120 giờ thì 30x + 15y ≤ 120 ⇔ 2x + y ≤ 8 và đáp án là x = 0, y = 8 (lợi nhuận 240 000 đồng). Bài này theo chương trình lớp 9 hiện hành có thể ngoài phạm vi."
+  }
+ ]
+}

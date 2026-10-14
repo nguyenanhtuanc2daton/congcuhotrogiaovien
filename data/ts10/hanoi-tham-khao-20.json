@@ -1,0 +1,339 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK20",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 20)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_20_NGUYỄN_THỊ_ÉN.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK20-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Đo chiều cao (đơn vị là cm) của $40$ học sinh lớp $9A$ cho kết quả như bảng sau.",
+   "bang": {
+    "tieu_de": [
+     "#",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5",
+     "6",
+     "7",
+     "8",
+     "9",
+     "10",
+     "11",
+     "12",
+     "13"
+    ],
+    "hang": [
+     [
+      "Hàng 1",
+      "156",
+      "157",
+      "164",
+      "166",
+      "166",
+      "165",
+      "157",
+      "154",
+      "155",
+      "158",
+      "160",
+      "163",
+      "163"
+     ],
+     [
+      "Hàng 2",
+      "161",
+      "162",
+      "159",
+      "159",
+      "160",
+      "160",
+      "160",
+      "159",
+      "158",
+      "160",
+      "160",
+      "158",
+      "163"
+     ],
+     [
+      "Hàng 3",
+      "162",
+      "162",
+      "162",
+      "161",
+      "162",
+      "161",
+      "163",
+      "161",
+      "163",
+      "161",
+      "164",
+      "166",
+      "165"
+     ],
+     [
+      "Hàng 4",
+      "165",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+     ]
+    ]
+   },
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Hãy lập bảng tần số ghép nhóm với các nhóm $[155;158)$, $[158;161)$, $[161;164)$, $[164;167)$.",
+     "dapan": "Theo đáp án gốc: 5; 12; 15; 8 (xem ghi chú)",
+     "loigiai": "Đếm số học sinh có chiều cao thuộc từng nhóm."
+    },
+    {
+     "ma": "b",
+     "mucdo": "NB",
+     "noidung": "Tính tần số tương đối của nhóm $[161;164)$.",
+     "dapan": "$37{,}5\\%$",
+     "loigiai": "$\\frac{15}{40}\\cdot100\\%=37{,}5\\%$."
+    }
+   ],
+   "ghi_chu": "CẦN DUYỆT: đếm lại từ bảng số liệu tôi được nhóm [155;158) có 4 học sinh (giá trị 154 nằm ngoài), các nhóm còn lại 12; 15; 8; đáp án gốc ghi 5; 12; 15; 8 (tổng 40). Nếu dùng đúng nhóm [155;158) thì tổng các nhóm là 39. Bạn đối chiếu lại số liệu gốc. Một số ô trong bảng tôi đọc từ ảnh."
+  },
+  {
+   "id": "TS10-HN-TK20-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Trong túi có $6$ quả bóng bàn kích thước và chất liệu như nhau gồm $2$ quả màu đỏ, $2$ quả màu trắng, $2$ quả màu xanh. Không nhìn vào túi mà lấy ra $2$ quả bóng. Tính xác suất của biến cố $A$ lấy được ít nhất một quả bóng màu đỏ.",
+   "dapan": "$P(A)=\\frac35$",
+   "loigiai": "Kí hiệu bóng đỏ $Đ_1,Đ_2$; trắng $T_1,T_2$; xanh $X_1,X_2$. Không gian mẫu có $15$ cặp (không thứ tự). Số kết quả thuận lợi cho $A$ là $9$ (có ít nhất một bóng đỏ). $P(A)=\\frac9{15}=\\frac35$."
+  },
+  {
+   "id": "TS10-HN-TK20-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{3\\sqrt{x}-2}{1-\\sqrt{x}}$ và $B=\\dfrac{15\\sqrt{x}-11}{x+2\\sqrt{x}-3}-\\dfrac{2\\sqrt{x}+3}{\\sqrt{x}+3}$ với $x\\ge0,\\ x\\neq1$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=16$.",
+     "dapan": "$A=-\\frac{10}3$",
+     "loigiai": "$A=\\frac{3\\cdot4-2}{1-4}=-\\frac{10}{3}$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Đặt $P=A+B$. Rút gọn biểu thức $P$.",
+     "dapan": "$P=\\frac{-5\\sqrt{x}+2}{\\sqrt{x}+3}$",
+     "loigiai": "$P=\\frac{-(3\\sqrt{x}-2)(\\sqrt{x}+3)+15\\sqrt{x}-11-(2\\sqrt{x}+3)(\\sqrt{x}-1)}{(\\sqrt{x}-1)(\\sqrt{x}+3)}=\\frac{-5x+7\\sqrt{x}-2}{(\\sqrt{x}-1)(\\sqrt{x}+3)}=\\frac{-(\\sqrt{x}-1)(5\\sqrt{x}-2)}{(\\sqrt{x}-1)(\\sqrt{x}+3)}=\\frac{-5\\sqrt{x}+2}{\\sqrt{x}+3}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Tìm $m$ để có $x$ thỏa mãn $P(\\sqrt{x}+3)=m$.",
+     "dapan": "$m\\le2$ và $m\\neq-3$",
+     "loigiai": "$P(\\sqrt{x}+3)=-5\\sqrt{x}+2=m\\Leftrightarrow\\sqrt{x}=\\frac{2-m}{5}$. Cần $\\sqrt{x}\\ge0$: $m\\le2$; và $x\\neq1$ ($\\sqrt{x}\\neq1$): $m\\neq-3$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK20-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Lúc $6$ giờ $30$ phút sáng, một ca nô xuôi dòng sông từ $A$ đến $B$ dài $48$ km. Khi đến $B$, ca nô nghỉ $30$ phút sau đó ngược dòng từ $B$ về $A$ lúc $10$ giờ $36$ phút cùng ngày. Tìm vận tốc riêng của ca nô biết vận tốc dòng nước là $3$ km/h.",
+   "dapan": "27 km/h",
+   "loigiai": "Gọi vận tốc riêng của ca nô là $x$ (km/h), $x>3$. Thời gian đi và về (không kể nghỉ): $10\\text{ h }36'-6\\text{ h }30'-30'=3{,}6$ giờ. $\\frac{48}{x+3}+\\frac{48}{x-3}=3{,}6\\Leftrightarrow3x^2-80x-27=0$, được $x=27$ (nhận), $x=-\\frac13$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK20-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Hai người thợ quét sơn một ngôi nhà. Nếu họ cùng làm thì trong $6$ ngày xong việc. Nếu người thợ thứ nhất làm một mình trong $5$ ngày rồi nghỉ, người thứ hai làm tiếp $4$ ngày thì cả hai làm được $\\dfrac79$ công việc. Hỏi nếu làm riêng thì mỗi người thợ phải làm bao nhiêu ngày để xong việc?",
+   "dapan": "Người thứ nhất: 9 ngày; người thứ hai: 18 ngày",
+   "loigiai": "Gọi thời gian làm riêng xong việc của hai người là $x,y$ (ngày), $x,y>6$. $\\begin{cases}\\frac1x+\\frac1y=\\frac16\\\\ \\frac5x+\\frac4y=\\frac79\\end{cases}\\Rightarrow x=9,\\ y=18$.",
+   "ghi_chu": "Phân số 7/9 trong đề gốc bị mất khi hiển thị; tôi suy ra từ hệ phương trình trong lời giải (5/x + 4/y = 7/9)."
+  },
+  {
+   "id": "TS10-HN-TK20-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Biết phương trình $x^2+ax+5=0$ có một nghiệm là $x=4-\\sqrt{11}$. Tính tổng các bình phương hai nghiệm của phương trình trên.",
+   "dapan": "$54$",
+   "loigiai": "Viète: $x_1x_2=5$, mà $x_1=4-\\sqrt{11}$ nên $x_2=\\frac{5}{4-\\sqrt{11}}=4+\\sqrt{11}$. $x_1+x_2=8$. $x_1^2+x_2^2=(x_1+x_2)^2-2x_1x_2=64-10=54$.",
+   "ghi_chu": "Giá trị nghiệm x = 4 − √11 tôi lấy từ công thức trong file gốc (dấu căn bị mất khi hiển thị); bạn đối chiếu."
+  },
+  {
+   "id": "TS10-HN-TK20-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Một bồn nước inox có dạng một hình trụ với chiều cao $1{,}75$ m và bán kính đáy là $5$ dm. Trong bồn đang chứa đầy nước, người ta tháo nước ở trong bồn ra cho đến khi mực nước trong bồn còn cao $1$ m. Hỏi số nước đã tháo ra ngoài là bao nhiêu lít? (Bỏ qua bề dày của bồn nước).",
+   "dapan": "$\\approx588{,}75$ lít (đáp án tôi tính lại; file gốc ghi 235,5 lít)",
+   "loigiai": "Đổi $1{,}75\\text{ m}=17{,}5$ dm, $1\\text{ m}=10$ dm. Phần nước đã tháo ra là hình trụ bán kính $5$ dm, chiều cao $17{,}5-10=7{,}5$ dm: $V=\\pi\\cdot5^2\\cdot7{,}5=187{,}5\\pi\\approx588{,}75\\ \\text{dm}^3=588{,}75$ lít.",
+   "ghi_chu": "CẦN DUYỆT: lời giải gốc viết '2,5.π.7,5 ≈ 235,5 dm³' (235,5 = 75π, giống 2·π·5·7,5 tức diện tích xung quanh) nên không khớp công thức thể tích hình trụ với r = 5 dm. Tôi tính lại theo đề: ≈ 588,75 lít."
+  },
+  {
+   "id": "TS10-HN-TK20-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk20-c4-2.png",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho đường tròn $(O)$ cố định. Từ một điểm $A$ cố định ở bên ngoài đường tròn $(O)$, kẻ các tiếp tuyến $AM$ và $AN$ với đường tròn ($M,N$ là các tiếp điểm). Đường thẳng đi qua $A$ cắt đường tròn $(O)$ tại hai điểm $B$ và $C$ ($B$ nằm giữa $A$ và $C$). Gọi $I$ là trung điểm của dây $BC$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh rằng: $AMON$ là tứ giác nội tiếp.",
+     "dapan": "",
+     "loigiai": "$AM,AN$ là tiếp tuyến nên $\\triangle AMO$ và $\\triangle ANO$ vuông tại $M$, $N$, do đó $M,N$ cùng thuộc đường tròn đường kính $AO$. Bốn điểm $A,O,M,N$ cùng thuộc đường tròn đường kính $AO$ nên $AMON$ nội tiếp."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Gọi $K$ là giao điểm của $MN$ và $BC$. Chứng minh rằng: $AK\\cdot AI=AB\\cdot AC$.",
+     "dapan": "",
+     "loigiai": "$\\triangle AKM\\backsim\\triangle AMI$ (g.g) nên $AK\\cdot AI=AM^2$ (1). $\\triangle ABM\\backsim\\triangle AMC$ (g.g) nên $AB\\cdot AC=AM^2$ (2). Từ (1),(2): $AK\\cdot AI=AB\\cdot AC$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Xác định vị trí của cát tuyến $ABC$ để $IM=2IN$.",
+     "dapan": "Cát tuyến ABC cắt MN tại K sao cho KN/KM = 1/2",
+     "loigiai": "$\\triangle KIN\\backsim\\triangle KMA$ nên $IN=\\frac{KN\\cdot MA}{KA}$; $\\triangle KIM\\backsim\\triangle KNA$ nên $IM=\\frac{KM\\cdot NA}{KA}=\\frac{KM\\cdot MA}{KA}$ (vì $NA=MA$). $IM=2IN\\Leftrightarrow\\frac{KN}{KM}=\\frac12$."
+    }
+   ],
+   "ghi_chu": "Ý c: lời giải gốc chỉ quy về điều kiện KN/KM = 1/2 (chưa dựng cát tuyến cụ thể); cần duyệt."
+  },
+  {
+   "id": "TS10-HN-TK20-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk20-c5.png",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D1",
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Một cái sân hình vuông $ABCD$ có cạnh là $8$ m. Người ta muốn lát gạch màu khác để trang trí lên mảnh sân hình vuông $MNPQ$ nội tiếp trong sân hình vuông $ABCD$. Tìm vị trí của $M,N,P,Q$ để hình vuông $MNPQ$ có diện tích nhỏ nhất.",
+   "dapan": "$M,N,P,Q$ là trung điểm các cạnh; diện tích nhỏ nhất $32\\ \\text{m}^2$",
+   "loigiai": "Đặt $AM=x$ ($0<x<8$), $MB=8-x$. Bốn tam giác vuông ở góc bằng nhau nên $S_{MNPQ}=64-4\\cdot\\frac12x(8-x)=2x^2-16x+64=2(x-4)^2+32\\ge32$, dấu bằng khi $x=4$, tức $M,N,P,Q$ là trung điểm các cạnh."
+  }
+ ]
+}

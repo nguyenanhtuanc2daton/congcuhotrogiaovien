@@ -1,0 +1,277 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK26",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 26)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_26_HuonglienBaby_-_lần_2.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK26-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Khảo sát thời gian tập thể dục của một số học sinh lớp $9$ thu được mẫu số liệu ghép nhóm sau. Tính tần số tương đối của nhóm $[40;60)$ (làm tròn đến hàng phần mười).",
+   "bang": {
+    "tieu_de": [
+     "Thời gian (phút)",
+     "[0;20)",
+     "[20;40)",
+     "[40;60)",
+     "[60;80)"
+    ],
+    "hang": [
+     [
+      "Số học sinh",
+      "8",
+      "9",
+      "11",
+      "8"
+     ]
+    ]
+   },
+   "dapan": "$\\approx30{,}6\\%$",
+   "loigiai": "Tổng số học sinh $8+9+11+8=36$. $f=\\frac{11}{36}\\approx30{,}6\\%$."
+  },
+  {
+   "id": "TS10-HN-TK26-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk26-c1-dia.png",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Hình dưới đây mô tả một đĩa tròn, cân đối bằng bìa cứng được chia làm tám phần bằng nhau và ghi các số $1;2;3;4;5;6;7;8$. Chiếc kim được gắn cố định vào trục quay ở tâm của đĩa. Quay đĩa tròn một lần. Tính xác suất của biến cố: “Mũi tên chỉ vào hình quạt ghi số là ước của $8$”.",
+   "dapan": "$\\frac12$",
+   "loigiai": "$\\Omega=\\{1;\\dots;8\\}$, $8$ phần tử. Các ước của $8$: $1;2;4;8$ ($4$ kết quả). $P=\\frac48=\\frac12$."
+  },
+  {
+   "id": "TS10-HN-TK26-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{\\sqrt{x}}{\\sqrt{x}-1}+\\dfrac{1}{\\sqrt{x}+2}-\\dfrac{3\\sqrt{x}}{x+\\sqrt{x}-2}$ và $B=\\dfrac{\\sqrt{x}+3}{\\sqrt{x}+1}$ với $x\\ge0;\\ x\\neq1$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $B$ với $x=25$.",
+     "dapan": "$B=\\frac43$",
+     "loigiai": "$B=\\frac{5+3}{5+1}=\\frac43$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $A=\\dfrac{\\sqrt{x}+1}{\\sqrt{x}+2}$.",
+     "dapan": "",
+     "loigiai": "$A=\\frac{\\sqrt{x}(\\sqrt{x}+2)+(\\sqrt{x}-1)-3\\sqrt{x}}{(\\sqrt{x}-1)(\\sqrt{x}+2)}=\\frac{x-1}{(\\sqrt{x}-1)(\\sqrt{x}+2)}=\\frac{\\sqrt{x}+1}{\\sqrt{x}+2}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Tìm $x$ để biểu thức $S=A\\cdot B$ đạt giá trị lớn nhất.",
+     "dapan": "$\\max S=\\frac32$ khi $x=0$",
+     "loigiai": "$S=\\frac{\\sqrt{x}+3}{\\sqrt{x}+2}=1+\\frac1{\\sqrt{x}+2}\\le1+\\frac12=\\frac32$, dấu bằng khi $x=0$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK26-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Nhân dịp Lễ giỗ tổ Hùng Vương, một siêu thị điện máy đã giảm giá nhiều mặt hàng để kích cầu mua sắm. Giá niêm yết một tủ lạnh và một máy giặt có tổng số tiền là $25{,}4$ triệu đồng nhưng trong dịp này giá một tủ lạnh giảm $40\\%$ giá bán và giá một máy giặt giảm $25\\%$ giá bán nên cô Liên đã mua hai món đồ trên với tổng số tiền là $16{,}77$ triệu đồng. Hỏi giá mỗi món trên khi chưa giảm là bao nhiêu tiền?",
+   "dapan": "Tủ lạnh: 15,2 triệu đồng; máy giặt: 10,2 triệu đồng",
+   "loigiai": "Gọi giá tủ lạnh, máy giặt là $x,y$ (triệu đồng). $\\begin{cases}x+y=25{,}4\\\\0{,}6x+0{,}75y=16{,}77\\end{cases}\\Rightarrow x=15{,}2,\\ y=10{,}2$.",
+   "ghi_chu": "Bài này trùng nội dung câu III.1 của đề TK16."
+  },
+  {
+   "id": "TS10-HN-TK26-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một người đi ô tô từ $A$ đến $B$ cách nhau $100$ km với vận tốc xác định. Khi từ $B$ trở về $A$, người đó đi theo đường khác dài hơn đường cũ $20$ km nhưng với vận tốc lớn hơn vận tốc lúc đi mỗi giờ $20$ km. Vì vậy thời gian về ít hơn thời gian đi $30$ phút. Tính vận tốc lúc đi.",
+   "dapan": "40 km/h",
+   "loigiai": "Gọi vận tốc lúc đi là $x$ (km/h), $x>0$. Lúc về: quãng đường $120$ km, vận tốc $x+20$. $\\frac{100}{x}-\\frac{120}{x+20}=\\frac12\\Leftrightarrow x^2+60x-4000=0$, được $x=40$ (nhận), $x=-100$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK26-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D6",
+   "dang_phu": [
+    "L9-C6-D3"
+   ],
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $x^2-2(m+1)x+m^2+2=0$ ($m$ là ẩn số). Tìm tất cả các giá trị của $m$ để phương trình có hai nghiệm phân biệt $x_1,x_2$ thỏa mãn $x_1^2-x_1x_2+x_2^2=7$.",
+   "dapan": "$m=1$",
+   "loigiai": "$\\Delta'=(m+1)^2-(m^2+2)=2m-1>0\\Leftrightarrow m>\\frac12$ (*). Viète: $x_1+x_2=2m+2$, $x_1x_2=m^2+2$. $x_1^2-x_1x_2+x_2^2=(x_1+x_2)^2-3x_1x_2=7\\Leftrightarrow(2m+2)^2-3(m^2+2)=7\\Leftrightarrow m^2+8m-9=0\\Leftrightarrow m=1$ hoặc $m=-9$. Kết hợp (*): $m=1$.",
+   "ghi_chu": "CẦN DUYỆT: công thức của phương trình và điều kiện trong đề gốc bị mất khi hiển thị; tôi dựng lại từ lời giải (phương trình x² − 2(m+1)x + m² + 2 = 0 và điều kiện x₁² − x₁x₂ + x₂² = 7)."
+  },
+  {
+   "id": "TS10-HN-TK26-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk26-c4-1.png",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D2",
+   "dang_phu": [
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Một cái mũ của chú hề với các kích thước cho theo hình vẽ (đường sinh $30$ cm, rộng vành $10$ cm mỗi bên, đường kính ngoài $35$ cm). (Các kết quả làm tròn đến hàng đơn vị).",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Tính thể tích của cái mũ.",
+     "dapan": "$\\approx1708\\ \\text{cm}^3$",
+     "loigiai": "Bán kính đáy nón: $r=\\frac{35-2\\cdot10}{2}=7{,}5$ cm. Chiều cao: $h=\\sqrt{30^2-7{,}5^2}\\approx29$ cm. $V=\\frac13\\pi r^2h\\approx\\frac13\\pi\\cdot7{,}5^2\\cdot29\\approx543{,}75\\pi\\approx1708\\ \\text{cm}^3$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Tính tổng diện tích giấy làm nên cái mũ (không tính phần hao hụt).",
+     "dapan": "$\\approx1492\\ \\text{cm}^2$",
+     "loigiai": "Diện tích xung quanh nón: $\\pi rl=\\pi\\cdot7{,}5\\cdot30=225\\pi$. Diện tích vành mũ (hình vành khăn): $\\pi\\cdot17{,}5^2-\\pi\\cdot7{,}5^2=250\\pi$. Tổng $475\\pi\\approx1492\\ \\text{cm}^2$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK26-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk26-c4-2.png",
+   "can_duyet": false,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5",
+    "L9-C4-D2"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho tam giác $ABC$ ($AB<AC$) nội tiếp trong đường tròn tâm $O$ đường kính $BC$, đường thẳng qua $O$ vuông góc với $BC$ cắt $AC$ tại $D$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh rằng tứ giác $ABOD$ nội tiếp.",
+     "dapan": "",
+     "loigiai": "$\\widehat{BAC}=90^\\circ$. Gọi $M$ là trung điểm $BD$. $\\triangle ABD$ vuông tại $A$ nên $AM=\\frac12BD$; $\\triangle OBD$ vuông tại $O$ nên $OM=\\frac12BD$. Suy ra $MA=MO=MB=MD$, vậy $ABOD$ nội tiếp đường tròn đường kính $BD$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Tiếp tuyến tại điểm $A$ với đường tròn $(O)$ cắt đường thẳng $BC$ tại điểm $P$, sao cho $PB=BO=2$ cm. Tính độ dài đoạn $PA$ và số đo góc $\\widehat{APC}$.",
+     "dapan": "$PA=2\\sqrt3$ cm; $\\widehat{APC}=30^\\circ$",
+     "loigiai": "$OA=OB=BP=2$ cm nên $OP=4$ cm. $\\triangle PAO$ vuông tại $A$: $PA^2=OP^2-OA^2=16-4=12$, $PA=2\\sqrt3$ cm. $\\sin\\widehat{APO}=\\frac{OA}{OP}=\\frac12$ nên $\\widehat{APC}=30^\\circ$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Chứng minh rằng $\\dfrac{PB}{PC}=\\dfrac{AB^2}{AC^2}$.",
+     "dapan": "",
+     "loigiai": "Kẻ $OH\\perp AB$. $\\triangle OAB$ cân tại $O$ nên $\\widehat{AOH}=\\frac12\\widehat{AOB}$; $\\widehat{PAB}=\\widehat{AOH}$ (cùng phụ $\\widehat{BAO}$) nên $\\widehat{PAB}=\\frac12\\widehat{AOB}=\\widehat{ACB}$. $\\triangle PAB\\backsim\\triangle PCA$ (g.g) nên $\\frac{PA}{PC}=\\frac{PB}{PA}=\\frac{AB}{AC}$. Suy ra $PA^2=PB\\cdot PC$ và $\\frac{AB^2}{AC^2}=\\frac{PA^2}{PC^2}=\\frac{PB\\cdot PC}{PC^2}=\\frac{PB}{PC}$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK26-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk26-c5.png",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C10-D3"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VD",
+   "noidung": "Một hộp đựng bóng tennis có dạng hình trụ. Biết rằng hộp chứa vừa khít ba quả bóng tennis được xếp theo chiều dọc, các quả bóng tennis có kích thước như nhau. Thể tích phần không gian còn trống chiếm tỉ lệ bao nhiêu phần trăm so với hộp đựng bóng tennis?",
+   "dapan": "$\\frac13\\approx33\\%$",
+   "loigiai": "Gọi $R$ là bán kính quả bóng (cũng là bán kính đáy hộp), chiều cao hộp $h=6R$. Thể tích hộp $V_0=\\pi R^2\\cdot6R=6\\pi R^3$; $3$ quả bóng $V_1=3\\cdot\\frac43\\pi R^3=4\\pi R^3$. Phần trống $V_2=2\\pi R^3$, tỉ lệ $\\frac{V_2}{V_0}=\\frac13\\approx33\\%$."
+  }
+ ]
+}

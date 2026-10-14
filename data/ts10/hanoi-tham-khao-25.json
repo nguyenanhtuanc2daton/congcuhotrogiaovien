@@ -1,0 +1,279 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK25",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 25, bản nháp)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_25_NGUYỄN_VĂN_MINH-_đã_pb1.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK25-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Giáo viên ghi lại thời gian bơi cự ly $50$ mét của học sinh lớp $9A$ cho kết quả trong bảng sau. Nêu các nhóm số liệu và tần số tương đối.",
+   "bang": {
+    "tieu_de": [
+     "Thời gian (giây)",
+     "[40;45)",
+     "[45;50)",
+     "[50;55)",
+     "[55;60)"
+    ],
+    "hang": [
+     [
+      "Số học sinh",
+      "3",
+      "7",
+      "10",
+      "20"
+     ]
+    ]
+   },
+   "dapan": "Tần số tương đối: 7,5%; 17,5%; 25%; 50%",
+   "loigiai": "Tổng số học sinh $3+7+10+20=40$. Tần số tương đối: $\\frac3{40}=7{,}5\\%$; $\\frac7{40}=17{,}5\\%$; $\\frac{10}{40}=25\\%$; $\\frac{20}{40}=50\\%$."
+  },
+  {
+   "id": "TS10-HN-TK25-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Gieo một con xúc xắc cân đối đồng chất và có $6$ mặt. Tính xác suất của biến cố gieo được mặt có số chấm là bội của $3$.",
+   "dapan": "$\\frac13$",
+   "loigiai": "Các kết quả có thể: $1;2;3;4;5;6$. Số chấm là bội của $3$: $3$ và $6$ ($2$ kết quả). $P=\\frac26=\\frac13$."
+  },
+  {
+   "id": "TS10-HN-TK25-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{\\sqrt{x}}{\\sqrt{x}-2}$ và $B=\\dfrac{2\\sqrt{x}}{\\sqrt{x}-3}-\\dfrac{x+9\\sqrt{x}}{x-9}$ với $x>0,\\ x\\neq4,\\ x\\neq9$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=100$.",
+     "dapan": "$A=\\frac54$",
+     "loigiai": "$A=\\frac{10}{10-2}=\\frac54$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Rút gọn biểu thức $B$.",
+     "dapan": "$B=\\frac{\\sqrt{x}}{\\sqrt{x}+3}$",
+     "loigiai": "$B=\\frac{2\\sqrt{x}(\\sqrt{x}+3)-x-9\\sqrt{x}}{x-9}=\\frac{x-3\\sqrt{x}}{x-9}=\\frac{\\sqrt{x}}{\\sqrt{x}+3}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Tìm giá trị nguyên của $x$ để biểu thức $M=A:B$ có giá trị nguyên.",
+     "dapan": "$x\\in\\{1;49\\}$",
+     "loigiai": "$M=\\frac{\\sqrt{x}}{\\sqrt{x}-2}\\cdot\\frac{\\sqrt{x}+3}{\\sqrt{x}}=\\frac{\\sqrt{x}+3}{\\sqrt{x}-2}=1+\\frac5{\\sqrt{x}-2}$. $M$ nguyên khi $\\sqrt{x}$ nguyên và $\\sqrt{x}-2\\in\\mathrm{U}(5)$ với $\\sqrt{x}-2>-2$: $\\sqrt{x}-2\\in\\{-1;1;5\\}$, $\\sqrt{x}\\in\\{1;3;7\\}$, $x\\in\\{1;9;49\\}$. Loại $x=9$ (điều kiện $x\\neq9$): $x\\in\\{1;49\\}$."
+    }
+   ],
+   "ghi_chu": "CẦN DUYỆT: lời giải gốc kết luận x ∈ {1; 9; 49} nhưng x = 9 vi phạm điều kiện x ≠ 9, nên đáp án đúng là {1; 49}. Đề 25 là bản nháp (có ghi chú của người soạn trong đề)."
+  },
+  {
+   "id": "TS10-HN-TK25-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một dung dịch chứa $30\\%$ axit nitơric (tính theo thể tích) và một dung dịch khác chứa $55\\%$ axit nitơric. Cần phải trộn thêm bao nhiêu lít dung dịch loại $1$ và loại $2$ để được $100$ lít dung dịch $50\\%$ axit nitơric?",
+   "dapan": "20 lít dung dịch loại 1 và 80 lít dung dịch loại 2",
+   "loigiai": "Gọi $x,y$ (lít) là lượng dung dịch loại $1,2$. $\\begin{cases}x+y=100\\\\0{,}3x+0{,}55y=50\\end{cases}\\Rightarrow x=20,\\ y=80$."
+  },
+  {
+   "id": "TS10-HN-TK25-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Hai vòi nước cùng chảy vào một bể không chứa nước thì sau $3$ giờ đầy bể. Nếu mở vòi thứ nhất chảy một mình trong $20$ phút, rồi khóa lại, mở tiếp vòi thứ hai chảy trong $30$ phút thì cả hai vòi chảy được $\\dfrac18$ bể. Tính thời gian mỗi vòi chảy một mình đầy bể.",
+   "dapan": "Vòi thứ nhất: 4 giờ; vòi thứ hai: 12 giờ",
+   "loigiai": "Gọi thời gian chảy một mình đầy bể của vòi $1,2$ là $x,y$ (giờ). $\\begin{cases}\\frac1x+\\frac1y=\\frac13\\\\ \\frac1{3x}+\\frac1{2y}=\\frac18\\end{cases}\\Rightarrow x=4,\\ y=12$."
+  },
+  {
+   "id": "TS10-HN-TK25-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D6",
+   "dang_phu": [
+    "L9-C6-D3"
+   ],
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $x^2-2(m+1)x+m^2-4m+3=0$ (với $m$ là tham số). Tìm $m$ để phương trình đã cho có hai nghiệm cùng dấu.",
+   "dapan": "$\\frac13<m<1$ hoặc $m>3$",
+   "loigiai": "Hai nghiệm cùng dấu $\\Leftrightarrow\\begin{cases}\\Delta'>0\\\\P>0\\end{cases}\\Leftrightarrow\\begin{cases}6m-2>0\\\\m^2-4m+3>0\\end{cases}\\Leftrightarrow\\begin{cases}m>\\frac13\\\\m<1\\text{ hoặc }m>3\\end{cases}$. Vậy $\\frac13<m<1$ hoặc $m>3$.",
+   "ghi_chu": "Đề gốc có ghi chú của người soạn: 'Cô thay bằng bài khác vì đã bỏ BPT bậc hai' (bài này cần giải bất phương trình bậc hai)."
+  },
+  {
+   "id": "TS10-HN-TK25-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk25-c4-1.png",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D2",
+   "dang_phu": [
+    "L9-C10-D3",
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Hình bên dưới là một món đồ chơi trẻ em có cấu tạo từ một bán cầu (nửa khối cầu) và một hình nón (đường sinh $10$ cm, chiều cao hình nón $8$ cm, bán kính đáy $6$ cm).",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Tìm thể tích của món đồ chơi.",
+     "dapan": "$240\\pi\\ \\text{cm}^3$",
+     "loigiai": "$V=\\frac13\\pi\\cdot6^2\\cdot8+\\frac23\\pi\\cdot6^3=96\\pi+144\\pi=240\\pi\\ \\text{cm}^3$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Tìm diện tích toàn phần của món đồ chơi.",
+     "dapan": "$132\\pi\\ \\text{cm}^2$",
+     "loigiai": "$S=\\pi\\cdot6\\cdot10+2\\pi\\cdot6^2=60\\pi+72\\pi=132\\pi\\ \\text{cm}^2$."
+    }
+   ],
+   "ghi_chu": "Đề gốc có ghi chú: 'Bài tập đơn điệu quá vì 2 ý giống nhau'."
+  },
+  {
+   "id": "TS10-HN-TK25-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk25-c4-2.png",
+   "can_duyet": false,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho đường tròn $(O)$ đường kính $AB$. Dây cung $MN$ vuông góc với $AB$ ($AM<BM$). Hai đường thẳng $BM$ và $NA$ cắt nhau tại $K$. Gọi $H$ là chân đường vuông góc kẻ từ $K$ đến đường thẳng $AB$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh tứ giác $AHKM$ nội tiếp trong một đường tròn.",
+     "dapan": "",
+     "loigiai": "$\\widehat{AHK}=90^\\circ$ nên $A,H,K$ thuộc đường tròn đường kính $AK$. $\\widehat{AMB}=90^\\circ$ nên $\\widehat{AMK}=90^\\circ$, $M$ cũng thuộc đường tròn đường kính $AK$. Vậy $AHKM$ nội tiếp đường tròn đường kính $AK$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh rằng $NB\\cdot HK=AN\\cdot HB$.",
+     "dapan": "",
+     "loigiai": "$\\widehat{ANB}=\\widehat{KHB}=90^\\circ$. $\\triangle OMN$ cân tại $O$ và $OA\\perp MN$ nên $OA$ là phân giác $\\widehat{MON}$, $\\widehat{MOA}=\\widehat{NOA}$ nên $\\widehat{ABN}=\\widehat{KBH}$. Suy ra $\\triangle ANB\\backsim\\triangle KHB$ (g.g), $\\frac{AN}{NB}=\\frac{KH}{HB}$, tức $NB\\cdot HK=AN\\cdot HB$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Chứng minh $HM$ là tiếp tuyến của đường tròn $(O)$.",
+     "dapan": "",
+     "loigiai": "Ta chứng minh $HM\\perp OM$. $AHKM$ nội tiếp nên $\\widehat{HMK}=\\widehat{HAK}$ (cùng chắn $HK$); $\\widehat{HAK}=\\widehat{NAB}=\\widehat{MAB}$ ($AB$ là trung trực của $MN$); $\\widehat{MAB}=\\widehat{OMA}$ ($\\triangle OAM$ cân). Suy ra $\\widehat{HMK}=\\widehat{OMA}$, nên $\\widehat{HMK}+\\widehat{HMA}=\\widehat{OMA}+\\widehat{HMA}$; mà $\\widehat{HMK}+\\widehat{HMA}=\\widehat{AMK}=90^\\circ$. Do đó $\\widehat{HMO}=90^\\circ$, $HM\\perp OM$ tại $M\\in(O)$: $HM$ là tiếp tuyến."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK25-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk25-c5.png",
+   "can_duyet": true,
+   "diem": 0.5,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D2",
+   "dang_phu": [
+    "L9-C9-D1"
+   ],
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Với một tấm tôn hình tròn có bán kính $R=6$ cm. Người ta muốn làm một cái phễu bằng cách cắt một phần (dạng hình quạt) của hình tròn như hình bên dưới. Thể tích lớn nhất của hình nón có được khi người ta cắt cung tròn của hình quạt có chiều dài là bao nhiêu?",
+   "dapan": "$x=4\\sqrt6\\,\\pi$ cm (độ dài cung tròn của hình quạt dùng làm nón)",
+   "loigiai": "Gọi $x$ (cm) là độ dài cung tròn của hình quạt dùng làm nón; bán kính đáy nón $r=\\frac{x}{2\\pi}$, đường sinh $R=6$, chiều cao $h=\\sqrt{R^2-r^2}$. $V=\\frac13\\pi r^2h$ nên $V^2=\\frac{\\pi^2}9r^4(R^2-r^2)=\\frac{4\\pi^2}{9}\\cdot\\frac{r^2}2\\cdot\\frac{r^2}2\\cdot(R^2-r^2)\\le\\frac{4\\pi^2}9\\left(\\frac{R^2}3\\right)^3$ (Cô-si cho ba số dương có tổng $R^2$). Dấu bằng khi $\\frac{r^2}{2}=R^2-r^2$, tức $r^2=\\frac23R^2$, $r=2\\sqrt6$. Khi đó $x=2\\pi r=4\\sqrt6\\,\\pi$ cm.",
+   "ghi_chu": "Đề hỏi 'cắt cung tròn của hình quạt có chiều dài là bao nhiêu' khá mơ hồ: đáp án gốc là độ dài cung dùng làm nón (4√6π ≈ 30,8 cm); phần bị cắt bỏ có cung dài 12π − 4√6π ≈ 6,9 cm. Bạn xem lại cách hiểu."
+  }
+ ]
+}
