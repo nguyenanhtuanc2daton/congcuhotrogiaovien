@@ -8,7 +8,7 @@
 'use strict';
 const sel=document.getElementById('wtSel'),t3=document.getElementById('t3');
 if(!sel||!t3)return;
-const VERSION='MM-2.0';
+const VERSION='MM-2.1';
 const WNS='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const FONT='Times New Roman';
 const g=id=>document.getElementById(id);
@@ -26,6 +26,8 @@ function xepLoai(d){return d==null?'':d>=8?'Giỏi':d>=6.5?'Khá':d>=5?'Trung b�
 function bandKey(d){return d==null?'none':d>=8?'gioi':d>=6.5?'kha':d>=5?'tb':'yeu'}
 function fixDob(s){s=cs(s);if(/^\d{5}$/.test(s)){const d=new Date(Date.UTC(1899,11,30)+(+s)*864e5);return String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0')+'/'+d.getUTCFullYear()}return s}
 const ROMAN={'1':'I','2':'II','3':'III'};
+/* "7A1 Cong nghe" → "7A1": chỉ giữ mã lớp ở đầu, bỏ tên môn/ghi chú theo sau */
+function cleanLop(x){x=cs(x);const m=/^(\d{1,2}\s?[\p{L}\d._\/-]*\d[\p{L}\d._\/-]*|\d{1,2}\s?\p{L}\b)(?=\s|$)/u.exec(x);if(m)return m[1].replace(/\s+/g,'');const t=x.split(' ')[0];return /^\d{1,2}[\p{L}\d._\/-]*$/u.test(t)?t:x}
 function parseAoa(aoa,sheetName){
   const nr=aoa.length;let hr=-1,nc=-1;
   for(let r=0;r<Math.min(nr,40)&&hr<0;r++){const row=aoa[r]||[];
@@ -55,7 +57,7 @@ function parseAoa(aoa,sheetName){
     if(cStt>=0&&!/^\d+$/.test(cs(row[cStt])))continue;
     const gt=cGt>=0?cs(row[cGt]):'';
     students.push({stt:cStt>=0?cs(row[cStt]):String(students.length+1),ma:cMa>=0?cs(row[cMa]):'',ten:name,dob:cDob>=0?fixDob(row[cDob]):'',gt:/^n[uữ]/i.test(nd(gt))?'Nữ':/^nam/i.test(nd(gt))?'Nam':gt,
-      dtb:cDtb>=0?toNum(row[cDtb]):null,lop:meta.lop||sheetName||'',sheet:sheetName||'',on:true})}
+      dtb:cDtb>=0?toNum(row[cDtb]):null,lop:cleanLop(meta.lop||sheetName||''),sheet:sheetName||'',on:true})}
   return{ok:true,meta,students,cols:{stt:cStt,ma:cMa,ten:nc,dob:cDob,gt:cGt,dtb:cDtb},headerRow:hr+1,dataRow:ds+1};
 }
 
@@ -588,6 +590,6 @@ async function run(){
     const list=e.errs&&e.errs.length?e.errs:[];setSt('❌ '+e.message,'e');
     const lg=document.getElementById('mm_log');const lh=lg?lg.outerHTML:'';out.innerHTML=lh+'<div class="mmRes"><b>❌ '+hx(e.message)+'</b>'+(list.length?'<div>Lỗi còn lại ở lần soạn cuối:</div><ul>'+list.slice(0,10).map(x=>'<li>'+hx(x)+'</li>').join('')+'</ul><div class="note">Gợi ý: mô tả mục đích cụ thể hơn, rút gọn ghi chú rồi bấm lại.</div>':'')+'</div>'}
   btn.disabled=false}
-window.MailMerge={version:VERSION,validateGen,sanitizeGen,fitGen,allowedVars,parseAoa,titleCaseVi,validateInvite,sanitizeInvite,checkText,buildDocx,checkDocx,pageKhen,pageThongBao,pageNhanXet,pageMoi,pageH,pageCap,ngayThang,parseISO,xepLoai,fill,tplUnknown,_S:S};
+window.MailMerge={version:VERSION,cleanLop,validateGen,sanitizeGen,fitGen,allowedVars,parseAoa,titleCaseVi,validateInvite,sanitizeInvite,checkText,buildDocx,checkDocx,pageKhen,pageThongBao,pageNhanXet,pageMoi,pageH,pageCap,ngayThang,parseISO,xepLoai,fill,tplUnknown,_S:S};
 buildUI();
 })();
