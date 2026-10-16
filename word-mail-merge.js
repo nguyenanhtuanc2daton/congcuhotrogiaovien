@@ -8,7 +8,7 @@
 'use strict';
 const sel=document.getElementById('wtSel'),t3=document.getElementById('t3');
 if(!sel||!t3)return;
-const VERSION='MM-2.1';
+const VERSION='MM-2.2';
 const WNS='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const FONT='Times New Roman';
 const g=id=>document.getElementById(id);
@@ -323,7 +323,7 @@ const BADWORD=/(?<![\p{L}])(ngu|dốt|lười biếng|kém cỏi|bất tài|vô 
 function allowedVars(cfg,mode,students){
   const a=['Lop'];if(mode!=='khen')a.unshift('HoTen');
   if(students.some(s=>s.dtb!=null))a.push('DTB','XepLoai');
-  if(cfg.nam)a.push('NamHoc');if(cfg.hocky)a.push('HocKy');if(cfg.mon)a.push('Mon');
+  if(cfg.nam)a.push('NamHoc');if(cfg.hocky)a.push('HocKy');if(cfg.mon&&mode!=='khen')a.push('Mon');
   return a}
 function sanText(x){return cs(typeof x==='string'?x:'').replace(/^(?:[-•–+*]|\d+[.)])\s+/,'')}
 function sanitizeGen(mode,o){o=o||{};
@@ -347,7 +347,8 @@ function genText(label,t,ctx,o,E){
   if(BADWORD.test(t))E.push(label+': dùng từ ngữ xúc phạm/tiêu cực không phù hợp môi trường giáo dục.')}
 function validateGen(mode,c,ctx){
   const E=[];let all='';
-  if(mode==='khen'){genText('Thành tích',c.thanhTich,ctx,{min:25,max:220,end:/[.]$/,endTxt:'dấu chấm'},E);all=c.thanhTich}
+  if(mode==='khen'){genText('Thành tích',c.thanhTich,ctx,{min:40,max:220,end:/[.]$/,endTxt:'dấu chấm'},E);all=c.thanhTich;
+    if(/(?<![\p{L}])môn(?![\p{L}])/iu.test(c.thanhTich)||(ctx.cfg.mon&&nd(c.thanhTich).indexOf(nd(ctx.cfg.mon))>=0))E.push('Thành tích: giấy khen chung, không được nhắc tên môn học.')}
   else if(mode==='tb'){
     genText('Trích yếu',c.trichYeu,ctx,{min:12,max:120,end:/[^.;:,]$/,endTxt:'không kết thúc bằng dấu chấm'},E);
     if(c.trichYeu&&!/^Về việc\s/.test(c.trichYeu))E.push('Trích yếu: phải bắt đầu bằng “Về việc”.');
@@ -383,12 +384,13 @@ function promptGen(mode,inp,prevErr){
     tb:'{"trich_yeu":"cụm bắt đầu bằng \\"Về việc \\", ngắn gọn, KHÔNG kết thúc bằng dấu chấm","noi_dung":["2 đến 4 đoạn, mỗi đoạn 1 đến 3 câu hoàn chỉnh kết thúc bằng dấu chấm; đoạn đầu nêu nội dung cần thông báo; đoạn cuối đề nghị Quý phụ huynh phối hợp hoặc liên hệ giáo viên"]}',
     nx:'{"gioi":"…","kha":"…","trung_binh":"…","yeu":"…","chua_co_diem":"…"} — mỗi mục là 2 câu nhận xét dành cho học sinh ở mức tương ứng (Giỏi, Khá, Trung bình, Yếu, Chưa có điểm), bắt đầu bằng \\"Em …\\", dài 60 đến 250 ký tự, kết thúc bằng dấu chấm. Mức Yếu: giọng ân cần, động viên, không chê bai, đề nghị gia đình phối hợp. Mức Chưa có điểm: nêu em chưa đủ điểm để đánh giá, cần hoàn thành bài còn thiếu, KHÔNG dùng {DTB}/{XepLoai}.'}[mode];
   return 'Bạn là giáo viên/cán bộ văn thư một trường THCS ở Việt Nam, soạn nội dung '+ROLE[mode]+' bằng văn phong trang trọng, chuẩn mực, đúng chính tả và đủ dấu tiếng Việt.\n'+
-  'THÔNG TIN:\n- Yêu cầu của giáo viên: '+inp.yc+'\n'+(inp.mon?'- Môn học: '+inp.mon+'\n':'')+(inp.nam?'- Năm học: '+inp.nam+'\n':'')+(inp.hocky?'- Học kì: '+(ROMAN[inp.hocky]||inp.hocky)+'\n':'')+
+  'THÔNG TIN:\n- Yêu cầu của giáo viên: '+inp.yc+'\n'+(inp.mon&&mode!=='khen'?'- Môn học: '+inp.mon+'\n':'')+(inp.nam?'- Năm học: '+inp.nam+'\n':'')+(inp.hocky?'- Học kì: '+(ROMAN[inp.hocky]||inp.hocky)+'\n':'')+
   '\nCHỈ trả về DUY NHẤT một JSON (không markdown), đúng mẫu:\n'+spec+'\n'+
   '\nQUY TẮC BẮT BUỘC:\n1. Để nhắc tên, lớp, điểm… của học sinh, CHỈ được dùng các biến sau, viết đúng nguyên dạng trong ngoặc nhọn: '+vars+'. Hệ thống sẽ thay bằng dữ liệu thật của từng học sinh. TUYỆT ĐỐI không dùng biến nào khác và không tự ghi họ tên ai.\n'+
   '2. Không tự bịa số liệu, ngày, tháng, năm, giờ, địa điểm; chỉ dùng con số/ngày giờ có trong yêu cầu của giáo viên.\n'+
   '3. Không dùng dấu “!”, dấu “…”, emoji, markdown, tiếng Anh, từ khẩu ngữ (nhé, nha, mình, bạn, tôi…); gọi học sinh là “em”, các bạn học sinh là “các em”.\n'+
   '4. Ngắn gọn, mỗi câu bắt đầu bằng chữ in hoa, bám sát yêu cầu và dùng lại các từ khóa chính trong yêu cầu.\n'+
+  (mode==='khen'?'5. Giấy khen mang tính CHUNG: TUYỆT ĐỐI KHÔNG nhắc tên môn học nào (không có chữ “môn”); chỉ nêu danh hiệu/thành tích chung, vẫn đủ ý nghĩa: ghi nhận sự nỗ lực, rèn luyện, và lời mong em tiếp tục phát huy.\n':'')+
   (prevErr&&prevErr.length?'\nLẦN SOẠN TRƯỚC BỊ LOẠI VÌ CÁC LỖI SAU — hãy sửa tất cả:\n'+prevErr.slice(0,12).map((e,i)=>(i+1)+'. '+e).join('\n')+'\n':'')}
 async function composeGen(mode,inp,ctx,cfg,longest,log){
   const nm={khen:'giấy khen',tb:'thông báo',nx:'phiếu nhận xét'}[mode];let errs=[],last=null;
