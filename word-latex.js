@@ -8,8 +8,8 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 
 /* ======================= LaTeX parser -> AST ======================= */
 /* Nhật ký chuyển đổi: dùng để báo cáo công thức có cảnh báo / phải giữ dạng chữ / đối tượng MathType. */
-const EQ_LOG={cur:null,total:0,warned:[],degraded:[],opaque:0,skipped:0};
-function eqLogReset(){EQ_LOG.cur=null;EQ_LOG.total=0;EQ_LOG.warned=[];EQ_LOG.degraded=[];EQ_LOG.opaque=0;EQ_LOG.skipped=0;}
+const EQ_LOG={cur:null,total:0,warned:[],degraded:[],opaque:0,skipped:0,stray:[]};
+function eqLogReset(){EQ_LOG.cur=null;EQ_LOG.total=0;EQ_LOG.warned=[];EQ_LOG.degraded=[];EQ_LOG.opaque=0;EQ_LOG.skipped=0;EQ_LOG.stray=[];}
 function eqWarn(m){ if(EQ_LOG.cur && EQ_LOG.cur.indexOf(m)<0) EQ_LOG.cur.push(m); }
 
 const SYMBOLS = {
@@ -633,7 +633,8 @@ function latexToOMML(latex){ return buildOMath(latex); }
 function looksLikeLatex(s){
   const t=s.trim();
   if(t.length===0) return false;
-  if(/^\d[\d.,\s]*$/.test(t)) return false;   // chỉ là số: nhiều khả năng là tiền tệ
+  /* Chỉ là số: chỉ coi là tiền tệ khi có khoảng trắng sát dấu $ ("5$ 10$"). $2$, $362 000$ vẫn là công thức. */
+  if(/^\d[\d.,\s]*$/.test(t) && /^\s|\s$/.test(s)) return false;
   return true;
 }
 function bracesBalanced(s){ let d=0; for(let i=0;i<s.length;i++){ const ch=s[i]; if(ch==='\\'){i++;continue;} if(ch==='{')d++; else if(ch==='}'){d--; if(d<0)return false;} } return d===0; }
@@ -768,6 +769,7 @@ function processParagraph(mainDoc, p){
   const expected=scanSegments(ownText(p)).filter(s=>s.type==='eq').length;
   const eqCount=processRuns(mainDoc,p,true);
   if(expected>eqCount) EQ_LOG.skipped+=expected-eqCount;
+  { const rem=ownText(p); if(/\$/.test(rem)) EQ_LOG.stray.push(rem.trim()); }   // còn ký tự $ sau khi chuyển
   return {changed:eqCount>0, count:eqCount};
 }
 function countMathTypeObjects(doc){
@@ -796,7 +798,7 @@ function convertDocumentXML(xmlString){
 /* Báo cáo ngắn cho người dùng sau khi chuyển đổi */
 function eqSummaryHTML(){
   const L=EQ_LOG, parts=[];
-  if(!L.total && !L.skipped && !L.opaque) return '';
+  if(!L.total && !L.skipped && !L.opaque && !L.stray.length) return '';
   const cut=s=>{ s=String(s).replace(/\s+/g,' '); return esc(s.length>70?s.slice(0,70)+'…':s); };
   if(L.degraded.length){
     parts.push('<b>⚠ '+L.degraded.length+' công thức không dựng được Equation</b> – đã giữ nguyên chữ LaTeX để file Word không bị lỗi:<ul>'+
@@ -807,6 +809,8 @@ function eqSummaryHTML(){
       L.warned.slice(0,5).map(d=>'<li><code>'+cut(d.latex)+'</code> – '+esc(d.warn.join('; '))+'</li>').join('')+(L.warned.length>5?'<li>… và '+(L.warned.length-5)+' công thức khác</li>':'')+'</ul>');
   }
   if(L.skipped) parts.push('⚠ '+L.skipped+' công thức bị ngắt bởi ảnh/xuống dòng thủ công/trường đặc biệt của Word nên chưa chuyển được (giữ nguyên) – hãy gõ liền công thức trên một dòng.');
+  if(L.stray.length) parts.push('⚠ '+L.stray.length+' đoạn còn ký tự <code>$</code> sau khi chuyển (công thức lỗi cặp $ hoặc tiền tệ):<ul>'+
+    L.stray.slice(0,5).map(t=>'<li>'+cut(t)+'</li>').join('')+(L.stray.length>5?'<li>… và '+(L.stray.length-5)+' đoạn khác</li>':'')+'</ul>');
   if(L.opaque) parts.push('⚠ '+L.opaque+' công thức dạng MathType/đối tượng nhúng – không chuyển được, giữ nguyên trong file.');
   if(!parts.length) parts.push('✅ Tất cả '+L.total+' công thức đã chuyển thành Equation hợp lệ.');
   return parts.join('');
