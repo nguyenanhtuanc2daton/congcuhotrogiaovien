@@ -207,6 +207,23 @@ html[data-tod] button.lp-card{background:linear-gradient(160deg,var(--card2),var
 html[data-tod] #t0.panel{background:transparent;box-shadow:none;border-top:0}
 html[data-tod] button.lp-card{background:linear-gradient(160deg,color-mix(in srgb,var(--card2) 82%,transparent),color-mix(in srgb,var(--card) 78%,transparent))}
 html[data-tod] #tod-greet{background:color-mix(in srgb,var(--card) 82%,transparent)}
+/* ---------- Điểm nhấn nhẹ (v5): chạy một lần / khi tương tác ---------- */
+html[data-tod] .lp-card{animation:todCard .55s cubic-bezier(.2,.8,.2,1) calc(var(--i,1)*80ms) backwards;transition:transform .18s ease,box-shadow .18s ease}
+html[data-tod] .lp-card:hover{transform:translateY(-4px);box-shadow:0 12px 22px -10px var(--tod-glow)}
+html[data-tod] .panel.on{animation:todPanel .25s ease-out backwards}
+html[data-tod] button:not(#tod-switch):not(#tod-fx):not(#hcBtn){transition:transform .12s ease,filter .15s ease}
+html[data-tod] button:not(#tod-switch):not(#tod-fx):not(#hcBtn):active{transform:scale(.96)}
+@supports (background-clip:text) or (-webkit-background-clip:text){
+ html[data-tod] .hero h1{background:linear-gradient(100deg,#fff 42%,#ffe9a8 50%,#fff 58%) 160% 0/250% 100% no-repeat;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:todTitle 2s ease-out .9s 1 both}
+}
+html[data-tod] .lp-sym{animation-duration:calc(var(--t,7s) * 1.7)}
+#tod-greet .g-wd,#tod-greet .g-hl{flex:1 1 100%;font-size:13px;color:var(--mut);line-height:1.4}
+#tod-greet .g-hl b{color:var(--cy)}
+html.tod-nofx .lp-card,html.tod-nofx .panel.on,html.tod-nofx .hero h1{animation:none!important}
+@keyframes todCard{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes todPanel{from{opacity:0}to{opacity:1}}
+@keyframes todTitle{to{background-position:-60% 0}}
+@media (prefers-reduced-motion:reduce){html[data-tod] .lp-card,html[data-tod] .panel.on,html[data-tod] .hero h1{animation:none!important}}
 html[data-tod] ::selection{background:var(--cy);color:#111}
 /* hiệu ứng chạm/rê chuột: màu & hình theo buổi (hình đổi bằng JS) */
 html[data-tod] .hc-h,html[data-tod] .hc-h.th{text-shadow:0 0 8px var(--c)}
@@ -339,6 +356,21 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
   var HC={sang:['#ff9ec4','#ffd166','#ffffff','#7ee0c8'],trua:['#ffe14d','#ffb300','#ffffff','#ff9f1c'],chieu:['#ffb067','#ff8f70','#ff6b9d','#ffd27a'],toi:['#7dd3fc','#a78bfa','#ffffff','#c4b5fd']};
   var DAYS=['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
 
+  /* Lời nhắn theo thứ trong tuần (0 = Chủ nhật) */
+  var WD=['Chủ nhật thảnh thơi — nghỉ ngơi một chút để tuần mới thêm năng lượng.','Thứ Hai: chúc quý thầy cô một tuần mới thật nhiều năng lượng!','Thứ Ba: giữ nhịp thật đều, tuần này sẽ trôi thật nhẹ nhàng.','Thứ Tư: đã đi được nửa tuần rồi, cố lên nhé!','Thứ Năm: gần đến cuối tuần rồi, thêm chút nữa thôi.','Thứ Sáu: sắp đến cuối tuần rồi, chúc quý thầy cô buổi dạy thật vui!','Thứ Bảy: chúc quý thầy cô một ngày cuối tuần thật thư thái.'];
+  /* Ngày lễ / sự kiện: [tháng, ngày, tên] lặp hằng năm; [năm, tháng, ngày, tên] cho ngày thay đổi theo năm (Tết Nguyên đán) */
+  var HOL=[[1,1,'Tết Dương lịch'],[3,8,'Quốc tế Phụ nữ 8/3'],[4,30,'Ngày Giải phóng miền Nam'],[5,1,'Quốc tế Lao động'],[9,2,'Quốc khánh 2/9'],[10,20,'Ngày Phụ nữ Việt Nam 20/10'],[11,20,'Ngày Nhà giáo Việt Nam 20/11'],[12,22,'Ngày thành lập QĐNDVN'],[2027,2,6,'Tết Nguyên đán'],[2028,1,26,'Tết Nguyên đán'],[2029,2,13,'Tết Nguyên đán']];
+  function holiday(){
+    var n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),best=null,bd=1e9;
+    for(var i=0;i<HOL.length;i++){
+      var h=HOL[i],ds=[];
+      if(h.length===3){ds=[new Date(t0.getFullYear(),h[0]-1,h[1]),new Date(t0.getFullYear()+1,h[0]-1,h[1])];}
+      else ds=[new Date(h[0],h[1]-1,h[2])];
+      for(var j=0;j<ds.length;j++){var d=Math.round((ds[j]-t0)/864e5);if(d>=0&&d<bd){bd=d;best={d:d,name:h[h.length-1]};}}
+    }
+    return (best&&best.d<=60)?best:null;
+  }
+
   function byHour(h){
     if(h>=5&&h<11)return 'sang';
     if(h>=11&&h<14)return 'trua';
@@ -412,10 +444,15 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
   function greet(){
     if(!gEl)return;
     var t=pick(G[cur]);
-    gEl.innerHTML='<span class="g-ic"></span><span class="g-tx"></span><span class="g-time"></span>';
+    gEl.innerHTML='<span class="g-ic"></span><span class="g-tx"></span><span class="g-time"></span><span class="g-wd"></span><span class="g-hl"></span>';
     gEl.querySelector('.g-ic').textContent=ICON[cur];
     var tx=gEl.querySelector('.g-tx');tx.textContent=t;tx.style.setProperty('--n',Math.min(t.length,70));
     gEl.style.animation='none';void gEl.offsetWidth;gEl.style.animation='';
+    gEl.querySelector('.g-wd').textContent=WD[new Date().getDay()];
+    var hl=holiday(),he=gEl.querySelector('.g-hl');
+    if(hl){he.innerHTML='🎉 '+(hl.d===0?'Hôm nay là <b></b>!':'Còn <b>'+hl.d+' ngày</b> đến <span></span>');
+      if(hl.d===0)he.querySelector('b').textContent=hl.name;else he.querySelector('span').textContent=hl.name;}
+    else he.style.display='none';
     clock();
   }
 
