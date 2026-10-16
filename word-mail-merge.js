@@ -8,7 +8,7 @@
 'use strict';
 const sel=document.getElementById('wtSel'),t3=document.getElementById('t3');
 if(!sel||!t3)return;
-const VERSION='MM-1.1';
+const VERSION='MM-2.0';
 const WNS='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const FONT='Times New Roman';
 const g=id=>document.getElementById(id);
@@ -248,7 +248,7 @@ function checkText(label,t,o){
   if(o.end&&!o.end.test(t))E.push(label+': câu không kết thúc bằng dấu câu đúng ('+o.endTxt+').');
   const low=' '+t.toLowerCase()+' ';
   INFORMAL.forEach(w=>{if(new RegExp('(?<![\\p{L}\\p{N}])'+w+'(?![\\p{L}\\p{N}])','iu').test(t))E.push(label+': dùng từ khẩu ngữ/không trang trọng “'+w+'”.')});
-  ENG.forEach(w=>{if(new RegExp('(?<![\\p{L}\\p{N}])'+w+'(?![\\p{L}\\p{N}])','i').test(t)&&!/[àáảãạăâđêôơư]/i.test(w))E.push(label+': lẫn từ tiếng Anh “'+w+'”.')});
+  ENG.forEach(w=>{if(new RegExp('(?<![\\p{L}\\p{N}])'+w+'(?![\\p{L}\\p{N}])','iu').test(t)&&!/[àáảãạăâđêôơư]/i.test(w))E.push(label+': lẫn từ tiếng Anh “'+w+'”.')});
   const letters=L(t);if(letters.length>30){const v=(t.match(VIET)||[]).length;if(v/letters.length<0.05)E.push(label+': nghi thiếu dấu tiếng Việt.')}
   if(/(?<![\p{L}])(\p{L}{2,})\s+\1(?![\p{L}])/iu.test(t))E.push(label+': lặp từ liền nhau.');
   return E}
@@ -291,7 +291,7 @@ function parseJsonLoose(t){t=String(t).replace(/^\s*```(?:json)?/i,'').replace(/
   const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a>=0&&b>a)return JSON.parse(t.slice(a,b+1));throw new Error('không phải JSON')}
 async function geminiJSON(prompt){
   const key=(window.GKEY&&window.GKEY.get&&window.GKEY.get())||(g('gAiK')&&g('gAiK').value.trim())||'';
-  if(!key){if(window.GKEY&&window.GKEY.open)window.GKEY.open('Nhập key Gemini để AI soạn giấy mời.');const e=new Error('Chưa có API key Gemini — bấm “🔑 Nhập key” ở đầu trang rồi chạy lại.');e.fatal=true;throw e}
+  if(!key){if(window.GKEY&&window.GKEY.open)window.GKEY.open('Nhập key Gemini để AI soạn văn bản.');const e=new Error('Chưa có API key Gemini — bấm “🔑 Nhập key” ở đầu trang rồi chạy lại.');e.fatal=true;throw e}
   let last=null;
   for(const m of ['gemini-flash-latest','gemini-flash-lite-latest']){
     let r;try{r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json'}})})}catch(e){last=new Error('Không kết nối được Gemini (kiểm tra mạng).');last.fatal=true;continue}
@@ -314,6 +314,91 @@ async function composeInvite(inp,ctx,sample,log){
     if(!errs.length){log('Lần '+k+': ĐẠT toàn bộ tiêu chí nội dung và hình thức.');return{content:c,tries:k}}
     log('Lần '+k+': bị loại ('+errs.length+' lỗi): '+errs.slice(0,3).join(' | ')+(errs.length>3?' …':'')+' → soạn lại.')}
   const e=new Error('AI soạn '+MAX_TRY+' lần vẫn chưa đạt chuẩn nên KHÔNG xuất file.');e.errs=errs;e.last=lastC;throw e}
+
+/* ============================ 5b. AI SOẠN GIẤY KHEN / THÔNG BÁO / PHIẾU NHẬN XÉT ============================ */
+const ROLE={khen:'GIẤY KHEN (lời ghi thành tích in dưới tên học sinh)',tb:'THÔNG BÁO gửi phụ huynh học sinh',nx:'PHIẾU NHẬN XÉT KẾT QUẢ HỌC TẬP (5 đoạn nhận xét theo mức điểm)'};
+const BADWORD=/(?<![\p{L}])(ngu|dốt|lười biếng|kém cỏi|bất tài|vô dụng|hư hỏng)(?![\p{L}])/iu;
+function allowedVars(cfg,mode,students){
+  const a=['Lop'];if(mode!=='khen')a.unshift('HoTen');
+  if(students.some(s=>s.dtb!=null))a.push('DTB','XepLoai');
+  if(cfg.nam)a.push('NamHoc');if(cfg.hocky)a.push('HocKy');if(cfg.mon)a.push('Mon');
+  return a}
+function sanText(x){return cs(typeof x==='string'?x:'').replace(/^(?:[-•–+*]|\d+[.)])\s+/,'')}
+function sanitizeGen(mode,o){o=o||{};
+  if(mode==='khen')return{thanhTich:sanText(o.thanh_tich||o.thanhTich)};
+  if(mode==='tb'){const raw=Array.isArray(o.noi_dung)?o.noi_dung:(typeof o.noi_dung==='string'?o.noi_dung.split(/\n+/):[]);
+    return{trichYeu:sanText(o.trich_yeu||o.trichYeu),noiDung:raw.map(sanText).filter(Boolean)}}
+  const b=o.nhan_xet||o.band||o;
+  return{band:{gioi:sanText(b.gioi),kha:sanText(b.kha),tb:sanText(b.trung_binh||b.tb),yeu:sanText(b.yeu),none:sanText(b.chua_co_diem||b.none)}}}
+function sampleFill(t,cfg){return String(t).replace(/\{([^{}]*)\}/g,(m,k)=>{const r={HoTen:'Nguyễn Văn An',Lop:'7A1',DTB:'7,5',XepLoai:'Khá',NamHoc:cfg.nam||'2026 - 2027',HocKy:ROMAN[cfg.hocky]||cfg.hocky||'I',Mon:cfg.mon||'Toán'}[k.trim()];return r!=null?r:m})}
+function genText(label,t,ctx,o,E){
+  if(!t){E.push(label+': để trống.');return}
+  const bad=[];t.replace(/\{([^{}]*)\}/g,(m,k)=>{if(ctx.vars.indexOf(k.trim())<0)bad.push(m);return m});
+  bad.forEach(b=>E.push(label+': dùng biến '+b+' không được phép (chỉ được dùng: '+ctx.vars.map(x=>'{'+x+'}').join(' ')+').'));
+  if(/[{}]/.test(t.replace(/\{[^{}]*\}/g,'')))E.push(label+': có dấu { } lẻ.');
+  E.push(...checkText(label,sampleFill(t,ctx.cfg),o));
+  const nv=t.replace(/\{[^{}]*\}/g,'X');
+  (nv.match(/\d+/g)||[]).forEach(n=>{if(!ctx.nums.has(n))E.push(label+': AI tự thêm con số “'+n+'” không có trong yêu cầu.')});
+  const tw=nv.match(/(?<![\p{L}])(thứ\s+(?:hai|ba|tư|năm|sáu|bảy)|chủ nhật)(?![\p{L}])/iu);
+  if(tw&&nd(ctx.yc).indexOf(nd(tw[0]))<0)E.push(label+': AI tự ghi “'+tw[0]+'” không có trong yêu cầu.');
+  ctx.names.forEach(nm=>{if(nm&&nv.toLowerCase().indexOf(nm.toLowerCase())>=0)E.push(label+': chứa họ tên học sinh “'+nm+'” — chỉ được dùng biến {HoTen}.')});
+  if(BADWORD.test(t))E.push(label+': dùng từ ngữ xúc phạm/tiêu cực không phù hợp môi trường giáo dục.')}
+function validateGen(mode,c,ctx){
+  const E=[];let all='';
+  if(mode==='khen'){genText('Thành tích',c.thanhTich,ctx,{min:25,max:220,end:/[.]$/,endTxt:'dấu chấm'},E);all=c.thanhTich}
+  else if(mode==='tb'){
+    genText('Trích yếu',c.trichYeu,ctx,{min:12,max:120,end:/[^.;:,]$/,endTxt:'không kết thúc bằng dấu chấm'},E);
+    if(c.trichYeu&&!/^Về việc\s/.test(c.trichYeu))E.push('Trích yếu: phải bắt đầu bằng “Về việc”.');
+    if(c.noiDung.length<2||c.noiDung.length>5)E.push('Nội dung: cần từ 2 đến 5 đoạn (hiện có '+c.noiDung.length+').');
+    c.noiDung.forEach((x,i)=>genText('Đoạn '+(i+1),x,ctx,{min:30,max:340,end:/[.]$/,endTxt:'dấu chấm'},E));
+    if(c.noiDung.length&&!/phụ huynh/i.test(c.noiDung.join(' ')))E.push('Nội dung: phải có lời đề nghị/trao đổi với Quý phụ huynh.');
+    const k=c.noiDung.map(nd);if(new Set(k).size!==k.length)E.push('Nội dung: có đoạn bị trùng lặp.');
+    all=c.trichYeu+' '+c.noiDung.join(' ')}
+  else{
+    const NM={gioi:'Giỏi',kha:'Khá',tb:'Trung bình',yeu:'Yếu',none:'Chưa có điểm'};
+    Object.keys(NM).forEach(k=>{const t=c.band[k];genText('Nhận xét '+NM[k],t,ctx,{min:40,max:300,end:/[.]$/,endTxt:'dấu chấm'},E);if(!t)return;
+      if(!/(?<![\p{L}])em(?![\p{L}])/iu.test(t))E.push('Nhận xét '+NM[k]+': phải nói về “em” (học sinh).');
+      if((k==='gioi'||k==='kha')&&/(chưa đạt|yếu|kém|sa sút|lười|mất căn bản)/i.test(t))E.push('Nhận xét '+NM[k]+': có lời lẽ tiêu cực không phù hợp mức '+NM[k]+'.');
+      if(k==='gioi'&&!/(tốt|nắm vững|chủ động|tích cực|xuất sắc|giỏi)/i.test(t))E.push('Nhận xét Giỏi: thiếu lời ghi nhận ưu điểm.');
+      if(k==='yeu'){if(/(xuất sắc|rất tốt|tuyệt vời|giỏi)/i.test(t))E.push('Nhận xét Yếu: không được khen mức xuất sắc/giỏi.');if(!/(cần|đề nghị|mong)/i.test(t))E.push('Nhận xét Yếu: thiếu định hướng cố gắng/đề nghị phối hợp.')}
+      if(k==='none'){if(/\{(DTB|XepLoai)\}/.test(t))E.push('Nhận xét Chưa có điểm: không được dùng {DTB}/{XepLoai}.');if(!/(chưa|thiếu|hoàn thành)/i.test(t))E.push('Nhận xét Chưa có điểm: phải nêu em chưa đủ điểm/cần hoàn thành bài còn thiếu.')}});
+    const v=Object.values(c.band).filter(Boolean).map(nd);if(new Set(v).size!==v.length)E.push('Các mức nhận xét có đoạn giống hệt nhau.');
+    all=Object.values(c.band).join(' ')}
+  const kws=[...new Set(nd(ctx.yc).split(/[^a-z0-9]+/).filter(w=>w.length>=3&&!STOPKW.has(w)))];
+  if(kws.length){const have=new Set(nd(all.replace(/\{[^{}]*\}/g,' ')).split(/[^a-z0-9]+/));const hit=kws.filter(k=>have.has(k)).length,need=Math.min(mode==='nx'?1:2,kws.length);
+    if(hit<need)E.push('Nội dung chưa bám sát yêu cầu thầy/cô nhập (chỉ khớp '+hit+'/'+need+' từ khóa chính).')}
+  return E}
+function applyGen(cfg,mode,c){const o=Object.assign({},cfg);
+  if(mode==='khen')o.thanhTich=c.thanhTich;else if(mode==='tb'){o.trichYeu=c.trichYeu;o.noiDung=c.noiDung.join('\n')}else o.band=c.band;return o}
+function fitGen(mode,c,cfg,longest){
+  const o=applyGen(cfg,mode,c),ss=mode==='nx'?[9,7,5.5,3,null].map(d=>Object.assign({},longest,{dtb:d})):[longest];let worst=0,P=null;
+  ss.forEach(s=>{const pg=builders[mode](o,s,varsOf(s,o)),h=pageH(pg.descs,pg.P);if(h>worst){worst=h;P=pg.P}});
+  return worst>pageCap(P)*FILL?['Hình thức: nội dung quá dài — ước tính chiếm '+Math.round(worst/pageCap(P)*100)+'% trang, có thể tràn sang trang 2. Hãy viết ngắn gọn hơn.']:[]}
+function promptGen(mode,inp,prevErr){
+  const vars=inp.vars.map(x=>'{'+x+'}').join(' ');
+  const spec={
+    khen:'{"thanh_tich":"1 đến 2 câu nêu thành tích/danh hiệu đúng theo yêu cầu, bắt đầu bằng chữ in hoa (ví dụ: Đã đạt danh hiệu …), kết thúc bằng dấu chấm, dài 40 đến 180 ký tự. KHÔNG ghi tên học sinh (hệ thống in tên riêng)."}',
+    tb:'{"trich_yeu":"cụm bắt đầu bằng \\"Về việc \\", ngắn gọn, KHÔNG kết thúc bằng dấu chấm","noi_dung":["2 đến 4 đoạn, mỗi đoạn 1 đến 3 câu hoàn chỉnh kết thúc bằng dấu chấm; đoạn đầu nêu nội dung cần thông báo; đoạn cuối đề nghị Quý phụ huynh phối hợp hoặc liên hệ giáo viên"]}',
+    nx:'{"gioi":"…","kha":"…","trung_binh":"…","yeu":"…","chua_co_diem":"…"} — mỗi mục là 2 câu nhận xét dành cho học sinh ở mức tương ứng (Giỏi, Khá, Trung bình, Yếu, Chưa có điểm), bắt đầu bằng \\"Em …\\", dài 60 đến 250 ký tự, kết thúc bằng dấu chấm. Mức Yếu: giọng ân cần, động viên, không chê bai, đề nghị gia đình phối hợp. Mức Chưa có điểm: nêu em chưa đủ điểm để đánh giá, cần hoàn thành bài còn thiếu, KHÔNG dùng {DTB}/{XepLoai}.'}[mode];
+  return 'Bạn là giáo viên/cán bộ văn thư một trường THCS ở Việt Nam, soạn nội dung '+ROLE[mode]+' bằng văn phong trang trọng, chuẩn mực, đúng chính tả và đủ dấu tiếng Việt.\n'+
+  'THÔNG TIN:\n- Yêu cầu của giáo viên: '+inp.yc+'\n'+(inp.mon?'- Môn học: '+inp.mon+'\n':'')+(inp.nam?'- Năm học: '+inp.nam+'\n':'')+(inp.hocky?'- Học kì: '+(ROMAN[inp.hocky]||inp.hocky)+'\n':'')+
+  '\nCHỈ trả về DUY NHẤT một JSON (không markdown), đúng mẫu:\n'+spec+'\n'+
+  '\nQUY TẮC BẮT BUỘC:\n1. Để nhắc tên, lớp, điểm… của học sinh, CHỈ được dùng các biến sau, viết đúng nguyên dạng trong ngoặc nhọn: '+vars+'. Hệ thống sẽ thay bằng dữ liệu thật của từng học sinh. TUYỆT ĐỐI không dùng biến nào khác và không tự ghi họ tên ai.\n'+
+  '2. Không tự bịa số liệu, ngày, tháng, năm, giờ, địa điểm; chỉ dùng con số/ngày giờ có trong yêu cầu của giáo viên.\n'+
+  '3. Không dùng dấu “!”, dấu “…”, emoji, markdown, tiếng Anh, từ khẩu ngữ (nhé, nha, mình, bạn, tôi…); gọi học sinh là “em”, các bạn học sinh là “các em”.\n'+
+  '4. Ngắn gọn, mỗi câu bắt đầu bằng chữ in hoa, bám sát yêu cầu và dùng lại các từ khóa chính trong yêu cầu.\n'+
+  (prevErr&&prevErr.length?'\nLẦN SOẠN TRƯỚC BỊ LOẠI VÌ CÁC LỖI SAU — hãy sửa tất cả:\n'+prevErr.slice(0,12).map((e,i)=>(i+1)+'. '+e).join('\n')+'\n':'')}
+async function composeGen(mode,inp,ctx,cfg,longest,log){
+  const nm={khen:'giấy khen',tb:'thông báo',nx:'phiếu nhận xét'}[mode];let errs=[],last=null;
+  for(let k=1;k<=MAX_TRY;k++){
+    log('AI đang soạn '+nm+' — lần '+k+'/'+MAX_TRY+(errs.length?' (sửa '+errs.length+' lỗi của lần trước)':'')+'…');
+    let raw;try{raw=await geminiJSON(promptGen(mode,inp,errs))}catch(e){if(e.fatal)throw e;errs=['Lỗi gọi AI: '+e.message];continue}
+    let obj;try{obj=parseJsonLoose(raw)}catch(e){errs=['Kết quả AI không phải JSON hợp lệ.'];log('Lần '+k+': bị loại — kết quả không phải JSON.');continue}
+    const c=sanitizeGen(mode,obj);last=c;errs=validateGen(mode,c,ctx);
+    if(!errs.length)errs=fitGen(mode,c,cfg,longest);
+    if(!errs.length){log('Lần '+k+': ĐẠT toàn bộ tiêu chí nội dung và hình thức.');return{content:c,tries:k}}
+    log('Lần '+k+': bị loại ('+errs.length+' lỗi): '+errs.slice(0,3).join(' | ')+(errs.length>3?' …':'')+' → soạn lại.')}
+  const e=new Error('AI soạn '+MAX_TRY+' lần vẫn chưa đạt chuẩn nên KHÔNG xuất file.');e.errs=errs;e.last=last;throw e}
 
 /* ============================ 6. ĐỌC CẤU HÌNH TỪ GIAO DIỆN + KIỂM TRA ĐẦU VÀO ============================ */
 const S={books:[],students:[],meta:{},fileName:''};
@@ -343,7 +428,7 @@ function readCfg(selected){
     ['gioi','kha','tb','yeu','none'].forEach(k=>{cfg.band[k]=g('mm_nx_'+k).value.replace(/\r/g,'').trim();chk('Nhận xét '+k,cfg.band[k])});
     const need=new Set(selected.map(s=>bandKey(s.dtb)));need.forEach(k=>{if(cfg.band[k].length<15)E.push('Mẫu nhận xét “'+({gioi:'Giỏi',kha:'Khá',tb:'Trung bình',yeu:'Yếu',none:'Chưa có điểm'}[k])+'” quá ngắn hoặc để trống.')});
     if(selected.some(s=>s.dtb==null))W.push(selected.filter(s=>s.dtb==null).length+' học sinh chưa có ĐTB — dùng mẫu “Chưa có điểm”.')}
-  if(mode==='moi'){cfg.doiTuong=g('mm_moi_dt').value;cfg.purpose=v('mm_moi_md');cfg.note=v('mm_moi_gc');cfg.diaDiem=v('mm_moi_dd');
+  if(mode==='moi'){cfg.doiTuong=g('mm_moi_dt').value;cfg.purpose=v('mm_yc');cfg.note=v('mm_moi_gc');cfg.diaDiem=v('mm_moi_dd');
     if(cfg.purpose.length<15)E.push('Mục đích buổi mời quá ngắn (ít nhất 15 ký tự) — hãy mô tả rõ để AI bám sát.');
     if(cfg.diaDiem.length<4)E.push('Địa điểm quá ngắn.');
     const nh=parseISO(g('mm_moi_ngay').value),tm=/^(\d{2}):(\d{2})$/.exec(g('mm_moi_gio').value||'');
@@ -375,20 +460,21 @@ function buildUI(){
   '<div class="bar"><input type="file" id="mm_in" style="display:none"><button class="ghost" id="mm_pick" type="button">📁 Chọn file Excel (.xlsx / .xls)</button><span class="note" id="mm_fn" style="margin:0"></span></div>'+
   '<div id="mm_sheets"></div>'+
   '<label class="mmL">Loại văn bản</label><select id="mm_mode"><option value="khen">🏆 Giấy khen</option><option value="tb">📢 Thông báo (gửi phụ huynh)</option><option value="nx">📝 Phiếu nhận xét kết quả học tập</option><option value="moi">✉ Giấy mời (AI soạn + tự kiểm tra)</option></select>'+
+  '<div class="mmG"><label class="mmL"><b>✨ Yêu cầu của thầy/cô</b> — chỉ cần nhập ô này, AI sẽ tự viết nội dung, hệ thống tự kiểm tra rồi xuất file</label><textarea id="mm_yc" rows="3"></textarea><label class="note" id="mm_aiw" style="display:block;margin:4px 0"><input type="checkbox" id="mm_ai" checked> AI tự soạn và tự kiểm tra (bỏ chọn nếu muốn tự gõ nội dung)</label></div>'+
   '<details class="mmG" open><summary><b>🏫 Thông tin chung</b></summary>'+f('mm_coquan','Cơ quan chủ quản (viết hoa)','UBND XÃ BÁT TRÀNG')+f('mm_truong','Tên trường','')+f('mm_diadanh','Địa danh (nơi lập văn bản)','')+f('mm_ngaylap','Ngày lập văn bản',todayISO(),'date')+f('mm_chucvu','Chức vụ người ký','Hiệu trưởng')+f('mm_nguoiky','Họ tên người ký','')+f('mm_so','Số văn bản (tùy chọn, ví dụ 12/GM-THCS)','')+'</details>'+
-  '<div class="mmM" data-m="khen"><details class="mmG" open><summary><b>🏆 Giấy khen</b></summary>'+f('mm_khen_td','Tiêu đề','GIẤY KHEN')+ta('mm_khen_tt','Nội dung thành tích (dùng {NamHoc}, {HocKy}, {Lop}, {DTB}, {XepLoai}…)','Đã đạt danh hiệu Học sinh Xuất sắc Học kì {HocKy}, năm học {NamHoc}.',3)+'<div class="bar"><span class="note" style="margin:0">Chọn nhanh học sinh theo ĐTB ≥</span><input type="text" id="mm_thr" value="8" style="width:70px"><button class="sec sm" id="mm_selthr" type="button">Chọn</button></div></details></div>'+
-  '<div class="mmM" data-m="tb" style="display:none"><details class="mmG" open><summary><b>📢 Thông báo</b></summary>'+f('mm_tb_ty','Trích yếu','Về việc thông báo kết quả học tập học kì {HocKy}')+f('mm_tb_kg','Kính gửi','Quý phụ huynh em {HoTen}, học sinh lớp {Lop}')+ta('mm_tb_nd','Nội dung (mỗi dòng là một đoạn; dùng {HoTen}, {Lop}, {DTB}, {XepLoai}, {Mon}…)','Nhà trường xin thông báo: em {HoTen}, học sinh lớp {Lop}, có điểm trung bình môn {Mon} học kì {HocKy} là {DTB} ({XepLoai}).\nĐề nghị Quý phụ huynh quan tâm, nhắc nhở và phối hợp cùng nhà trường để giúp em học tập tốt hơn.\nMọi thông tin cần trao đổi, Quý phụ huynh vui lòng liên hệ giáo viên bộ môn.',6)+'</details></div>'+
-  '<div class="mmM" data-m="nx" style="display:none"><details class="mmG" open><summary><b>📝 Phiếu nhận xét</b></summary><label class="mmL"><input type="checkbox" id="mm_nx_dtb" checked> In điểm trung bình môn và xếp loại (Giỏi ≥ 8 · Khá ≥ 6,5 · Trung bình ≥ 5 · còn lại Yếu)</label>'+
-  ta('mm_nx_gioi','Nhận xét — Giỏi',DEF_BAND.gioi,3)+ta('mm_nx_kha','Nhận xét — Khá',DEF_BAND.kha,3)+ta('mm_nx_tb','Nhận xét — Trung bình',DEF_BAND.tb,3)+ta('mm_nx_yeu','Nhận xét — Yếu',DEF_BAND.yeu,3)+ta('mm_nx_none','Nhận xét — Chưa có điểm',DEF_BAND.none,3)+'</details></div>'+
+  '<div class="mmM" data-m="khen"><details class="mmG" open><summary><b>🏆 Giấy khen</b></summary>'+f('mm_khen_td','Tiêu đề','GIẤY KHEN')+'<div class="mmMan">'+ta('mm_khen_tt','Nội dung thành tích (dùng {NamHoc}, {HocKy}, {Lop}, {DTB}, {XepLoai}…)','Đã đạt danh hiệu Học sinh Xuất sắc Học kì {HocKy}, năm học {NamHoc}.',3)+'</div>'+'<div class="bar"><span class="note" style="margin:0">Chọn nhanh học sinh theo ĐTB ≥</span><input type="text" id="mm_thr" value="8" style="width:70px"><button class="sec sm" id="mm_selthr" type="button">Chọn</button></div></details></div>'+
+  '<div class="mmM" data-m="tb" style="display:none"><details class="mmG" open><summary><b>📢 Thông báo</b></summary><div class="mmMan">'+f('mm_tb_ty','Trích yếu','Về việc thông báo kết quả học tập học kì {HocKy}')+f('mm_tb_kg','Kính gửi','Quý phụ huynh em {HoTen}, học sinh lớp {Lop}')+ta('mm_tb_nd','Nội dung (mỗi dòng là một đoạn; dùng {HoTen}, {Lop}, {DTB}, {XepLoai}, {Mon}…)','Nhà trường xin thông báo: em {HoTen}, học sinh lớp {Lop}, có điểm trung bình môn {Mon} học kì {HocKy} là {DTB} ({XepLoai}).\nĐề nghị Quý phụ huynh quan tâm, nhắc nhở và phối hợp cùng nhà trường để giúp em học tập tốt hơn.\nMọi thông tin cần trao đổi, Quý phụ huynh vui lòng liên hệ giáo viên bộ môn.',6)+'</div></details></div>'+
+  '<div class="mmM" data-m="nx" style="display:none"><details class="mmG" open><summary><b>📝 Phiếu nhận xét</b></summary><label class="mmL"><input type="checkbox" id="mm_nx_dtb" checked> In điểm trung bình môn và xếp loại (Giỏi ≥ 8 · Khá ≥ 6,5 · Trung bình ≥ 5 · còn lại Yếu)</label><div class="mmMan">'+
+  ta('mm_nx_gioi','Nhận xét — Giỏi',DEF_BAND.gioi,3)+ta('mm_nx_kha','Nhận xét — Khá',DEF_BAND.kha,3)+ta('mm_nx_tb','Nhận xét — Trung bình',DEF_BAND.tb,3)+ta('mm_nx_yeu','Nhận xét — Yếu',DEF_BAND.yeu,3)+ta('mm_nx_none','Nhận xét — Chưa có điểm',DEF_BAND.none,3)+'</div></details></div>'+
   '<div class="mmM" data-m="moi" style="display:none"><details class="mmG" open><summary><b>✉ Giấy mời</b></summary><label class="mmL">Mời ai</label><select id="mm_moi_dt"><option value="ph">Phụ huynh học sinh (kính gửi theo tên từng em)</option><option value="hs">Học sinh</option></select>'+
-  ta('mm_moi_md','Mục đích / nội dung buổi mời (mô tả rõ để AI bám sát)','Họp phụ huynh học sinh cuối học kì I, thông báo kết quả học tập và rèn luyện, triển khai kế hoạch học kì II.',3)+f('mm_moi_ngay','Ngày họp','','date')+f('mm_moi_gio','Giờ họp','07:30','time')+f('mm_moi_dd','Địa điểm (ví dụ: Phòng học lớp 7A1)','','text')+ta('mm_moi_gc','Ghi chú thêm cho AI (tùy chọn: cần mang theo gì, ai tham dự…)','',2)+
+  f('mm_moi_ngay','Ngày họp','','date')+f('mm_moi_gio','Giờ họp','07:30','time')+f('mm_moi_dd','Địa điểm (ví dụ: Phòng học lớp 7A1)','','text')+ta('mm_moi_gc','Ghi chú thêm cho AI (tùy chọn: cần mang theo gì, ai tham dự…)','',2)+
   '<div class="note">Ngày, giờ, địa điểm, tên người nhận và chữ ký do hệ thống chèn đúng như bạn nhập — AI chỉ soạn phần lời văn. Bài AI soạn phải qua bộ kiểm tra nội dung (chính tả, văn phong, bám mục đích, không bịa số liệu) và kiểm tra hình thức (thể thức, vừa 1 trang); sai thì tự soạn lại tối đa '+MAX_TRY+' lần.</div></details></div>'+
   '<details class="mmG" open><summary><b>👥 Danh sách học sinh</b> <span id="mm_cnt" class="note" style="margin:0"></span></summary><div class="bar"><input type="text" id="mm_q" placeholder="Tìm theo tên…" style="flex:1"><button class="sec sm" id="mm_all" type="button">Chọn tất cả</button><button class="sec sm" id="mm_none" type="button">Bỏ chọn</button></div><div class="mmTb"><table><thead><tr><th></th><th>STT</th><th>Họ và tên</th><th>Lớp</th><th>ĐTB</th></tr></thead><tbody id="mm_tb"></tbody></table></div></details>'+
   '<div class="bar"><label class="note" style="margin:0"><input type="checkbox" id="mm_split"> Mỗi lớp một file (nén .zip)</label><button class="green" id="mm_run" type="button">📬 Kiểm tra &amp; Xuất file Word</button></div>'+
   '<div id="mm_st" class="status"></div><div id="mm_out"></div>';
   const tools=Array.from(t3.querySelectorAll('.wtool')),last=tools[tools.length-1];if(last)last.insertAdjacentElement('afterend',d);else t3.appendChild(d);
   const op=document.createElement('option');op.value='wtMail';op.textContent='📬 Trộn thư: Giấy khen · Thông báo · Nhận xét · Giấy mời (Excel → Word)';sel.insertBefore(op,sel.options[1]||null);
-  wire()}
+  wire();syncAI()}
 function renderList(){
   const q=nd(g('mm_q').value),rows=[];S.students.forEach((s,i)=>{if(q&&nd(s.ten).indexOf(q)<0)return;
     rows.push('<tr><td><input type="checkbox" data-i="'+i+'"'+(s.on?' checked':'')+'></td><td>'+hx(s.stt)+'</td><td>'+hx(titleCaseVi(s.ten))+'</td><td>'+hx(s.lop)+'</td><td>'+hx(s.dtb==null?'':fmtDTB(s.dtb))+'</td></tr>')});
@@ -415,7 +501,12 @@ async function onFile(f){
 function onMode(){const m=g('mm_mode').value;document.querySelectorAll('#wtMail .mmM').forEach(x=>x.style.display=x.dataset.m===m?'':'none');
   const cv=g('mm_chucvu'),ng=g('mm_nguoiky');
   if(!cv.dataset.edited)cv.value=m==='nx'?'Giáo viên bộ môn':m==='moi'?'Hiệu trưởng':'Hiệu trưởng';
-  if(m==='nx'&&S.meta.gv&&!ng.dataset.edited)ng.value=S.meta.gv;if(m!=='nx'&&!ng.dataset.edited&&ng.value===S.meta.gv)ng.value=''}
+  if(m==='nx'&&S.meta.gv&&!ng.dataset.edited)ng.value=S.meta.gv;if(m!=='nx'&&!ng.dataset.edited&&ng.value===S.meta.gv)ng.value='';syncAI()}
+function syncAI(){const m=g('mm_mode').value,on=g('mm_ai').checked||m==='moi';
+  document.querySelectorAll('#wtMail .mmMan').forEach(x=>x.style.display=on?'none':'');
+  g('mm_aiw').style.display=m==='moi'?'none':'block';
+  const PH={khen:'Ví dụ: Giấy khen cho học sinh đạt danh hiệu Học sinh Xuất sắc học kì I, chúc mừng và động viên các em tiếp tục phát huy.',tb:'Ví dụ: Thông báo kết quả học tập học kì I tới phụ huynh, đề nghị phụ huynh nhắc nhở con ôn tập và liên hệ giáo viên khi cần.',nx:'Ví dụ: Nhận xét môn học kì I, giọng ân cần, ghi nhận ưu điểm và nêu hướng cố gắng phù hợp từng mức điểm.',moi:'Ví dụ: Họp phụ huynh học sinh cuối học kì I, thông báo kết quả học tập và rèn luyện, triển khai kế hoạch học kì II.'};
+  g('mm_yc').placeholder=PH[m]}
 function wire(){
   g('mm_pick').onclick=()=>g('mm_in').click();
   g('mm_in').onchange=e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(f)onFile(f)};
@@ -425,16 +516,18 @@ function wire(){
   g('mm_all').onclick=()=>{S.students.forEach(s=>s.on=true);renderList()};g('mm_none').onclick=()=>{S.students.forEach(s=>s.on=false);renderList()};
   g('mm_selthr').onclick=()=>{const t=parseFloat(String(g('mm_thr').value).replace(',','.'));if(!isFinite(t)||t<0||t>10)return setSt('Ngưỡng ĐTB không hợp lệ (0–10).','e');
     let n=0;S.students.forEach(s=>{s.on=s.dtb!=null&&s.dtb>=t;if(s.on)n++});renderList();setSt('Đã chọn '+n+' học sinh có ĐTB ≥ '+String(t).replace('.',','),n?'o':'e')};
-  g('mm_run').onclick=run;
+  g('mm_run').onclick=run;g('mm_ai').onchange=syncAI;
 }
 const builders={khen:pageKhen,tb:pageThongBao,nx:pageNhanXet};
-let inviteCache=null;
+let inviteCache=null,aiCache=null;
 async function run(){
   const out=g('mm_out'),btn=g('mm_run');out.innerHTML='';
   if(typeof JSZip==='undefined')return setSt('Chưa tải được thư viện JSZip (cần mạng để tải từ cdnjs).','e');
   const sel0=S.students.filter(s=>s.on);if(!sel0.length)return setSt('Chưa chọn học sinh nào (hãy đưa file Excel lên và tick chọn học sinh).','e');
   const students=sel0.map(s=>Object.assign({},s,{ten:titleCaseVi(s.ten)}));
   const {cfg,E,W}=readCfg(students);
+  cfg.useAI=cfg.mode==='moi'||g('mm_ai').checked;cfg.yc=cs(g('mm_yc').value);
+  if(cfg.useAI&&cfg.mode!=='moi'){if(cfg.yc.length<15)E.push('Hãy nhập yêu cầu vào ô “✨ Yêu cầu của thầy/cô” (ít nhất 15 ký tự) để AI soạn nội dung.');cfg.thanhTich='';cfg.trichYeu='';cfg.noiDung='';cfg.band=null}
   /* kiểm tra dữ liệu học sinh */
   const seen=new Map(),dup=[];students.forEach(s=>{const k=nd(s.ten)+'|'+s.dob;if(seen.has(k))dup.push(s.ten);seen.set(k,1)});
   if(dup.length)W.push('Trùng họ tên và ngày sinh: '+[...new Set(dup)].join(', ')+' (kiểm tra có nhập trùng dòng không).');
@@ -457,6 +550,15 @@ async function run(){
         if(!errs.length&&pageH(pg.descs,pg.P)<=pageCap(pg.P)*FILL){invite=inviteCache.c;tries=inviteCache.tries;log('Dùng lại bản giấy mời đã soạn và đã đạt kiểm tra (nội dung yêu cầu không đổi).')}}
       if(!invite){const r=await composeInvite({subj:cfg.subj,audience:cfg.doiTuong,purpose:cfg.purpose,note:cfg.note,nam:cfg.nam},ctx,sample,log);invite=r.content;tries=r.tries;inviteCache={key,c:invite,tries}}
     }
+    if(cfg.mode!=='moi'&&cfg.useAI){
+      const vars=allowedVars(cfg,cfg.mode,students);
+      const ctx={yc:cfg.yc,vars,cfg,nums:new Set((cfg.yc+' '+cfg.nam+' '+cfg.hocky).match(/\d+/g)||[]),names:S.students.map(s=>titleCaseVi(s.ten))};
+      const longest=students.reduce((a,b)=>b.ten.length>a.ten.length?b:a,students[0]);
+      const key=JSON.stringify([cfg.mode,cfg.yc,vars,cfg.nam,cfg.hocky,cfg.mon]);let gen=null;
+      if(aiCache&&aiCache.key===key){const errs=validateGen(cfg.mode,aiCache.c,ctx).concat(fitGen(cfg.mode,aiCache.c,cfg,longest));
+        if(!errs.length){gen=aiCache.c;tries=aiCache.tries;log('Dùng lại bản đã soạn và đã đạt kiểm tra (yêu cầu không đổi).')}}
+      if(!gen){const r=await composeGen(cfg.mode,{yc:cfg.yc,vars,mon:cfg.mon,nam:cfg.nam,hocky:cfg.hocky},ctx,cfg,longest,log);gen=r.content;tries=r.tries;aiCache={key,c:gen,tries}}
+      Object.assign(cfg,applyGen(cfg,cfg.mode,gen))}
     /* dựng từng trang */
     log('Đang dựng '+students.length+' trang…');await tick();
     const mk=s=>{const v=varsOf(s,cfg);return cfg.mode==='moi'?pageMoi(cfg,s,v,invite):builders[cfg.mode](cfg,s,v)};
@@ -474,7 +576,7 @@ async function run(){
       if(!oks.length)ck.ok.forEach(x=>oks.push(x));
       files.push({name:base+(k==='all'?'':'_'+fileSafe(k))+'_'+pg.length+'HS.docx',data:bytes,n:pg.length});if(!first)first=pg[0]}
     const card=document.createElement('div');card.className='mmRes';
-    let h='✅ <b>Đã tạo '+pages.length+' trang ('+pages.length+' học sinh)</b> — đã qua kiểm tra:<ul>'+oks.map(x=>'<li>'+hx(x)+'</li>').join('')+'<li>Không tràn trang (ước tính ≤ '+Math.round(FILL*100)+'% chiều cao trang)</li>'+(cfg.mode==='moi'?'<li>Giấy mời: AI soạn đạt chuẩn ở lần '+tries+'/'+MAX_TRY+' (nội dung, chính tả, văn phong, bám mục đích, không bịa ngày giờ/địa điểm/tên)</li><li>Ngày tháng theo Nghị định 30/2020: '+hx(cfg.ngayLap)+'; thời gian họp: '+hx(cfg.thoiGian)+'</li>':'')+'</ul>';
+    let h='✅ <b>Đã tạo '+pages.length+' trang ('+pages.length+' học sinh)</b> — đã qua kiểm tra:<ul>'+oks.map(x=>'<li>'+hx(x)+'</li>').join('')+'<li>Không tràn trang (ước tính ≤ '+Math.round(FILL*100)+'% chiều cao trang)</li>'+(cfg.mode!=='moi'&&cfg.useAI?'<li>AI soạn đạt chuẩn ở lần '+tries+'/'+MAX_TRY+' (nội dung, chính tả, văn phong, bám yêu cầu, không bịa số liệu/tên)</li>':'')+(cfg.mode==='moi'?'<li>Giấy mời: AI soạn đạt chuẩn ở lần '+tries+'/'+MAX_TRY+' (nội dung, chính tả, văn phong, bám mục đích, không bịa ngày giờ/địa điểm/tên)</li><li>Ngày tháng theo Nghị định 30/2020: '+hx(cfg.ngayLap)+'; thời gian họp: '+hx(cfg.thoiGian)+'</li>':'')+'</ul>';
     if(W.length)h+='<div>⚠ <b>Lưu ý:</b><ul>'+W.map(x=>'<li>'+hx(x)+'</li>').join('')+'</ul></div>';
     h+='<div class="note" style="margin:4px 0">Xem trước trang 1 ('+hx(first.ten)+'):</div><div class="mmPv">'+hx(first.descs.map(descText).filter(x=>x.trim()).join('\n'))+'</div>';
     card.innerHTML=h;
@@ -486,6 +588,6 @@ async function run(){
     const list=e.errs&&e.errs.length?e.errs:[];setSt('❌ '+e.message,'e');
     const lg=document.getElementById('mm_log');const lh=lg?lg.outerHTML:'';out.innerHTML=lh+'<div class="mmRes"><b>❌ '+hx(e.message)+'</b>'+(list.length?'<div>Lỗi còn lại ở lần soạn cuối:</div><ul>'+list.slice(0,10).map(x=>'<li>'+hx(x)+'</li>').join('')+'</ul><div class="note">Gợi ý: mô tả mục đích cụ thể hơn, rút gọn ghi chú rồi bấm lại.</div>':'')+'</div>'}
   btn.disabled=false}
-window.MailMerge={version:VERSION,parseAoa,titleCaseVi,validateInvite,sanitizeInvite,checkText,buildDocx,checkDocx,pageKhen,pageThongBao,pageNhanXet,pageMoi,pageH,pageCap,ngayThang,parseISO,xepLoai,fill,tplUnknown,_S:S};
+window.MailMerge={version:VERSION,validateGen,sanitizeGen,fitGen,allowedVars,parseAoa,titleCaseVi,validateInvite,sanitizeInvite,checkText,buildDocx,checkDocx,pageKhen,pageThongBao,pageNhanXet,pageMoi,pageH,pageCap,ngayThang,parseISO,xepLoai,fill,tplUnknown,_S:S};
 buildUI();
 })();
