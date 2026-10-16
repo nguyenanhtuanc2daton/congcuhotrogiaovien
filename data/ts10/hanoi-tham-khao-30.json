@@ -1,0 +1,274 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK30",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 30)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_30_NINH_THỊ_LOAN__2_.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK30-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk30-c1-bieudo.png",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D2",
+   "dang_phu": [
+    "L9-C7-D3"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Một ngân hàng thống kê số tiền (đơn vị: triệu đồng) mà $80$ hộ gia đình vay để phát triển sản xuất. Số liệu được ghi lại trong biểu đồ tần số ghép nhóm ở Hình 1. Lập bảng tần số tương đối ghép nhóm của mẫu số liệu ghép nhóm đó.",
+   "bang": {
+    "tieu_de": [
+     "Nhóm (triệu đồng)",
+     "[40;50)",
+     "[50;60)",
+     "[60;70)",
+     "[70;80)",
+     "[80;90)",
+     "[90;100)"
+    ],
+    "hang": [
+     [
+      "Tần số",
+      "10",
+      "15",
+      "17",
+      "25",
+      "8",
+      "5"
+     ]
+    ]
+   },
+   "dapan": "Tần số tương đối (%): 12,5; 18,75; 21,25; 31,25; 10; 6,25",
+   "loigiai": "Tổng $80$ hộ. Tần số tương đối: $\\frac{10}{80}=12{,}5\\%$; $\\frac{15}{80}=18{,}75\\%$; $\\frac{17}{80}=21{,}25\\%$; $\\frac{25}{80}=31{,}25\\%$; $\\frac8{80}=10\\%$; $\\frac5{80}=6{,}25\\%$."
+  },
+  {
+   "id": "TS10-HN-TK30-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Một hộp có chứa ba viên bi vàng lần lượt ghi các số $1;2;3$ và hai viên bi nâu lần lượt ghi các số $4;5$. Các viên bi có kích thước và khối lượng như nhau. Lấy ngẫu nhiên đồng thời hai viên bi trong hộp. Tính xác suất của biến cố: “Hai viên bi được lấy ra khác màu”.",
+   "dapan": "$\\frac35$",
+   "loigiai": "$\\Omega=\\{(1;2),(1;3),(1;4),(1;5),(2;3),(2;4),(2;5),(3;4),(3;5),(4;5)\\}$, $10$ phần tử. Khác màu: $(1;4),(1;5),(2;4),(2;5),(3;4),(3;5)$ ($6$ kết quả). $P=\\frac6{10}=\\frac35$."
+  },
+  {
+   "id": "TS10-HN-TK30-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $P=\\dfrac{3\\sqrt{x}}{\\sqrt{x}+2}+\\dfrac{\\sqrt{x}}{2-\\sqrt{x}}+\\dfrac{8\\sqrt{x}}{x-4}$ và $Q=\\dfrac1{\\sqrt{x}+2}$ (với $x\\ge0;\\ x\\neq4$).",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $Q$ khi $x=9$.",
+     "dapan": "$Q=\\frac15$",
+     "loigiai": "$Q=\\frac1{3+2}=\\frac15$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Rút gọn biểu thức $P$.",
+     "dapan": "$P=\\frac{2x}{x-4}$",
+     "loigiai": "$P=\\frac{3\\sqrt{x}(\\sqrt{x}-2)-\\sqrt{x}(\\sqrt{x}+2)+8\\sqrt{x}}{(\\sqrt{x}-2)(\\sqrt{x}+2)}=\\frac{2x}{(\\sqrt{x}-2)(\\sqrt{x}+2)}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Biết $M=\\dfrac PQ$; tìm các giá trị của $x$ để $M=18$.",
+     "dapan": "$x\\in\\{9;36\\}$",
+     "loigiai": "$M=\\frac{2x}{(\\sqrt{x}-2)(\\sqrt{x}+2)}\\cdot(\\sqrt{x}+2)=\\frac{2x}{\\sqrt{x}-2}$. $M=18\\Leftrightarrow x-9\\sqrt{x}+18=0\\Leftrightarrow(\\sqrt{x}-3)(\\sqrt{x}-6)=0$, được $x=9$ hoặc $x=36$ (thỏa mãn)."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK30-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Trong một thí nghiệm, Bình muốn pha để được $36$ ml dung dịch HCl nồng độ $12\\%$. Trong phòng thí nghiệm chỉ có sẵn dung dịch HCl nồng độ $8\\%$ và dung dịch HCl nồng độ $20\\%$. Hỏi Bình cần sử dụng bao nhiêu mililit mỗi loại dung dịch để có được dung dịch mong muốn?",
+   "dapan": "24 ml dung dịch 8% và 12 ml dung dịch 20%",
+   "loigiai": "Gọi lượng dung dịch $8\\%$ và $20\\%$ là $x,y$ (ml). $\\begin{cases}x+y=36\\\\0{,}08x+0{,}2y=0{,}12\\cdot36=4{,}32\\end{cases}\\Rightarrow x=24,\\ y=12$."
+  },
+  {
+   "id": "TS10-HN-TK30-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một ô tô dự định đi từ $A$ đến $B$ cách nhau $120$ km trong một thời gian quy định. Sau khi đi được $1$ giờ thì ô tô bị chặn bởi xe cứu hỏa $10$ phút. Do đó để đến $B$ đúng hạn xe phải tăng vận tốc thêm $6$ km/h. Tính vận tốc lúc đầu của ô tô.",
+   "dapan": "48 km/h",
+   "loigiai": "Gọi vận tốc ban đầu là $x$ (km/h), $x>0$. $1+\\frac16+\\frac{120-x}{x+6}=\\frac{120}{x}\\Leftrightarrow x^2+42x-4320=0\\Leftrightarrow(x-48)(x+90)=0$, được $x=48$ (nhận), $x=-90$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK30-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $-\\sqrt2x^2+2x+3=0$ có $2$ nghiệm phân biệt là $x_1,x_2$. Không giải phương trình, hãy tính giá trị của biểu thức $A=\\dfrac{x_2+1}{1-x_1}+\\dfrac{x_1+1}{1-x_2}$.",
+   "dapan": "$A=\\frac{30+6\\sqrt2}{23}$ (đáp án tôi tính lại; file gốc ghi $\\frac32$)",
+   "loigiai": "$\\Delta=4+12\\sqrt2>0$. Viète: $S=x_1+x_2=\\frac{-2}{-\\sqrt2}=\\sqrt2$, $P=x_1x_2=\\frac{3}{-\\sqrt2}=-\\frac{3\\sqrt2}2$. $A=\\frac{(1-x_2^2)+(1-x_1^2)}{(1-x_1)(1-x_2)}=\\frac{2-(S^2-2P)}{1-S+P}=\\frac{2-(2+3\\sqrt2)}{1-\\sqrt2-\\frac{3\\sqrt2}2}=\\frac{-3\\sqrt2}{\\frac{2-5\\sqrt2}2}=\\frac{6\\sqrt2}{5\\sqrt2-2}=\\frac{30+6\\sqrt2}{23}$. (Kiểm tra số: $x_1\\approx2{,}33$, $x_2\\approx-0{,}91$, $A\\approx1{,}673$.)",
+   "ghi_chu": "CẦN DUYỆT: lời giải gốc tính S = −b/a = 1/√2 (đúng phải là √2) rồi kết luận A = 3/2. Tôi tính lại và kiểm tra bằng số: A ≈ 1,673 = (30 + 6√2)/23."
+  },
+  {
+   "id": "TS10-HN-TK30-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk30-c4-1.png",
+   "can_duyet": true,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D3",
+   "dang_phu": [
+    "L9-C10-D1",
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VD",
+   "noidung": "Để làm thí nghiệm về sự nổi của các vật thể, Minh chuẩn bị một cái cốc thủy tinh có dạng lòng trong hình trụ có đường kính đáy $6$ cm và chiều cao là $10$ cm; một quả bóng bàn tiêu chuẩn của các giải đấu quốc tế có dạng hình cầu đường kính $40$ mm. Minh bỏ quả bóng bàn vào trong cốc, rót từ từ $200\\ \\text{cm}^3$ nước và đo được mực nước dâng lên cao $7{,}2$ cm. (Lấy $\\pi\\approx3{,}14$ và các kết quả làm tròn đến chữ số thập phân thứ hai.)",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Tính thể tích của quả bóng bàn.",
+     "dapan": "$\\approx33{,}49\\ \\text{cm}^3$ (dùng $\\pi=3{,}14$)",
+     "loigiai": "$R=2$ cm, $V=\\frac43\\pi R^3=\\frac{32}3\\pi\\approx33{,}49\\ \\text{cm}^3$ (với $\\pi$ của máy tính: $33{,}51$)."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Tính tỉ lệ phần trăm thể tích phần nổi của quả bóng bàn trong thí nghiệm trên.",
+     "dapan": "$\\approx89{,}63\\%$ (đáp án tôi tính lại)",
+     "loigiai": "Thể tích nước và phần chìm trong cốc: $\\pi\\cdot3^2\\cdot7{,}2\\approx203{,}47\\ \\text{cm}^3$. Phần chìm của bóng: $203{,}47-200=3{,}47\\ \\text{cm}^3$. Phần nổi: $33{,}49-3{,}47=30{,}02\\ \\text{cm}^3$. Tỉ lệ: $\\frac{30{,}02}{33{,}49}\\approx89{,}63\\%$."
+    }
+   ],
+   "ghi_chu": "CẦN DUYỆT: lời giải gốc ra phần nổi ≈ 16,53 cm³ và tỉ lệ ≈ 49,33%, nhưng phép tính 33,51 − 3,58 cho phần nổi ≈ 29,9 cm³ (≈ 89%); con số 16,53 không suy ra được từ các số liệu đã nêu."
+  },
+  {
+   "id": "TS10-HN-TK30-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk30-c4-2.png",
+   "can_duyet": false,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho tam giác $ABC$ có ba góc nhọn nội tiếp đường tròn $(O)$, kẻ đường cao $BE$ của $\\triangle ABC$. Gọi $H$ và $K$ lần lượt là các chân đường vuông góc kẻ từ $E$ đến $AB$ và $BC$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh tứ giác $BHEK$ là tứ giác nội tiếp.",
+     "dapan": "",
+     "loigiai": "$\\widehat{BHE}=\\widehat{BKE}=90^\\circ$ nên $\\widehat{BHE}+\\widehat{BKE}=180^\\circ$, tứ giác $BHEK$ nội tiếp (đường tròn đường kính $BE$)."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh: $BH\\cdot BA=BK\\cdot BC$.",
+     "dapan": "",
+     "loigiai": "$\\triangle BEC$ và $\\triangle BKE$ có $\\widehat{BEC}=\\widehat{BKE}=90^\\circ$, $\\widehat{B}$ chung nên $\\triangle BEC\\backsim\\triangle BKE$ (g.g), $\\frac{BE}{BK}=\\frac{BC}{BE}$, tức $BE^2=BK\\cdot BC$ (1). Tương tự $BE^2=BH\\cdot BA$ (2). Từ (1),(2): $BH\\cdot BA=BK\\cdot BC$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Kẻ đường cao $CF$ của tam giác $ABC$ ($F\\in AB$) và $I$ là trung điểm của $EF$. Chứng minh ba điểm $H,I,K$ thẳng hàng.",
+     "dapan": "",
+     "loigiai": "$BHEK$ nội tiếp nên $\\widehat{BHK}=\\widehat{BEK}$ (3). $\\triangle ABEC$: $EK\\perp BC$ nên $\\widehat{BEK}=\\widehat{ECB}$ (cùng phụ $\\widehat{KEC}$) (4). $B,F,E,C$ cùng thuộc đường tròn đường kính $BC$ nên $BFEC$ nội tiếp, $\\widehat{ECB}=\\widehat{HFE}$ (cùng bù $\\widehat{BFE}$) (5). $\\triangle FHE$ vuông tại $H$ có $HI$ là trung tuyến nên $HI=IF$, $\\triangle HIF$ cân tại $I$: $\\widehat{HFE}=\\widehat{FHI}$ (6). Từ (3),(4),(5),(6): $\\widehat{BHK}=\\widehat{FHI}$, do đó $H,I,K$ thẳng hàng."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK30-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D1",
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Một công ty du lịch dự định tổ chức một tour du lịch xuyên Việt nhân kỉ niệm ngày giải phóng hoàn toàn miền Nam $30-4$. Công ty dự định nếu giá tour là $2$ triệu đồng thì sẽ có khoảng $200$ người tham gia. Để thu hút nhiều người tham gia, công ty sẽ quyết định giảm giá và cứ mỗi lần giảm giá $100$ nghìn đồng/$1$ tour thì sẽ có thêm $20$ người tham gia. Hỏi công ty phải giảm giá tour còn bao nhiêu để doanh thu từ tour xuyên Việt đó là lớn nhất.",
+   "dapan": "Giá tour còn 1 500 000 đồng (giảm 5 lần); doanh thu lớn nhất 450 000 000 đồng",
+   "loigiai": "Gọi số lần giảm giá $100\\,000$ đồng là $x$. Giá tour: $2\\,000\\,000-100\\,000x$; số người: $200+20x$. Doanh thu $S=(2\\,000\\,000-100\\,000x)(200+20x)=2\\,000\\,000(-x^2+10x+200)=2\\,000\\,000\\left[225-(x-5)^2\\right]\\le450\\,000\\,000$. Dấu bằng khi $x=5$: giá tour $2\\,000\\,000-500\\,000=1\\,500\\,000$ đồng."
+  }
+ ]
+}

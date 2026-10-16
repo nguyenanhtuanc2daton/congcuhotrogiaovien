@@ -1,0 +1,328 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK29",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 29, bản nháp)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_29_Nguyễn_Thanh_Hà__1_.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK29-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Cân nặng của các bạn học sinh lớp $9A$ (đơn vị: ki-lô-gam) có kết quả như bảng sau. Mẫu số liệu thống kê trên đã được ghép thành năm nhóm ứng với năm nửa khoảng: $[50;55)$, $[55;60)$, $[60;65)$, $[65;70)$, $[70;75)$. Lập bảng tần số ghép nhóm của mẫu số liệu ghép nhóm ở trên.",
+   "bang": {
+    "tieu_de": [
+     "#",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5",
+     "6",
+     "7",
+     "8",
+     "9",
+     "10"
+    ],
+    "hang": [
+     [
+      "Hàng 1",
+      "62",
+      "59",
+      "68",
+      "53",
+      "50",
+      "57",
+      "72",
+      "65",
+      "62",
+      "58"
+     ],
+     [
+      "Hàng 2",
+      "69",
+      "53",
+      "64",
+      "67",
+      "72",
+      "74",
+      "63",
+      "56",
+      "66",
+      "66"
+     ],
+     [
+      "Hàng 3",
+      "62",
+      "52",
+      "65",
+      "69",
+      "60",
+      "52",
+      "65",
+      "63",
+      "74",
+      "68"
+     ],
+     [
+      "Hàng 4",
+      "59",
+      "68",
+      "64",
+      "69",
+      "56",
+      "72",
+      "67",
+      "58",
+      "62",
+      "60"
+     ]
+    ]
+   },
+   "dapan": "Theo đáp án gốc: 4; 7; 11; 13; 5 (tổng 40). Tôi đếm: 5; 7; 10; 13; 5",
+   "loigiai": "Đếm số học sinh có cân nặng thuộc từng nhóm [50;55), [55;60), [60;65), [65;70), [70;75).",
+   "ghi_chu": "CẦN DUYỆT: đếm lại từ bảng số liệu tôi được tần số 5; 7; 10; 13; 5 (tổng 40), đáp án gốc ghi 4; 7; 11; 13; 5. Một số ô tôi đọc từ ảnh nên bạn đối chiếu số liệu gốc."
+  },
+  {
+   "id": "TS10-HN-TK29-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Một hộp đựng $20$ tấm thẻ như nhau được đánh số từ $1$ đến $20$. Rút ngẫu nhiên một tấm thẻ trong hộp. Tính xác suất của biến cố $A$: “Số ghi trên tấm thẻ là bội của $4$”.",
+   "dapan": "$\\frac14$",
+   "loigiai": "Các kết quả thuận lợi: $4;8;12;16;20$ ($5$ kết quả). $P(A)=\\frac5{20}=\\frac14$."
+  },
+  {
+   "id": "TS10-HN-TK29-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{\\sqrt{x}-1}{\\sqrt{x}-3}$ và $B=\\dfrac{2\\sqrt{x}}{\\sqrt{x}-2}-\\dfrac{\\sqrt{x}+2}{\\sqrt{x}-3}+\\dfrac{6\\sqrt{x}-8}{x-5\\sqrt{x}+6}$ với $x\\ge0,\\ x\\neq4,\\ x\\neq9$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của $A$ khi $x=16$.",
+     "dapan": "$A=3$",
+     "loigiai": "$A=\\frac{4-1}{4-3}=3$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $B=\\dfrac{\\sqrt{x}+2}{\\sqrt{x}-3}$.",
+     "dapan": "",
+     "loigiai": "$B=\\frac{2\\sqrt{x}(\\sqrt{x}-3)-(\\sqrt{x}+2)(\\sqrt{x}-2)+6\\sqrt{x}-8}{(\\sqrt{x}-3)(\\sqrt{x}-2)}=\\frac{x-4}{(\\sqrt{x}-3)(\\sqrt{x}-2)}=\\frac{\\sqrt{x}+2}{\\sqrt{x}-3}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Cho $P=A:B$. Tìm $x$ để $P<\\dfrac12$.",
+     "dapan": "$0\\le x<16$, $x\\neq4$, $x\\neq9$",
+     "loigiai": "$P=\\frac{\\sqrt{x}-1}{\\sqrt{x}-3}\\cdot\\frac{\\sqrt{x}-3}{\\sqrt{x}+2}=\\frac{\\sqrt{x}-1}{\\sqrt{x}+2}<\\frac12\\Leftrightarrow2\\sqrt{x}-2<\\sqrt{x}+2\\Leftrightarrow\\sqrt{x}<4$. Kết hợp điều kiện: $0\\le x<16$, $x\\neq4$, $x\\neq9$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK29-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Nhân dịp Khai giảng đầu năm học, bạn Minh được mẹ đưa đi siêu thị điện máy Pico để mua điện thoại, laptop chuẩn bị bước vào cấp $3$. Giá niêm yết một chiếc laptop Dell và một chiếc Iphone 12 Pro max có tổng số tiền là $30$ triệu đồng. Siêu thị giảm giá nhiều mặt hàng để ưu đãi cho học sinh, sinh viên, chiếc laptop Dell giảm $30\\%$ giá bán và giá một chiếc Iphone 12 Pro max giảm $20\\%$ giá bán nên Minh đã mua một chiếc laptop Dell và một chiếc Iphone 12 Pro max trên với tổng số tiền là $22$ triệu đồng. Hỏi giá mỗi món đồ trên khi chưa giảm giá là bao nhiêu tiền?",
+   "dapan": "Laptop Dell: 20 triệu đồng; Iphone 12 Pro max: 10 triệu đồng (đáp án tôi tự giải)",
+   "loigiai": "Gọi giá niêm yết laptop, Iphone là $x,y$ (triệu đồng). $\\begin{cases}x+y=30\\\\0{,}7x+0{,}8y=22\\end{cases}\\Rightarrow x=20,\\ y=10$.",
+   "ghi_chu": "CẦN DUYỆT: lời giải trong file gốc ở câu III.1 là của một bài khác (hai người cùng làm một công việc, 15 ngày), không khớp đề laptop/Iphone (đề đã được thay theo ghi chú của người soạn). Tôi tự giải lại."
+  },
+  {
+   "id": "TS10-HN-TK29-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một cơ sở sản xuất lập kế hoạch làm $600$ sản phẩm trong một thời gian nhất định. Do cải tiến kĩ thuật, năng suất mỗi ngày tăng $10$ sản phẩm. Vì thế không những hoàn thành sớm hơn kế hoạch $1$ ngày, mà còn vượt mức $100$ sản phẩm. Hỏi theo kế hoạch mỗi ngày phải làm bao nhiêu sản phẩm. (Giả định rằng số sản phẩm mà công nhân đó làm được trong mỗi ngày là bằng nhau).",
+   "dapan": "40 sản phẩm mỗi ngày",
+   "loigiai": "Gọi số sản phẩm làm mỗi ngày theo kế hoạch là $x$ ($x\\in\\mathbb{N}^*$). Thực tế làm $700$ sản phẩm với $x+10$ sản phẩm/ngày. $\\frac{600}{x}-\\frac{700}{x+10}=1\\Leftrightarrow x^2+110x-6000=0$, được $x=40$ (nhận), $x=-150$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK29-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_phu": [
+    "L9-C3-D2"
+   ],
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Biết rằng phương trình bậc hai $x^2-2x+m=0$ có một nghiệm là $x=\\dfrac{2}{\\sqrt3-1}$. Tính tổng nghịch đảo bình phương hai nghiệm của phương trình trên.",
+   "dapan": "2",
+   "loigiai": "$x=\\frac{2(\\sqrt3+1)}{3-1}=\\sqrt3+1$. Thay vào phương trình: $m=-2$. Viète: $x_1+x_2=2$, $x_1x_2=-2$. $\\frac1{x_1^2}+\\frac1{x_2^2}=\\frac{(x_1+x_2)^2-2x_1x_2}{(x_1x_2)^2}=\\frac{4+4}{4}=2$."
+  },
+  {
+   "id": "TS10-HN-TK29-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk29-c4-1.png",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D3",
+   "dang_phu": [
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Trái Đất, hành tinh chúng ta đang sống, dạng hình cầu có bán kính là $6370$ km. Biết rằng $29\\%$ diện tích bề mặt Trái Đất không bị bao phủ bởi nước bao gồm núi, sa mạc, cao nguyên, đồng bằng và các địa hình khác. (Lấy $\\pi\\approx3{,}14$; kết quả làm tròn đến chữ số hàng đơn vị.)",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Tính diện tích của bề mặt Trái Đất.",
+     "dapan": "$\\approx509\\,645\\,864\\ \\text{km}^2$",
+     "loigiai": "$S=4\\pi R^2=4\\cdot3{,}14\\cdot6370^2\\approx509\\,645\\,864\\ \\text{km}^2$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Tính diện tích bề mặt Trái Đất bị bao phủ bởi nước.",
+     "dapan": "$\\approx361\\,848\\,563\\ \\text{km}^2$",
+     "loigiai": "Phần bị bao phủ bởi nước chiếm $100\\%-29\\%=71\\%$: $0{,}71\\cdot509\\,645\\,864\\approx361\\,848\\,563\\ \\text{km}^2$."
+    }
+   ],
+   "ghi_chu": "Đề 29 là bản nháp: có chữ đỏ ghi chú của người soạn (đề nghị thay bài toán, đổi dạng bài)."
+  },
+  {
+   "id": "TS10-HN-TK29-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk29-c4-2.png",
+   "can_duyet": false,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho hình vuông $ABCD$ có độ dài cạnh bằng $4$ cm. Vẽ đường tròn tâm $O$ đường kính $AD$; kẻ $BM$ là tiếp tuyến của đường tròn tâm $O$ ($M$ là tiếp điểm, $M\\neq A$), $BM$ cắt $CD$ tại $K$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $4$ điểm $A,B,M,O$ cùng thuộc một đường tròn.",
+     "dapan": "",
+     "loigiai": "$\\triangle ABO$ vuông tại $A$ nên $A$ thuộc đường tròn đường kính $BO$. $BM$ là tiếp tuyến tại $M$ nên $BM\\perp OM$, $\\triangle MBO$ vuông tại $M$ nên $M$ cũng thuộc đường tròn đường kính $BO$. Vậy $A,B,M,O$ cùng thuộc đường tròn đường kính $BO$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh $OB\\perp OK$ và $BM\\cdot MK=\\dfrac{AB^2}{4}$.",
+     "dapan": "",
+     "loigiai": "$BA,BM$ là hai tiếp tuyến cắt nhau nên $OB$ là phân giác $\\widehat{AOM}$; $KD,KM$ là hai tiếp tuyến cắt nhau nên $OK$ là phân giác $\\widehat{DOM}$. Hai góc $\\widehat{AOM}$, $\\widehat{DOM}$ kề bù nên $OB\\perp OK$. $\\triangle OBK$ vuông tại $O$, $OM\\perp BK$ nên $BM\\cdot MK=OM^2=OA^2=\\frac{AB^2}4$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Đường thẳng $AM$ cắt $CD$ tại $E$. Chứng minh $K$ là trung điểm của đoạn thẳng $ED$ và tính chu vi của tứ giác $ABKD$.",
+     "dapan": "Chu vi $=14$ cm",
+     "loigiai": "$\\triangle BAM$ cân tại $B$ nên $\\widehat{BAM}=\\widehat{BMA}$; $\\widehat{KEM}=\\widehat{BAM}$ (so le trong), $\\widehat{BMA}=\\widehat{KME}$ (đối đỉnh), nên $\\triangle KEM$ cân tại $K$: $KE=KM$. Mà $KD=KM$ (hai tiếp tuyến) nên $KE=KD$: $K$ là trung điểm $ED$. Ta có $BM=BA=4$, $BM\\cdot MK=4\\Rightarrow MK=1$, $KD=1$, $KB=BM+MK=5$. Chu vi $ABKD=AB+AD+KB+KD=4+4+5+1=14$ cm."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK29-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk29-c5.png",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C2",
+   "dang": "L9-C2-D2",
+   "dang_phu": [
+    "L7-C10-D3"
+   ],
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Một miếng tôn phẳng hình vuông với kích thước $a$ (cm), người ta muốn cắt đi ở bốn góc bốn hình vuông cạnh bằng $x$ (cm) để uốn thành một hình hộp chữ nhật không có nắp. Phải cắt như thế nào để hình hộp có thể tích lớn nhất?",
+   "dapan": "$x=\\frac a6$ (cm); thể tích lớn nhất $\\frac{2a^3}{27}$",
+   "loigiai": "Hộp có đáy là hình vuông cạnh $a-2x$, chiều cao $x$ ($0<x<\\frac a2$): $V=x(a-2x)^2=\\frac14\\cdot4x(a-2x)(a-2x)\\le\\frac14\\left(\\frac{4x+a-2x+a-2x}{3}\\right)^3=\\frac14\\cdot\\frac{8a^3}{27}=\\frac{2a^3}{27}$ (Cô-si cho ba số dương). Dấu bằng khi $4x=a-2x$, tức $x=\\frac a6$."
+  }
+ ]
+}

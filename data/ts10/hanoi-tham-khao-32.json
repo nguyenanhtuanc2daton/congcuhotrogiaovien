@@ -1,0 +1,277 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK32",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 32)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_32_PHẠM_THỊ_THU_HƯƠNG.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK32-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk32-c1-bieudo.png",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D2"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Biểu đồ tần số ghép nhóm dưới đây ghi lại tốc độ (đơn vị: km/h) của $44$ ô tô khi đi qua một trạm đo tốc độ. Hãy cho biết số lượng ô tô ở nhóm nào nhiều nhất, tính tần số tương đối ghép nhóm của nhóm đó (làm tròn kết quả đến chữ số thập phân thứ nhất).",
+   "bang": {
+    "tieu_de": [
+     "Nhóm thứ",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5",
+     "6"
+    ],
+    "hang": [
+     [
+      "Tần số",
+      "4",
+      "14",
+      "8",
+      "10",
+      "6",
+      "2"
+     ]
+    ]
+   },
+   "dapan": "Nhóm có 14 ô tô (nhóm [45;50) theo lời giải gốc); tần số tương đối ≈ 31,8%",
+   "loigiai": "Nhóm đông nhất có tần số $14$. $f=\\frac{14\\cdot100}{44}\\%\\approx31{,}8\\%$.",
+   "ghi_chu": "Trục hoành của biểu đồ trong file gốc không hiện giá trị các nhóm; tên nhóm [45;50) lấy theo lời giải gốc."
+  },
+  {
+   "id": "TS10-HN-TK32-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Một hộp có $20$ viên bi với kích thước và khối lượng như nhau. Bạn Ngân viết lên các viên bi đó các số $1,2,3,\\dots,20$; hai viên bi khác nhau thì viết hai số khác nhau. Xét phép thử “Lấy ngẫu nhiên một viên bi trong hộp”.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Viết không gian mẫu của phép thử đó.",
+     "dapan": "$\\Omega=\\{1;2;3;\\dots;20\\}$ ($20$ phần tử)",
+     "loigiai": ""
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Tính xác suất biến cố: “Số xuất hiện trên viên bi được lấy ra chia $7$ dư $1$”.",
+     "dapan": "$\\frac3{20}$",
+     "loigiai": "Các số chia $7$ dư $1$: $1;8;15$. $P=\\frac3{20}$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK32-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{\\sqrt{x}}{x+1}$ và $B=\\dfrac{x-2}{x+2\\sqrt{x}}-\\dfrac1{\\sqrt{x}}+\\dfrac1{\\sqrt{x}+2}$ với $x>0$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của $A$ khi $x=9$.",
+     "dapan": "$A=\\frac3{10}$",
+     "loigiai": "$A=\\frac{\\sqrt9}{9+1}=\\frac3{10}$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $B=\\dfrac{\\sqrt{x}-2}{\\sqrt{x}}$.",
+     "dapan": "",
+     "loigiai": "$B=\\frac{x-2-(\\sqrt{x}+2)+\\sqrt{x}}{\\sqrt{x}(\\sqrt{x}+2)}=\\frac{x-4}{\\sqrt{x}(\\sqrt{x}+2)}=\\frac{\\sqrt{x}-2}{\\sqrt{x}}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Tìm giá trị của $x$ để $P=2AB+\\dfrac4{x+1}$ đạt giá trị lớn nhất.",
+     "dapan": "$x=1$ (khi đó $P_{\\max}=1$)",
+     "loigiai": "$P=2\\cdot\\frac{\\sqrt{x}-2}{x+1}+\\frac4{x+1}=\\frac{2\\sqrt{x}}{x+1}$. $P-1=-\\frac{(\\sqrt{x}-1)^2}{x+1}\\le0$ nên $P\\le1$, dấu bằng khi $x=1$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK32-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D6",
+   "mucdo": "VD",
+   "noidung": "Mai mua hai loại hàng và phải trả tổng cộng $165\\,000$ đồng, trong đó đã tính $15\\,000$ đồng là thuế giá trị gia tăng (viết tắt là VAT). Biết rằng thuế VAT với loại hàng thứ nhất là $12\\%$; thuế VAT với loại hàng thứ hai là $9\\%$. Hỏi nếu không kể thuế thì Mai phải trả bao nhiêu tiền cho mỗi loại hàng?",
+   "dapan": "Loại thứ nhất: 50 000 đồng; loại thứ hai: 100 000 đồng",
+   "loigiai": "Gọi số tiền không kể thuế của hai loại là $x,y$ (đồng). $\\begin{cases}1{,}12x+1{,}09y=165\\,000\\\\0{,}12x+0{,}09y=15\\,000\\end{cases}\\Rightarrow x=50\\,000,\\ y=100\\,000$."
+  },
+  {
+   "id": "TS10-HN-TK32-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Hưởng ứng phong trào thi đua “Xây dựng trường học thân thiện, học sinh tích cực”, lớp $9A$ trường THCS Hoàng Hoa Thám dự định trồng $300$ cây xanh. Đến ngày lao động, có $5$ bạn được Liên Đội triệu tập tham gia chiến dịch an toàn giao thông nên mỗi bạn còn lại phải trồng thêm $2$ cây mới đảm bảo kế hoạch đặt ra. Hỏi lớp $9A$ có bao nhiêu học sinh?",
+   "dapan": "30 học sinh",
+   "loigiai": "Gọi số học sinh lớp $9A$ là $x$ ($x\\in\\mathbb{N}$, $x>5$). $\\frac{300}{x-5}-\\frac{300}{x}=2\\Leftrightarrow x^2-5x-750=0$, được $x=30$ (nhận), $x=-25$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK32-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D6",
+   "dang_phu": [
+    "L9-C6-D3"
+   ],
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Cho phương trình $x^2-3x-m^2+1=0$ ($m$ là tham số) (1). Tìm $m$ để phương trình (1) có hai nghiệm phân biệt $x_1,x_2$ thỏa mãn $(x_1+1)(x_2+1)=1$.",
+   "dapan": "$m=\\pm2$",
+   "loigiai": "$\\Delta=4m^2+5>0$ với mọi $m$. Viète: $x_1+x_2=3$, $x_1x_2=1-m^2$. $(x_1+1)(x_2+1)=x_1x_2+x_1+x_2+1=1-m^2+3+1=1\\Leftrightarrow m^2=4\\Leftrightarrow m=\\pm2$."
+  },
+  {
+   "id": "TS10-HN-TK32-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D2",
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Một hình nón có chiều cao $h=16$ cm và bán kính đường tròn đáy $r=12$ cm. Tính độ dài đường sinh và diện tích xung quanh của hình nón đó. (Tính với số $\\pi\\approx3{,}14$ và kết quả làm tròn đến chữ số hàng đơn vị).",
+   "dapan": "Đường sinh $20$ cm; $S_{xq}\\approx754\\ \\text{cm}^2$",
+   "loigiai": "$l=\\sqrt{h^2+r^2}=\\sqrt{16^2+12^2}=20$ cm. $S_{xq}=\\pi rl=3{,}14\\cdot12\\cdot20\\approx754\\ \\text{cm}^2$."
+  },
+  {
+   "id": "TS10-HN-TK32-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk32-c4-2.png",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho tam giác $ABC$ nhọn nội tiếp đường tròn $(O)$, các đường cao $AD$, $BE$, $CF$ cắt nhau tại $H$. Kẻ đường kính $AQ$ của đường tròn $(O)$ cắt cạnh $BC$ tại $I$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh bốn điểm $A,F,H,E$ cùng thuộc một đường tròn.",
+     "dapan": "",
+     "loigiai": "$BE\\perp AC$ nên $\\widehat{AEH}=90^\\circ$, $E$ thuộc đường tròn đường kính $AH$. $CF\\perp AB$ nên $\\widehat{AFH}=90^\\circ$, $F$ cũng thuộc đường tròn đường kính $AH$. Vậy $A,F,H,E$ cùng thuộc một đường tròn."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Chứng minh $\\widehat{BAD}=\\widehat{CAQ}$.",
+     "dapan": "",
+     "loigiai": "$\\widehat{ABC}=\\widehat{AQC}$ (cùng chắn $\\widehat{AC}$); $\\widehat{ACQ}=90^\\circ$ (góc nội tiếp chắn nửa đường tròn). $\\triangle ADB$ và $\\triangle ACQ$ có $\\widehat{ABD}=\\widehat{AQC}$, $\\widehat{ADB}=\\widehat{ACQ}=90^\\circ$ nên $\\triangle ADB\\backsim\\triangle ACQ$ (g.g), suy ra $\\widehat{BAD}=\\widehat{CAQ}$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Gọi $P$ là giao điểm của $AH$ và $EF$. Chứng minh $\\triangle AEP$ đồng dạng với $\\triangle ABI$ và $PI$ song song với $HQ$.",
+     "dapan": "",
+     "loigiai": "Từ b): $\\widehat{BAI}=\\widehat{BAD}+\\widehat{DAI}$... theo lời giải gốc $\\widehat{BAI}=\\widehat{PAE}$, mà $\\widehat{AEP}=\\widehat{ABI}$ (tứ giác $BFEC$ nội tiếp), nên $\\triangle AEP\\backsim\\triangle ABI$ (g.g), suy ra $\\frac{AE}{AB}=\\frac{AP}{AI}$ (3). Tương tự $\\triangle AEH\\backsim\\triangle ABQ$ (g.g) nên $\\frac{AE}{AB}=\\frac{AH}{AQ}$ (4). Từ (3),(4): $\\frac{AP}{AI}=\\frac{AH}{AQ}$, hay $\\frac{AP}{AH}=\\frac{AI}{AQ}$. Theo định lí Thalès đảo, $PI\\parallel HQ$."
+    }
+   ],
+   "ghi_chu": "Ý c: lời giải gốc rất tóm tắt (chuỗi các tam giác đồng dạng); cần duyệt lại."
+  },
+  {
+   "id": "TS10-HN-TK32-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk32-c5.png",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C2",
+   "dang": "L9-C2-D2",
+   "dang_phu": [
+    "L7-C10-D3"
+   ],
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Một bể bơi mini có dạng hình hộp chữ nhật với mặt đáy $MNPQ$ là hình vuông (hình vẽ). Hãy tìm độ dài cạnh $MN$ của mặt đáy và chiều cao $AM$ của bể bơi sao tổng diện tích các mặt làm bể bơi (bao gồm $4$ mặt xung quanh và một mặt đáy) là nhỏ nhất, biết rằng thể tích của bể bơi là $4\\ \\text{m}^3$.",
+   "dapan": "$MN=2$ m, $AM=1$ m (diện tích nhỏ nhất $12\\ \\text{m}^2$)",
+   "loigiai": "Gọi $MN=x$, $AM=y$ (m): $x^2y=4\\Rightarrow y=\\frac4{x^2}$. $S=4xy+x^2=x^2+\\frac{16}x=(x-2)^2+\\frac{4(x-2)^2}{x}+12\\ge12$. Dấu bằng khi $x=2$, $y=1$."
+  }
+ ]
+}

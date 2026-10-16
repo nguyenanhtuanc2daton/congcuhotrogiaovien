@@ -1,0 +1,294 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK28",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 28, bản nháp)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_28_ĐỖ_THẾ_HẢI.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK28-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk28-c1-bieudo.png",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D3",
+   "dang_phu": [
+    "L9-C7-D2"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "NB",
+   "noidung": "Biểu đồ dưới đây biểu diễn kết quả khảo sát thành tích chạy $100$ m của một số học sinh.",
+   "bang": {
+    "tieu_de": [
+     "Thời gian chạy (giây)",
+     "[11;12)",
+     "[12;13)",
+     "[13;14)",
+     "[14;15)",
+     "[15;16)"
+    ],
+    "hang": [
+     [
+      "Tần số",
+      "3",
+      "6",
+      "4",
+      "2",
+      "1"
+     ]
+    ]
+   },
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "NB",
+     "noidung": "Có bao nhiêu học sinh chạy $100$ m hết ít hơn $13$ giây?",
+     "dapan": "9 học sinh",
+     "loigiai": "$3+6=9$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Tìm tần số tương đối ghép nhóm của nhóm $[13;14)$.",
+     "dapan": "25%",
+     "loigiai": "Tổng số học sinh $3+6+4+2+1=16$. $f=\\frac4{16}=25\\%$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK28-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Bạn Long có $n$ tấm thẻ cùng loại được đánh số từ $1$ đến $n$. Bạn Long rút ngẫu nhiên $1$ tấm thẻ. Biết rằng xác suất của biến cố “Lấy được tấm thẻ ghi số có một chữ số” là $0{,}25$. Hỏi bạn Long có bao nhiêu tấm thẻ?",
+   "dapan": "36 tấm thẻ",
+   "loigiai": "Có $n$ kết quả đồng khả năng; số kết quả thuận lợi là $9$ (các số $1,\\dots,9$). $\\frac9n=0{,}25\\Rightarrow n=36$."
+  },
+  {
+   "id": "TS10-HN-TK28-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{x}{\\sqrt{x}-3}$ và $B=\\dfrac{2x-3}{x-3\\sqrt{x}}-\\dfrac{1}{\\sqrt{x}}$ với $x>0,\\ x\\neq9$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=16$.",
+     "dapan": "$A=16$",
+     "loigiai": "$A=\\frac{16}{4-3}=16$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $B=\\dfrac{2\\sqrt{x}-1}{\\sqrt{x}-3}$.",
+     "dapan": "",
+     "loigiai": "$B=\\frac{2x-3-(\\sqrt{x}-3)}{\\sqrt{x}(\\sqrt{x}-3)}=\\frac{2x-\\sqrt{x}}{\\sqrt{x}(\\sqrt{x}-3)}=\\frac{2\\sqrt{x}-1}{\\sqrt{x}-3}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Tìm tất cả các giá trị của $x$ để $A-B<0$.",
+     "dapan": "$0<x<9$ và $x\\neq1$",
+     "loigiai": "$A-B=\\frac{x-2\\sqrt{x}+1}{\\sqrt{x}-3}=\\frac{(\\sqrt{x}-1)^2}{\\sqrt{x}-3}<0\\Leftrightarrow\\begin{cases}\\sqrt{x}<3\\\\ \\sqrt{x}\\neq1\\end{cases}$. Kết hợp điều kiện: $0<x<9$, $x\\neq1$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK28-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C1",
+   "dang": "L9-C1-D3",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Hai vòi nước cùng chảy vào một cái bể không có nước thì trong $5$ giờ sẽ đầy bể. Nếu vòi thứ nhất chảy trong $3$ giờ và vòi thứ $2$ chảy trong $4$ giờ thì được $\\dfrac23$ bể nước. Hỏi nếu mỗi vòi nước chảy một mình thì trong bao lâu mới đầy bể?",
+   "dapan": "Vòi thứ nhất: 7,5 giờ; vòi thứ hai: 15 giờ",
+   "loigiai": "Gọi thời gian chảy một mình đầy bể của vòi $1,2$ là $x,y$ (giờ), $x,y>5$. $\\begin{cases}\\frac1x+\\frac1y=\\frac15\\\\ \\frac3x+\\frac4y=\\frac23\\end{cases}\\Rightarrow x=7{,}5,\\ y=15$."
+  },
+  {
+   "id": "TS10-HN-TK28-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một xí nghiệp theo kế hoạch phải sản xuất $75$ sản phẩm trong một số ngày dự kiến. Nhưng khi thực hiện, do cải tiến kĩ thuật nên mỗi ngày xí nghiệp làm vượt mức $5$ sản phẩm, vì vậy không những họ đã làm được $80$ sản phẩm mà còn hoàn thành trước kế hoạch $1$ ngày. Hỏi theo kế hoạch, mỗi ngày xí nghiệp sản xuất bao nhiêu sản phẩm?",
+   "dapan": "15 sản phẩm mỗi ngày",
+   "loigiai": "Gọi số sản phẩm làm mỗi ngày theo kế hoạch là $x$ ($x<75$). $\\frac{75}{x}-\\frac{80}{x+5}=1\\Leftrightarrow x^2+10x-375=0\\Leftrightarrow(x-15)(x+25)=0$, được $x=15$ (nhận), $x=-25$ (loại)."
+  },
+  {
+   "id": "TS10-HN-TK28-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D5",
+   "dang_phu": [
+    "L9-C6-D3"
+   ],
+   "dang_ts10": "TS10-D5",
+   "mucdo": "VD",
+   "noidung": "Trong mặt phẳng tọa độ $Oxy$, biết rằng parabol $y=x^2$ và đường thẳng $(d):y=x-m$ có một hoành độ giao điểm là $x=\\dfrac{1-\\sqrt5}{2}$. Giả sử $x_1;x_2$ là các hoành độ giao điểm của hai hàm số trên. Không giải phương trình, hãy tính giá trị biểu thức $\\dfrac1{x_1}+\\dfrac1{x_2}-\\dfrac{2025}{x_1+x_2-2}$.",
+   "dapan": "$2024$ (khi $m=-1$)",
+   "loigiai": "Hoành độ giao điểm là nghiệm của $x^2-x+m=0$. Thay $x=\\frac{1-\\sqrt5}2$: $m=\\frac{1-\\sqrt5}{2}-\\left(\\frac{1-\\sqrt5}2\\right)^2=-1$. Phương trình $x^2-x-1=0$: $x_1+x_2=1$, $x_1x_2=-1$. $\\frac1{x_1}+\\frac1{x_2}=\\frac{x_1+x_2}{x_1x_2}=-1$; $\\frac{2025}{x_1+x_2-2}=-2025$. Vậy giá trị bằng $-1+2025=2024$."
+  },
+  {
+   "id": "TS10-HN-TK28-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": true,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D3",
+   "dang_phu": [
+    "L9-C10-D1",
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Các viên kẹo mút có dạng hình cầu, bán kính $1{,}6$ cm. Người ta dùng một que nhựa hình trụ tròn dài, bán kính $0{,}2$ cm cắm vào đến phân nửa viên kẹo để người dùng dễ sử dụng. (Biết kẹo không tràn vào phần trong ống nhựa.)",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Tính thể tích phần ống nhựa cắm vào phân nửa viên kẹo.",
+     "dapan": "$\\approx0{,}2\\ \\text{cm}^3$",
+     "loigiai": "Que cắm đến tâm viên kẹo nên chiều cao phần cắm là $1{,}6$ cm: $V_1=\\pi r^2h=\\pi\\cdot0{,}2^2\\cdot1{,}6\\approx0{,}2\\ \\text{cm}^3$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Tính thể tích thực của viên kẹo sau khi trừ đi phần ống nhựa cắm vào (kết quả làm tròn đến hàng phần trăm).",
+     "dapan": "$\\approx16{,}96\\ \\text{cm}^3$",
+     "loigiai": "$V_2=\\frac43\\pi\\cdot1{,}6^3\\approx17{,}16$. $V=V_2-V_1\\approx17{,}16-0{,}2=16{,}96\\ \\text{cm}^3$."
+    }
+   ],
+   "ghi_chu": "Lời giải gốc ghi 'chiều cao h = 0,8 cm' nhưng phép tính dùng 1,6 cm; vì que cắm đến phân nửa (tâm) viên kẹo nên đúng là 1,6 cm."
+  },
+  {
+   "id": "TS10-HN-TK28-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk28-c4-2.png",
+   "can_duyet": false,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho tam giác $ABC$ có ba góc nhọn ($AB<AC$), nội tiếp đường tròn $(O)$. Tiếp tuyến tại điểm $A$ của đường tròn $(O)$ cắt đường thẳng $BC$ tại điểm $S$. Gọi $I$ là chân đường vuông góc kẻ từ điểm $O$ đến đường thẳng $BC$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh tứ giác $SAOI$ là tứ giác nội tiếp.",
+     "dapan": "",
+     "loigiai": "Gọi $M$ là trung điểm $SO$. $\\triangle SAO$ vuông tại $A$ nên $AM=\\frac{SO}2$; $\\triangle SIO$ vuông tại $I$ nên $IM=\\frac{SO}2$. Suy ra $AM=IM=SM=MO$, vậy $S,A,O,I$ cùng thuộc đường tròn đường kính $SO$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Gọi $H$ và $D$ lần lượt là chân các đường vuông góc kẻ từ điểm $A$ đến các đường thẳng $SO$ và $SC$. Chứng minh $\\widehat{OAH}=\\widehat{IAD}$.",
+     "dapan": "",
+     "loigiai": "$SAOI$ nội tiếp nên $\\widehat{SOA}=\\widehat{SIA}$. $\\triangle AHO$ vuông tại $H$: $\\widehat{OAH}=90^\\circ-\\widehat{SOA}$; $\\triangle ADI$ vuông tại $D$: $\\widehat{IAD}=90^\\circ-\\widehat{SIA}$. Suy ra $\\widehat{OAH}=\\widehat{IAD}$."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Vẽ đường cao $CE$ của tam giác $ABC$. Gọi $Q$ là trung điểm của đoạn thẳng $BE$. Đường thẳng $QD$ cắt đường thẳng $AH$ tại điểm $K$. Chứng minh $BQ\\cdot BA=BD\\cdot BI$.",
+     "dapan": "",
+     "loigiai": "$I$ là trung điểm $BC$, $Q$ là trung điểm $BE$ nên $IQ\\parallel CE$, mà $CE\\perp AB$ nên $IQ\\perp AB$ và $\\widehat{IQA}=90^\\circ$. Cùng với $\\widehat{IDA}=90^\\circ$ ta có $A,Q,D,I$ cùng thuộc đường tròn đường kính $AI$, suy ra $\\widehat{QAI}+\\widehat{QDI}=180^\\circ$. Mà $\\widehat{BDQ}+\\widehat{QDI}=180^\\circ$ nên $\\widehat{BDQ}=\\widehat{QAI}$. $\\triangle BDQ\\backsim\\triangle BAI$ (g.g) nên $\\frac{BD}{BA}=\\frac{BQ}{BI}$, tức $BQ\\cdot BA=BD\\cdot BI$."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK28-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk28-c5.png",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L8-C10",
+   "dang": "L8-C10-D1",
+   "dang_phu": [
+    "L9-C2-D2",
+    "L8-C10-D3"
+   ],
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Cho hình chóp tam giác đều $S.ABC$ có các cạnh bên đều bằng $6$ cm, độ dài cạnh đáy là $x$ (cm). Tìm $x$ để diện tích xung quanh của hình chóp đều đó là lớn nhất.",
+   "dapan": "$x=6\\sqrt2$ cm (diện tích xung quanh lớn nhất $54\\ \\text{cm}^2$)",
+   "loigiai": "Gọi $M$ là trung điểm $AB$, $SM=\\sqrt{6^2-\\frac{x^2}4}=\\frac12\\sqrt{144-x^2}$. $S_{xq}=3\\cdot\\frac12x\\cdot SM=\\frac{3x}{4}\\sqrt{144-x^2}$. Theo Cô-si: $x\\sqrt{144-x^2}\\le\\frac{x^2+144-x^2}{2}=72$, nên $S_{xq}\\le\\frac34\\cdot72=54$. Dấu bằng khi $x^2=144-x^2$, tức $x=6\\sqrt2$.",
+   "ghi_chu": "Đề 28 là bản nháp: có các chữ đỏ ghi chú chỉnh sửa của người soạn trong đề."
+  }
+ ]
+}

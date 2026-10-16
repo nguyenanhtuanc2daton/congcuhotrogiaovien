@@ -1,0 +1,287 @@
+{
+ "meta": {
+  "id_de": "TS10-HN-TK27",
+  "lop": 9,
+  "loai": "TS10",
+  "ten": "Đề tham khảo tuyển sinh lớp 10 môn Toán - Sở GD&ĐT Hà Nội (số 27)",
+  "nam": null,
+  "thoi_gian_phut": 120,
+  "tong_diem": 10,
+  "file_goc": "TS10_HANOI_27_Lê_Thanh.docx",
+  "bo_danh_muc": "chuong-trinh.json (phiên bản 1)",
+  "ghi_chu": "Năm của đề chưa rõ. Điểm từng ý do tôi chia tạm theo cấu trúc đề Hà Nội."
+ },
+ "bai": [
+  {
+   "id": "TS10-HN-TK27-C1-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C7",
+   "dang": "L9-C7-D1",
+   "dang_phu": [
+    "L9-C7-D3"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Trong bảng số liệu sau có một số liệu bị điều tra sai. Hãy tìm số liệu đó và sửa cho đúng.",
+   "bang": {
+    "tieu_de": [
+     "Tần số",
+     "24",
+     "16",
+     "6",
+     "4"
+    ],
+    "hang": [
+     [
+      "Tần số tương đối",
+      "48%",
+      "32%",
+      "15%",
+      "8%"
+     ]
+    ]
+   },
+   "dapan": "Số liệu sai là 15%, sửa thành 12%",
+   "loigiai": "Tổng tần số $24+16+6+4=50$. Tần số tương đối của $6$ là $\\frac{6}{50}\\cdot100\\%=12\\%$ (không phải $15\\%$); các giá trị còn lại đúng ($\\frac{24}{50}=48\\%$, $\\frac{16}{50}=32\\%$, $\\frac{4}{50}=8\\%$)."
+  },
+  {
+   "id": "TS10-HN-TK27-C1-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk27-c1-dia.png",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C8",
+   "dang": "L9-C8-D2",
+   "dang_phu": [
+    "L9-C8-D1"
+   ],
+   "dang_ts10": "TS10-D11",
+   "mucdo": "TH",
+   "noidung": "Hình bên dưới mô tả một đĩa tròn bằng bìa cứng được chia làm $12$ phần bằng nhau và ghi các số $1,2,3,\\dots,12$; chiếc kim được gắn cố định vào trục quay ở tâm của đĩa. Xét phép thử “Quay đĩa tròn một lần”. Tính xác suất của biến cố $D$: “Chiếc kim chỉ vào hình quạt ghi số nguyên tố”.",
+   "dapan": "$P(D)=\\frac5{12}$",
+   "loigiai": "Có $12$ kết quả đồng khả năng. Các số nguyên tố: $2;3;5;7;11$ ($5$ kết quả). $P(D)=\\frac5{12}$."
+  },
+  {
+   "id": "TS10-HN-TK27-C2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.5,
+   "chuong": "L9-C3",
+   "dang": "L9-C3-D4",
+   "dang_phu": [
+    "L9-C3-D5"
+   ],
+   "dang_ts10": "TS10-D1",
+   "mucdo": "TH",
+   "noidung": "Cho hai biểu thức $A=\\dfrac{x-9}{\\sqrt{x}}$ và $B=\\dfrac{2}{\\sqrt{x}-3}+\\dfrac{\\sqrt{x}+4}{9-x}$ với $x>0,\\ x\\neq9$.",
+   "y": [
+    {
+     "ma": "1",
+     "mucdo": "NB",
+     "noidung": "Tính giá trị của biểu thức $A$ khi $x=4$.",
+     "dapan": "$A=-\\frac52$",
+     "loigiai": "$A=\\frac{4-9}{\\sqrt4}=-\\frac52$."
+    },
+    {
+     "ma": "2",
+     "mucdo": "TH",
+     "noidung": "Chứng minh $B=\\dfrac{\\sqrt{x}+2}{x-9}$.",
+     "dapan": "",
+     "loigiai": "$B=\\frac{2(\\sqrt{x}+3)-(\\sqrt{x}+4)}{x-9}=\\frac{\\sqrt{x}+2}{x-9}$."
+    },
+    {
+     "ma": "3",
+     "mucdo": "VD",
+     "noidung": "Xét biểu thức $P=A\\cdot B$. So sánh $P^2$ với $P$.",
+     "dapan": "$P<P^2$",
+     "loigiai": "$P=\\frac{x-9}{\\sqrt{x}}\\cdot\\frac{\\sqrt{x}+2}{x-9}=\\frac{\\sqrt{x}+2}{\\sqrt{x}}$. $P-1=\\frac2{\\sqrt{x}}>0$ nên $P>1$, suy ra $P(P-1)>0$, tức $P^2>P$."
+    }
+   ],
+   "ghi_chu": "Đề in chỉ có 2 ý (tính A; xét P = AB và so sánh P² với P); lời giải gốc có thêm ý chứng minh B. Tôi ghi theo bản đầy đủ 3 ý của lời giải."
+  },
+  {
+   "id": "TS10-HN-TK27-C3-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L8-C7",
+   "dang": "L8-C7-D2",
+   "dang_phu": [
+    "L9-C2-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Cô Tâm đi cửa hàng điện máy mua một chiếc ti vi. Dịp này cửa hàng điện máy đang có chương trình khuyến mãi giảm giá $10\\%$, nhưng có thẻ khách hàng VIP nên được giảm thêm $5\\%$ trên giá đã giảm. Do đó cô chỉ phải trả số tiền là $17\\,100\\,000$ đồng. Hỏi giá ban đầu của chiếc ti vi khi chưa khuyến mãi là bao nhiêu tiền?",
+   "dapan": "20 000 000 đồng",
+   "loigiai": "Gọi giá ban đầu là $x$ (đồng). Sau giảm $10\\%$: $0{,}9x$; sau giảm thêm $5\\%$: $0{,}9x\\cdot0{,}95=0{,}855x$. $0{,}855x=17\\,100\\,000\\Rightarrow x=20\\,000\\,000$."
+  },
+  {
+   "id": "TS10-HN-TK27-C3-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 0.75,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D4",
+   "dang_ts10": "TS10-D2",
+   "mucdo": "VD",
+   "noidung": "Một tổ sản xuất kế hoạch làm $400$ sản phẩm cùng loại trong một số ngày quy định. Thực tế, mỗi ngày tổ làm được nhiều hơn $20$ sản phẩm so với số sản phẩm dự định làm trong một ngày theo kế hoạch. Vì thế tổ đã hoàn thành công việc sớm hơn kế hoạch $1$ ngày. Hỏi theo kế hoạch, mỗi ngày tổ sản xuất phải làm bao nhiêu sản phẩm? (Giả định rằng số sản phẩm mà tổ đó làm được mỗi ngày là bằng nhau).",
+   "dapan": "80 sản phẩm mỗi ngày",
+   "loigiai": "Gọi số sản phẩm làm mỗi ngày theo kế hoạch là $x$ ($x\\in\\mathbb{N}^*$), số ngày theo kế hoạch là $y$: $xy=400$. Thực tế: $(x+20)(y-1)=400$. Suy ra $20y^2-5y-400=0$... hay giải được $x=80$, $y=5$.",
+   "ghi_chu": "Có thể giải gọn bằng phương trình: 400/x − 400/(x+20) = 1 ⇔ x² + 20x − 8000 = 0 ⇒ x = 80."
+  },
+  {
+   "id": "TS10-HN-TK27-C3-3",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C6",
+   "dang": "L9-C6-D3",
+   "dang_phu": [
+    "L9-C3-D2"
+   ],
+   "dang_ts10": "TS10-D4",
+   "mucdo": "VD",
+   "noidung": "Biết rằng phương trình bậc hai $x^2+5x+a=0$ có một nghiệm là $x=\\dfrac{-5+\\sqrt{13}}{2}$. Tìm tổng các lập phương hai nghiệm của phương trình trên.",
+   "dapan": "$-80$",
+   "loigiai": "Thay nghiệm vào phương trình: $a=3$. Phương trình $x^2+5x+3=0$ có $x_1+x_2=-5$, $x_1x_2=3$. $x_1^3+x_2^3=(x_1+x_2)^3-3x_1x_2(x_1+x_2)=-125+45=-80$."
+  },
+  {
+   "id": "TS10-HN-TK27-C4-1",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "",
+   "can_duyet": false,
+   "diem": 1.0,
+   "chuong": "L9-C10",
+   "dang": "L9-C10-D1",
+   "dang_phu": [
+    "L9-C10-D4"
+   ],
+   "dang_ts10": "TS10-D6",
+   "mucdo": "TH",
+   "noidung": "Một Téc nước hình trụ tròn có bán kính $60$ cm, chiều cao $220$ cm.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Diện tích Inox cần làm ra cái Téc nước (có nắp) là bao nhiêu mét vuông (giả sử phần nắp cong không đáng kể)?",
+     "dapan": "$3{,}36\\pi\\approx10{,}56\\ \\text{m}^2$",
+     "loigiai": "$S=2\\pi R^2+2\\pi Rh=7200\\pi+26400\\pi=33600\\pi\\ \\text{cm}^2=3{,}36\\pi\\ \\text{m}^2\\approx10{,}56\\ \\text{m}^2$."
+    },
+    {
+     "ma": "b",
+     "mucdo": "TH",
+     "noidung": "Khi Téc nước hình trụ chứa đầy nước thì được bao nhiêu lít?",
+     "dapan": "$\\approx2488{,}14$ lít",
+     "loigiai": "$V=\\pi R^2h=\\pi\\cdot60^2\\cdot220=792\\,000\\pi\\ \\text{cm}^3\\approx2488{,}14\\ \\text{dm}^3=2488{,}14$ lít."
+    }
+   ]
+  },
+  {
+   "id": "TS10-HN-TK27-C4-2",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk27-c4-2.png",
+   "can_duyet": true,
+   "diem": 3.0,
+   "chuong": "L9-C9",
+   "dang": "L9-C9-D5",
+   "dang_phu": [
+    "L9-C9-D3",
+    "L9-C5-D5"
+   ],
+   "dang_ts10": "TS10-D7",
+   "mucdo": "VD",
+   "noidung": "Cho đường tròn $(O)$ đường kính $AB=2R$. Đường thẳng $d$ vuông góc với bán kính $OB$ tại $H$. Trên nửa đường tròn $(O)$ lấy điểm $M$ thay đổi ($M\\neq A$, $M\\neq B$, $M$ không nằm trên $d$). Tia $AM$ cắt đường thẳng $d$ tại $C$. Tia $BM$ cắt đường thẳng $d$ tại $D$. Tiếp tuyến tại $M$ của đường tròn $(O)$ cắt đường thẳng $d$ ở $K$.",
+   "y": [
+    {
+     "ma": "a",
+     "mucdo": "TH",
+     "noidung": "Chứng minh bốn điểm $A,M,D,H$ cùng thuộc một đường tròn.",
+     "dapan": "",
+     "loigiai": "$M\\in(O)$ đường kính $AB$ nên $\\widehat{AMB}=90^\\circ$, suy ra $\\triangle AMD$ vuông tại $M$ ($D\\in MB$) nên $M$ thuộc đường tròn đường kính $AD$. $d\\perp AB$ tại $H$ nên $\\triangle AHD$ vuông tại $H$, $H$ cũng thuộc đường tròn đường kính $AD$. Vậy $A,M,D,H$ cùng thuộc một đường tròn."
+    },
+    {
+     "ma": "b",
+     "mucdo": "VD",
+     "noidung": "Đường thẳng $AD$ cắt đường tròn $(O)$ tại $E$. Chứng minh $B,E,C$ thẳng hàng.",
+     "dapan": "",
+     "loigiai": "$\\triangle ABC$ có hai đường cao $CH,BM$ cắt nhau tại $D$ nên $D$ là trực tâm, suy ra $AD\\perp BC$ (1). $E\\in(O)$ đường kính $AB$ nên $AE\\perp BE$, tức $AD\\perp BE$ (2). Từ (1),(2): $B,E,C$ thẳng hàng."
+    },
+    {
+     "ma": "c",
+     "mucdo": "VDC",
+     "noidung": "Chứng minh $KM=KE$.",
+     "dapan": "",
+     "loigiai": "$KM$ là tiếp tuyến nên $\\widehat{KMD}+\\widehat{BMO}=90^\\circ$; $\\triangle OMB$ cân nên $\\widehat{OMB}=\\widehat{OBM}$ và $\\widehat{KDM}=\\widehat{BDH}$ (đối đỉnh), $\\widehat{HDB}+\\widehat{OBM}=90^\\circ$. Suy ra $\\widehat{KMD}=\\widehat{KDM}$, $\\triangle KMD$ cân tại $K$: $KM=KD$. Tương tự $\\triangle KMC$ cân tại $K$: $KM=KC$. Vậy $KD=KC$. $\\triangle CED$ vuông tại $E$ có $EK$ là trung tuyến nên $EK=KD=KC=\\frac{CD}2$. Do đó $KM=KE$."
+    },
+    {
+     "ma": "d",
+     "mucdo": "VDC",
+     "noidung": "Chứng minh $ME$ luôn đi qua một điểm cố định khi $M$ thay đổi trên đường tròn $(O)$.",
+     "dapan": "Điểm F trên tia AB sao cho FO = R²/OH",
+     "loigiai": "Gọi $I=BM\\cap KO$, $F=AB\\cap ME$. $KM=KE$ và $OM=OE$ nên $KO$ là trung trực của $ME$, $KO\\perp ME$ tại $I$. $\\triangle OEK$ vuông tại $E$, $EI\\perp OK$: $OI\\cdot OK=OE^2=R^2$. $\\triangle OIF\\backsim\\triangle OHK$ (g.g) nên $\\frac{OF}{OK}=\\frac{OI}{OH}$, suy ra $OF=\\frac{OI\\cdot OK}{OH}=\\frac{R^2}{OH}$ không đổi. Vậy $F$ là điểm cố định trên tia $AB$."
+    }
+   ],
+   "ghi_chu": "Ý a trong file đề bị mất chữ (hiện 'M, D, C, E'); tôi dùng bốn điểm A, M, D, H theo lời giải. Ý d lời giải gốc ngắn gọn nên cần duyệt."
+  },
+  {
+   "id": "TS10-HN-TK27-C5",
+   "lop": 9,
+   "loai": "TS10",
+   "nam": null,
+   "nguon": "Sở GD&ĐT Hà Nội - Đề tham khảo tuyển sinh lớp 10 (GDPT 2018)",
+   "kieu": "TL",
+   "hinh": "hinh/hanoi-tk27-c5.png",
+   "can_duyet": false,
+   "diem": 0.5,
+   "chuong": "L9-C2",
+   "dang": "L9-C2-D2",
+   "dang_phu": [
+    "L7-C10-D3"
+   ],
+   "dang_ts10": "TS10-D9",
+   "mucdo": "VDC",
+   "noidung": "Bác Minh muốn đặt đóng một chiếc hộp đựng quà lưu niệm có dạng hình hộp chữ nhật với mặt đáy $ABCD$ là hình vuông như hình dưới đây. Để món quà trở nên đặc biệt, bác Minh muốn mạ bốn mặt xung quanh và mặt đáy dưới (đáy $MNPQ$) của chiếc hộp bằng kim loại quý (không mạ nắp hộp). Em hãy tìm độ dài cạnh $MN$ của hộp quà sao cho tổng diện tích các mặt được mạ kim loại quý của chiếc hộp là nhỏ nhất biết rằng thể tích của chiếc hộp là $4\\ \\text{dm}^3$.",
+   "dapan": "$MN=2$ dm (chiều cao $AM=1$ dm; diện tích mạ nhỏ nhất $12\\ \\text{dm}^2$)",
+   "loigiai": "Gọi cạnh đáy $MN=x$ (dm), chiều cao $AM=y$ (dm); $x^2y=4\\Rightarrow y=\\frac4{x^2}$. Diện tích mạ $S=x^2+4xy=x^2+\\frac{16}{x}=(x-2)^2+\\frac{4(x-2)^2}{x}+12\\ge12$. Dấu bằng khi $x=2$, $y=1$."
+  }
+ ]
+}
