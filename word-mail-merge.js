@@ -8,7 +8,7 @@
 'use strict';
 const sel=document.getElementById('wtSel'),t3=document.getElementById('t3');
 if(!sel||!t3)return;
-const VERSION='MM-1.0';
+const VERSION='MM-1.1';
 const WNS='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const FONT='Times New Roman';
 const g=id=>document.getElementById(id);
@@ -372,7 +372,7 @@ function buildUI(){
   const f=(id,lab,val,ty)=>'<label class="mmL">'+lab+'</label><input type="'+(ty||'text')+'" id="'+id+'" value="'+hx(val||'')+'">';
   const ta=(id,lab,val,rows)=>'<label class="mmL">'+lab+'</label><textarea id="'+id+'" rows="'+(rows||3)+'">'+hx(val||'')+'</textarea>';
   d.innerHTML='<div class="note">Đưa file Excel danh sách/bảng điểm lớp (mẫu <b>BẢNG ĐIỂM HỌC KỲ</b>) lên → chọn loại văn bản → xuất <b>1 file Word, mỗi học sinh 1 trang</b>. Họ tên lấy từ cột “Họ và tên” (tự chuẩn hóa chữ hoa/thường). <b>Họ tên học sinh không bao giờ gửi cho AI.</b> Mọi file xuất ra đều được tự kiểm tra; không đạt thì không cho tải.</div>'+
-  '<div class="bar"><input type="file" id="mm_in" accept=".xlsx,.xls,.xlsm" style="display:none"><button class="ghost" id="mm_pick" type="button">📁 Chọn file Excel (.xlsx / .xls)</button><span class="note" id="mm_fn" style="margin:0"></span></div>'+
+  '<div class="bar"><input type="file" id="mm_in" style="display:none"><button class="ghost" id="mm_pick" type="button">📁 Chọn file Excel (.xlsx / .xls)</button><span class="note" id="mm_fn" style="margin:0"></span></div>'+
   '<div id="mm_sheets"></div>'+
   '<label class="mmL">Loại văn bản</label><select id="mm_mode"><option value="khen">🏆 Giấy khen</option><option value="tb">📢 Thông báo (gửi phụ huynh)</option><option value="nx">📝 Phiếu nhận xét kết quả học tập</option><option value="moi">✉ Giấy mời (AI soạn + tự kiểm tra)</option></select>'+
   '<details class="mmG" open><summary><b>🏫 Thông tin chung</b></summary>'+f('mm_coquan','Cơ quan chủ quản (viết hoa)','UBND XÃ BÁT TRÀNG')+f('mm_truong','Tên trường','')+f('mm_diadanh','Địa danh (nơi lập văn bản)','')+f('mm_ngaylap','Ngày lập văn bản',todayISO(),'date')+f('mm_chucvu','Chức vụ người ký','Hiệu trưởng')+f('mm_nguoiky','Họ tên người ký','')+f('mm_so','Số văn bản (tùy chọn, ví dụ 12/GM-THCS)','')+'</details>'+
@@ -399,6 +399,7 @@ function loadSheets(){
   S.books.forEach(b=>{if(pick.indexOf(b.name)<0)return;b.res.students.forEach(s=>S.students.push(Object.assign({},s)));if(!first)first=b.res.meta});
   S.meta=first||{};renderList()}
 async function onFile(f){
+  if(!/\.(xlsx|xlsm|xls)$/i.test(f.name||''))return setSt('❌ Hãy chọn file Excel (đuôi .xlsx, .xlsm hoặc .xls).','e');
   try{setSt('Đang đọc file…');const wb=readBook(await f.arrayBuffer());S.books=[];const skipped=[];
     wb.SheetNames.forEach(n=>{const aoa=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:false,defval:''});const r=parseAoa(aoa,n);if(r.ok&&r.students.length)S.books.push({name:n,res:r});else skipped.push(n+' ('+(r.reason||'không có học sinh')+')')});
     g('mm_fn').textContent=f.name;S.fileName=f.name;
