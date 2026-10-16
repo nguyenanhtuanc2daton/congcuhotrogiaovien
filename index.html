@@ -144,6 +144,201 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 .mtr-spark::after{width:2px;height:34px;margin:-17px 0 0 -1px}
 @media (prefers-reduced-motion:reduce){.meteor-layer{display:none}}
 </style>
+<!-- ===== GIAO DIỆN THEO THỜI ĐIỂM TRONG NGÀY (sáng / trưa / chiều / tối) · v3 =====
+     Đơn giản: mỗi buổi chỉ đổi bộ biến màu của style.css (--card, --fg, --a1, --cy...) + một cảnh nền nhẹ phía sau.
+     Mọi khung đều là nền tối + chữ sáng (độ tương phản cao), nút/tab chữ trắng trên màu đậm.
+     Không dùng filter/blur/transform trên khung nội dung nên không ảnh hưởng chức năng. Khung giờ: hàm byHour(). -->
+<style id="tod-css">
+/* ---------- Bảng màu từng buổi (ghi đè biến của style.css) ---------- */
+html[data-tod="sang"]{
+  --card:rgba(14,58,71,.93);--card2:#0a2c37;--bd:#2f8593;--fg:#f4fbff;--mut:#c3e4ea;--a1:#0f766e;--a2:#0369a1;--cy:#ffd166;
+  --tod-base:#9fe0ff;--tod-h1:#0f766e;--tod-h2:#0e7490;--tod-h3:#c2410c;--tod-r:22px;--tod-tr:999px;--tod-glow:rgba(255,209,102,.4)}
+html[data-tod="trua"]{
+  --card:rgba(12,42,94,.93);--card2:#081e46;--bd:#3b72c9;--fg:#f5f9ff;--mut:#c6d8f5;--a1:#1d4ed8;--a2:#0369a1;--cy:#ffe14d;
+  --tod-base:#2f9bff;--tod-h1:#1d4ed8;--tod-h2:#0369a1;--tod-h3:#0e7490;--tod-r:10px;--tod-tr:8px;--tod-glow:rgba(255,225,77,.4)}
+html[data-tod="chieu"]{
+  --card:rgba(58,20,80,.93);--card2:#2a0f3b;--bd:#9a4a8c;--fg:#fff6f0;--mut:#f0cfe0;--a1:#be185d;--a2:#c2410c;--cy:#ffc27a;
+  --tod-base:#8e3fa8;--tod-h1:#7e22ce;--tod-h2:#be185d;--tod-h3:#c2410c;--tod-r:18px;--tod-tr:12px;--tod-glow:rgba(255,130,120,.4)}
+html[data-tod="toi"]{
+  --card:rgba(15,21,48,.94);--card2:#0a0f26;--bd:#34447a;--fg:#eaf0ff;--mut:#b4c0e0;--a1:#4f46e5;--a2:#7c3aed;--cy:#7dd3fc;
+  --tod-base:#0b1030;--tod-h1:#3730a3;--tod-h2:#5b21b6;--tod-h3:#0e7490;--tod-r:14px;--tod-tr:10px;--tod-glow:rgba(125,211,252,.4)}
+
+/* ---------- Nền: để cảnh phía sau hiện ra ---------- */
+html[data-tod]{background:var(--tod-base)}
+html[data-tod] body{background:transparent}
+
+/* ---------- Banner: dải màu tĩnh theo buổi (bỏ hiệu ứng cầu vồng chạy gây nặng máy) ---------- */
+html[data-tod] .hero{animation:none;background:linear-gradient(120deg,var(--tod-h1),var(--tod-h2) 50%,var(--tod-h3));
+  border-radius:var(--tod-r);box-shadow:0 10px 28px -10px var(--tod-glow),0 0 0 1px rgba(255,255,255,.14)}
+html[data-tod] .hero::before{display:none;animation:none}
+
+/* ---------- Khung & tab ---------- */
+html[data-tod] .tabs{border-radius:var(--tod-r)}
+html[data-tod] .tab{border-radius:var(--tod-tr)}
+html[data-tod] .tab.on{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff}
+html[data-tod] .tab:hover:not(.on){background:var(--card2);color:#fff}
+html[data-tod] .panel{border-radius:var(--tod-r);border-top:3px solid var(--cy);
+  box-shadow:0 12px 30px -14px rgba(0,0,0,.55),0 0 26px -10px var(--tod-glow)}
+html[data-tod] button.ghost{border-color:var(--cy);color:var(--cy)}
+html[data-tod] button.sec{background:var(--card2);box-shadow:inset 0 0 0 1px var(--bd)}
+html[data-tod] table.g th{background:var(--card2)}
+html[data-tod] button.lp-card{background:linear-gradient(160deg,var(--card2),var(--card))}
+html[data-tod] ::selection{background:var(--cy);color:#111}
+
+/* ---------- Cảnh nền (đơn giản, chỉ transform/opacity) ---------- */
+#tod-scene{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;contain:strict;background:var(--tod-base,#0b1030)}
+#tod-scene .tod-sc{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity 1.2s ease}
+#tod-scene .tod-sc.on{opacity:1}
+#tod-scene .sang{background:linear-gradient(180deg,#5cc3ff 0%,#a8e4ff 45%,#ffe9b8 85%,#ffd1a0 100%)}
+#tod-scene .trua{background:linear-gradient(180deg,#0a6cff 0%,#3aa0ff 45%,#8fd3ff 85%,#d6f1ff 100%)}
+#tod-scene .chieu{background:linear-gradient(180deg,#2d1b69 0%,#8e3fa8 32%,#ff6b8b 62%,#ffa65c 88%,#ffd27a 100%)}
+#tod-scene .toi{background:linear-gradient(180deg,#050816 0%,#0e1745 55%,#1d2a6b 100%)}
+
+#tod-scene .sun{position:absolute;border-radius:50%}
+#tod-scene .halo{position:absolute;border-radius:50%;animation:todHalo 6s ease-in-out infinite alternate}
+#tod-scene .sang .sun{left:12vw;top:10vh;width:clamp(80px,16vmin,150px);aspect-ratio:1;background:radial-gradient(circle at 40% 40%,#fffbe0,#ffe58a 50%,#ffb347);box-shadow:0 0 50px 24px rgba(255,214,120,.55)}
+#tod-scene .sang .halo{left:calc(12vw - 25vmin);top:calc(10vh - 25vmin);width:calc(clamp(80px,16vmin,150px) + 50vmin);aspect-ratio:1;background:radial-gradient(circle,rgba(255,225,150,.55),transparent 65%)}
+#tod-scene .trua .sun{left:calc(50vw - 9vmin);top:8vh;width:18vmin;min-width:90px;aspect-ratio:1;background:radial-gradient(circle at 45% 45%,#fff,#fff7b0 45%,#ffd23f);box-shadow:0 0 60px 30px rgba(255,248,170,.7)}
+#tod-scene .trua .halo{left:calc(50vw - 40vmin);top:calc(8vh - 31vmin);width:80vmin;aspect-ratio:1;background:radial-gradient(circle,rgba(255,255,255,.5),transparent 65%)}
+#tod-scene .ring{position:absolute;left:calc(50vw - 17vmin);top:calc(8vh - 8vmin);width:34vmin;aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.6);animation:todRing 5s ease-out infinite}
+#tod-scene .chieu .sun{left:calc(50vw - 17vmin);top:58vh;width:34vmin;min-width:170px;aspect-ratio:1;background:radial-gradient(circle at 50% 45%,#fff2b0,#ffc25a 40%,#ff7a45 75%,#ff4f6d);box-shadow:0 0 80px 36px rgba(255,120,90,.5)}
+#tod-scene .chieu .halo{left:calc(50vw - 50vmin);top:calc(58vh - 33vmin);width:100vmin;aspect-ratio:1;background:radial-gradient(circle,rgba(255,150,100,.5),transparent 65%)}
+#tod-scene .hill{position:absolute;bottom:-1px;left:0;width:100%;height:30vh;display:block}
+#tod-scene .hill.h1{height:36vh}
+#tod-scene .cl{position:absolute;left:0;color:#fff;animation:todDrift var(--t) linear infinite;animation-delay:var(--d);will-change:transform}
+#tod-scene .chieu .cl{color:#ffd2c4}
+#tod-scene .star{position:absolute;width:var(--s);height:var(--s);border-radius:50%;background:#fff;animation:todTwinkle var(--t) ease-in-out infinite;animation-delay:var(--d)}
+#tod-scene .moon{position:absolute;right:10vw;top:10vh;width:clamp(70px,13vmin,120px);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fffef0,#e6e9ff 60%,#b8c0ff);box-shadow:0 0 40px 14px rgba(190,200,255,.4),0 0 100px 40px rgba(120,140,255,.2)}
+#tod-scene .shoot{position:absolute;left:20%;top:8%;width:130px;height:2px;border-radius:2px;opacity:0;background:linear-gradient(90deg,transparent,#fff);transform:rotate(35deg);animation:todShoot 9s linear infinite}
+
+html.tod-nofx #tod-scene *{animation:none!important}
+
+/* ---------- Nút điều khiển (nhỏ, góc dưới trái) ---------- */
+#tod-switch,#tod-fx{position:fixed;left:12px;z-index:9000;min-width:0;padding:0;margin:0;border-radius:50%;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;line-height:1;color:#fff;
+  border:2px solid var(--cy,#7dd3fc);background:var(--card2,#0a0f26);box-shadow:0 3px 12px rgba(0,0,0,.4);opacity:.92}
+#tod-switch{bottom:calc(12px + env(safe-area-inset-bottom,0px));width:42px;height:42px;font-size:20px}
+#tod-fx{bottom:calc(60px + env(safe-area-inset-bottom,0px));width:32px;height:32px;font-size:15px}
+#tod-fx.off{opacity:.6;border-style:dashed}
+#tod-switch:hover,#tod-fx:hover{opacity:1}
+#tod-tip{position:fixed;left:62px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:9000;max-width:calc(100vw - 80px);
+  padding:7px 14px;border-radius:999px;font-size:13px;color:var(--fg,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:var(--card2,#0a0f26);border:1px solid var(--cy,#7dd3fc);opacity:0;transition:opacity .25s;pointer-events:none}
+#tod-tip.show{opacity:1}
+
+@keyframes todDrift{from{transform:translate3d(-40vw,0,0)}to{transform:translate3d(115vw,0,0)}}
+@keyframes todHalo{from{opacity:.65}to{opacity:1}}
+@keyframes todRing{0%{transform:scale(.5);opacity:.7}100%{transform:scale(2.4);opacity:0}}
+@keyframes todTwinkle{0%,100%{opacity:.2}50%{opacity:1}}
+@keyframes todShoot{0%{opacity:0;transform:translate3d(0,0,0) rotate(35deg)}2%{opacity:1}11%{opacity:0;transform:translate3d(320px,224px,0) rotate(35deg)}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){#tod-scene *{animation:none!important}#tod-scene .tod-sc{transition:none}}
+@media print{#tod-scene,#tod-switch,#tod-fx,#tod-tip{display:none!important}}
+</style>
+
+<script id="tod-js">
+/* Tự đổi giao diện theo giờ máy: sáng 5–10h, trưa 11–13h, chiều 14–18h, tối 19–4h (bổ sung).
+   Nút tròn lớn: xem thử/ghim từng buổi hoặc quay về "Tự động". Nút ⚡: tắt/bật chuyển động nền. */
+(function(){
+  'use strict';
+  var KEY='tod_mode',FXK='tod_fx',MODES=['auto','sang','trua','chieu','toi'];
+  var NAME={sang:'Buổi sáng',trua:'Buổi trưa',chieu:'Buổi chiều',toi:'Buổi tối'};
+  var ICON={auto:'🕒',sang:'🌅',trua:'☀️',chieu:'🌇',toi:'🌙'};
+  var BAR={sang:'#5cc3ff',trua:'#0a6cff',chieu:'#8e3fa8',toi:'#050816'};
+  function byHour(h){
+    if(h>=5&&h<11)return 'sang';
+    if(h>=11&&h<14)return 'trua';
+    if(h>=14&&h<19)return 'chieu';
+    return 'toi';
+  }
+  var mode='auto',fx='on',cur='',scene=null,curEl=null,btn=null,fxBtn=null,tip=null,tipT=0;
+  try{var m=localStorage.getItem(KEY);if(MODES.indexOf(m)>-1)mode=m;if(localStorage.getItem(FXK)==='off')fx='off';}catch(e){}
+  var root=document.documentElement;
+  function want(){return mode==='auto'?byHour(new Date().getHours()):mode;}
+  function rnd(a,b){return a+Math.random()*(b-a);}
+  var lite=(window.matchMedia&&matchMedia('(max-width:700px)').matches)||(navigator.hardwareConcurrency||8)<=4||(navigator.deviceMemory||8)<=4;
+  if(fx==='off')root.classList.add('tod-nofx');
+
+  function cloud(top,w,t,d,op){
+    return '<svg class="cl" viewBox="0 0 200 90" style="top:'+top+'vh;width:'+w+'px;--t:'+t+'s;--d:'+d+'s;opacity:'+op+'"><g fill="currentColor"><circle cx="55" cy="55" r="24"/><circle cx="90" cy="42" r="32"/><circle cx="130" cy="50" r="27"/><circle cx="158" cy="62" r="18"/><rect x="35" y="58" width="140" height="26" rx="13"/></g></svg>';
+  }
+  function clouds(){
+    return cloud(14,190,110,-25,.9)+cloud(34,150,140,-80,.8)+(lite?'':cloud(52,230,160,-50,.75));
+  }
+  function stars(n){
+    var s='';
+    for(var i=0;i<n;i++)s+='<i class="star" style="left:'+rnd(0,100).toFixed(1)+'%;top:'+rnd(0,75).toFixed(1)+'%;--s:'+rnd(1.4,3).toFixed(1)+'px;--t:'+rnd(2,5).toFixed(1)+'s;--d:-'+rnd(0,5).toFixed(1)+'s"></i>';
+    return s;
+  }
+  var SCENES={
+    sang:function(){return '<div class="halo"></div><div class="sun"></div>'+clouds();},
+    trua:function(){return '<div class="halo"></div><i class="ring"></i><div class="sun"></div>'+clouds();},
+    chieu:function(){return '<div class="halo"></div><div class="sun"></div>'+cloud(16,200,130,-40,.7)+
+      '<svg class="hill h1" viewBox="0 0 1200 300" preserveAspectRatio="none"><path d="M0 140C150 60 280 120 420 90C560 60 700 150 860 100C1000 60 1100 110 1200 80V300H0Z" fill="#4a2480"/></svg>'+
+      '<svg class="hill h2" viewBox="0 0 1200 300" preserveAspectRatio="none"><path d="M0 200C200 150 330 220 520 180C700 140 820 230 1000 190C1100 170 1160 190 1200 180V300H0Z" fill="#2a1259"/></svg>';},
+    toi:function(){return stars(lite?14:28)+'<div class="moon"></div><i class="shoot"></i>';}
+  };
+
+  function build(){
+    scene=document.createElement('div');scene.id='tod-scene';scene.setAttribute('aria-hidden','true');
+    document.body.insertBefore(scene,document.body.firstChild);
+    btn=document.createElement('button');btn.id='tod-switch';btn.type='button';
+    btn.addEventListener('click',function(){
+      mode=MODES[(MODES.indexOf(mode)+1)%MODES.length];
+      try{localStorage.setItem(KEY,mode);}catch(e){}
+      apply(true);
+    });
+    fxBtn=document.createElement('button');fxBtn.id='tod-fx';fxBtn.type='button';
+    fxBtn.addEventListener('click',function(){
+      fx=fx==='on'?'off':'on';
+      root.classList.toggle('tod-nofx',fx==='off');
+      try{localStorage.setItem(FXK,fx);}catch(e){}
+      fxUi();showTip(fx==='on'?'⚡ Chuyển động nền: BẬT':'⏸ Chuyển động nền: TẮT');
+    });
+    tip=document.createElement('div');tip.id='tod-tip';tip.setAttribute('role','status');
+    document.body.appendChild(btn);document.body.appendChild(fxBtn);document.body.appendChild(tip);
+    fxUi();apply(false);
+  }
+  function fxUi(){
+    fxBtn.textContent=fx==='on'?'⚡':'⏸';fxBtn.classList.toggle('off',fx==='off');
+    var t=fx==='on'?'Chuyển động nền: bật — bấm để tắt (đỡ giật)':'Chuyển động nền: tắt — bấm để bật';
+    fxBtn.title=t;fxBtn.setAttribute('aria-label',t);
+  }
+  function showTip(t){
+    if(!tip)return;tip.textContent=t;tip.classList.add('show');clearTimeout(tipT);
+    tipT=setTimeout(function(){tip.classList.remove('show');},2200);
+  }
+  function label(){return (mode==='auto'?'Tự động · ':'Cố định · ')+NAME[cur];}
+  function apply(tipOn){
+    var k=want();
+    if(k!==cur){
+      cur=k;root.setAttribute('data-tod',k);
+      if(scene){
+        /* chỉ giữ cảnh của buổi hiện tại: cảnh cũ mờ dần rồi xoá hẳn */
+        var old=curEl,el=document.createElement('div');
+        el.className='tod-sc '+k;el.innerHTML=SCENES[k]();scene.appendChild(el);curEl=el;
+        requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('on');});});
+        if(old){old.classList.remove('on');setTimeout(function(){if(old.parentNode)old.parentNode.removeChild(old);},1400);}
+      }
+      var mt=document.querySelector('meta[name="theme-color"]');
+      if(!mt){mt=document.createElement('meta');mt.name='theme-color';document.head.appendChild(mt);}
+      mt.content=BAR[k];
+      try{window.dispatchEvent(new CustomEvent('todchange',{detail:k}));}catch(e){}
+    }
+    if(btn){
+      btn.textContent=ICON[mode];
+      var t=label()+' — bấm để đổi';btn.title=t;btn.setAttribute('aria-label','Giao diện: '+t);
+    }
+    if(tipOn)showTip(ICON[mode]+' '+label());
+  }
+  function tick(){if(mode==='auto')apply(false);}
+
+  root.setAttribute('data-tod',want());
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
+  setInterval(tick,60000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)tick();});
+})();
+</script>
 </head>
 <body>
 <div class="curtain-wrap" aria-hidden="true">
