@@ -214,12 +214,23 @@ html[data-tod] .panel.on{animation:todPanel .25s ease-out backwards}
 html[data-tod] button:not(#tod-switch):not(#tod-fx):not(#hcBtn){transition:transform .12s ease,filter .15s ease}
 html[data-tod] button:not(#tod-switch):not(#tod-fx):not(#hcBtn):active{transform:scale(.96)}
 html[data-tod] .lp-sym{animation-duration:calc(var(--t,7s) * 1.7)}
-#tod-greet .g-wd,#tod-greet .g-hl{flex:1 1 100%;font-size:13px;color:var(--mut);line-height:1.4}
+#tod-greet{margin-top:8px;padding:8px 14px;gap:2px 10px;font-size:clamp(13px,1.8vw,14.5px)}
+#tod-greet .g-ic{font-size:18px}
+#tod-greet .g-tx{flex:1 1 220px}
+#tod-greet .g-meta{flex:1 1 100%;display:flex;flex-direction:column;align-items:flex-start;gap:2px;font-size:12.5px;color:var(--mut);line-height:1.4}
+#tod-greet .g-time{font-size:12.5px}
+#tod-greet .g-hl b{color:var(--cy);font-weight:700}
 #tod-greet .g-hl b{color:var(--cy)}
 html.tod-nofx .lp-card,html.tod-nofx .panel.on{animation:none!important}
 @keyframes todCard{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 @keyframes todPanel{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){html[data-tod] .lp-card,html[data-tod] .panel.on{animation:none!important}}
+#tod-fw-msg{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:99999;max-width:92vw;padding:12px 22px;border-radius:16px;text-align:center;font-weight:800;
+  font-size:clamp(18px,5vw,34px);line-height:1.3;color:#fff7d6;background:rgba(10,15,40,.6);border:2px solid #ffd166;text-shadow:0 0 14px rgba(255,209,102,.9);
+  pointer-events:none;animation:todFwMsg 5s ease both}
+@keyframes todFwMsg{0%{opacity:0;transform:translate(-50%,-14px) scale(.92)}10%{opacity:1;transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){#tod-fw-msg{animation:none}}
+@media print{#tod-fw,#tod-fw-msg{display:none!important}}
 html[data-tod] ::selection{background:var(--cy);color:#111}
 /* hiệu ứng chạm/rê chuột: màu & hình theo buổi (hình đổi bằng JS) */
 html[data-tod] .hc-h,html[data-tod] .hc-h.th{text-shadow:0 0 8px var(--c)}
@@ -352,19 +363,72 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
   var HC={sang:['#ff9ec4','#ffd166','#ffffff','#7ee0c8'],trua:['#ffe14d','#ffb300','#ffffff','#ff9f1c'],chieu:['#ffb067','#ff8f70','#ff6b9d','#ffd27a'],toi:['#7dd3fc','#a78bfa','#ffffff','#c4b5fd']};
   var DAYS=['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
 
-  /* Lời nhắn theo thứ trong tuần (0 = Chủ nhật) */
-  var WD=['Chủ nhật thảnh thơi — nghỉ ngơi một chút để tuần mới thêm năng lượng.','Thứ Hai: chúc quý thầy cô một tuần mới thật nhiều năng lượng!','Thứ Ba: giữ nhịp thật đều, tuần này sẽ trôi thật nhẹ nhàng.','Thứ Tư: đã đi được nửa tuần rồi, cố lên nhé!','Thứ Năm: gần đến cuối tuần rồi, thêm chút nữa thôi.','Thứ Sáu: sắp đến cuối tuần rồi, chúc quý thầy cô buổi dạy thật vui!','Thứ Bảy: chúc quý thầy cô một ngày cuối tuần thật thư thái.'];
-  /* Ngày lễ / sự kiện: [tháng, ngày, tên] lặp hằng năm; [năm, tháng, ngày, tên] cho ngày thay đổi theo năm (Tết Nguyên đán) */
-  var HOL=[[1,1,'Tết Dương lịch'],[3,8,'Quốc tế Phụ nữ 8/3'],[4,30,'Ngày Giải phóng miền Nam'],[5,1,'Quốc tế Lao động'],[9,2,'Quốc khánh 2/9'],[10,20,'Ngày Phụ nữ Việt Nam 20/10'],[11,20,'Ngày Nhà giáo Việt Nam 20/11'],[12,22,'Ngày thành lập QĐNDVN'],[2027,2,6,'Tết Nguyên đán'],[2028,1,26,'Tết Nguyên đán'],[2029,2,13,'Tết Nguyên đán']];
-  function holiday(){
-    var n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),best=null,bd=1e9;
+  /* Ngày quan trọng: [tháng, ngày, tên] lặp hằng năm; [năm, tháng, ngày, tên] cho ngày đổi theo năm (Tết Nguyên đán). Thêm/bớt tuỳ ý. */
+  var HOL=[[1,1,'Tết Dương lịch'],[2,3,'Thành lập Đảng Cộng sản Việt Nam'],[2,27,'Thầy thuốc Việt Nam'],[3,8,'Quốc tế Phụ nữ'],[3,26,'Thành lập Đoàn TNCS Hồ Chí Minh'],
+    [4,30,'Giải phóng miền Nam'],[5,1,'Quốc tế Lao động'],[5,7,'Chiến thắng Điện Biên Phủ'],[5,19,'Sinh nhật Chủ tịch Hồ Chí Minh'],[6,1,'Quốc tế Thiếu nhi'],[6,21,'Báo chí cách mạng Việt Nam'],[6,28,'Gia đình Việt Nam'],
+    [7,27,'Thương binh Liệt sĩ'],[8,19,'Cách mạng Tháng Tám thành công'],[9,2,'Quốc khánh'],[9,5,'Khai giảng năm học'],[10,10,'Giải phóng Thủ đô'],[10,13,'Doanh nhân Việt Nam'],
+    [10,20,'Ngày Phụ nữ Việt Nam'],[11,19,'Quốc tế Đàn ông'],[11,20,'Ngày Nhà giáo Việt Nam'],[12,22,'Ngày thành lập Quân đội nhân dân Việt Nam'],
+    [2027,2,6,'Tết Nguyên đán'],[2028,1,26,'Tết Nguyên đán'],[2029,2,13,'Tết Nguyên đán'],
+    [2027,4,16,'Giỗ Tổ Hùng Vương'],[2028,4,4,'Giỗ Tổ Hùng Vương']];   /* ngày âm lịch quy ra dương: nên đối chiếu lại với lịch hằng năm */
+  var HOL_DAYS=45,HOL_MAX=1;   /* chỉ nhắc 1 ngày gần nhất, nếu còn trong 45 ngày tới */
+  function holidays(){
+    var n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),out=[];
     for(var i=0;i<HOL.length;i++){
-      var h=HOL[i],ds=[];
-      if(h.length===3){ds=[new Date(t0.getFullYear(),h[0]-1,h[1]),new Date(t0.getFullYear()+1,h[0]-1,h[1])];}
-      else ds=[new Date(h[0],h[1]-1,h[2])];
-      for(var j=0;j<ds.length;j++){var d=Math.round((ds[j]-t0)/864e5);if(d>=0&&d<bd){bd=d;best={d:d,name:h[h.length-1]};}}
+      var h=HOL[i],ds=h.length===3?[new Date(t0.getFullYear(),h[0]-1,h[1]),new Date(t0.getFullYear()+1,h[0]-1,h[1])]:[new Date(h[0],h[1]-1,h[2])];
+      for(var j=0;j<ds.length;j++){var d=Math.round((ds[j]-t0)/864e5);
+        if(d>=0&&d<=HOL_DAYS){out.push({d:d,name:h[h.length-1],date:two(ds[j].getDate())+'/'+two(ds[j].getMonth()+1)});break;}}
     }
-    return (best&&best.d<=60)?best:null;
+    out.sort(function(x,y){return x.d-y.d;});
+    return out.slice(0,HOL_MAX);
+  }
+
+
+  /* ----- Đúng ngày lễ: khi mở trang hiện lời chúc + pháo hoa khoảng 5 giây rồi tự tắt. Thử: thêm ?ngayle=1 vào địa chỉ trang ----- */
+  function holidayToday(){
+    var n=new Date(),m=n.getMonth()+1,d=n.getDate(),y=n.getFullYear();
+    for(var i=0;i<HOL.length;i++){var h=HOL[i];
+      if(h.length===3?(h[0]===m&&h[1]===d):(h[0]===y&&h[1]===m&&h[2]===d))return h[h.length-1];}
+    return null;
+  }
+  function fireworks(){
+    var cv=document.createElement('canvas');cv.id='tod-fw';cv.setAttribute('aria-hidden','true');
+    var dpr=Math.min(window.devicePixelRatio||1,lite?1:1.5),W=window.innerWidth,H=window.innerHeight;
+    cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+    cv.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;z-index:99998;pointer-events:none';
+    var c=cv.getContext&&cv.getContext('2d');if(!c)return;
+    document.body.appendChild(cv);c.scale(dpr,dpr);
+    var P=[],t0=performance.now(),last=t0,nextB=0,COLS=['#ff4d6d','#ffd166','#7dd3fc','#c084fc','#7ee0a8','#ffffff','#ff9f43'],ended=false;
+    function end(){if(ended)return;ended=true;if(cv.parentNode)cv.parentNode.removeChild(cv);}
+    function burst(){
+      var x=W*(.15+Math.random()*.7),y=H*(.12+Math.random()*.38),col=pick(COLS),n=lite?34:56;
+      for(var i=0;i<n;i++){var a=Math.PI*2*i/n+Math.random()*.1,v=1.6+Math.random()*2.6;
+        P.push({x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:0,m:1100+Math.random()*500,c:col});}
+    }
+    function frame(now){
+      if(ended)return;
+      var t=now-t0,dt=Math.min(now-last,40)/16.7;last=now;
+      c.globalCompositeOperation='source-over';c.clearRect(0,0,W,H);
+      if(t<3800&&t>=nextB){burst();nextB=t+350+Math.random()*350;}
+      c.globalCompositeOperation='lighter';
+      for(var i=P.length-1;i>=0;i--){
+        var p=P[i];p.vx*=.985;p.vy=p.vy*.985+.045*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.l+=dt*16.7;
+        var al=1-p.l/p.m;if(al<=0){P.splice(i,1);continue;}
+        c.globalAlpha=al;c.fillStyle=p.c;c.beginPath();c.arc(p.x,p.y,2*al+.8,0,6.2832);c.fill();
+      }
+      if(t>=3800&&!P.length||t>5600){end();return;}
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);setTimeout(end,7000);   /* dự phòng */
+  }
+  function celebrate(){
+    var name=null;
+    try{if(/[?&]ngayle=/.test(location.search))name='Ngày Nhà giáo Việt Nam';}catch(e){}
+    if(!name)name=holidayToday();
+    if(!name)return;
+    var msg=/^Tết/.test(name)?'Chúc mừng năm mới! '+name+'!':'Chúc mừng '+(/^Ngày /.test(name)?'':'ngày ')+name+'!';
+    var m=document.createElement('div');m.id='tod-fw-msg';m.setAttribute('role','status');m.textContent='🎆 '+msg;
+    document.body.appendChild(m);setTimeout(function(){if(m.parentNode)m.parentNode.removeChild(m);},5200);
+    if(fx!=='off'&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches))fireworks();
   }
 
   function byHour(h){
@@ -440,15 +504,19 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
   function greet(){
     if(!gEl)return;
     var t=pick(G[cur]);
-    gEl.innerHTML='<span class="g-ic"></span><span class="g-tx"></span><span class="g-time"></span><span class="g-wd"></span><span class="g-hl"></span>';
+    gEl.innerHTML='<span class="g-ic"></span><span class="g-tx"></span><span class="g-meta"><span class="g-time"></span><span class="g-hl"></span></span>';
     gEl.querySelector('.g-ic').textContent=ICON[cur];
     var tx=gEl.querySelector('.g-tx');tx.textContent=t;tx.style.setProperty('--n',Math.min(t.length,70));
     gEl.style.animation='none';void gEl.offsetWidth;gEl.style.animation='';
-    gEl.querySelector('.g-wd').textContent=WD[new Date().getDay()];
-    var hl=holiday(),he=gEl.querySelector('.g-hl');
-    if(hl){he.innerHTML='🎉 '+(hl.d===0?'Hôm nay là <b></b>!':'Còn <b>'+hl.d+' ngày</b> đến <span></span>');
-      if(hl.d===0)he.querySelector('b').textContent=hl.name;else he.querySelector('span').textContent=hl.name;}
-    else he.style.display='none';
+    var hl=holidays(),he=gEl.querySelector('.g-hl');
+    if(hl.length){
+      he.textContent='';he.appendChild(document.createTextNode('🎉 Sắp tới: '));
+      hl.forEach(function(x,i){
+        if(i)he.appendChild(document.createTextNode(' · '));
+        he.appendChild(document.createTextNode(x.name+' '+x.date+' '));
+        var b=document.createElement('b');b.textContent=x.d===0?'(hôm nay!)':'(còn '+x.d+' ngày)';he.appendChild(b);
+      });
+    }else he.style.display='none';
     clock();
   }
 
@@ -499,6 +567,7 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
       }).observe(document.body,{childList:true});
     }
     fxUi();apply(false);
+    setTimeout(celebrate,document.querySelector('.curtain-wrap')?3000:500);   /* đợi màn mở đầu kéo xong */
   }
   function fxUi(){
     fxBtn.textContent=fx==='on'?'⚡':'⏸';fxBtn.classList.toggle('off',fx==='off');
