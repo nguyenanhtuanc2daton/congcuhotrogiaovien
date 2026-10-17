@@ -603,7 +603,7 @@
 
   /* Tự cập nhật danh sách model từ ListModels của Google (mỗi lần mở trang/nhập key).
      - Chỉ giữ model Gemini có generateContent, bỏ preview/exp/bản ngày (-001...) khi đã có bản ổn định.
-     - Mỗi nhóm lấy phiên bản MỚI NHẤT (so sánh số đúng: 3.10 > 3.9). Model bị Google gỡ sẽ tự biến mất. */
+     - Mỗi nhóm (Flash-Lite / Flash / Pro) chỉ giữ MỘT phiên bản MỚI NHẤT (so sánh số đúng: 3.10 > 3.9). Model bị Google gỡ sẽ tự biến mất. */
   var BAD_MODEL = /embedding|aqa|imagen|veo|tts|image|live|audio|robotics|computer-use|learnlm|gemma|vision|exp-|-exp|customtools|deep-research/i;
   var UNSTABLE = /preview|experimental|-exp|-\d{3}$|-\d{2}-\d{2}$/i;
   function parseModel(id) {
@@ -625,7 +625,7 @@
       if (!st.length) st = arr;                         /* chưa có bản ổn định nào thì mới dùng preview */
       st.sort(function (a, b) { return cmpVer(b.p.ver, a.p.ver) || (a.id.length - b.id.length); });
       var seen = {}, n = 0;
-      st.forEach(function (m) { var k = m.p.ver.join('.'); if (seen[k] || n >= (t === 'pro' ? 1 : 2)) return; seen[k] = 1; n++; out.push({ id: m.id, label: m.label }); });
+      st.forEach(function (m) { var k = m.p.ver.join('.'); if (seen[k] || n >= 1) return; seen[k] = 1; n++; out.push({ id: m.id, label: m.label }); });
     });
     ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-pro-latest'].forEach(function (id) {
       var m = latest.filter(function (x) { return x.id === id; })[0];
