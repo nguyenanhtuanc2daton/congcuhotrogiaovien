@@ -17,6 +17,30 @@
 .hero .logo{width:clamp(72px,10vw,110px)!important;height:clamp(72px,10vw,110px)!important}
 @media (max-height:480px) and (orientation:landscape){.hero .logo{width:44px!important;height:44px!important}}
 </style>
+<style id="hero-wide">
+/* Banner màn rộng (từ 1100px): 3 cột — trái: hình Toán lơ lửng · giữa: logo + tên trường + tên bộ công cụ · phải: lời chào, ngày giờ.
+   Dưới 1100px (điện thoại, máy tính bảng): giữ nguyên một cột như cũ. */
+.hero-deco{display:none}
+@keyframes heroDeco{0%,100%{transform:translateY(0) rotate(var(--r,0deg))}50%{transform:translateY(-9px) rotate(calc(var(--r,0deg) + 6deg))}}
+@media (min-width:1100px){
+  html .hero{display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+    grid-template-areas:"deco logo greet" "deco school greet" "deco title greet" "deco stars greet";
+    column-gap:clamp(16px,2.4vw,36px);row-gap:0;align-items:center;justify-items:center;text-align:center;padding:clamp(16px,1.8vw,24px) clamp(18px,3vw,36px)}
+  html .hero .htxt{display:contents}                       /* các dòng chữ trở thành ô lưới của banner */
+  html .hero .logo{grid-area:logo;margin-bottom:10px}
+  html .hero .school{grid-area:school}
+  html .hero h1{grid-area:title}
+  html .hero .stars{grid-area:stars}
+  html .hero .school,html .hero h1,html .hero .stars,html .hero #tod-greet{position:relative;z-index:1}   /* nằm trên lớp phủ của banner */
+  html[data-tod] .hero #tod-greet{grid-area:greet;justify-self:center;align-self:center;width:100%;max-width:360px;margin:0;padding:14px 16px;box-sizing:border-box;
+    border:1px solid rgba(255,255,255,.28);border-radius:16px;background:rgba(255,255,255,.12);box-shadow:0 8px 22px -12px rgba(0,0,0,.5);backdrop-filter:blur(2px)}
+  .hero-deco{display:block;grid-area:deco;align-self:stretch;justify-self:stretch;position:relative;pointer-events:none;z-index:1;min-height:100px}
+  .hero-deco span{position:absolute;left:var(--x);top:var(--y);font-size:var(--s,30px);line-height:1;font-weight:700;color:rgba(255,255,255,.78);
+    text-shadow:0 0 10px rgba(255,255,255,.55),0 2px 6px rgba(0,0,0,.25);transform:rotate(var(--r,0deg));animation:heroDeco var(--t,6s) ease-in-out var(--d,0s) infinite}
+}
+@media (prefers-reduced-motion:reduce){.hero-deco span{animation:none}}
+html.tod-nofx .hero-deco span{animation:none}
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <script src="gkey.js?v=20261005"></script>
 
@@ -671,7 +695,7 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
 </div>
 
 <div class="app">
-<div class="hero"><div class="logo"><img src="logo.jpg?v=20261005" alt="Logo Trường THCS Đa Tốn"></div><div class="htxt"><div class="school">Trường THCS Đa Tốn</div><h1>Bộ công cụ trợ giảng Toán<span class="hsep"> - </span><span class="hgv">Giáo viên: Nguyễn Anh Tuấn</span></h1><div class="stars" aria-hidden="true"><i style="--s:18px;--d:0s;--t:2.2s">✦</i><i style="--s:12px;--d:0.5s;--t:1.7s">★</i><i style="--s:20px;--d:1.1s;--t:2.6s">✧</i><i style="--s:14px;--d:0.3s;--t:1.9s">✦</i><i style="--s:20px;--d:1.6s;--t:2.4s">★</i><i style="--s:13px;--d:0.8s;--t:2.0s">✧</i><i style="--s:22px;--d:1.3s;--t:2.8s">✦</i><i style="--s:13px;--d:0.2s;--t:1.6s">★</i><i style="--s:17px;--d:1.9s;--t:2.3s">✧</i><i style="--s:12px;--d:0.6s;--t:1.8s">✦</i><i style="--s:18px;--d:1.0s;--t:2.5s">★</i><i style="--s:15px;--d:0.1s;--t:2.1s">✧</i><i style="--s:19px;--d:1.7s;--t:2.7s">✦</i></div></div></div>
+<div class="hero"><div class="hero-deco" aria-hidden="true"><span style="--x:8%;--y:6%;--s:40px;--t:6.5s">π</span><span style="--x:52%;--y:12%;--s:30px;--t:7.5s;--d:.8s;--r:-8deg">∑</span><span style="--x:22%;--y:38%;--s:46px;--t:8s;--d:1.4s">√</span><span style="--x:66%;--y:44%;--s:34px;--t:6s;--d:.3s;--r:10deg">∞</span><span style="--x:6%;--y:66%;--s:34px;--t:7s;--d:2s;--r:-6deg">△</span><span style="--x:46%;--y:72%;--s:32px;--t:8.5s;--d:1s">θ</span><span style="--x:74%;--y:8%;--s:26px;--t:7s;--d:2.4s">✏️</span><span style="--x:36%;--y:88%;--s:26px;--t:6.8s;--d:.6s;--r:-12deg">📏</span></div><div class="logo"><img src="logo.jpg?v=20261005" alt="Logo Trường THCS Đa Tốn"></div><div class="htxt"><div class="school">Trường THCS Đa Tốn</div><h1>Bộ công cụ trợ giảng Toán<span class="hsep"> - </span><span class="hgv">Giáo viên: Nguyễn Anh Tuấn</span></h1><div class="stars" aria-hidden="true"><i style="--s:18px;--d:0s;--t:2.2s">✦</i><i style="--s:12px;--d:0.5s;--t:1.7s">★</i><i style="--s:20px;--d:1.1s;--t:2.6s">✧</i><i style="--s:14px;--d:0.3s;--t:1.9s">✦</i><i style="--s:20px;--d:1.6s;--t:2.4s">★</i><i style="--s:13px;--d:0.8s;--t:2.0s">✧</i><i style="--s:22px;--d:1.3s;--t:2.8s">✦</i><i style="--s:13px;--d:0.2s;--t:1.6s">★</i><i style="--s:17px;--d:1.9s;--t:2.3s">✧</i><i style="--s:12px;--d:0.6s;--t:1.8s">✦</i><i style="--s:18px;--d:1.0s;--t:2.5s">★</i><i style="--s:15px;--d:0.1s;--t:2.1s">✧</i><i style="--s:19px;--d:1.7s;--t:2.7s">✦</i></div></div></div>
 <div class="tabs" role="tablist">
 <button class="tab" data-tab="t3">🧰 3. Công cụ Word</button>
 <button class="tab" data-tab="t8">🛠 4. Công cụ thường dùng</button>
