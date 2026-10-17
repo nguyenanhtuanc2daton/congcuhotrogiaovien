@@ -213,17 +213,13 @@ html[data-tod] .lp-card:hover{transform:translateY(-4px);box-shadow:0 12px 22px 
 html[data-tod] .panel.on{animation:todPanel .25s ease-out backwards}
 html[data-tod] button:not(#tod-switch):not(#tod-fx):not(#hcBtn){transition:transform .12s ease,filter .15s ease}
 html[data-tod] button:not(#tod-switch):not(#tod-fx):not(#hcBtn):active{transform:scale(.96)}
-@supports (background-clip:text) or (-webkit-background-clip:text){
- html[data-tod] .hero h1{background:linear-gradient(100deg,#fff 42%,#ffe9a8 50%,#fff 58%) 160% 0/250% 100% no-repeat;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:todTitle 2s ease-out .9s 1 both}
-}
 html[data-tod] .lp-sym{animation-duration:calc(var(--t,7s) * 1.7)}
 #tod-greet .g-wd,#tod-greet .g-hl{flex:1 1 100%;font-size:13px;color:var(--mut);line-height:1.4}
 #tod-greet .g-hl b{color:var(--cy)}
-html.tod-nofx .lp-card,html.tod-nofx .panel.on,html.tod-nofx .hero h1{animation:none!important}
+html.tod-nofx .lp-card,html.tod-nofx .panel.on{animation:none!important}
 @keyframes todCard{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 @keyframes todPanel{from{opacity:0}to{opacity:1}}
-@keyframes todTitle{to{background-position:-60% 0}}
-@media (prefers-reduced-motion:reduce){html[data-tod] .lp-card,html[data-tod] .panel.on,html[data-tod] .hero h1{animation:none!important}}
+@media (prefers-reduced-motion:reduce){html[data-tod] .lp-card,html[data-tod] .panel.on{animation:none!important}}
 html[data-tod] ::selection{background:var(--cy);color:#111}
 /* hiệu ứng chạm/rê chuột: màu & hình theo buổi (hình đổi bằng JS) */
 html[data-tod] .hc-h,html[data-tod] .hc-h.th{text-shadow:0 0 8px var(--c)}
