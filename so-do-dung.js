@@ -114,6 +114,12 @@
   }
   function rowOf(d, ses, p) { return 8 + d * 8 + (ses === 'S' ? 0 : MORNING) + (p - 1); }
 
+  function dateFromStart(start, d) {
+    var m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(start || ''); if (!m) return '';
+    var t = new Date(Date.UTC(+m[3], +m[2] - 1, +m[1] + d));
+    return p2(t.getUTCDate()) + '/' + p2(t.getUTCMonth() + 1) + '/' + t.getUTCFullYear();
+  }
+
   function fillSheet(tpl, w, first) {
     var xml = tpl.replace('__TAB__', first ? 'tabSelected="1" ' : '');
     xml = setStr(xml, 'B4', 'Năm học ' + (w.year || ''));
@@ -121,7 +127,8 @@
       (w.start ? ' (Từ ngày ' + w.start + ' đến ngày ' + w.end + ')' : ''));
     for (var d = 0; d < 6; d++) {
       xml = setStr(xml, 'B' + NAMEROW[d], DAYNAME[d]); /* đúng ô tên thứ / ngày đã có sẵn trong mẫu */
-      if (w.dates[d]) xml = setStr(xml, 'B' + (NAMEROW[d] + 1), w.dates[d]);
+      var dt = w.dates[d] || dateFromStart(w.start, d); /* thiếu ngày trong file nạp thì tính từ ngày đầu tuần */
+      if (dt) xml = setStr(xml, 'B' + (NAMEROW[d] + 1), dt);
     }
     var used = {}, count = 0, extra = [];
     w.lessons.forEach(function (L) {
@@ -140,16 +147,17 @@
     return { xml: xml, count: count, extra: extra };
   }
 
-  async function build(weeks) {
+  async function build(weeks, activeWeek) {
     var list = Object.keys(weeks).map(Number).sort(function (a, b) { return a - b; });
     if (!list.length) throw new Error('Chưa nạp dữ liệu.');
+    var activeIdx = list.indexOf(+activeWeek); if (activeIdx < 0) activeIdx = list.length - 1; /* mặc định: tuần lớn nhất */
     var tz = await JSZip.loadAsync(TPL, { base64: true });
     var sheetTpl = await tz.file('sheet.xml').async('string');
     var out = new JSZip(), notes = [];
     var ct = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>';
     var wbSheets = '', rels = '';
     list.forEach(function (n, i) {
-      var f = fillSheet(sheetTpl, weeks[n], i === 0);
+      var f = fillSheet(sheetTpl, weeks[n], i === activeIdx);
       f.extra.forEach(function (e) { notes.push('Tuần ' + n + ': ' + e); });
       out.file('xl/worksheets/sheet' + (i + 1) + '.xml', f.xml);
       ct += '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
@@ -163,7 +171,7 @@
       '<Relationship Id="rId' + (k + 3) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>';
     out.file('[Content_Types].xml', ct);
     out.file('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
-    out.file('xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="19440" windowHeight="10320" activeTab="0"/></bookViews><sheets>' + wbSheets + '</sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>');
+    out.file('xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="19440" windowHeight="10320" activeTab="' + activeIdx + '"/></bookViews><sheets>' + wbSheets + '</sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>');
     out.file('xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + rels + '</Relationships>');
     out.file('xl/styles.xml', await tz.file('styles.xml').async('string'));
     out.file('xl/theme/theme1.xml', await tz.file('theme1.xml').async('string'));
@@ -180,6 +188,9 @@
   var bar = pick.parentNode;
   var weeks = {};
   try { weeks = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch (e) { weeks = {}; }
+  var LASTKEY = 'sddLastWeek_v1', lastWeek = 0;
+  try { lastWeek = +localStorage.getItem(LASTKEY) || 0; } catch (e) { lastWeek = 0; }
+  function saveLast() { try { localStorage.setItem(LASTKEY, String(lastWeek)); } catch (e) { /* bỏ qua */ } }
   function save() { try { localStorage.setItem(STORE, JSON.stringify(weeks)); } catch (e) { /* trình duyệt chặn lưu: vẫn dùng được trong phiên này */ } }
 
   var load = document.createElement('button');
@@ -211,7 +222,7 @@
     if (clr) clr.addEventListener('click', function (e) {
       e.preventDefault();
       if (!confirm('Xóa toàn bộ dữ liệu đã nạp?')) return;
-      weeks = {}; save(); out.innerHTML = ''; render('');
+      weeks = {}; lastWeek = 0; saveLast(); save(); out.innerHTML = ''; render('');
     });
     if (preview) {
       var w = preview, rows = w.lessons.slice().sort(function (a, b) { return rowOf(a.d, a.s, a.p) - rowOf(b.d, b.s, b.p); }).map(function (L) {
@@ -238,13 +249,13 @@
         lines.push('❌ ' + esc(files[i].name) + ': ' + esc(e && e.message ? e.message : 'không đọc được file .xlsx'));
       }
     }
-    if (okN) save();
+    if (okN) { if (last) { lastWeek = last.week; saveLast(); } save(); }
     render(lines.join('<br>'), files.length === 1 ? last : null);
   });
   exp.addEventListener('click', async function () {
     exp.disabled = true;
     try {
-      var r = await build(weeks);
+      var r = await build(weeks, lastWeek);
       var blob = new Blob([r.out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Sổ đồ dùng.xlsx';
       document.body.appendChild(a); a.click();
