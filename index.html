@@ -231,6 +231,14 @@ html.tod-nofx .lp-card,html.tod-nofx .panel.on{animation:none!important}
 @keyframes todFwMsg{0%{opacity:0;transform:translate(-50%,-14px) scale(.92)}10%{opacity:1;transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){#tod-fw-msg{animation:none}}
 @media print{#tod-fw,#tod-fw-msg{display:none!important}}
+/* v6: lời chào nằm trong banner, không khung riêng → gọn, đỡ rối */
+html[data-tod] #tod-greet{display:block;margin:10px auto 0;padding:10px 6px 0;max-width:660px;background:none;border:0;border-top:1px solid rgba(255,255,255,.25);border-radius:0;box-shadow:none;text-align:center;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.35)}
+html[data-tod] #tod-greet .g-ic{display:inline;font-size:16px;margin-right:6px;vertical-align:-1px}
+html[data-tod] #tod-greet .g-tx{display:inline-block;flex:none;font-size:clamp(13.5px,2vw,15.5px);font-weight:600;line-height:1.4}
+html[data-tod] #tod-greet .g-meta{display:block;margin-top:4px;font-size:12.5px;line-height:1.5;color:rgba(255,255,255,.85)}
+html[data-tod] #tod-greet .g-time,html[data-tod] #tod-greet .g-hl{display:block;font-size:12.5px;color:rgba(255,255,255,.85)}
+html[data-tod] #tod-greet .g-hl b{color:var(--cy)}
+html[data-tod] .tab{min-height:0}
 html[data-tod] ::selection{background:var(--cy);color:#111}
 /* hiệu ứng chạm/rê chuột: màu & hình theo buổi (hình đổi bằng JS) */
 html[data-tod] .hc-h,html[data-tod] .hc-h.th{text-shadow:0 0 8px var(--c)}
@@ -524,7 +532,7 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
     scene=document.createElement('div');scene.id='tod-scene';scene.setAttribute('aria-hidden','true');
     document.body.insertBefore(scene,document.body.firstChild);
     var hero=document.querySelector('.app .hero');
-    if(hero&&hero.parentNode){gEl=document.createElement('div');gEl.id='tod-greet';gEl.setAttribute('role','status');hero.parentNode.insertBefore(gEl,hero.nextSibling);}
+    if(hero&&hero.parentNode){gEl=document.createElement('div');gEl.id='tod-greet';gEl.setAttribute('role','status');(hero.querySelector('.htxt')||hero).appendChild(gEl);}   /* lời chào nằm TRONG banner: bớt một khung */
     btn=document.createElement('button');btn.id='tod-switch';btn.type='button';
     btn.addEventListener('click',function(){
       mode=MODES[(MODES.indexOf(mode)+1)%MODES.length];
