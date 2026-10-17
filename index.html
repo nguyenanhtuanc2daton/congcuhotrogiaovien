@@ -110,17 +110,16 @@ body.open .curtain.right .wr{animation-delay:.25s}
 }
 body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 
-/* Cậu bé kéo rèm: đứng dưới chữ, hai tay nắm dây buộc vào mép rèm; rèm mở xong thì cậu bé mờ dần */
-.cur-boy{position:absolute;left:50%;top:calc(50% + max(172px,21vh));--bh:min(150px,18vh);height:var(--bh);width:calc(var(--bh) * 100 / 140);transform:translateX(-50%);z-index:3;animation:boyIn .7s ease-out .35s backwards}
+/* Cậu bé chào cờ: đứng nghiêm dưới chữ, giơ tay phải chào, hạ tay xuống rồi rèm mở; rèm mở được một lúc thì cậu bé mờ dần */
+.cur-boy{position:absolute;left:50%;top:calc(50% + max(172px,21vh));--bh:min(150px,18vh);height:var(--bh);width:calc(var(--bh) * 100 / 140);transform:translateX(-50%);z-index:3;animation:boyIn .6s ease-out .2s backwards}
 .cur-boy svg{display:block;width:100%;height:100%;overflow:visible}
-.cur-boy.pull{animation:boyBob .45s ease-in-out infinite alternate}
 .cur-boy .eyes{transform-box:fill-box;transform-origin:center;animation:boyBlink 3.2s infinite}
-.cur-rope{position:absolute;left:0;top:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:visible;animation:boyFade .7s ease-out .35s backwards}
-.cur-boy.out,.cur-rope.out{opacity:0;transition:opacity .9s ease}
-.cur-rope.out{transition-duration:.5s}
+.cur-boy .arm-up{transform-origin:33px 67px;transition:transform .45s ease-in-out}
+.cur-boy .arm-fo{transform-origin:33px 92px;transition:transform .45s ease-in-out}
+.cur-boy.salute .arm-up{transform:rotate(157deg);transition-duration:.6s}
+.cur-boy.salute .arm-fo{transform:rotate(68deg);transition-duration:.6s}
+.cur-boy.out{opacity:0;transition:opacity .9s ease}
 @keyframes boyIn{from{opacity:0;transform:translateX(-50%) translateY(14px)}}
-@keyframes boyFade{from{opacity:0}}
-@keyframes boyBob{from{transform:translateX(-50%) translateY(0)}to{transform:translateX(-50%) translateY(-4px)}}
 @keyframes boyBlink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
 
 /* Nội dung phía sau hiện rõ dần */
@@ -604,7 +603,7 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
       }).observe(document.body,{childList:true});
     }
     fxUi();apply(false);
-    setTimeout(celebrate,document.querySelector('.curtain-wrap')?3000:500);   /* đợi màn mở đầu kéo xong */
+    setTimeout(celebrate,document.querySelector('.curtain-wrap')?4800:500);   /* đợi màn mở đầu kéo xong */
   }
   function fxUi(){
     fxBtn.textContent=fx==='on'?'⚡':'⏸';fxBtn.classList.toggle('off',fx==='off');
@@ -980,10 +979,17 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 (function(){
   var wrap=document.querySelector('.curtain-wrap');
   if(!wrap||document.documentElement.classList.contains('no-curtain')){if(wrap)wrap.remove();return;}
-  /* ----- Cậu bé kéo rèm (SVG): tay nắm dây buộc vào mép rèm, đi theo rèm khi mở; rèm mở xong thì mờ dần ----- */
+  /* ----- Cậu bé chào cờ (SVG): đứng nghiêm → giơ tay phải chào → hạ tay → rèm tự mở ----- */
+  var boy=null;
   (function(){
-    var NS='http://www.w3.org/2000/svg';
     var b=document.createElement('div');b.className='cur-boy';
+    function arm(x,cls){   /* x = vị trí vai; cẳng tay vẽ trước, ống tay áo vẽ đè lên khuỷu */
+      var fo='<g class="'+(cls?'arm-fo':'')+'"><line x1="'+x+'" y1="92" x2="'+x+'" y2="109" stroke="#c9895f" stroke-width="9" stroke-linecap="round"/>'   /* viền tối để tay nổi rõ trên khuôn mặt */
+        +'<line x1="'+x+'" y1="92" x2="'+x+'" y2="109" stroke="#ffe0c2" stroke-width="6.8" stroke-linecap="round"/>'
+        +'<ellipse cx="'+x+'" cy="113" rx="4.4" ry="6.2" fill="#ffe0c2" stroke="#c9895f" stroke-width="1.5"/></g>';
+      var sl='<line x1="'+x+'" y1="67" x2="'+x+'" y2="92" stroke="#2d7ff9" stroke-width="9" stroke-linecap="round"/>';
+      return '<g class="'+(cls?'arm-up':'')+'">'+fo+sl+'</g>';
+    }
     b.innerHTML='<svg viewBox="0 0 100 140" aria-hidden="true">'
       +'<ellipse cx="50" cy="136" rx="24" ry="3.5" fill="rgba(0,0,0,.4)"/>'
       +'<rect x="39" y="104" width="8" height="25" rx="4" fill="#ffd7b5"/><rect x="53" y="104" width="8" height="25" rx="4" fill="#ffd7b5"/>'
@@ -997,45 +1003,10 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
       +'<g class="eyes"><circle cx="41" cy="41" r="3.4" fill="#1f1a17"/><circle cx="59" cy="41" r="3.4" fill="#1f1a17"/><circle cx="42.2" cy="39.8" r="1.1" fill="#fff"/><circle cx="60.2" cy="39.8" r="1.1" fill="#fff"/></g>'
       +'<circle cx="33.5" cy="48" r="4" fill="#ff9fb0" opacity=".65"/><circle cx="66.5" cy="48" r="4" fill="#ff9fb0" opacity=".65"/>'
       +'<path d="M43 49Q50 57 57 49Z" fill="#b4232c" stroke="#7a1d22" stroke-width="1.4" stroke-linejoin="round"/>'
+      +arm(67,false)      /* tay trái (bên phải ảnh): thả thẳng theo thân */
+      +arm(33,true)       /* tay phải (bên trái ảnh): giơ lên chào */
       +'</svg>';
-    var rp=document.createElementNS(NS,'svg');rp.setAttribute('class','cur-rope');rp.setAttribute('aria-hidden','true');
-    var parts='';['L','R'].forEach(function(k){parts+='<path id="rp'+k+'" fill="none" stroke="#f0cd62" stroke-width="2.6" stroke-linecap="round"/>'
-      +'<circle id="tn'+k+'" r="4.2" fill="#f0cd62" stroke="#8a6508" stroke-width="1"/>'
-      +'<line id="sl'+k+'" stroke="#2d7ff9" stroke-width="10" stroke-linecap="round"/>'
-      +'<line id="sk'+k+'" stroke="#ffe0c2" stroke-width="8" stroke-linecap="round"/>'
-      +'<circle id="hd'+k+'" r="6" fill="#ffe0c2"/>';});
-    rp.innerHTML=parts;
-    wrap.appendChild(b);wrap.appendChild(rp);
-    var cl=wrap.querySelector('.curtain.left'),cr=wrap.querySelector('.curtain.right');
-    if(!cl||!cr)return;
-    function g(id){return rp.querySelector('#'+id);}
-    var el={};['rpL','rpR','tnL','tnR','slL','slR','skL','skR','hdL','hdR'].forEach(function(i){el[i]=g(i);});
-    var done=false,t0=Date.now();
-    function arm(k,sx,sy,ex,hy,R,lim){
-      var dx=ex-sx,dy=hy-sy,len=Math.sqrt(dx*dx+dy*dy)||1,f=Math.min(1,R/len),hx=sx+dx*f,hyy=sy+dy*f;hx=k==='L'?Math.min(hx,lim):Math.max(hx,lim);var mx=(sx+hx)/2,my=(sy+hyy)/2;
-      el['sl'+k].setAttribute('x1',sx);el['sl'+k].setAttribute('y1',sy);el['sl'+k].setAttribute('x2',mx);el['sl'+k].setAttribute('y2',my);
-      el['sk'+k].setAttribute('x1',mx);el['sk'+k].setAttribute('y1',my);el['sk'+k].setAttribute('x2',hx);el['sk'+k].setAttribute('y2',hyy);
-      el['hd'+k].setAttribute('cx',hx);el['hd'+k].setAttribute('cy',hyy);
-      el['tn'+k].setAttribute('cx',ex);el['tn'+k].setAttribute('cy',hy);
-      el['rp'+k].setAttribute('d','M'+hx+' '+hyy+' Q'+((hx+ex)/2)+' '+(hy+10)+' '+ex+' '+hy);
-    }
-    function loop(){
-      if(done)return;
-      if(!b.isConnected){done=true;return;}
-      var r=b.getBoundingClientRect(),sc=r.height/140,W=window.innerWidth;
-      if(!r.height){requestAnimationFrame(loop);return;}
-      var L=cl.getBoundingClientRect().right,Rt=cr.getBoundingClientRect().left,hy=r.top-16*sc,R=92*sc,cx=r.left+r.width/2;
-      arm('L',r.left+33*sc,r.top+66*sc,L,hy,R,cx-40*sc);
-      arm('R',r.left+67*sc,r.top+66*sc,Rt,hy,R,cx+40*sc);
-      var opened=document.body.classList.contains('open');
-      if(opened&&!b.classList.contains('pull'))b.classList.add('pull');
-      if(opened&&((L<=-4&&Rt>=W+4)||Date.now()-t0>9000)){
-        done=true;b.classList.remove('pull');b.classList.add('out');rp.classList.add('out');   /* rèm mở xong → cậu bé mờ dần */
-        return;
-      }
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
+    wrap.appendChild(b);boy=b;
   })();
   /* Sao băng loé sáng khi rèm vừa mở */
   function meteorShow(){
@@ -1075,12 +1046,17 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
   var started=false;
   function openCurtain(){
     if(started)return;started=true;
+    /* Trình tự: cậu bé hiện ra đứng nghiêm → giơ tay chào → hạ tay → rèm tự mở → cậu bé mờ dần */
+    var T_SALUTE=1000, T_LOWER=2400, T_OPEN=2900;
+    setTimeout(function(){if(boy)boy.classList.add('salute');},T_SALUTE);
+    setTimeout(function(){if(boy)boy.classList.remove('salute');},T_LOWER);
     setTimeout(function(){
       document.body.classList.add('open');
       document.documentElement.classList.add('cur-reveal');
       meteorShow();
-    },1100);
-    setTimeout(function(){wrap.remove();},1100+4000+250+1400);   /* chừa thời gian cho cậu bé mờ dần */
+    },T_OPEN);
+    setTimeout(function(){if(boy)boy.classList.add('out');},T_OPEN+900);   /* rèm bắt đầu mở một lúc thì cậu bé mờ dần */
+    setTimeout(function(){wrap.remove();},T_OPEN+4000+250+1400);
   }
   if(document.readyState!=='loading')openCurtain();
   else document.addEventListener('DOMContentLoaded',openCurtain);
