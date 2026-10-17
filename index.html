@@ -110,6 +110,19 @@ body.open .curtain.right .wr{animation-delay:.25s}
 }
 body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 
+/* Cậu bé kéo rèm: đứng dưới chữ, hai tay nắm dây buộc vào mép rèm; rèm mở xong thì cậu bé mờ dần */
+.cur-boy{position:absolute;left:50%;top:calc(50% + max(172px,21vh));--bh:min(150px,18vh);height:var(--bh);width:calc(var(--bh) * 100 / 140);transform:translateX(-50%);z-index:3;animation:boyIn .7s ease-out .35s backwards}
+.cur-boy svg{display:block;width:100%;height:100%;overflow:visible}
+.cur-boy.pull{animation:boyBob .45s ease-in-out infinite alternate}
+.cur-boy .eyes{transform-box:fill-box;transform-origin:center;animation:boyBlink 3.2s infinite}
+.cur-rope{position:absolute;left:0;top:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:visible;animation:boyFade .7s ease-out .35s backwards}
+.cur-boy.out,.cur-rope.out{opacity:0;transition:opacity .9s ease}
+.cur-rope.out{transition-duration:.5s}
+@keyframes boyIn{from{opacity:0;transform:translateX(-50%) translateY(14px)}}
+@keyframes boyFade{from{opacity:0}}
+@keyframes boyBob{from{transform:translateX(-50%) translateY(0)}to{transform:translateX(-50%) translateY(-4px)}}
+@keyframes boyBlink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+
 /* Nội dung phía sau hiện rõ dần */
 .cur-reveal .app{animation:curAppIn 1.8s ease-out 1.5s backwards}
 @keyframes curAppIn{from{opacity:.4;transform:scale(.985)}to{opacity:1;transform:none}}
@@ -967,6 +980,63 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 (function(){
   var wrap=document.querySelector('.curtain-wrap');
   if(!wrap||document.documentElement.classList.contains('no-curtain')){if(wrap)wrap.remove();return;}
+  /* ----- Cậu bé kéo rèm (SVG): tay nắm dây buộc vào mép rèm, đi theo rèm khi mở; rèm mở xong thì mờ dần ----- */
+  (function(){
+    var NS='http://www.w3.org/2000/svg';
+    var b=document.createElement('div');b.className='cur-boy';
+    b.innerHTML='<svg viewBox="0 0 100 140" aria-hidden="true">'
+      +'<ellipse cx="50" cy="136" rx="24" ry="3.5" fill="rgba(0,0,0,.4)"/>'
+      +'<rect x="39" y="104" width="8" height="25" rx="4" fill="#ffd7b5"/><rect x="53" y="104" width="8" height="25" rx="4" fill="#ffd7b5"/>'
+      +'<ellipse cx="42" cy="131" rx="9.5" ry="5" fill="#fff"/><ellipse cx="58" cy="131" rx="9.5" ry="5" fill="#fff"/>'
+      +'<rect x="34" y="94" width="32" height="18" rx="7" fill="#1e3a8a"/>'
+      +'<rect x="34" y="60" width="32" height="42" rx="11" fill="#2d7ff9"/>'
+      +'<path d="M40 60 L60 60 L50 80 Z" fill="#e11d2e"/><circle cx="50" cy="62" r="4" fill="#c1121f"/>'
+      +'<circle cx="25" cy="38" r="4.5" fill="#ffd7b5"/><circle cx="75" cy="38" r="4.5" fill="#ffd7b5"/>'
+      +'<circle cx="50" cy="36" r="25" fill="#ffe0c2"/>'
+      +'<path d="M25 35C23 10 77 10 75 35C70 25 60 21 50 23C40 21 30 25 25 35Z" fill="#1f1a17"/><path d="M45 15Q50 3 57 14Z" fill="#1f1a17"/>'
+      +'<g class="eyes"><circle cx="41" cy="41" r="3.4" fill="#1f1a17"/><circle cx="59" cy="41" r="3.4" fill="#1f1a17"/><circle cx="42.2" cy="39.8" r="1.1" fill="#fff"/><circle cx="60.2" cy="39.8" r="1.1" fill="#fff"/></g>'
+      +'<circle cx="33.5" cy="48" r="4" fill="#ff9fb0" opacity=".65"/><circle cx="66.5" cy="48" r="4" fill="#ff9fb0" opacity=".65"/>'
+      +'<path d="M43 49Q50 57 57 49Z" fill="#b4232c" stroke="#7a1d22" stroke-width="1.4" stroke-linejoin="round"/>'
+      +'</svg>';
+    var rp=document.createElementNS(NS,'svg');rp.setAttribute('class','cur-rope');rp.setAttribute('aria-hidden','true');
+    var parts='';['L','R'].forEach(function(k){parts+='<path id="rp'+k+'" fill="none" stroke="#f0cd62" stroke-width="2.6" stroke-linecap="round"/>'
+      +'<circle id="tn'+k+'" r="4.2" fill="#f0cd62" stroke="#8a6508" stroke-width="1"/>'
+      +'<line id="sl'+k+'" stroke="#2d7ff9" stroke-width="10" stroke-linecap="round"/>'
+      +'<line id="sk'+k+'" stroke="#ffe0c2" stroke-width="8" stroke-linecap="round"/>'
+      +'<circle id="hd'+k+'" r="6" fill="#ffe0c2"/>';});
+    rp.innerHTML=parts;
+    wrap.appendChild(b);wrap.appendChild(rp);
+    var cl=wrap.querySelector('.curtain.left'),cr=wrap.querySelector('.curtain.right');
+    if(!cl||!cr)return;
+    function g(id){return rp.querySelector('#'+id);}
+    var el={};['rpL','rpR','tnL','tnR','slL','slR','skL','skR','hdL','hdR'].forEach(function(i){el[i]=g(i);});
+    var done=false,t0=Date.now();
+    function arm(k,sx,sy,ex,hy,R,lim){
+      var dx=ex-sx,dy=hy-sy,len=Math.sqrt(dx*dx+dy*dy)||1,f=Math.min(1,R/len),hx=sx+dx*f,hyy=sy+dy*f;hx=k==='L'?Math.min(hx,lim):Math.max(hx,lim);var mx=(sx+hx)/2,my=(sy+hyy)/2;
+      el['sl'+k].setAttribute('x1',sx);el['sl'+k].setAttribute('y1',sy);el['sl'+k].setAttribute('x2',mx);el['sl'+k].setAttribute('y2',my);
+      el['sk'+k].setAttribute('x1',mx);el['sk'+k].setAttribute('y1',my);el['sk'+k].setAttribute('x2',hx);el['sk'+k].setAttribute('y2',hyy);
+      el['hd'+k].setAttribute('cx',hx);el['hd'+k].setAttribute('cy',hyy);
+      el['tn'+k].setAttribute('cx',ex);el['tn'+k].setAttribute('cy',hy);
+      el['rp'+k].setAttribute('d','M'+hx+' '+hyy+' Q'+((hx+ex)/2)+' '+(hy+10)+' '+ex+' '+hy);
+    }
+    function loop(){
+      if(done)return;
+      if(!b.isConnected){done=true;return;}
+      var r=b.getBoundingClientRect(),sc=r.height/140,W=window.innerWidth;
+      if(!r.height){requestAnimationFrame(loop);return;}
+      var L=cl.getBoundingClientRect().right,Rt=cr.getBoundingClientRect().left,hy=r.top-16*sc,R=92*sc,cx=r.left+r.width/2;
+      arm('L',r.left+33*sc,r.top+66*sc,L,hy,R,cx-40*sc);
+      arm('R',r.left+67*sc,r.top+66*sc,Rt,hy,R,cx+40*sc);
+      var opened=document.body.classList.contains('open');
+      if(opened&&!b.classList.contains('pull'))b.classList.add('pull');
+      if(opened&&((L<=-4&&Rt>=W+4)||Date.now()-t0>9000)){
+        done=true;b.classList.remove('pull');b.classList.add('out');rp.classList.add('out');   /* rèm mở xong → cậu bé mờ dần */
+        return;
+      }
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
   /* Sao băng loé sáng khi rèm vừa mở */
   function meteorShow(){
     if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
@@ -1010,7 +1080,7 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
       document.documentElement.classList.add('cur-reveal');
       meteorShow();
     },1100);
-    setTimeout(function(){wrap.remove();},1100+4000+250+300);
+    setTimeout(function(){wrap.remove();},1100+4000+250+1400);   /* chừa thời gian cho cậu bé mờ dần */
   }
   if(document.readyState!=='loading')openCurtain();
   else document.addEventListener('DOMContentLoaded',openCurtain);
