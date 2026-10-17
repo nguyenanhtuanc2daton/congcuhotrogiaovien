@@ -11,7 +11,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-<link rel="stylesheet" href="style.css?v=20261005">
+<link rel="stylesheet" href="style.css?v=20261017">
+<style id="hero-logo-top">/* Logo LUÔN nằm phía trên dòng "Trường THCS Đa Tốn" trên mọi thiết bị (điện thoại, máy tính, tivi) */
+.hero{flex-direction:column!important;text-align:center!important}
+.hero .logo{width:clamp(72px,10vw,110px)!important;height:clamp(72px,10vw,110px)!important}
+@media (max-height:480px) and (orientation:landscape){.hero .logo{width:44px!important;height:44px!important}}
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <script src="gkey.js?v=20261005"></script>
 

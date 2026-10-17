@@ -276,3 +276,8 @@ button#hcBtn{right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe
 @media (min-width:2400px){html{zoom:1.5}}
 @media (min-width:3000px){html{zoom:2}}
 @media (min-width:3600px){html{zoom:2.5}}
+
+/* ===== BANNER: logo đặt phía TRÊN dòng "Trường THCS Đa Tốn", cả khối căn giữa ===== */
+.hero{flex-direction:column;text-align:center;gap:clamp(8px,1.6vw,14px)}
+.hero .logo{width:clamp(72px,10vw,110px);height:clamp(72px,10vw,110px)}
+@media (max-height:480px) and (orientation:landscape){.hero .logo{width:44px;height:44px}}   /* điện thoại xoay ngang (màn thấp): vẫn để logo phía trên nhưng thu nhỏ cho đỡ tốn chiều cao */
