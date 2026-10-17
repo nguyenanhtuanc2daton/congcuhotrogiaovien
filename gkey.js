@@ -25,16 +25,25 @@
   window.addEventListener('ph-key',function(){var ss=rd('sessionStorage',SK);
     if(ss&&remember()&&rd('localStorage',K)!==ss) wr('localStorage',K,ss); refresh();});
   var $=function(i){return document.getElementById(i);};
+  var forced=false;   /* true = người dùng đang chủ động mở khung (xem/đổi key) */
+  /* Đã có key → ẩn khung, chỉ còn nút tròn 🔑 nhỏ; chưa có key → hiện khung để nhập */
+  function apply(){var bar=$('gkBar'),fab=$('gkFab');if(!bar)return;
+    var hide=!!get()&&!forced;
+    bar.style.display=hide?'none':'';
+    bar.classList.toggle('gk-float',forced);
+    if(fab)fab.style.display=hide?'flex':'none';
+    var c=$('gkClose');if(c)c.style.display=get()?'':'none';}
   function refresh(){var st=$('gkSt');if(!st)return;var k=get();
     st.textContent=k?'đã nhập ✓ (dùng cho mọi tính năng AI)':'chưa nhập';st.className='gkst '+(k?'ok':'no');
-    $('gkDel').style.display=k?'':'none';$('gkBtn').textContent=k?'🔑 Đổi / xem key':'🔑 Nhập key';}
-  function open(msg){var b=$('gkBox');if(!b)return;b.hidden=false;$('gkIn').focus();
+    $('gkDel').style.display=k?'':'none';$('gkBtn').textContent=k?'🔑 Đổi / xem key':'🔑 Nhập key';apply();}
+  function open(msg){var b=$('gkBox');if(!b)return;forced=true;apply();b.hidden=false;$('gkIn').focus();
     $('gkMsg').textContent=msg||'';try{$('gkBar').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}
   function build(){
     var hero=document.querySelector('.hero');if(!hero||$('gkBar'))return;
     var d=document.createElement('div');d.id='gkBar';
     d.innerHTML='<div class="gkrow"><span>API key Gemini: <span id="gkSt" class="gkst no">chưa nhập</span></span>'
-      +'<button type="button" id="gkBtn" class="sm sec" style="flex:0 0 auto">🔑 Nhập key</button></div>'
+      +'<button type="button" id="gkBtn" class="sm sec" style="flex:0 0 auto">🔑 Nhập key</button>'
+      +'<button type="button" id="gkClose" class="sm sec" style="flex:0 0 auto;display:none" title="Thu gọn khung này">▲ Thu gọn</button></div>'
       +'<div id="gkBox" hidden style="margin-top:8px"><div class="gkrow">'
       +'<input type="password" id="gkIn" placeholder="Dán API key Gemini (nhập 1 lần, dùng cho mọi tính năng AI)" autocomplete="off" spellcheck="false">'
       +'<button type="button" id="gkSave" class="sm" style="flex:0 0 auto">Lưu</button>'
@@ -43,17 +52,47 @@
       +'<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Lấy key miễn phí tại Google AI Studio</a></div>'
       +'<div id="gkMsg"></div></div>';
     hero.insertAdjacentElement('afterend',d);
+    var st=document.createElement('style');
+    st.textContent='#gkFab{position:fixed;left:12px;bottom:calc(100px + env(safe-area-inset-bottom,0px));z-index:9000;width:32px;height:32px;min-width:0;padding:0;margin:0;border-radius:50%;'
+      +'display:none;align-items:center;justify-content:center;font-size:15px;line-height:1;cursor:pointer;color:#fff;border:2px solid var(--cy,#7dd3fc);background:var(--card2,#0a0f26);box-shadow:0 3px 12px rgba(0,0,0,.4);opacity:.85}'
+      +'#gkFab:hover{opacity:1}@media print{#gkFab{display:none!important}}'
+      +'#gkBar.gk-float{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(580px,calc(100vw - 20px));max-height:calc(100vh - 20px);overflow:auto;'
+      +'z-index:99999;margin:0;padding:12px 14px;box-sizing:border-box;border-radius:14px;color:var(--fg,#fff);background:var(--card2,#0a2c37);border:2px solid var(--cy,#ffd166);'
+      +'box-shadow:0 18px 50px rgba(0,0,0,.6);animation:gkIn .25s ease-out}'
+      +'@keyframes gkIn{from{opacity:0;transform:translate(-50%,-10px)}to{opacity:1;transform:translate(-50%,0)}}'
+      +'@media (prefers-reduced-motion:reduce){#gkBar.gk-float{animation:none}}';
+    document.head.appendChild(st);
+    var fab=document.createElement('button');fab.id='gkFab';fab.type='button';fab.textContent='🔑';
+    fab.title='API key Gemini: đã nhập — bấm để xem/đổi';fab.setAttribute('aria-label',fab.title);
+    fab.onclick=function(){open('');};
+    document.body.appendChild(fab);
+    $('gkClose').onclick=function(){forced=false;$('gkBox').hidden=true;apply();};
     $('gkRem').checked=remember();
     $('gkBtn').onclick=function(){var b=$('gkBox');b.hidden=!b.hidden;if(!b.hidden)$('gkIn').focus();};
     function save(){var v=$('gkIn').value.trim();
       if(v.length<20||/\s/.test(v)){$('gkMsg').textContent='⚠ Key không hợp lệ — hãy dán đầy đủ key lấy từ Google AI Studio.';return;}
-      set(v,$('gkRem').checked);$('gkIn').value='';$('gkMsg').textContent='✓ Đã lưu. Từ giờ không cần nhập lại cho các tính năng AI khác.';
-      setTimeout(function(){$('gkBox').hidden=true;},1200);}
+      forced=true;set(v,$('gkRem').checked);$('gkIn').value='';$('gkMsg').textContent='✓ Đã lưu. Từ giờ không cần nhập lại cho các tính năng AI khác.';
+      setTimeout(function(){$('gkBox').hidden=true;forced=false;apply();},1200);}
     $('gkSave').onclick=save;
     $('gkIn').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();save();}});
     $('gkDel').onclick=function(){clear();$('gkMsg').textContent='Đã xóa key khỏi trình duyệt này.';};
     refresh();
   }
+  /* Mọi lời gọi tới Gemini (ở bất kỳ tính năng nào) trả lỗi do key (sai/hết hạn/bị khóa) → khung key tự nổi lên */
+  function keyProblem(){var b=$('gkBar');if(!b||b.classList.contains('gk-float'))return;
+    open('⚠ Key Gemini đang gặp lỗi (sai, hết hạn hoặc bị khóa). Hãy dán key mới rồi bấm Lưu — khung sẽ tự đóng.');}
+  var _f=window.fetch;
+  if(typeof _f==='function'){window.fetch=function(){
+    var a=arguments,u='';try{u=String((a[0]&&a[0].url)||a[0]);}catch(e){}
+    var p=_f.apply(this,a);
+    if(u.indexOf('generativelanguage.googleapis.com')<0)return p;
+    return p.then(function(r){
+      try{if(r&&!r.ok&&(r.status===400||r.status===401||r.status===403)){
+        r.clone().text().then(function(t){
+          if(r.status!==400||/API_KEY_INVALID|API key not valid|API key expired|key (is )?(invalid|expired)/i.test(t))keyProblem();
+        }).catch(function(){});}}catch(e){}
+      return r;});
+  };}
   window.GKEY={get:get,set:set,clear:clear,has:function(){return !!get();},open:open};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
 })();
