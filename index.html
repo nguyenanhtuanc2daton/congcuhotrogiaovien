@@ -239,6 +239,16 @@ html[data-tod] #tod-greet .g-meta{display:block;margin-top:4px;font-size:12.5px;
 html[data-tod] #tod-greet .g-time,html[data-tod] #tod-greet .g-hl{display:block;font-size:12.5px;color:rgba(255,255,255,.85)}
 html[data-tod] #tod-greet .g-hl b{color:var(--cy)}
 html[data-tod] .tab{min-height:0}
+/* v7: chữ ở màn chào luôn đọc rõ trên nền trời sáng (đặt trên nền tối mờ) */
+html[data-tod] #t0 .lp-txt{max-width:780px;margin:12px auto 0;padding:14px 18px;box-sizing:border-box;border-radius:var(--tod-r);background:color-mix(in srgb,var(--card) 90%,transparent);border:1px solid var(--bd);text-shadow:none}
+html[data-tod] #t0 .lp-txt h2{color:#fff7d6;opacity:1;margin:0 0 6px}
+html[data-tod] #t0 .lp-txt p{color:var(--fg);opacity:1;margin:0}
+html[data-tod] #t0 .lp-note{display:table;margin:8px auto 0;padding:6px 14px;border-radius:999px;background:color-mix(in srgb,var(--card) 90%,transparent);border:1px solid var(--bd);color:var(--fg);opacity:1;text-shadow:none;text-align:center}
+/* v8: tên giáo viên và câu chúc xuống dòng gọn gàng */
+html[data-tod] .hero h1 .hsep{display:none}
+html[data-tod] .hero h1 .hgv{display:block;margin-top:.25em;font-size:.72em;font-weight:600;letter-spacing:.02em}
+html[data-tod] #tod-greet .g-l1,html[data-tod] #tod-greet .g-l2{display:block}
+html[data-tod] #tod-greet .g-l2{font-weight:500;font-size:.94em;margin-top:2px}
 html[data-tod] ::selection{background:var(--cy);color:#111}
 /* hiệu ứng chạm/rê chuột: màu & hình theo buổi (hình đổi bằng JS) */
 html[data-tod] .hc-h,html[data-tod] .hc-h.th{text-shadow:0 0 8px var(--c)}
@@ -514,7 +524,13 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
     var t=pick(G[cur]);
     gEl.innerHTML='<span class="g-ic"></span><span class="g-tx"></span><span class="g-meta"><span class="g-time"></span><span class="g-hl"></span></span>';
     gEl.querySelector('.g-ic').textContent=ICON[cur];
-    var tx=gEl.querySelector('.g-tx');tx.textContent=t;tx.style.setProperty('--n',Math.min(t.length,70));
+    var tx=gEl.querySelector('.g-tx');var mm=t.match(/^(.+?!)\s+(.+)$/)||t.match(/^(.+?)\s+—\s+(.+)$/)||t.match(/^(.+?,)\s+(chúc .+)$/);
+    if(mm){tx.textContent='';
+      var l1=document.createElement('span'),l2=document.createElement('span');
+      l1.className='g-l1';l1.textContent=mm[1];l2.className='g-l2';l2.textContent=mm[2].charAt(0).toUpperCase()+mm[2].slice(1);
+      tx.appendChild(l1);tx.appendChild(l2);
+    }else tx.textContent=t;
+    tx.style.setProperty('--n',Math.min(t.length,70));
     gEl.style.animation='none';void gEl.offsetWidth;gEl.style.animation='';
     var hl=holidays(),he=gEl.querySelector('.g-hl');
     if(hl.length){
@@ -638,7 +654,7 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
 </div>
 
 <div class="app">
-<div class="hero"><div class="logo"><img src="logo.jpg?v=20261005" alt="Logo Trường THCS Đa Tốn"></div><div class="htxt"><div class="school">Trường THCS Đa Tốn</div><h1>Bộ công cụ trợ giảng Toán - GV Nguyễn Anh Tuấn</h1><div class="stars" aria-hidden="true"><i style="--s:18px;--d:0s;--t:2.2s">✦</i><i style="--s:12px;--d:0.5s;--t:1.7s">★</i><i style="--s:20px;--d:1.1s;--t:2.6s">✧</i><i style="--s:14px;--d:0.3s;--t:1.9s">✦</i><i style="--s:20px;--d:1.6s;--t:2.4s">★</i><i style="--s:13px;--d:0.8s;--t:2.0s">✧</i><i style="--s:22px;--d:1.3s;--t:2.8s">✦</i><i style="--s:13px;--d:0.2s;--t:1.6s">★</i><i style="--s:17px;--d:1.9s;--t:2.3s">✧</i><i style="--s:12px;--d:0.6s;--t:1.8s">✦</i><i style="--s:18px;--d:1.0s;--t:2.5s">★</i><i style="--s:15px;--d:0.1s;--t:2.1s">✧</i><i style="--s:19px;--d:1.7s;--t:2.7s">✦</i></div></div></div>
+<div class="hero"><div class="logo"><img src="logo.jpg?v=20261005" alt="Logo Trường THCS Đa Tốn"></div><div class="htxt"><div class="school">Trường THCS Đa Tốn</div><h1>Bộ công cụ trợ giảng Toán<span class="hsep"> - </span><span class="hgv">Giáo viên: Nguyễn Anh Tuấn</span></h1><div class="stars" aria-hidden="true"><i style="--s:18px;--d:0s;--t:2.2s">✦</i><i style="--s:12px;--d:0.5s;--t:1.7s">★</i><i style="--s:20px;--d:1.1s;--t:2.6s">✧</i><i style="--s:14px;--d:0.3s;--t:1.9s">✦</i><i style="--s:20px;--d:1.6s;--t:2.4s">★</i><i style="--s:13px;--d:0.8s;--t:2.0s">✧</i><i style="--s:22px;--d:1.3s;--t:2.8s">✦</i><i style="--s:13px;--d:0.2s;--t:1.6s">★</i><i style="--s:17px;--d:1.9s;--t:2.3s">✧</i><i style="--s:12px;--d:0.6s;--t:1.8s">✦</i><i style="--s:18px;--d:1.0s;--t:2.5s">★</i><i style="--s:15px;--d:0.1s;--t:2.1s">✧</i><i style="--s:19px;--d:1.7s;--t:2.7s">✦</i></div></div></div>
 <div class="tabs" role="tablist">
 <button class="tab" data-tab="t3">🧰 3. Công cụ Word</button>
 <button class="tab" data-tab="t8">🛠 4. Công cụ thường dùng</button>
