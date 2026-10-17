@@ -253,9 +253,9 @@ html[data-tod] #tod-greet .g-time,html[data-tod] #tod-greet .g-hl{display:block;
 html[data-tod] #tod-greet .g-hl b{color:var(--cy)}
 html[data-tod] .tab{min-height:0}
 /* v7: chữ ở màn chào luôn đọc rõ trên nền trời sáng (đặt trên nền tối mờ) */
-html[data-tod] #t0 .lp-txt{max-width:780px;margin:12px auto 0;padding:14px 18px;box-sizing:border-box;border-radius:var(--tod-r);background:color-mix(in srgb,var(--card) 90%,transparent);border:1px solid var(--bd);text-shadow:none}
+html[data-tod] #t0 .lp-txt{width:100%;max-width:none;margin:12px 0 0;padding:16px 24px;text-align:center;box-sizing:border-box;border-radius:var(--tod-r);background:color-mix(in srgb,var(--card) 90%,transparent);border:1px solid var(--bd);text-shadow:none}
 html[data-tod] #t0 .lp-txt h2{color:#fff7d6;opacity:1;margin:0 0 6px}
-html[data-tod] #t0 .lp-txt p{color:var(--fg);opacity:1;margin:0}
+html[data-tod] #t0 .lp-txt p{color:var(--fg);opacity:1;margin:0 auto;max-width:860px;text-align:center}
 html[data-tod] #t0 .lp-note{display:table;margin:8px auto 0;padding:6px 14px;border-radius:999px;background:color-mix(in srgb,var(--card) 90%,transparent);border:1px solid var(--bd);color:var(--fg);opacity:1;text-shadow:none;text-align:center}
 /* v8: tên giáo viên và câu chúc xuống dòng gọn gàng */
 html[data-tod] .hero h1 .hsep{display:none}
@@ -469,7 +469,7 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
     return 'toi';
   }
   var mode='auto',fx='on',cur='',scene=null,curEl=null,btn=null,fxBtn=null,tip=null,tipT=0,gEl=null,lastShoot=0;
-  try{var m=localStorage.getItem(KEY);if(MODES.indexOf(m)>-1)mode=m;if(localStorage.getItem(FXK)==='off')fx='off';}catch(e){}
+  try{localStorage.removeItem(KEY);if(localStorage.getItem(FXK)==='off')fx='off';}catch(e){}   /* luôn khởi động ở chế độ Tự động theo giờ thật; xoá chế độ ghim cũ còn lưu từ trước */
   var root=document.documentElement;
   function want(){return mode==='auto'?byHour(new Date().getHours()):mode;}
   function rnd(a,b){return a+Math.random()*(b-a);}
@@ -565,7 +565,7 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
     btn=document.createElement('button');btn.id='tod-switch';btn.type='button';
     btn.addEventListener('click',function(){
       mode=MODES[(MODES.indexOf(mode)+1)%MODES.length];
-      try{localStorage.setItem(KEY,mode);}catch(e){}
+      /* chế độ ghim chỉ có hiệu lực đến khi tải lại trang (không lưu) */
       apply(true);
     });
     fxBtn=document.createElement('button');fxBtn.id='tod-fx';fxBtn.type='button';
