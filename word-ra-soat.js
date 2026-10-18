@@ -546,7 +546,9 @@ function mcqFind(body){
     const p=kids[i];
     if(p.localName!=='p'||p.namespaceURI!==W)continue;
     const S0=pModel(p).S,L0=optLabels(S0);
-    if(!L0.length||L0[0].L!=='A'||!/^[\s\u0001]*$/.test(S0.slice(0,L0[0].pos)))continue;
+    if(!L0.length||L0[0].L!=='A')continue;
+    const pre0=S0.slice(0,L0[0].pos);let split=false;
+    if(!/^[\s\u0001]*$/.test(pre0)){if(/\u0001[ \t]*$/.test(pre0))split=true;else continue}
     const ps=[p],seq=L0.map(x=>x.L);let j=i+1,ok='ABCD'.indexOf(seq.join(''))===0;
     while(ok&&seq.join('')!=='ABCD'&&seq.length<4){
       const q=kids[j];if(!q||q.localName!=='p'||q.namespaceURI!==W){ok=false;break}
@@ -560,14 +562,14 @@ function mcqFind(body){
         if(pp&&(one(pp,'numPr')||one(pp,'sectPr')||one(pp,'framePr')||one(pp,'pageBreakBefore')))return false;
         if(hasPB(q)||all(q,'fldChar').length||all(q,'fldSimple').length||all(q,'oMathPara',M).length)return false;
         return Array.from(q.children).every(c=>c.localName==='pPr'||c.namespaceURI===M&&c.localName==='oMath'||(c.namespaceURI===W&&MCQ_OK_KIDS.has(c.localName)))});
-      if(clean)blocks.push({ps,i});else bad++;
+      if(clean)blocks.push({ps,i,split});else bad++;
       i=j-1}
     else if(ps.length>1||seq.length>=2)bad++}
   return{blocks,bad}}
 /* Tách một nhóm thành 4 đoạn con (frag) bắt đầu bằng chính nhãn A/B/C/D */
-function mcqFrags(doc,ps){
-  const frags=[];
-  for(const p of ps){
+function mcqFrags(doc,ps,split){
+  const frags=[];let stem=[];
+  for(let pi=0;pi<ps.length;pi++){const p=ps[pi];
     Array.from(p.children).forEach(c=>{if(c.namespaceURI===W&&c.localName==='r')explode(doc,c)});
     const mdl=pModel(p),labs=optLabels(mdl.S),starts=[];
     for(let k=labs.length-1;k>=0;k--){
@@ -578,29 +580,58 @@ function mcqFrags(doc,ps){
       starts[k]=r}
     const kids=Array.from(p.children).filter(c=>c.localName!=='pPr'),cut=starts.map(r=>kids.indexOf(r));
     if(cut.some(x=>x<0))return null;
-    const pre=kids.slice(0,cut[0]);
+    let pre=kids.slice(0,cut[0]);
+    if(pi===0&&split){
+      /* câu hỏi và đáp án chung một đoạn: "A." phải đứng ngay sau một lần xuống dòng (Shift+Enter) */
+      let q=cut[0]-1,sawBr=false;
+      while(q>=0&&isWsRun(kids[q])){if(all(kids[q],'br').length)sawBr=true;q--}
+      if(!sawBr||q<0)return null;
+      stem=kids.slice(0,q+1);pre=kids.slice(q+1,cut[0]);
+      pre.forEach(rm);pre=[];
+      const lt=(()=>{const n=stem[stem.length-1];if(n.namespaceURI!==W||n.localName!=='r')return null;const ts=wk(n,'t');return ts.length===1&&Array.from(n.children).every(c=>c.localName==='rPr'||c.localName==='t')?ts[0]:null})();
+      if(lt){lt.textContent=lt.textContent.replace(/[ \t\u00a0\u3000]+$/,'');setXS(lt)}}
     starts.forEach((r,k)=>{
       const seg=kids.slice(cut[k],k+1<cut.length?cut[k+1]:kids.length);
       frags.push(k===0?pre.concat(seg):seg)})}
   if(frags.length!==4)return null;
   const out=frags.map(trimFrag);
-  return out.every(f=>f.length)?out:null}
+  return out.every(f=>f.length)?{frags:out,stem}:null}
 function psig(ps){return ps.map(p=>{const c=p.cloneNode(true);
   Array.from(c.getElementsByTagNameNS(W,'r')).forEach(r=>{const ks=Array.from(r.children).filter(x=>x.localName!=='rPr');if(ks.length===1&&ks[0].localName==='tab'){const x=one(r,'rPr');if(x)r.removeChild(x)}});
   return new XMLSerializer().serializeToString(c)}).join('')}
+/* Xóa dòng trống nằm xen giữa câu hỏi và đáp án, hoặc giữa các đáp án A–B–C–D / a)–b)–c)–d) liên tiếp */
+function lastLbl(S){let m,l=null;const re=/(^|[\s\u0001\u0002])([A-Da-d])[.)]/g;while((m=re.exec(S)))l=m[2];return l}
+function gapClean(body,rep){
+  let n=0;const kids=Array.from(body.children);
+  for(let i=0;i<kids.length;i++){
+    const e=kids[i];
+    if(e.localName!=='p'||e.namespaceURI!==W||!isE(e)||hasPB(e)||hasSect(e))continue;
+    let a=i;while(a>0&&kids[a-1].localName==='p'&&isE(kids[a-1])&&!hasPB(kids[a-1])&&!hasSect(kids[a-1]))a--;
+    let b=i;while(kids[b+1]&&kids[b+1].localName==='p'&&isE(kids[b+1])&&!hasPB(kids[b+1])&&!hasSect(kids[b+1]))b++;
+    const pv=kids[a-1],nx=kids[b+1];
+    if(pv&&nx&&pv.localName==='p'&&nx.localName==='p'&&!hasSect(pv)&&!hasPB(pv)&&!hasSect(nx)){
+      const Sn=pModel(nx).S,Sp=pModel(pv).S,mn=/^[\s\u0001]*([A-Da-d])[.)]/.exec(Sn);
+      if(mn&&Sp.replace(/[\s\u0001\u0002]/g,'')){
+        const lp=optLead(Sp)?lastLbl(Sp):null,ln=mn[1];
+        const ok=lp?ln.charCodeAt(0)===lp.charCodeAt(0)+1&&(ln===ln.toLowerCase())===(lp===lp.toLowerCase()):(ln==='A'||ln==='a');
+        if(ok){for(let k=a;k<=b;k++){rm(kids[k]);n++}}}}
+    i=b}
+  rep.fix('Trắc nghiệm: xóa dòng trống xen giữa câu hỏi và các đáp án (đáp án hết bị cách xa nhau không đều)',n)}
 function mcqPass(doc,body,secs,o,rep,ctx){
+  gapClean(body,rep);
   const {blocks,bad}=mcqFind(body);
   const cnt={c4:0,c2:0,c1:0,skip:bad,keep:0,stem:0};
   const mode=o.mcqMode||'auto',bk=secs.bk,sz=ctx.szEst||28;
   /* lề trái đáp án theo đa số trong tài liệu (để mọi câu thẳng hàng với nhau) */
-  const freq={};blocks.forEach(b=>{const v=indStart(one(b.ps[0],'pPr'));freq[v]=(freq[v]||0)+1});
-  let L0=0,best=-1;Object.keys(freq).map(Number).sort((a,b)=>a-b).forEach(k=>{if(freq[k]>best){best=freq[k];L0=k}});
+  const freq={};blocks.forEach(b=>{if(b.split)return;const v=indStart(one(b.ps[0],'pPr'));freq[v]=(freq[v]||0)+1});
+  let L0=blocks.some(b=>b.split)&&!Object.keys(freq).length?567:0,best=-1;Object.keys(freq).map(Number).sort((a,b)=>a-b).forEach(k=>{if(freq[k]>best){best=freq[k];L0=k}});
   const GAP=170;
   blocks.forEach(b=>{
     const ps=b.ps,first=ps[0],snap=psig(ps);
     const idx=bk.indexOf(first),sec=secs.find(s=>s.end>=(idx<0?0:idx))||secs[secs.length-1];
-    const frags=mcqFrags(doc,ps);
-    if(!frags){cnt.skip++;return}
+    const fr=mcqFrags(doc,ps,b.split);
+    if(!fr){cnt.skip++;return}
+    const frags=fr.frags,stemP=fr.stem.length?first:null;
     const aw=sec.aw-L0,w=frags.map(f=>estW(f,sz)),mx=Math.max.apply(null,w),multi=frags.some(f=>hasMulti(f));
     let lay=1;
     if(!multi&&mode!=='one'){
@@ -610,6 +641,7 @@ function mcqPass(doc,body,secs,o,rep,ctx){
     const tabs=lay===4?[1,2,3].map(k=>Math.round(L0+aw*k/4)):lay===2?[Math.round(L0+aw/2)]:[];
     const lastP=ps[ps.length-1],lastPr=one(lastP,'pPr'),lastSp=lastPr&&one(lastPr,'spacing');
     let pPr=one(first,'pPr');if(!pPr){pPr=mk(doc,'pPr');first.insertBefore(pPr,first.firstChild)}
+    if(stemP){pPr=pPr.cloneNode(true);const kn0=one(pPr,'keepNext');if(kn0)rm(kn0)}
     const tb=one(pPr,'tabs');if(tb)rm(tb);
     if(tabs.length){const t=sc(doc,pPr,'tabs',ORD.pPr);tabs.forEach(pos=>{const e=mk(doc,'tab');sa(e,'val','left');sa(e,'pos',pos);t.appendChild(e)})}
     setInd(doc,pPr,L0);
@@ -621,25 +653,27 @@ function mcqPass(doc,body,secs,o,rep,ctx){
     const paras=[];let prev=first;
     lines.forEach((ln,li)=>{
       let p;
-      if(li===0)p=first;
+      if(li===0&&!stemP)p=first;
       else{p=first.cloneNode(false);p.appendChild(pPr.cloneNode(true));prev.parentNode.insertBefore(p,prev.nextSibling)}
       prev=p;paras.push(p);
-      Array.from(p.children).forEach(c=>{if(c.localName!=='pPr')p.removeChild(c)});
+      if(!stemP)Array.from(p.children).forEach(c=>{if(c.localName!=='pPr')p.removeChild(c)});
       ln.forEach((fi,k)=>{
         if(k>0){const lr=frags[fi].find(n=>n.localName==='r');p.appendChild(tabRun(lr))}
         frags[fi].forEach(n=>p.appendChild(n))})});
-    ps.forEach(p=>{if(paras.indexOf(p)<0)rm(p)});
+    if(stemP)Array.from(stemP.children).forEach(c=>{if(c.localName!=='pPr'&&fr.stem.indexOf(c)<0)rm(c)});
+    ps.forEach(p=>{if(paras.indexOf(p)<0&&p!==stemP)rm(p)});
     paras.forEach((p,li)=>{
       const pp=one(p,'pPr');
       if(li===paras.length-1){
         const kn=one(pp,'keepNext');if(kn)rm(kn);
         const sp=one(pp,'spacing');
         if(lastSp){if(sp)rm(sp);const c=lastSp.cloneNode(true);const ref=Array.from(pp.children).find(x=>x.namespaceURI===W&&ORD.pPr.indexOf(x.localName)>ORD.pPr.indexOf('spacing'));pp.insertBefore(c,ref||null)}}
-      else sc(doc,pp,'keepNext',ORD.pPr)});
+      else{sc(doc,pp,'keepNext',ORD.pPr);const sp=sc(doc,pp,'spacing',ORD.pPr);['beforeLines','afterLines','beforeAutospacing','afterAutospacing'].forEach(a=>sp.removeAttributeNS(W,a));sa(sp,'before',0);sa(sp,'after',0)}
+      if(li===paras.length-1){const sp=one(pp,'spacing');if(sp){['beforeLines','beforeAutospacing'].forEach(a=>sp.removeAttributeNS(W,a));sa(sp,'before',0)}}});
     /* câu hỏi đi cùng đáp án */
-    const pv=paras[0].previousElementSibling;
+    const pv=stemP||paras[0].previousElementSibling;
     if(pv&&pv.localName==='p'&&!hasSect(pv)&&!isE(pv)&&!hasPB(pv)){let pp=one(pv,'pPr');if(!pp){pp=mk(doc,'pPr');pv.insertBefore(pp,pv.firstChild)}sc(doc,pp,'keepNext',ORD.pPr)}
-    const after=psig(paras);
+    const after=psig(stemP?[stemP].concat(paras):paras);
     if(after!==snap){if(lay===4)cnt.c4++;else if(lay===2)cnt.c2++;else cnt.c1++}});
   /* lề trái "Câu n." đồng nhất (bỏ qua khi người dùng chọn thụt đầu dòng 1 cm) */
   if(!o.firstLine&&o.mcqStem!==false){
