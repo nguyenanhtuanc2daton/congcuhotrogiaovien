@@ -57,7 +57,10 @@
     '<ellipse cx="46" cy="101" rx="9" ry="5.5" fill="#ffe3c2" stroke="#e8b98a" stroke-width="1.2"/><ellipse cx="74" cy="101" rx="9" ry="5.5" fill="#ffe3c2" stroke="#e8b98a" stroke-width="1.2"/>'+
     '</svg>';
 
-  var root,tiles=[],loadId=0,failed=false,sayT=0;
+  var LK='vc_last';   /* số đếm gần nhất lưu trong máy người xem, dùng khi lần sau chưa lấy được số mới */
+  function saved(){try{var o=JSON.parse(localStorage.getItem(LK)||'null');if(o&&isFinite(o.n)&&o.n>=0)return o.n;}catch(e){}return null;}
+  function save(n){try{localStorage.setItem(LK,JSON.stringify({n:n,t:Date.now()}));}catch(e){}}
+  var root,tiles=[],loadId=0,failed=false,sayT=0,shown=null;
   function $(s){return root.querySelector(s);}
   function sub(t){var e=$('.cc-sub');if(e)e.textContent=t;}
   function build(len,ch){
@@ -66,18 +69,25 @@
     return row;
   }
   function paint(v){var t=String(v);while(t.length<tiles.length)t='0'+t;for(var k=0;k<tiles.length;k++)tiles[k].textContent=t.charAt(k);}
-  function show(n){
-    failed=false;$('.cc').classList.remove('sad');
+  function show(n,instant){
+    failed=false;shown=n;$('.cc').classList.remove('sad');
     var row=build(Math.max(4,String(n).length),'0');
     row.setAttribute('role','img');row.setAttribute('aria-label','Số lượt truy cập: '+n.toLocaleString('vi-VN'));
     sub(SUB);
-    if(still||n<2){paint(n);return;}
+    if(still||instant||n<2){paint(n);return;}
     var t0=null,dur=1300;
     function step(ts){if(t0===null)t0=ts;var p=Math.min(1,(ts-t0)/dur),e=1-Math.pow(1-p,3);paint(Math.round(n*e));if(p<1)requestAnimationFrame(step);else paint(n);}
     requestAnimationFrame(step);
   }
   function fail(){
-    failed=true;$('.cc').classList.add('sad');build(4,'?');
+    failed=true;
+    var old=saved();
+    if(old!==null){   /* có số cũ: vẫn hiện số gần nhất, không hiện dấu ? */
+      show(old,true);failed=true;
+      sub('Số lượt gần nhất (chưa cập nhật được). Chạm vào mèo để thử lại.');
+      return;
+    }
+    $('.cc').classList.add('sad');build(4,'?');
     sub('Mèo chưa đếm được (có thể trình duyệt đang chặn). Chạm vào mèo để thử lại.');
   }
   function getJSON(url){
@@ -95,9 +105,11 @@
   function viaCA(){return getJSON(CA+(counted()?'':'/up')).then(function(j){mark();return num(j);});}
   function load(){
     var id=++loadId;
-    build(4,'·');sub('Mèo đang đếm…');$('.cc').classList.remove('sad');
+    var old=saved();$('.cc').classList.remove('sad');
+    if(old!==null){show(old,true);failed=false;sub('Mèo đang cập nhật…');}   /* hiện ngay số cũ trong lúc chờ */
+    else{build(4,'·');sub('Mèo đang đếm…');}
     setTimeout(function(){   /* đợi count.js ghi lượt xem hiện tại rồi mới đọc số */
-      viaGC().catch(viaAB).catch(viaCA).then(function(n){if(id===loadId)show(n);},function(){if(id===loadId)fail();});
+      viaGC().catch(viaAB).catch(viaCA).then(function(n){if(id!==loadId)return;save(n);show(n,shown!==null&&shown===n);},function(){if(id===loadId)fail();});
     },1200);
   }
   function meow(){
