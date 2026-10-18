@@ -13,9 +13,11 @@ html.tod-nofx .hol-p{display:none}
 @keyframes holShine{to{background-position:-50% 0}}
 #hol-banner .hb-d{padding:2px 10px;border-radius:999px;background:rgba(0,0,0,.3);font-size:.78em;color:var(--cy);text-shadow:none}
 html.tod-nofx #hol-banner::after{animation:none}
-html button.hol-chip{display:inline-block;margin-top:6px;padding:4px 12px;min-width:0;border-radius:999px;border:1px solid rgba(255,255,255,.5)!important;background:rgba(255,255,255,.16)!important;color:#fff!important;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:none}
+#hol-banner{padding-left:44px;padding-right:44px}
+html button.hol-x{position:absolute;z-index:2;top:50%;right:8px;transform:translateY(-50%);width:28px;height:28px;min-width:0;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid rgba(255,255,255,.55)!important;background:rgba(0,0,0,.3)!important;color:#fff!important;font-size:13px;line-height:1;cursor:pointer;box-shadow:none}
+html button.hol-on{display:block;margin:0 0 6px auto;padding:3px 10px;min-width:0;border-radius:999px;border:1px solid rgba(255,255,255,.5)!important;background:rgba(0,0,0,.28)!important;color:#fff!important;font-size:11.5px;font-weight:600;line-height:1.3;cursor:pointer;box-shadow:none}
 @media (prefers-reduced-motion:reduce){.hol-p{display:none}#hol-banner::after{animation:none}}
-@media print{#hol-layer,#hol-banner,.hol-chip{display:none!important}}`;document.head.appendChild(st);})();
+@media print{#hol-layer,#hol-banner,.hol-x,.hol-on{display:none!important}}`;document.head.appendChild(st);})();
 (function(){
   'use strict';
   var SK='hol_skin';
@@ -71,7 +73,8 @@ html button.hol-chip{display:inline-block;margin-top:6px;padding:4px 12px;min-wi
   }
   function render(){
     clear();
-    if(!active||!on){chip();return;}
+    if(!active)return;
+    if(!on){offBtn();return;}
     var T=TH[active.k];root.setAttribute('data-hol',active.k);
     layer=document.createElement('div');layer.id='hol-layer';layer.setAttribute('aria-hidden','true');
     var cnt=lite?Math.ceil(T.n*0.6):T.n,h='';
@@ -85,21 +88,20 @@ html button.hol-chip{display:inline-block;margin-top:6px;padding:4px 12px;min-wi
       var a=document.createElement('span');a.textContent=T.ic[0]+' '+active.t+' '+T.ic[1%T.ic.length];
       var b=document.createElement('span');b.className='hb-d';b.textContent=when;
       banner.appendChild(a);banner.appendChild(b);
+      var x=document.createElement('button');x.type='button';x.className='hol-x';x.textContent='✕';x.title='Tắt giao diện ngày lễ';x.setAttribute('aria-label','Tắt giao diện ngày lễ');
+      x.addEventListener('click',function(){setOn(false);});banner.appendChild(x);
       hero.parentNode.insertBefore(banner,hero);
     }
-    chip();
   }
-  function chip(){
-    var g=document.getElementById('tod-greet');if(!g||!active)return;
-    var c=g.querySelector('.hol-chip');
-    if(!c){c=document.createElement('button');c.type='button';c.className='hol-chip';c.addEventListener('click',function(){
-      on=!on;try{localStorage.setItem(SK,on?'on':'off');}catch(e){}render();});g.appendChild(c);}
-    c.textContent=on?'🎨 Giao diện ngày lễ: BẬT':'🎨 Giao diện ngày lễ: TẮT';
+  function setOn(v){on=v;try{localStorage.setItem(SK,on?'on':'off');}catch(e){}render();}
+  function offBtn(){   /* đang tắt: chỉ còn một nút nhỏ phía trên để bật lại */
+    var hero=document.querySelector('.app .hero');if(!hero||!hero.parentNode)return;
+    banner=document.createElement('div');banner.id='hol-off';
+    var c=document.createElement('button');c.type='button';c.className='hol-on';c.textContent='🎨 Bật giao diện ngày lễ';
+    c.addEventListener('click',function(){setOn(true);});banner.appendChild(c);hero.parentNode.insertBefore(banner,hero);
   }
   function init(){
     active=find();
-    var g=document.getElementById('tod-greet');
-    if(g&&window.MutationObserver)new MutationObserver(function(){if(active&&!g.querySelector('.hol-chip'))chip();}).observe(g,{childList:true});
     render();
   }
   function start(){setTimeout(init,0);}
