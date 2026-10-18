@@ -10,7 +10,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <link rel="stylesheet" href="style.css?v=20261017">
 <style id="hero-logo-top">/* Logo LUÔN nằm phía trên dòng "Trường THCS Đa Tốn" trên mọi thiết bị (điện thoại, máy tính, tivi) */
@@ -839,8 +838,8 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
 </div>
 <div class="lp-cards">
 <button type="button" class="lp-card" data-go="t6" style="--i:1"><span class="ic">🤖</span><b>Prompt AI</b><small>Tạo prompt để AI hỗ trợ soạn giáo án, đề bài</small></button>
-<button type="button" class="lp-card" data-go="t3" style="--i:2"><span class="ic">🧰</span><b>Công cụ Word</b><small>Chuyển LaTeX, bảng điểm, chuẩn hóa, ghép file, mã QR</small></button>
-<button type="button" class="lp-card" data-go="t8" style="--i:3"><span class="ic">🛠</span><b>Công cụ thường dùng</b><small>Vòng quay gọi tên, đếm giờ, chia nhóm, kéo co</small></button>
+<button type="button" class="lp-card" data-go="t3" style="--i:2"><span class="ic">🧰</span><b>Công cụ Word</b><small>Chuyển LaTeX, bảng điểm, chuẩn hóa, ghép file</small></button>
+<button type="button" class="lp-card" data-go="t8" style="--i:3"><span class="ic">🛠</span><b>Công cụ thường dùng</b><small>Vòng quay gọi tên, đếm giờ, chia nhóm, kéo co, mã QR</small></button>
 <button type="button" class="lp-card" data-go="t5" style="--i:4"><span class="ic">🧮</span><b>Toán học</b><small>Máy tính, đồ thị và hình học</small></button>
 <button type="button" class="lp-card" data-go="t9" id="lpDocCard" style="--i:5"><span class="ic">📚</span><b>Tài liệu</b><small>Tài liệu Toán, PowerPoint, phần mềm, công nghệ</small></button>
 </div>
@@ -854,7 +853,7 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
 <section class="panel" id="t3">
 <h2>🧰 Công cụ Word</h2>
 <div class="bar"><label for="wtSel" style="font-weight:600">Chọn công cụ:</label>
-<select id="wtSel"><option value="wtGrade" selected>📊 Tính điểm TB &amp; xếp loại</option><option value="wtMerge">🔗 Ghép file Word</option><option value="wtLatex">📝 Chuyển LaTeX → Word / PDF</option><option value="wtQr">📱 Tạo mã QR nhanh từ link</option></select></div>
+<select id="wtSel"><option value="wtGrade" selected>📊 Tính điểm TB &amp; xếp loại</option><option value="wtMerge">🔗 Ghép file Word</option><option value="wtLatex">📝 Chuyển LaTeX → Word / PDF</option></select></div>
 <div class="wtool on" id="wtGrade">
 <div class="cfg">
 <div><label>Hệ số ĐĐGtx</label><input type="number" id="k1" value="1" min="0" step="0.5"></div>
@@ -911,17 +910,6 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
 </div></div>
 </div>
 </div>
-<div class="wtool" id="wtQr">
-<h3 style="margin:4px 0 8px">📱 Tạo mã QR nhanh từ link</h3>
-<div class="bar"><input type="text" id="qrIn" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Dán đường link vào đây (vd: https://forms.gle/...)" style="flex:1 1 220px;min-width:0">
-<button class="sm" id="qrPaste" type="button">📋 Dán</button><button class="ghost sm" id="qrThis" type="button">🔗 Link trang này</button></div>
-<div class="bar"><label>Kích thước ảnh <select id="qrSize"><option value="512" selected>512 px</option><option value="1024">1024 px (in khổ lớn)</option></select></label>
-<label class="note"><input type="checkbox" id="qrLogo"> Chèn logo trường vào giữa</label></div>
-<div id="qrStat" class="status info">Dán link vào ô trên, mã QR tự hiện ngay.</div>
-<div style="text-align:center;margin:10px 0"><canvas id="qrCv" width="300" height="300" style="display:none;width:min(320px,100%);height:auto;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.35)"></canvas></div>
-<div class="bar" style="justify-content:center"><button id="qrDl" type="button" disabled>⬇ Tải ảnh PNG</button><button class="sec" id="qrCopy" type="button" disabled>📄 Sao chép ảnh</button></div>
-<div class="note" style="text-align:center">Dán ảnh QR vào Word/PowerPoint/Zalo; nên quét thử bằng điện thoại trước khi in.</div>
-</div>
 </section>
 <script>
 (function(){
@@ -939,7 +927,7 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <section class="panel" id="t8">
 <h2>🛠 Công cụ thường dùng</h2>
 <div class="bar"><label for="utSel" style="font-weight:600">Chọn công cụ:</label>
-<select id="utSel"><option value="utWheel" selected>🎯 Vòng Quay Gọi Tên</option><option value="utTimer">⏱ Đếm giờ &amp; chia nhóm</option><option value="utLich">📅 Lịch báo giảng tự động</option><option value="utKeoCo">🪢 Kéo co kiến thức</option></select></div>
+<select id="utSel"><option value="utWheel" selected>🎯 Vòng Quay Gọi Tên</option><option value="utTimer">⏱ Đếm giờ &amp; chia nhóm</option><option value="utLich">📅 Lịch báo giảng tự động</option><option value="utKeoCo">🪢 Kéo co kiến thức</option><option value="utQr">📱 Tạo mã QR nhanh từ link</option></select></div>
 <div class="ut on" id="utWheel">
 <div id="t2">
 <h2>🎯 Vòng Quay Gọi Tên Học Sinh</h2>
@@ -970,6 +958,17 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 </div>
 <div class="ut" id="utLich"><div id="lbgRoot"></div></div>
 <div class="ut" id="utKeoCo"><div id="kcRoot"></div></div>
+<div class="ut" id="utQr">
+<h3 style="margin:4px 0 8px">📱 Tạo mã QR nhanh từ link</h3>
+<div class="bar"><input type="text" id="qrIn" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Dán đường link vào đây (vd: https://forms.gle/...)" style="flex:1 1 220px;min-width:0">
+<button class="sm" id="qrPaste" type="button">📋 Dán</button><button class="ghost sm" id="qrThis" type="button">🔗 Link trang này</button></div>
+<div class="bar"><label>Kích thước ảnh <select id="qrSize"><option value="512" selected>512 px</option><option value="1024">1024 px (in khổ lớn)</option></select></label>
+<label class="note"><input type="checkbox" id="qrLogo"> Chèn logo trường vào giữa</label></div>
+<div id="qrStat" class="status info">Dán link vào ô trên, mã QR tự hiện ngay.</div>
+<div style="text-align:center;margin:10px 0"><canvas id="qrCv" width="300" height="300" style="display:none;width:min(320px,100%);height:auto;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.35)"></canvas></div>
+<div class="bar" style="justify-content:center"><button id="qrDl" type="button" disabled>⬇ Tải ảnh PNG</button><button class="sec" id="qrCopy" type="button" disabled>📄 Sao chép ảnh</button></div>
+<div class="note" style="text-align:center">Dán ảnh QR vào Word/PowerPoint/Zalo; nên quét thử bằng điện thoại trước khi in.</div>
+</div>
 </section>
 
 <script>
@@ -1094,6 +1093,8 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <script src="keo-co.js?v=20261023"></script>
 <script src="hieu-ung.js?v=20261005"></script>
 <script src="kho-de.js?v=20261030"></script>
+<script src="qr-nhanh.js?v=20261018"></script>
+<script src="ngay-le.js?v=20261018"></script>
 <script>
 /* Rèm cửa: tự mở khi trang tải xong */
 (function(){
@@ -1254,192 +1255,6 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
     mo=new MutationObserver(function(){setTimeout(fixTabs,0)});
     mo.observe(btn.parentNode,{childList:true,subtree:true,characterData:true});
   }
-})();
-</script>
-<!-- ===== CÔNG CỤ QR NHANH (trong tab Công cụ Word) ===== -->
-<script id="qr-tool-js">
-(function(){
-  'use strict';
-  var s=document.getElementById('wtSel'),inp=document.getElementById('qrIn'),cv=document.getElementById('qrCv');
-  if(!s||!inp||!cv)return;
-  function ensureOpt(){if(!s.querySelector('option[value="wtQr"]')){var o=document.createElement('option');o.value='wtQr';o.textContent='📱 Tạo mã QR nhanh từ link';s.appendChild(o);}}
-  ensureOpt();window.addEventListener('load',ensureOpt);
-  if(window.MutationObserver)new MutationObserver(ensureOpt).observe(s,{childList:true});
-  var stat=document.getElementById('qrStat'),size=document.getElementById('qrSize'),logoChk=document.getElementById('qrLogo'),
-      dl=document.getElementById('qrDl'),cp=document.getElementById('qrCopy'),holder=document.createElement('div'),cur='',tm=0;
-  holder.style.cssText='position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden';document.body.appendChild(holder);
-  var logo=new Image();logo.onload=function(){if(cur)render();};logo.src='logo.jpg?v=20261005';
-  function say(t){stat.textContent=t;}
-  function norm(v){
-    v=(v||'').trim();if(!v)return '';
-    if(!/^[a-z][a-z0-9+.\-]*:/i.test(v))v='https://'+v;
-    try{return new URL(v).href;}catch(e){return null;}
-  }
-  function off(msg){cur='';cv.style.display='none';dl.disabled=cp.disabled=true;say(msg);}
-  function render(){
-    if(!window.QRCode){off('⚠ Chưa tải được thư viện tạo QR (cần mạng). Hãy tải lại trang rồi thử lại.');return;}
-    var wantLogo=logoChk.checked&&logo.complete&&logo.naturalWidth>0,levels=wantLogo?['H','Q']:['M','L'],qr=null,used='';
-    for(var i=0;i<levels.length&&!qr;i++){
-      try{holder.innerHTML='';var q=new QRCode(holder,{text:cur,width:128,height:128,correctLevel:QRCode.CorrectLevel[levels[i]]});qr=q._oQRCode;used=levels[i];}catch(e){qr=null;}
-    }
-    if(!qr){off('⚠ Link quá dài để tạo mã QR. Hãy rút gọn link (vd: bit.ly, tinyurl) rồi thử lại.');return;}
-    if(wantLogo&&used!=='H')wantLogo=false;
-    var n=qr.getModuleCount(),Q=4,tot=n+2*Q,S=parseInt(size.value,10)||512,sc=Math.max(2,Math.floor(S/tot)),W=sc*tot,c=cv.getContext('2d');
-    cv.width=cv.height=W;c.fillStyle='#fff';c.fillRect(0,0,W,W);c.fillStyle='#000';
-    for(var r=0;r<n;r++)for(var k=0;k<n;k++)if(qr.isDark(r,k))c.fillRect((k+Q)*sc,(r+Q)*sc,sc,sc);
-    if(wantLogo){
-      var b=Math.round(W*0.2),p=Math.round(b*0.12),x=Math.round((W-b)/2);
-      c.fillStyle='#fff';c.fillRect(x-p,x-p,b+2*p,b+2*p);c.drawImage(logo,x,x,b,b);
-    }
-    cv.style.display='inline-block';dl.disabled=cp.disabled=false;
-    say('✅ Đã tạo mã QR ('+W+'×'+W+' px). Hãy quét thử bằng điện thoại trước khi dùng.'+(logoChk.checked&&!wantLogo?' (Không chèn được logo.)':''));
-  }
-  function update(){
-    var v=norm(inp.value);
-    if(v===''){off('Dán link vào ô trên, mã QR tự hiện ngay.');return;}
-    if(v===null){off('⚠ Link chưa hợp lệ — kiểm tra lại (không chứa dấu cách).');return;}
-    cur=v;render();
-  }
-  inp.addEventListener('input',function(){clearTimeout(tm);tm=setTimeout(update,250);});
-  size.addEventListener('change',function(){if(cur)render();});
-  logoChk.addEventListener('change',function(){if(cur)render();});
-  document.getElementById('qrThis').addEventListener('click',function(){inp.value=location.href.split('#')[0];update();});
-  document.getElementById('qrPaste').addEventListener('click',function(){
-    if(navigator.clipboard&&navigator.clipboard.readText){
-      navigator.clipboard.readText().then(function(t){inp.value=(t||'').trim();update();},function(){say('Trình duyệt không cho đọc bộ nhớ tạm — hãy nhấn giữ vào ô và chọn Dán.');inp.focus();});
-    }else{say('Trình duyệt không hỗ trợ nút Dán — hãy nhấn giữ vào ô và chọn Dán.');inp.focus();}
-  });
-  function fname(){try{return 'QR_'+new URL(cur).hostname.replace(/[^\w.\-]/g,'_')+'.png';}catch(e){return 'QR.png';}}
-  function blobErr(){logoChk.checked=false;render();say('⚠ Trình duyệt chặn xuất ảnh khi có logo — đã tắt logo, hãy bấm lại.');}
-  dl.addEventListener('click',function(){
-    if(!cur)return;
-    try{cv.toBlob(function(b){
-      if(!b){blobErr();return;}
-      var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname();document.body.appendChild(a);a.click();
-      setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1500);
-    },'image/png');}catch(e){blobErr();}
-  });
-  cp.addEventListener('click',function(){
-    if(!cur)return;
-    if(!(navigator.clipboard&&window.ClipboardItem)){say('Trình duyệt chưa hỗ trợ sao chép ảnh — hãy bấm "Tải ảnh PNG".');return;}
-    try{cv.toBlob(function(b){
-      if(!b){blobErr();return;}
-      navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(function(){say('✅ Đã sao chép ảnh QR — dán (Ctrl+V) vào Word, PowerPoint, Zalo…');},function(){say('Không sao chép được — hãy bấm "Tải ảnh PNG".');});
-    },'image/png');}catch(e){blobErr();}
-  });
-})();
-</script>
-
-<!-- ===== GIAO DIỆN NGÀY LỄ =====
-     Trong khoảng vài ngày trước (và đúng) các ngày lễ: đổi bảng màu, thêm dải chúc mừng + hoa/lá/sao rơi nhẹ phía sau.
-     Bấm nút "🎨 Giao diện ngày lễ" dưới lời chào để tắt/bật. Xem thử: thêm ?ngayle=phunu (hoặc tet, do, nhagiao, thieunhi, khaigiang, doan, bac, duong, thuoc, tri, chung) vào địa chỉ trang.
-     Thêm/sửa ngày lễ: bảng FIX (lặp hằng năm) và VAR (ngày đổi theo năm). Mỗi dòng: [năm hoặc 0, tháng, ngày, kiểu giao diện, lời chúc, số ngày hiện trước, số ngày hiện sau]. -->
-<style id="hol-css">
-#hol-layer{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;
-  background:linear-gradient(180deg,var(--hol-tint,transparent),transparent 60%),radial-gradient(120% 45% at 50% 100%,var(--hol-tint,transparent),transparent)}
-.hol-p{position:absolute;top:0;left:var(--x);font-size:var(--s,20px);line-height:1;opacity:.9;animation:holFall var(--t,12s) linear var(--d,0s) infinite;will-change:transform}
-@keyframes holFall{0%{transform:translate3d(0,-10vh,0) rotate(0)}100%{transform:translate3d(var(--dx,0),112vh,0) rotate(360deg)}}
-html.tod-nofx .hol-p{display:none}
-#hol-banner{position:relative;overflow:hidden;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 10px;margin:0 0 10px;padding:9px 14px;text-align:center;
-  border-radius:var(--tod-r,14px);color:#fff;font-weight:800;font-size:clamp(14px,3.6vw,18px);line-height:1.35;text-shadow:0 1px 6px rgba(0,0,0,.4);
-  background:linear-gradient(100deg,var(--tod-h1),var(--tod-h2) 55%,var(--tod-h3));border:1px solid var(--cy);box-shadow:0 8px 22px -10px var(--tod-glow)}
-#hol-banner::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.35) 50%,transparent 65%) 150% 0/250% 100% no-repeat;animation:holShine 3.4s ease-in-out 1s infinite}
-@keyframes holShine{to{background-position:-50% 0}}
-#hol-banner .hb-d{padding:2px 10px;border-radius:999px;background:rgba(0,0,0,.3);font-size:.78em;color:var(--cy);text-shadow:none}
-html.tod-nofx #hol-banner::after{animation:none}
-html button.hol-chip{display:inline-block;margin-top:6px;padding:4px 12px;min-width:0;border-radius:999px;border:1px solid rgba(255,255,255,.5)!important;background:rgba(255,255,255,.16)!important;color:#fff!important;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:none}
-@media (prefers-reduced-motion:reduce){.hol-p{display:none}#hol-banner::after{animation:none}}
-@media print{#hol-layer,#hol-banner,.hol-chip{display:none!important}}
-</style>
-<script id="hol-js">
-(function(){
-  'use strict';
-  var SK='hol_skin';
-  var FIX=[[0,1,1,'duong','Chúc mừng năm mới! Tết Dương lịch',3,0],[0,2,3,'do','Chào mừng kỷ niệm ngày thành lập Đảng Cộng sản Việt Nam',3,0],[0,2,27,'thuoc','Chúc mừng Ngày Thầy thuốc Việt Nam',3,0],
-    [0,3,8,'phunu','Chúc mừng Ngày Quốc tế Phụ nữ 8/3',3,0],[0,3,26,'doan','Chào mừng kỷ niệm ngày thành lập Đoàn TNCS Hồ Chí Minh',3,0],[0,4,30,'do','Mừng Ngày Giải phóng miền Nam 30/4',3,1],
-    [0,5,1,'do','Chúc mừng Ngày Quốc tế Lao động 1/5',2,0],[0,5,7,'do','Kỷ niệm Chiến thắng Điện Biên Phủ',3,0],[0,5,19,'bac','Kỷ niệm ngày sinh Chủ tịch Hồ Chí Minh',3,0],
-    [0,6,1,'thieunhi','Chúc mừng Ngày Quốc tế Thiếu nhi 1/6',3,0],[0,6,21,'chung','Chúc mừng Ngày Báo chí cách mạng Việt Nam',3,0],[0,6,28,'chung','Chúc mừng Ngày Gia đình Việt Nam',3,0],
-    [0,7,27,'tri','Tri ân Ngày Thương binh Liệt sĩ 27/7',3,0],[0,8,19,'do','Kỷ niệm Cách mạng Tháng Tám thành công',3,0],[0,9,2,'do','Chúc mừng Quốc khánh 2/9',5,1],
-    [0,9,5,'khaigiang','Chúc mừng Ngày khai giảng năm học mới',3,0],[0,10,10,'do','Kỷ niệm Ngày Giải phóng Thủ đô',3,0],[0,10,13,'chung','Chúc mừng Ngày Doanh nhân Việt Nam',3,0],
-    [0,10,20,'phunu','Chúc mừng Ngày Phụ nữ Việt Nam 20/10',3,0],[0,11,19,'chung','Chúc mừng Ngày Quốc tế Đàn ông',2,0],[0,11,20,'nhagiao','Chúc mừng Ngày Nhà giáo Việt Nam 20/11',5,1],
-    [0,12,22,'do','Kỷ niệm Ngày thành lập Quân đội nhân dân Việt Nam',3,0]];
-  var VAR=[[2027,2,6,'tet','Chúc mừng năm mới! Tết Nguyên đán',10,5],[2028,1,26,'tet','Chúc mừng năm mới! Tết Nguyên đán',10,5],[2029,2,13,'tet','Chúc mừng năm mới! Tết Nguyên đán',10,5],
-    [2027,4,16,'do','Chào mừng Giỗ Tổ Hùng Vương',3,0],[2028,4,4,'do','Chào mừng Giỗ Tổ Hùng Vương',3,0]];
-  /* màu: [card, card2, bd, a1, a2, cy, h1, h2, h3, glow, tint]; ic: hình rơi; n: số hình */
-  var TH={
-    tet:{ic:['🌸','🧧','🏮','✨'],n:12,c:['rgba(110,12,18,.93)','#5a0a10','#d4a017','#b91c1c','#c2410c','#ffd24a','#b91c1c','#dc2626','#f59e0b','rgba(255,210,74,.5)','rgba(220,38,38,.28)']},
-    do:{ic:['⭐','🇻🇳','🌟'],n:9,c:['rgba(120,14,20,.93)','#5c0b12','#e0a526','#c8102e','#a50e25','#ffdd33','#c8102e','#e11d2e','#f2b01e','rgba(255,221,51,.45)','rgba(220,38,38,.25)']},
-    bac:{ic:['🪷','🌺','⭐','🇻🇳'],n:9,c:['rgba(110,20,30,.93)','#560d18','#e0a526','#b91c1c','#be185d','#ffd9a0','#b91c1c','#be185d','#f59e0b','rgba(255,200,120,.45)','rgba(255,120,120,.22)']},
-    duong:{ic:['❄️','✨','🎆','🎉'],n:12,c:['rgba(14,38,86,.93)','#0a2250','#6fa3ef','#2563eb','#7c3aed','#cfe6ff','#1d4ed8','#6d28d9','#0ea5e9','rgba(160,200,255,.5)','rgba(120,160,255,.25)']},
-    phunu:{ic:['🌹','🌸','💐','🌷'],n:12,c:['rgba(92,18,56,.93)','#4a0d2e','#c2578f','#be185d','#9d174d','#ffd1e3','#be185d','#db2777','#f59e0b','rgba(255,150,200,.45)','rgba(255,120,170,.28)']},
-    nhagiao:{ic:['🌻','📚','🍎','✏️'],n:11,c:['rgba(10,64,52,.93)','#07463a','#35a58a','#059669','#0f766e','#ffd447','#047857','#0d9488','#d97706','rgba(255,212,71,.45)','rgba(250,204,21,.2)']},
-    thieunhi:{ic:['🎈','🌈','🧸','🍭'],n:12,c:['rgba(70,30,120,.92)','#3a1670','#b07af0','#db2777','#7c3aed','#7df9ff','#7c3aed','#db2777','#f59e0b','rgba(125,249,255,.4)','rgba(255,170,60,.22)']},
-    khaigiang:{ic:['🎒','📚','✏️','🌻'],n:10,c:['rgba(12,52,110,.93)','#082e66','#4d92e6','#2563eb','#0284c7','#ffb347','#1d4ed8','#0284c7','#ea580c','rgba(255,179,71,.45)','rgba(255,180,70,.2)']},
-    doan:{ic:['⭐','🌟','✨'],n:9,c:['rgba(10,50,120,.93)','#072e70','#4f8ee8','#1d4ed8','#0369a1','#ffe14d','#1d4ed8','#2563eb','#0ea5e9','rgba(255,225,77,.45)','rgba(60,130,255,.25)']},
-    thuoc:{ic:['💚','🌿','🩺'],n:9,c:['rgba(8,66,60,.93)','#064840','#3bb5a4','#0d9488','#0891b2','#b9fbe7','#0f766e','#0891b2','#16a34a','rgba(185,251,231,.4)','rgba(80,220,190,.2)']},
-    tri:{ic:['🌼','🕯️'],n:6,c:['rgba(40,20,28,.94)','#241018','#8a4a52','#7f1d1d','#44403c','#f2c46d','#5b1218','#7f1d1d','#44403c','rgba(242,196,109,.35)','rgba(120,20,30,.25)']},
-    chung:{ic:['🎉','✨','🎊','🌟'],n:11,c:['rgba(52,26,100,.93)','#2d1260','#8b6ae0','#7c3aed','#db2777','#ffd66b','#6d28d9','#db2777','#f59e0b','rgba(255,214,107,.45)','rgba(190,120,255,.22)']}
-  };
-  var VN=['--card','--card2','--bd','--a1','--a2','--cy','--tod-h1','--tod-h2','--tod-h3','--tod-glow','--hol-tint'];
-  var css='';for(var k in TH){var c=TH[k].c,r='';for(var i=0;i<VN.length;i++)r+=VN[i]+':'+c[i]+';';css+='html[data-hol="'+k+'"]:not(#_){'+r+'}\n';}
-  var st=document.createElement('style');st.id='hol-theme-vars';st.textContent=css;document.head.appendChild(st);
-
-  var root=document.documentElement,active=null,layer=null,banner=null,on=true,lite=(window.matchMedia&&matchMedia('(max-width:700px)').matches)||(navigator.hardwareConcurrency||8)<=4;
-  try{if(localStorage.getItem(SK)==='off')on=false;}catch(e){}
-  function rnd(a,b){return a+Math.random()*(b-a);}
-  function find(){
-    var q='',m;try{m=location.search.match(/[?&]ngayle=([^&]*)/);if(m)q=decodeURIComponent(m[1]);}catch(e){}
-    if(q){var key=TH[q]?q:(q==='1'?'nhagiao':'');
-      if(key){var all=FIX.concat(VAR),tx='';for(var a=0;a<all.length;a++)if(all[a][3]===key){tx=all[a][4];break;}
-        return {k:key,t:tx||'Chúc mừng ngày lễ!',d:0};}}
-    var n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),best=null;
-    function chk(dt,rec){var d=Math.round((dt-t0)/864e5);
-      if(d<=rec[5]&&d>=-rec[6]&&(!best||Math.abs(d)<Math.abs(best.d)||(Math.abs(d)===Math.abs(best.d)&&d>best.d)))best={k:rec[3],t:rec[4],d:d};}
-    var j,y=t0.getFullYear();
-    for(j=0;j<FIX.length;j++)for(var yy=y-1;yy<=y+1;yy++)chk(new Date(yy,FIX[j][1]-1,FIX[j][2]),FIX[j]);
-    for(j=0;j<VAR.length;j++)chk(new Date(VAR[j][0],VAR[j][1]-1,VAR[j][2]),VAR[j]);
-    return best;
-  }
-  function clear(){
-    root.removeAttribute('data-hol');
-    if(layer&&layer.parentNode)layer.parentNode.removeChild(layer);layer=null;
-    if(banner&&banner.parentNode)banner.parentNode.removeChild(banner);banner=null;
-  }
-  function render(){
-    clear();
-    if(!active||!on){chip();return;}
-    var T=TH[active.k];root.setAttribute('data-hol',active.k);
-    layer=document.createElement('div');layer.id='hol-layer';layer.setAttribute('aria-hidden','true');
-    var cnt=lite?Math.ceil(T.n*0.6):T.n,h='';
-    for(var i=0;i<cnt;i++)h+='<i class="hol-p" style="--x:'+rnd(2,96).toFixed(0)+'%;--s:'+rnd(15,26).toFixed(0)+'px;--t:'+rnd(11,19).toFixed(1)+'s;--d:-'+rnd(0,18).toFixed(1)+'s;--dx:'+rnd(-14,14).toFixed(0)+'vw;font-style:normal">'+T.ic[i%T.ic.length]+'</i>';
-    layer.innerHTML=h;
-    var sc=document.getElementById('tod-scene');document.body.insertBefore(layer,sc?sc.nextSibling:document.body.firstChild);
-    var hero=document.querySelector('.app .hero');
-    if(hero&&hero.parentNode){
-      banner=document.createElement('div');banner.id='hol-banner';banner.setAttribute('role','status');
-      var d=active.d,when=d>0?'Còn '+d+' ngày':(d===0?'Hôm nay!':'Vừa diễn ra');
-      var a=document.createElement('span');a.textContent=T.ic[0]+' '+active.t+' '+T.ic[1%T.ic.length];
-      var b=document.createElement('span');b.className='hb-d';b.textContent=when;
-      banner.appendChild(a);banner.appendChild(b);
-      hero.parentNode.insertBefore(banner,hero);
-    }
-    chip();
-  }
-  function chip(){
-    var g=document.getElementById('tod-greet');if(!g||!active)return;
-    var c=g.querySelector('.hol-chip');
-    if(!c){c=document.createElement('button');c.type='button';c.className='hol-chip';c.addEventListener('click',function(){
-      on=!on;try{localStorage.setItem(SK,on?'on':'off');}catch(e){}render();});g.appendChild(c);}
-    c.textContent=on?'🎨 Giao diện ngày lễ: BẬT':'🎨 Giao diện ngày lễ: TẮT';
-  }
-  function init(){
-    active=find();
-    var g=document.getElementById('tod-greet');
-    if(g&&window.MutationObserver)new MutationObserver(function(){if(active&&!g.querySelector('.hol-chip'))chip();}).observe(g,{childList:true});
-    render();
-  }
-  function start(){setTimeout(init,0);}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
 </script>
 </body>
