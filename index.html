@@ -681,6 +681,70 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
   document.addEventListener('visibilitychange',function(){if(!document.hidden)tick();});
 })();
 </script>
+<!-- ===== BỘ ĐẾM LƯỢT TRUY CẬP (GoatCounter, ẩn danh) =====
+     Đổi SITE bên dưới nếu bạn đổi tên tài khoản GoatCounter. Cần bật trong GoatCounter:
+     Settings → "Allow adding visitor counts on your website". Nếu dịch vụ lỗi/bị chặn, bộ đếm tự ẩn, trang vẫn chạy bình thường. -->
+<script data-goatcounter="https://nguyentuan.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<style id="visit-counter-css">
+.vc{display:flex;flex-direction:column;align-items:center;gap:8px;width:fit-content;max-width:100%;margin:16px auto 4px;padding:12px 22px 10px;box-sizing:border-box;
+  border-radius:var(--tod-r,16px);background:color-mix(in srgb,var(--card,#131c2e) 92%,transparent);
+  border:1px solid var(--bd,#2a3b5c);border-top:3px solid var(--cy,#ffd166);
+  box-shadow:0 10px 26px -12px rgba(0,0,0,.6),0 0 22px -8px var(--tod-glow,rgba(255,209,102,.4));animation:vcIn .7s ease-out both}
+.vc[hidden]{display:none}
+.vc-lab{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mut,#c3e4ea)}
+.vc-digits{display:flex;gap:5px;direction:ltr}
+.vc-d{position:relative;min-width:30px;padding:6px 4px;text-align:center;
+  font:800 28px/1.1 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;font-variant-numeric:tabular-nums;
+  color:var(--cy,#ffd166);background:linear-gradient(180deg,rgba(255,255,255,.08) 0,rgba(255,255,255,0) 50%),var(--card2,#0a0f26);
+  border:1px solid var(--bd,#2a3b5c);border-radius:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.vc-d::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.55)}
+.vc-sub{font-size:12px;line-height:1.4;text-align:center;color:var(--mut,#c3e4ea)}
+@media (max-width:480px){.vc-d{min-width:26px;font-size:24px;padding:5px 3px}.vc{padding:10px 16px 8px}}
+@keyframes vcIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.vc{animation:none}}
+@media print{.vc{display:none!important}}
+</style>
+<script id="visit-counter-js">
+(function(){
+  'use strict';
+  var SITE='https://nguyentuan.goatcounter.com';
+  var still=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function show(n){
+    var box=document.getElementById('visitCounter'),row=box&&box.querySelector('.vc-digits');
+    if(!box||!row)return;
+    var len=Math.max(4,String(n).length),tiles=[],i;
+    row.innerHTML='';
+    for(i=0;i<len;i++){var s=document.createElement('span');s.className='vc-d';s.textContent='0';row.appendChild(s);tiles.push(s);}
+    function paint(v){var t=String(v);while(t.length<len)t='0'+t;for(var k=0;k<len;k++)tiles[k].textContent=t.charAt(k);}
+    row.setAttribute('role','img');
+    row.setAttribute('aria-label','Số lượt truy cập: '+n.toLocaleString('vi-VN'));
+    box.hidden=false;
+    if(still||n<2){paint(n);return;}
+    var t0=null,dur=1300;
+    function step(ts){
+      if(t0===null)t0=ts;
+      var p=Math.min(1,(ts-t0)/dur),e=1-Math.pow(1-p,3);
+      paint(Math.round(n*e));
+      if(p<1)requestAnimationFrame(step);else paint(n);
+    }
+    requestAnimationFrame(step);
+  }
+  function load(tryN){
+    var ctl=window.AbortController?new AbortController():null,tm=setTimeout(function(){if(ctl)ctl.abort();},8000);
+    fetch(SITE+'/counter/TOTAL.json',ctl?{signal:ctl.signal}:undefined)
+      .then(function(r){if(!r.ok)throw new Error('http');return r.json();})
+      .then(function(j){
+        clearTimeout(tm);
+        var n=parseInt(String(j&&j.count).replace(/\D/g,''),10);
+        if(!isFinite(n)||n<0)throw new Error('bad');
+        show(n);
+      })
+      .catch(function(){clearTimeout(tm);if(tryN<1)setTimeout(function(){load(tryN+1);},4000);});  /* lỗi: thử lại 1 lần, vẫn lỗi thì giữ ẩn */
+  }
+  function go(){setTimeout(function(){load(0);},1200);}   /* đợi count.js ghi lượt xem hiện tại rồi mới đọc số */
+  if(document.readyState==='complete')go();else window.addEventListener('load',go);
+})();
+</script>
 </head>
 <body>
 <div class="curtain-wrap" aria-hidden="true">
@@ -769,8 +833,11 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
 <button type="button" class="lp-card" data-go="t5" style="--i:4"><span class="ic">🧮</span><b>Toán học</b><small>Máy tính, đồ thị và hình học</small></button>
 <button type="button" class="lp-card" data-go="t9" id="lpDocCard" style="--i:5"><span class="ic">📚</span><b>Tài liệu</b><small>Tài liệu Toán, PowerPoint, phần mềm, công nghệ</small></button>
 </div>
-<p class="lp-note">🔒 Các công cụ xử lý ngay trên máy của bạn, không gửi dữ liệu đi đâu cả.</p>
-<p class="lp-note lp-touch">💗 Chạm vào màn hình để thả tim bay lên</p>
+<div id="visitCounter" class="vc" hidden>
+<div class="vc-lab">👁 Lượt truy cập</div>
+<div class="vc-digits"></div>
+<div class="vc-sub">Cảm ơn quý thầy cô đã ghé thăm · đếm ẩn danh</div>
+</div>
 </section>
 
 
