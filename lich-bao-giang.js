@@ -79,6 +79,7 @@
     { key: 'nghethuat', label: 'Nghệ thuật',         re: /^nghệ thuật$/ },
     { key: 'tinhoc',    label: 'Tin học',            re: /^tin học$/ },
     { key: 'khtn',      label: 'KHTN',               re: /^(khtn|khoa học tự nhiên)$/ },
+    { key: 'khtnLi',    label: 'KHTN (Lí)',          re: /^(khtn|khoa học tự nhiên)\s*\(\s*(vật\s*)?l[iíyý]\s*\)$/ },
     { key: 'gdcd',      label: 'GDCD',               re: /^(gdcd|giáo dục công dân)$/ },
     { key: 'gddp',      label: 'GDĐP',               re: /^(gdđp|giáo dục địa phương)$/ },
     { key: 'hdtn',      label: 'HĐTN',               re: /^(hđtn|hoạt động trải nghiệm.*)$/ },
