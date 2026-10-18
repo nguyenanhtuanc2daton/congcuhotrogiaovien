@@ -80,6 +80,8 @@
     { key: 'tinhoc',    label: 'Tin học',            re: /^tin học$/ },
     { key: 'khtn',      label: 'Khoa học Tự nhiên',  re: /^(khtn|khoa học tự nhiên)$/ },
     { key: 'khtnLi',    label: 'KHTN (Lí)',          re: /^(khtn|khoa học tự nhiên)\s*\(\s*(vật\s*)?l[iíyý]\s*\)$/ },
+    { key: 'khtnHoa',   label: 'KHTN (Hóa)',         re: /^(khtn|khoa học tự nhiên)\s*\(\s*(hóa|hoá)(\s*học)?\s*\)$/ },
+    { key: 'khtnSinh',  label: 'KHTN (Sinh)',        re: /^(khtn|khoa học tự nhiên)\s*\(\s*sinh(\s*học)?\s*\)$/ },
     { key: 'gdcd',      label: 'GDCD',               re: /^(gdcd|giáo dục công dân)$/ },
     { key: 'gddp',      label: 'GDĐP',               re: /^(gdđp|giáo dục địa phương)$/ },
     { key: 'hdtn',      label: 'HĐTN',               re: /^(hđtn|hoạt động trải nghiệm.*)$/ },
