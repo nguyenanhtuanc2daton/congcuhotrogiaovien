@@ -1,5 +1,5 @@
 /* Giao diện ngày lễ: đổi màu + dải chúc mừng + hoa/lá/sao rơi trước và đúng các ngày lễ.
-   Bấm nút "🎨 Giao diện ngày lễ" dưới lời chào để tắt/bật. Xem thử: thêm ?ngayle=phunu (hoặc tet, do, nhagiao, thieunhi, khaigiang, doan, bac, duong, thuoc, tri, chung) vào địa chỉ trang.
+   Tự động hoàn toàn: qua ngày lễ là trang trở lại bình thường. Xem thử: thêm ?ngayle=phunu (hoặc tet, do, nhagiao, thieunhi, khaigiang, doan, bac, duong, thuoc, tri, chung) vào địa chỉ trang.
    Thêm/sửa ngày lễ: bảng FIX (lặp hằng năm) và VAR (ngày đổi theo năm): [năm hoặc 0, tháng, ngày, kiểu, lời chúc, số ngày hiện trước, số ngày hiện sau]. */
 (function(){var st=document.createElement('style');st.id='hol-css';st.textContent=`#hol-layer{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;
   background:linear-gradient(180deg,var(--hol-tint,transparent),transparent 60%),radial-gradient(120% 45% at 50% 100%,var(--hol-tint,transparent),transparent)}
@@ -11,16 +11,12 @@ html.tod-nofx .hol-p{display:none}
   background:linear-gradient(100deg,var(--tod-h1),var(--tod-h2) 55%,var(--tod-h3));border:1px solid var(--cy);box-shadow:0 8px 22px -10px var(--tod-glow)}
 #hol-banner::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.35) 50%,transparent 65%) 150% 0/250% 100% no-repeat;animation:holShine 3.4s ease-in-out 1s infinite}
 @keyframes holShine{to{background-position:-50% 0}}
-#hol-banner .hb-d{padding:2px 10px;border-radius:999px;background:rgba(0,0,0,.3);font-size:.78em;color:var(--cy);text-shadow:none}
 html.tod-nofx #hol-banner::after{animation:none}
-#hol-banner{padding-left:44px;padding-right:44px}
-html button.hol-x{position:absolute;z-index:2;top:50%;right:8px;transform:translateY(-50%);width:28px;height:28px;min-width:0;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid rgba(255,255,255,.55)!important;background:rgba(0,0,0,.3)!important;color:#fff!important;font-size:13px;line-height:1;cursor:pointer;box-shadow:none}
-html button.hol-on{display:block;margin:0 0 6px auto;padding:3px 10px;min-width:0;border-radius:999px;border:1px solid rgba(255,255,255,.5)!important;background:rgba(0,0,0,.28)!important;color:#fff!important;font-size:11.5px;font-weight:600;line-height:1.3;cursor:pointer;box-shadow:none}
 @media (prefers-reduced-motion:reduce){.hol-p{display:none}#hol-banner::after{animation:none}}
-@media print{#hol-layer,#hol-banner,.hol-x,.hol-on{display:none!important}}`;document.head.appendChild(st);})();
+@media print{#hol-layer,#hol-banner{display:none!important}}`;document.head.appendChild(st);})();
 (function(){
   'use strict';
-  var SK='hol_skin';
+  
   var FIX=[[0,1,1,'duong','Chúc mừng năm mới! Tết Dương lịch',3,0],[0,2,3,'do','Chào mừng kỷ niệm ngày thành lập Đảng Cộng sản Việt Nam',3,0],[0,2,27,'thuoc','Chúc mừng Ngày Thầy thuốc Việt Nam',3,0],
     [0,3,8,'phunu','Chúc mừng Ngày Quốc tế Phụ nữ 8/3',3,0],[0,3,26,'doan','Chào mừng kỷ niệm ngày thành lập Đoàn TNCS Hồ Chí Minh',3,0],[0,4,30,'do','Mừng Ngày Giải phóng miền Nam 30/4',3,1],
     [0,5,1,'do','Chúc mừng Ngày Quốc tế Lao động 1/5',2,0],[0,5,7,'do','Kỷ niệm Chiến thắng Điện Biên Phủ',3,0],[0,5,19,'bac','Kỷ niệm ngày sinh Chủ tịch Hồ Chí Minh',3,0],
@@ -50,8 +46,7 @@ html button.hol-on{display:block;margin:0 0 6px auto;padding:3px 10px;min-width:
   var css='';for(var k in TH){var c=TH[k].c,r='';for(var i=0;i<VN.length;i++)r+=VN[i]+':'+c[i]+';';css+='html[data-hol="'+k+'"]:not(#_){'+r+'}\n';}
   var st=document.createElement('style');st.id='hol-theme-vars';st.textContent=css;document.head.appendChild(st);
 
-  var root=document.documentElement,active=null,layer=null,banner=null,on=true,lite=(window.matchMedia&&matchMedia('(max-width:700px)').matches)||(navigator.hardwareConcurrency||8)<=4;
-  try{if(localStorage.getItem(SK)==='off')on=false;}catch(e){}
+  var root=document.documentElement,active=null,layer=null,banner=null,lite=(window.matchMedia&&matchMedia('(max-width:700px)').matches)||(navigator.hardwareConcurrency||8)<=4;
   function rnd(a,b){return a+Math.random()*(b-a);}
   function find(){
     var q='',m;try{m=location.search.match(/[?&]ngayle=([^&]*)/);if(m)q=decodeURIComponent(m[1]);}catch(e){}
@@ -74,7 +69,6 @@ html button.hol-on{display:block;margin:0 0 6px auto;padding:3px 10px;min-width:
   function render(){
     clear();
     if(!active)return;
-    if(!on){offBtn();return;}
     var T=TH[active.k];root.setAttribute('data-hol',active.k);
     layer=document.createElement('div');layer.id='hol-layer';layer.setAttribute('aria-hidden','true');
     var cnt=lite?Math.ceil(T.n*0.6):T.n,h='';
@@ -84,21 +78,10 @@ html button.hol-on{display:block;margin:0 0 6px auto;padding:3px 10px;min-width:
     var hero=document.querySelector('.app .hero');
     if(hero&&hero.parentNode){
       banner=document.createElement('div');banner.id='hol-banner';banner.setAttribute('role','status');
-      var d=active.d,when=d>0?'Còn '+d+' ngày':(d===0?'Hôm nay!':'Vừa diễn ra');
       var a=document.createElement('span');a.textContent=T.ic[0]+' '+active.t+' '+T.ic[1%T.ic.length];
-      var b=document.createElement('span');b.className='hb-d';b.textContent=when;
-      banner.appendChild(a);banner.appendChild(b);
-      var x=document.createElement('button');x.type='button';x.className='hol-x';x.textContent='✕';x.title='Tắt giao diện ngày lễ';x.setAttribute('aria-label','Tắt giao diện ngày lễ');
-      x.addEventListener('click',function(){setOn(false);});banner.appendChild(x);
+      banner.appendChild(a);
       hero.parentNode.insertBefore(banner,hero);
     }
-  }
-  function setOn(v){on=v;try{localStorage.setItem(SK,on?'on':'off');}catch(e){}render();}
-  function offBtn(){   /* đang tắt: chỉ còn một nút nhỏ phía trên để bật lại */
-    var hero=document.querySelector('.app .hero');if(!hero||!hero.parentNode)return;
-    banner=document.createElement('div');banner.id='hol-off';
-    var c=document.createElement('button');c.type='button';c.className='hol-on';c.textContent='🎨 Bật giao diện ngày lễ';
-    c.addEventListener('click',function(){setOn(true);});banner.appendChild(c);hero.parentNode.insertBefore(banner,hero);
   }
   function init(){
     active=find();
