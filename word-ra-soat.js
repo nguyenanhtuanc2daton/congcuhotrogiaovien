@@ -1161,7 +1161,6 @@ Với MỖI ứng viên: (1) tự giải/kiểm tra lại từ đầu bằng ch�
 Không bịa dữ kiện. Công thức nằm trong $...$ (LaTeX); ⟦HÌNH⟧ là hình không đọc được.
 Trả về DUY NHẤT mảng JSON, không Markdown, KHÔNG dùng dấu gạch chéo ngược: [{"k":số thứ tự ứng viên,"giai":"kết quả tự giải/kiểm tra, tối đa 40 từ","ketluan":"dung"|"sai"|"khongchac","lydo":"tối đa 30 từ","sua":"cách sửa chính xác nếu kết luận dung, ngắn gọn; nếu cách sửa người rà soát đề xuất chưa đúng thì nêu cách đúng"}]. Phải có đủ mọi k được gửi.`;
 
-`;
 
 function ommlTex(n){
   if(!n||n.namespaceURI!==M)return '';
