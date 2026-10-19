@@ -46,33 +46,71 @@ function fixR(d,rPr){
     ['asciiTheme','hAnsiTheme','eastAsiaTheme','cstheme'].forEach(a=>f.removeAttributeNS(W,a));
     ['ascii','hAnsi','cs','eastAsia'].forEach(a=>sa(f,a,TNR))}
   sa(sc(d,rPr,'sz',ORD.rPr),'val',28);sa(sc(d,rPr,'szCs',ORD.rPr),'val',28);
-  ['spacing','w'].forEach(n=>{const e=one(rPr,n);if(e)rPr.removeChild(e)})}   /* bỏ giãn/co chữ gây khoảng cách không đều */
+  if(LANGVI&&rPr.parentNode&&rPr.parentNode.localName==='r'){const l=one(rPr,'lang');if(l){sa(l,'val','vi-VN');sa(l,'eastAsia','vi-VN')}}   /* web hay gắn en-US → gạch đỏ chính tả */
+  ['spacing','w','fitText','eastAsianLayout'].forEach(n=>{const e=one(rPr,n);if(e)rPr.removeChild(e)});   /* bỏ giãn/co chữ gây khoảng cách không đều */
+  if(CLEAN&&rPr.parentNode&&rPr.parentNode.localName==='r'){   /* nền/màu rác khi dán từ web */
+    const had=['highlight','shd'].map(n=>{const e=one(rPr,n);if(e)rPr.removeChild(e);return !!e}).some(Boolean);
+    const c=one(rPr,'color');if(c){const v=ga(c,'val');if(/^(0563C1|0000FF|0000EE|1155CC|0066CC)$/i.test(v)||(had&&/^FFFFFF$/i.test(v))||(/^([0-9A-F]{2})\1\1$/i.test(v)&&parseInt(v.slice(0,2),16)<=128))rPr.removeChild(c)}
+    const rs=one(rPr,'rStyle');if(rs&&/hyperlink/i.test(ga(rs,'val'))){rPr.removeChild(rs);const u=one(rPr,'u');if(u)rPr.removeChild(u)}}}
 function fixStyles(d){const root=d.documentElement;let dd=one(root,'docDefaults');
   if(!dd){dd=mk(d,'docDefaults');root.insertBefore(dd,root.firstChild)}
   let rd=one(dd,'rPrDefault');if(!rd){rd=mk(d,'rPrDefault');dd.insertBefore(rd,dd.firstChild)}
-  if(!one(rd,'rPr'))rd.appendChild(mk(d,'rPr'))}
+  if(!one(rd,'rPr'))rd.appendChild(mk(d,'rPr'));
+  if(LANGVI){const l=sc(d,one(rd,'rPr'),'lang',ORD.rPr);sa(l,'val','vi-VN');sa(l,'eastAsia','vi-VN')}}   /* ngôn ngữ kiểm tra chính tả = tiếng Việt */
 const KEEPEL=['drawing','pict','br','object','sym','fldChar','fldSimple','sectPr','footnoteReference','endnoteReference','commentReference','ptab'];
 const isEmpty=p=>p.localName==='p'&&p.namespaceURI===W&&!all(p,'t').some(t=>t.textContent.trim())&&!KEEPEL.some(n=>p.getElementsByTagNameNS(W,n).length)&&!p.getElementsByTagNameNS(MNS,'oMath').length&&!p.getElementsByTagNameNS(MNS,'oMathPara').length&&!hasBM(p);
 
 function hasBM(p){return all(p,'bookmarkStart').some(b=>ga(b,'name')!=='_GoBack')}
+const PHK=/^(chương|phần|phụ lục|chapter|part|appendix)\s+[\divxlc]+(?![\p{L}\p{N}])/iu;
+/* tiêu đề "giả" (copy từ web mất style): đoạn ngắn, in đậm hoặc viết hoa hết, không kết thúc bằng dấu câu → trả về cấp 0-3, không phải tiêu đề → -1 */
+function pseudoHead(p){
+  if(anc(p,'tc'))return -1;
+  const rs=Array.from(p.getElementsByTagNameNS(W,'r')).filter(r=>all(r,'t').some(t=>t.textContent.trim()));
+  if(!rs.length)return -1;
+  const tx=rs.map(r=>all(r,'t').map(t=>t.textContent).join('')).join('').replace(/\s+/g,' ').trim();
+  if(tx.length<3||tx.length>100||/[.,;:!?…]$/.test(tx))return -1;
+  const bold=rs.every(r=>{const rp=one(r,'rPr'),b=rp&&one(rp,'b');return !!b&&!/^(0|false|off)$/.test(ga(b,'val'))}),
+    caps=!/\p{Ll}/u.test(tx)&&(tx.match(/\p{Lu}/gu)||[]).length>=3;
+  if(!bold&&!caps)return -1;
+  if(PHK.test(tx))return 0;
+  if(/^[IVXLC]+[.)]\s/.test(tx)||/^mục\s/i.test(tx))return 1;
+  if(/^\d+(?:\.\d+){1,3}[.)]?\s/.test(tx))return Math.min(3,1+tx.match(/^\d+(?:\.\d+)*/)[0].split('.').length);
+  if(/^(?:\d+[.)]|điều\s+\d+)\s*/i.test(tx))return 2;
+  return caps?1:2}
 function pinfo(p,pPr){const st=pPr&&one(pPr,'pStyle'),sv=st?ga(st,'val'):'',je=pPr&&one(pPr,'jc'),jc=je?ga(je,'val'):'';
-  return {sv,jc,inTc:!!anc(p,'tc'),
-    list:!!(pPr&&one(pPr,'numPr'))||/list|bullet|number|danh/i.test(sv),
-    head:/head|title|tiêu/i.test(sv)||!!(pPr&&one(pPr,'outlineLvl')),
-    keep:jc==='center'||jc==='right'||jc==='end'}}
+  const img=!!(p.getElementsByTagNameNS(W,'drawing').length||p.getElementsByTagNameNS(W,'pict').length)&&!all(p,'t').some(t=>t.textContent.trim());
+  const lst=!!(pPr&&one(pPr,'numPr'))||/list|bullet|number|danh/i.test(sv),sh=/head|title|tiêu/i.test(sv)||!!(pPr&&one(pPr,'outlineLvl')),lv=HEADON&&!lst&&!sh&&!img?pseudoHead(p):-1;
+  return {sv,jc,img,inTc:!!anc(p,'tc'),lv,
+    list:lst,
+    head:sh||lv>=0,
+    keep:jc==='center'||jc==='right'||jc==='end'||img}}
+let CLEAN=true,LANGVI=true,HEADON=true;
 const isP=c=>c.localName==='p'&&c.namespaceURI===W;
 const RI=['hanging','hangingChars','firstLine','firstLineChars','left','leftChars','start','startChars','right','rightChars','end','endChars'];
 const CM=['top','start','left','bottom','end','right'];
 const CELLJ=/^(both|distribute|thaiDistribute|)$/;
 
 /* ===== Định dạng: lề, giãn dòng, thụt dòng, căn đều, bảng biểu ===== */
+function floatToInline(body,rep){
+  const WP='http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing',PIC='http://schemas.openxmlformats.org/drawingml/2006/picture';let n=0;
+  Array.from(body.getElementsByTagNameNS(WP,'anchor')).forEach(an=>{
+    if(an.getAttribute('behindDoc')==='1'||anc(an,'txbxContent'))return;
+    const par=an.parentNode;if(!par||par.localName!=='drawing'||par.namespaceURI!==W)return;
+    const kid=nm=>Array.from(an.children).find(c=>c.localName===nm&&c.namespaceURI===WP),gr=Array.from(an.children).find(c=>c.localName==='graphic');
+    if(!gr||!gr.getElementsByTagNameNS(PIC,'pic').length||!kid('extent')||!kid('docPr'))return;
+    const il=an.ownerDocument.createElementNS(WP,'wp:inline');['distT','distB','distL','distR'].forEach(a=>il.setAttribute(a,'0'));
+    ['extent','effectExtent','docPr','cNvGraphicFramePr'].forEach(nm=>{const e=kid(nm);if(e)il.appendChild(e)});
+    il.appendChild(gr);par.replaceChild(il,an);n++});
+  if(n)rep.floats=n;
+  const left=Array.from(body.getElementsByTagNameNS(WP,'anchor')).length;
+  if(left)rep.warn.push(left+' hình/khung nổi (hình vẽ, khung văn bản, ảnh nền…) chưa chuyển về cùng dòng: hãy kiểm tra vị trí')}
 function docNorm(d,cfg,rep){
   const body=d.getElementsByTagNameNS(W,'body')[0];if(!body)return;
   const bk=Array.from(body.children),secs=[];
   const fin=()=>{let s=one(body,'sectPr');if(!s){s=mk(d,'sectPr');body.appendChild(s)}return s};
   bk.forEach((c,i)=>{if(c.localName==='p'){const pp=one(c,'pPr'),s=pp&&one(pp,'sectPr');if(s)secs.push({end:i,sp:s})}});
   secs.push({end:bk.length,sp:fin()});
-  secs.forEach(s=>{const sp=s.sp,z=sc(d,sp,'pgSz',ORD.sectPr);
+  secs.forEach(s=>{const sp=s.sp,z=sc(d,sp,'pgSz',ORD.sectPr);{const dg=one(sp,'docGrid');if(dg)sp.removeChild(dg)}
     const land=ga(z,'orient')==='landscape'||(+ga(z,'w')>+ga(z,'h')&&+ga(z,'h')>0);
     sa(z,'w',land?16838:11906);sa(z,'h',land?11906:16838);
     if(land)sa(z,'orient','landscape');else z.removeAttributeNS(W,'orient');
@@ -84,16 +122,23 @@ function docNorm(d,cfg,rep){
     if(anc(p,'txbxContent'))return;
     rep.paras++;
     let pPr=one(p,'pPr');if(!pPr){pPr=mk(d,'pPr');p.insertBefore(pPr,p.firstChild)}
-    const {inTc,list,head,keep,jc}=pinfo(p,pPr);
+    const {inTc,list,head,keep,jc,img,lv}=pinfo(p,pPr);
     const sp=sc(d,pPr,'spacing',ORD.pPr);
     ['beforeLines','afterLines','beforeAutospacing','afterAutospacing'].forEach(a=>sp.removeAttributeNS(W,a));
     sa(sp,'before',head&&!inTc?120:0);sa(sp,'after',inTc?0:120);sa(sp,'line',276);sa(sp,'lineRule','auto');
     const cs=one(pPr,'contextualSpacing');if(cs)pPr.removeChild(cs);   /* làm mất khoảng cách giữa các đoạn cùng kiểu */
-    if(head&&!inTc)sc(d,pPr,'keepNext',ORD.pPr);                         /* tiêu đề không bị rớt cuối trang */
+    {const fp=one(pPr,'framePr');if(fp&&!ga(fp,'dropCap'))pPr.removeChild(fp)}   /* khung định vị khi dán từ web */
+    if(CLEAN){if(!inTc){const sh=one(pPr,'shd');if(sh)pPr.removeChild(sh)}
+      if(!inTc&&!head&&!keep){['keepNext','keepLines'].forEach(n=>{const e=one(pPr,n);if(e)pPr.removeChild(e)});   /* giữ-với-đoạn-sau từ web gây trống cả trang */
+        if(!list){const e=one(pPr,'pBdr');if(e)pPr.removeChild(e)}}   /* khung viền đoạn (blockquote/hộp web) */                /* nền đoạn từ web */
+      ['snapToGrid','autoSpaceDE','autoSpaceDN'].forEach(n=>sa(sc(d,pPr,n,ORD.pPr),'val',0))}   /* tắt lưới/khoảng cách tự động gây giãn không đều */
+    if(head&&!inTc)sc(d,pPr,'keepNext',ORD.pPr);
+    if(lv>=0&&!inTc&&!keep&&!one(pPr,'outlineLvl')){sa(sc(d,pPr,'outlineLvl',ORD.pPr),'val',lv);rep.heads=(rep.heads||0)+1}   /* cho hiện trong Navigation Pane */                         /* tiêu đề không bị rớt cuối trang */
     const setInd=(first,zero)=>{const ind=sc(d,pPr,'ind',ORD.pPr);
       RI.forEach(a=>{if(zero||/hanging|firstLine/.test(a))ind.removeAttributeNS(W,a)});
       if(zero){sa(ind,'left',0);sa(ind,'right',0)}sa(ind,'firstLine',first)};
-    if(!inTc&&!list&&!head&&!keep){
+    if(img&&!inTc&&cfg.img!==false){sa(sc(d,pPr,'jc',ORD.pPr),'val','center');setInd(0,true)}   /* ảnh đứng riêng: căn giữa, không thụt */
+    else if(!inTc&&!list&&!head&&!keep){
       sa(sc(d,pPr,'jc',ORD.pPr),'val','both');setInd(567,cfg.ind!==false)}
     else if(inTc&&!list&&cfg.tbl!==false){
       setInd(0,true);                                                   /* ô bảng: không thụt đầu dòng */
@@ -103,6 +148,16 @@ function docNorm(d,cfg,rep){
     for(const t of ts){const v=t.textContent.replace(/^[\s\u00a0]+/,'');if(v!==t.textContent)t.textContent=v;if(v)break}
     for(const t of ts.slice().reverse()){const v=t.textContent.replace(/[\s\u00a0]+$/,'');if(v!==t.textContent)t.textContent=v;if(v)break}
   });
+  if(cfg.img!==false)floatToInline(body,rep);   /* ảnh trôi nổi từ web đè lên chữ */
+  if(cfg.img!==false){const mx=Math.min(...secs.map(s=>s.aw))*635,k=[0];   /* twip → EMU */
+    const WP='http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing',A='http://schemas.openxmlformats.org/drawingml/2006/main';
+    Array.from(body.getElementsByTagNameNS(WP,'inline')).forEach(il=>{
+      const ex=il.getElementsByTagNameNS(WP,'extent')[0];if(!ex||anc(il,'tc'))return;
+      const cx=+ex.getAttribute('cx'),cy=+ex.getAttribute('cy');if(!(cx>mx&&mx>0))return;
+      const f=mx/cx;ex.setAttribute('cx',Math.floor(cx*f));ex.setAttribute('cy',Math.floor(cy*f));
+      Array.from(il.getElementsByTagNameNS(A,'ext')).forEach(e=>{if(+e.getAttribute('cx')===cx){e.setAttribute('cx',Math.floor(cx*f));e.setAttribute('cy',Math.floor(+e.getAttribute('cy')*f))}});
+      k[0]++});
+    if(k[0])rep.imgs=k[0]}
   /* đoạn trống: gộp liên tiếp, bỏ đoạn trống đầu tài liệu và đầu/cuối ô */
   const isEP=c=>!!c&&isP(c)&&isEmpty(c);
   [body].concat(all(body,'tc')).forEach(ct=>{let prev=false;
@@ -119,6 +174,7 @@ function docNorm(d,cfg,rep){
     const rows=wk(tbl,'tr');
     if(cfg.tbl!==false){
       const cm=sc(d,pr,'tblCellMar',ORD.tblPr);['start','end'].forEach(n=>{const e=one(cm,n);if(e)cm.removeChild(e)});
+      ['tblCellSpacing','tblpPr'].forEach(n=>{const e=one(pr,n);if(e)pr.removeChild(e)});   /* khe hở giữa ô, bảng trôi nổi */
       [['top',40],['left',108],['bottom',40],['right',108]].forEach(([n,v])=>{const e=sc(d,cm,n,CM);sa(e,'w',v);sa(e,'type','dxa')});
       const ncol=Math.max(0,...rows.map(r=>wk(r,'tc').length));
       if(!one(pr,'tblBorders')&&!one(pr,'tblStyle')&&!all(tbl,'tcBorders').length&&rows.length>=3&&ncol>=2){
@@ -126,6 +182,7 @@ function docNorm(d,cfg,rep){
         ['top','left','bottom','right','insideH','insideV'].forEach(n=>{const e=mk(d,n);sa(e,'val','single');sa(e,'sz',4);sa(e,'space',0);sa(e,'color','auto');b.appendChild(e)});
         rep.borders=(rep.borders||0)+1}
       rows.forEach((tr,ri)=>{
+        {const tcs=wk(tr,'tc');if(tcs.length&&tcs.every(tc=>!tc.textContent.trim()&&!tc.getElementsByTagNameNS(W,'drawing').length))rep.blankRows=(rep.blankRows||0)+1}
         let t=one(tr,'trPr');if(!t){t=mk(d,'trPr');tr.insertBefore(t,wk(tr,'tc')[0]||null)}
         if(!one(t,'cantSplit'))t.appendChild(mk(d,'cantSplit'));          /* hàng không bị cắt đôi giữa 2 trang */
         const h=one(t,'trHeight');if(h&&ga(h,'hRule')==='exact')sa(h,'hRule','atLeast');   /* chữ không bị cắt mất */
@@ -166,6 +223,10 @@ const TYPO=[['ko','không'],['đc','được'],['chia sẽ','chia sẻ'],['sơ x
   ['trình bầy','trình bày'],['bổ xung','bổ sung'],['sắp sếp','sắp xếp'],['xắp xếp','sắp xếp'],['suất sắc','xuất sắc'],['xuất xắc','xuất sắc'],
   ['năng xuất','năng suất'],['sản suất','sản xuất'],['quang trọng','quan trọng'],['tập chung','tập trung'],['rà xoát','rà soát'],['ra soát','rà soát'],
   ['xem sét','xem xét'],['nghành','ngành']].map(([a,b])=>({re:new RegExp('(?<![\\p{L}\\p{N}])'+a.replace(/ /g,' +')+'(?![\\p{L}\\p{N}])','giu'),to:b}));
+const REF=/\[(?:\d{1,3}(?:\s*[-–,]\s*\d{1,3})*|(?:cần |cần dẫn |cần có )?nguồn[^\]]{0,20}|cần làm rõ|chỉnh sửa|sửa(?: ?\| ?sửa mã nguồn)?|edit|citation needed|source needed)\]/giu;
+const TONE=/(?<![qQ])([oOuU])([àáảãạèéẻẽẹýỳỷỹỵÀÁẢÃẠÈÉẺẼẸÝỲỶỸỴ])(?![\p{L}])/gu;
+const TMAP={à:'òa',á:'óa',ả:'ỏa',ã:'õa',ạ:'ọa',è:'òe',é:'óe',ẻ:'ỏe',ẽ:'õe',ẹ:'ọe',ý:'úy',ỳ:'ùy',ỷ:'ủy',ỹ:'ũy',ỵ:'ụy'};
+const toneFix=m=>{const a=m[1],b=m[2],lb=b.toLowerCase(),y='ýỳỷỹỵ'.includes(lb);if((a.toLowerCase()==='u')!==y)return null;const r=TMAP[lb];return b===lb?r:r.toUpperCase()};
 const ABBR=new Set('ths pgs nxb mrs prof etc fax tel tp tx tt cn bs ks gs ts vd vs mr ms dr st tr đt th'.split(' '));
 const NOCAP=new Set('www http https ftp'.split(' '));
 const CAP0=/^([-–—•●○▪■□✓✔+*]\s*|\(?\d+(?:\.\d+)*[.)]\s*)?(\p{Ll}[\p{Ll}\p{M}]*)(?![\p{L}\p{N}])/gu;
@@ -213,7 +274,18 @@ function fixPara(items,info,pv,cnt,cfg,notes,lb){
   if(!s0.trim()&&!items.some(x=>x.n<0)){ed(/^[ \u00a0]+$/g,'','khoảng trắng thừa');return ''}
   /* 1. ký tự */
   if(/[\u0300-\u036f]/.test(s0))ed(/\S*[\u0300-\u036f]\S*/gu,m=>m[0].normalize('NFC'),'chữ Việt tổ hợp → dựng sẵn');
-  ed(/[\u200B\uFEFF\u00AD\u2060]/g,'','ký tự ẩn/rác');
+  if(cfg.emoji!==false)ed(/(?:[\u{1F000}-\u{1FAFF}]|[\u2600-\u260F\u2613-\u26FF]|[\u2700-\u2712\u2715-\u27BF]|[\u2B50\u2B55])[\uFE0F\u200D]*/gu,'','emoji/biểu tượng từ web');
+  ed(/[\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF\u00AD\u180E\uFE0F\u20E3]/g,'','ký tự ẩn/rác');
+  ed(/[\u2010\u2011\u2012\u2212\uFE63]/g,'-','gạch nối/dấu trừ lạ → gạch nối');ed(/\u2015/g,'–','gạch nối/dấu trừ lạ → gạch nối');
+  ed(/[\u201E\u201F]/g,'“','nháy kép lạ → nháy cong');
+  if(cfg.ref!==false)ed(REF,m=>m.index>0?'':null,'số chú thích/[sửa] của web ([1], [cần nguồn])');
+  if(!info.inTc)ed(/^[\s\-_=*~–—•·]{5,}$/g,'','dòng kẻ phân cách từ web');
+  if(cfg.junk!==false&&!info.inTc&&!info.head)ed(JUNK,'','dòng giao diện web thừa (Xem thêm, Chia sẻ…) đã xóa');
+  if(cfg.tone===true)ed(TONE,toneFix,'bỏ dấu kiểu cũ → mới (hoà → hòa)');
+  ed(/[\uFF01-\uFF5E]/g,m=>String.fromCharCode(m[0].charCodeAt(0)-0xFEE0),'ký tự full-width → thường');
+  ed(/\u3002/g,'.','ký tự full-width → thường');ed(/\u3001/g,',','ký tự full-width → thường');
+  ed(/[\uFB00-\uFB06]/g,m=>m[0].normalize('NFKC'),'chữ ghép của PDF (ﬁ → fi)');
+  ed(/^[\u2022\u00B7\u25CF\u25AA\u25A0\u25A1\u25CB\u25E6\u2023\u2043\uF0B7\uF0A7\uF0D8\uF076\uF0FC]\s*(?=\S)/gu,()=>info.list?null:'- ','ký hiệu đầu dòng lạ → gạch đầu dòng');
   ed(/[\u00A0\u2028\u2000-\u200A\u202F\u205F\u3000]/g,' ','dấu cách đặc biệt → dấu cách thường');
   {const s=str(),n=(s.match(/"/g)||[]).length;
    if(n&&n%2===0&&!/\d"/.test(s))ed(/"/g,(m,t)=>((t.slice(0,m.index).match(/"/g)||[]).length%2?'”':'“'),'nháy kép thẳng → nháy cong')}
@@ -224,6 +296,11 @@ function fixPara(items,info,pv,cnt,cfg,notes,lb){
       if(x.c==='\n'?!x.pl:!(isL(a.c)&&isL(b.c)))continue;
       (items.dead=items.dead||[]).push(x.el);items[i]={c:' ',n:a.n};n++}
     if(n)bump('ngắt dòng/Tab giữa câu → dấu cách',n)}
+  if(!info.inTc&&!info.keep){let n=0;const dd=()=>items.dead=items.dead||[];   /* ngắt dòng/Tab thừa đầu-cuối đoạn */
+    while(items.length&&items[items.length-1].pl){dd().push(items.pop().el);n++}
+    while(items.length&&items[0].pl){dd().push(items.shift().el);n++}
+    if(!info.list&&!info.head)while(items.length&&items[0].c==='\t'&&items[0].el){dd().push(items.shift().el);n++}
+    if(n)bump('ngắt dòng/Tab thừa đầu-cuối đoạn đã xóa',n)}
   /* 2. khoảng trắng */
   ed(/(?<=\S) {2,}(?=\S)/g,' ','khoảng trắng thừa');
   ed(/^ +| +$/g,'','khoảng trắng thừa');
@@ -255,6 +332,7 @@ function fixPara(items,info,pv,cnt,cfg,notes,lb){
   /* 5. viết hoa */
   let broken=false;
   ed(CAP0,(m,s)=>{const pre=m[1]||'',w=m[2],e=m[0].length,nx=s[e],nn=s[e+1];
+    if(w.length<2)return null;   /* a) b) … là ký hiệu mục, không viết hoa */
     if((s.match(/\p{L}+/gu)||[]).length<2&&w.length<4)return null;
     if(NOCAP.has(w))return null;
     if((nx==='.'||nx==='@'||nx==='/'||nx==='_'||nx===':')&&nn&&!/\s/.test(nn))return null;
@@ -270,13 +348,15 @@ function fixPara(items,info,pv,cnt,cfg,notes,lb){
     if(!/^\d+$/.test(tk)){const lt=tk.replace(/[^\p{L}]/gu,'');
       if(lt.length<=1||ABBR.has(lt.toLowerCase())||/\./.test(tk))return null}
     return m[1]+m[2]+up(m[3])},'viết hoa sau dấu chấm');
+  {const t0=str().replace(/[\s”"’')\]]+$/u,'');items.end=t0?t0[t0.length-1]:'';items.len=t0.length}
   /* 6. dấu chấm cuối đoạn văn */
   if(cfg.dot!==false&&!info.inTc&&!info.list&&!info.head&&!info.keep){
     const s=str(),words=(s.match(/\p{L}+/gu)||[]).length,last=items[items.length-1];
     if(s.length>=60&&words>=8&&last&&last.n>=0&&/[\p{L}\p{N})\]”"’']$/u.test(s)&&!/[.!?…][)\]”"’']$/.test(s)&&/\p{Ll}/u.test(s)&&!/(?:https?:\/\/|www\.)\S+$|\S@\S+$/i.test(s)){
-      items.push({c:'.',n:last.n});bump('thêm dấu chấm cuối đoạn',1)}}
+      items.push({c:'.',n:last.n});items.open=true;bump('thêm dấu chấm cuối đoạn',1)}}
   /* 7. cảnh báo các chỗ không rõ nghĩa (không tự sửa vì có thể đổi ý) */
   const s=str(),s2=s.replace(PROT,' ');
+  items.broken=broken;
   if(broken)note('Dòng có vẻ bị ngắt giữa câu (đoạn trước chưa kết thúc)',s);
   if(/Ã.|Ä‘|áº|á»|ï¿½|\uFFFD/.test(s))note('Lỗi mã hóa/font (ký tự lạ)',s);
   const bal=(a,b)=>(s.split(a).length-1)!==(s.split(b).length-1);
@@ -288,6 +368,8 @@ function fixPara(items,info,pv,cnt,cfg,notes,lb){
   if(dup)note('Từ lặp liền kề (kiểm tra có phải từ láy không)',dup[0]);
   for(const w of (s2.match(/(?<![\p{L}\p{N}])\p{Ll}{5,}(?![\p{L}\p{N}])/gu)||[])){if(!VOW.test(w)){note('Từ lạ, không có nguyên âm (có thể gõ sai)',w);break}}
   for(const w of (s2.match(/\p{L}{8,}/gu)||[])){if(/[^\x00-\x7f]/.test(w)){note('Từ quá dài, có thể bị dính chữ (ví dụ nhàcủa)',w);break}}
+  if(/[\uE000-\uF8FF]/.test(s))note('Ký tự biểu tượng lạ (có thể hiện thành ô vuông)',s);
+  if(!info.inTc&&s.length<120&&/^(?:xem thêm|đọc thêm|tin liên quan|bài liên quan|bài viết liên quan|quảng cáo|chia sẻ|bình luận|theo dõi|từ khóa|nguồn tin|tags?|tin cùng chuyên mục|tin mới nhất|tin nổi bật|đăng nhập|đăng ký|trang chủ|liên hệ|bản quyền|copyright|all rights reserved|facebook|twitter|zalo|in bài|gửi email|lượt xem|đọc tiếp|xem tất cả|ý kiến bạn đọc|tải thêm|cookie|©)(?!\p{L})/iu.test(s))note('Có thể là phần thừa của trang web (xem thêm, quảng cáo…)',s);
   const mc=s2.match(/(?<!\p{L})\p{Lu}{2,}\p{Ll}+(?!\p{L})/u);
   if(mc&&!/^\p{Lu}+s$/u.test(mc[0]))note('Chữ hoa/thường lẫn lộn (Caps Lock?)',mc[0]);
   if(s.length>80&&!info.head&&!info.keep&&!/\p{Ll}/u.test(s)&&/\p{Lu}/u.test(s))note('Cả đoạn viết hoa toàn bộ',s);
@@ -301,26 +383,119 @@ async function fixText(d,part,cfg,cnt,notes){
     const pPr=one(p,'pPr'),info=pinfo(p,pPr),par=p.parentNode;
     if(/toc|mục ?lục|contents|code|source/i.test(info.sv)||tocSdt(p))continue;
     const {items,nodes}=collect(p);
-    if(!nodes.length){prev.set(par,null);continue}
-    const s=fixPara(items,info,prev.get(par),cnt,cfg,notes,tag+'đoạn '+idx);
+    if(!nodes.length){if(items.length&&!info.inTc&&!info.keep&&items.every(x=>x.pl)){items.forEach(x=>x.el.parentNode&&x.el.parentNode.removeChild(x.el));cnt['ngắt dòng/Tab thừa đầu-cuối đoạn đã xóa']=(cnt['ngắt dòng/Tab thừa đầu-cuối đoạn đã xóa']||0)+items.length}prev.set(par,null);continue}
+    const lb=tag+'đoạn '+idx,pv=prev.get(par),body=!info.inTc&&!info.list&&!info.head&&!info.keep;
+    const s=fixPara(items,info,pv,cnt,cfg,notes,lb);
     flush(nodes,items);
-    const t=s.replace(/[\s”"’')\]]+$/u,'');
-    prev.set(par,t?{end:t[t.length-1],len:s.length}:null)}}
+    if(cfg.join!==false&&items.broken&&pv&&pv.body&&body&&pv.p.parentNode===par&&!(pPr&&one(pPr,'sectPr'))&&!pv.p.getElementsByTagNameNS(W,'sectPr').length){
+      /* ghép đoạn bị ngắt giữa câu (copy từ web/PDF) vào đoạn trước */
+      if(pv.open&&pv.last)pv.last.textContent=pv.last.textContent.replace(/\.$/,'');
+      const r=mk(d,'r'),t=mk(d,'t');t.setAttributeNS(XMLNS,'xml:space','preserve');t.textContent=' ';r.appendChild(t);pv.p.appendChild(r);
+      Array.from(p.children).forEach(c=>{if(!(c.localName==='pPr'&&c.namespaceURI===W))pv.p.appendChild(c)});
+      par.removeChild(p);
+      const bi=notes.findIndex(x=>x.p===lb&&/ngắt giữa câu/.test(x.k));if(bi>=0)notes.splice(bi,1);
+      cnt['đoạn bị ngắt giữa câu đã ghép lại']=(cnt['đoạn bị ngắt giữa câu đã ghép lại']||0)+1;
+      prev.set(par,{end:items.end,len:pv.len+s.length,open:!!items.open,last:nodes[nodes.length-1],p:pv.p,body:true,t:pv.t+' '+s});
+      continue}
+    if(pv&&pv.t&&s.length>=20&&pv.t===s)notes.push({k:'Đoạn lặp lại y hệt đoạn trước (copy 2 lần?)',p:lb,s:s.slice(0,40)});
+    prev.set(par,items.end?{end:items.end,len:items.len,open:!!items.open,last:nodes[nodes.length-1],p,body,t:s}:null)}}
 
-const NDEF={t:20,b:20,l:30,r:15,txt:true,tbl:true,ind:true,dot:true};
+/* ===== Font cũ TCVN3 (.VnTime…) và VNI (VNI-Times…) → Unicode ===== */
+const TCU='àáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ';
+const TCC=[0xB5,0xB8,0xB6,0xB7,0xB9,0xA8,0xBB,0xBE,0xBC,0xBD,0xC6,0xA9,0xC7,0xCA,0xC8,0xC9,0xCB,0xAE,0xCC,0xD0,0xCE,0xCF,0xD1,0xAA,0xD2,0xD5,0xD3,0xD4,0xD6,0xD7,0xDD,0xD8,0xDC,0xDE,0xDF,0xE3,0xE1,0xE2,0xE4,0xAB,0xE5,0xE8,0xE6,0xE7,0xE9,0xAC,0xEA,0xED,0xEB,0xEC,0xEE,0xEF,0xF3,0xF1,0xF2,0xF4,0xAD,0xF5,0xF8,0xF6,0xF7,0xF9,0xFA,0xFD,0xFB,0xFC,0xFE];
+const TCM={};TCC.forEach((c,k)=>{TCM[String.fromCharCode(c)]=TCU[k]});
+'ĂÂÊÔƠƯĐ'.split('').forEach((c,k)=>{TCM[String.fromCharCode(0xA1+k)]=c});
+const fromTC=(s,up)=>{let o='';for(const c of s)o+=TCM[c]||c;o=o.normalize('NFC');return up?o.toUpperCase():o};
+const VS={'ñ':'đ','Ñ':'Đ','æ':'ỉ','Æ':'Ỉ','ó':'ĩ','Ó':'Ĩ','ò':'ị','Ò':'Ị','ô':'ơ','Ô':'Ơ','ö':'ư','Ö':'Ư'};
+const VT={'ù':'\u0301','ø':'\u0300','û':'\u0309','õ':'\u0303','ï':'\u0323'};
+const VC={'á':'\u0302\u0301','à':'\u0302\u0300','å':'\u0302\u0309','ã':'\u0302\u0303','ä':'\u0302\u0323','é':'\u0306\u0301','è':'\u0306\u0300','ú':'\u0306\u0309','ü':'\u0306\u0303','ë':'\u0306\u0323'};
+function fromVNI(s){const u=[];
+  for(const c of s){const l=c.toLowerCase(),last=u[u.length-1],b=last&&!last.m?last.b.toLowerCase():'';
+    if(VS[c]){u.push({b:VS[c],m:''});continue}
+    if(VT[l]&&/[aeouyơư]/.test(b)){last.m=VT[l];continue}
+    if(l==='â'&&/[aeo]/.test(b)){last.m='\u0302';continue}
+    if(l==='ê'&&b==='a'){last.m='\u0306';continue}
+    if(VC[l]){const circ=/[áàåãä]/.test(l);if(circ?/[aeo]/.test(b):b==='a'){last.m=VC[l];continue}}
+    u.push({b:c,m:''})}
+  return u.map(x=>x.b+x.m).join('').normalize('NFC')}
+function legacyFonts(d){let n=0;
+  all(d,'r').forEach(r=>{const rp=one(r,'rPr'),f=rp&&one(rp,'rFonts');if(!f)return;
+    const nm=ga(f,'ascii')||ga(f,'hAnsi')||ga(f,'cs')||'',tc=/^\.vn/i.test(nm),vn=/^vni[- ]/i.test(nm);if(!tc&&!vn)return;
+    const up=tc&&/^\.vn.*h$/i.test(nm);   /* .VnTimeH… = font chữ hoa */
+    all(r,'t').forEach(t=>{const v=tc?fromTC(t.textContent,up):fromVNI(t.textContent);
+      if(v!==t.textContent){t.textContent=v;if(/^\s|\s$/.test(v))t.setAttributeNS(XMLNS,'xml:space','preserve')}});n++});
+  return n}
+/* ===== Chữ ẩn (hidden) của web ===== */
+function dropHidden(d){let n=0;
+  all(d,'r').forEach(r=>{const rp=one(r,'rPr'),v=rp&&one(rp,'vanish');if(!v||/^(0|false|off)$/.test(ga(v,'val')))return;
+    if(r.getElementsByTagNameNS(W,'fldChar').length||r.getElementsByTagNameNS(W,'instrText').length||!all(r,'t').length)return;
+    r.parentNode.removeChild(r);n++});
+  return n}
+/* ===== Danh sách đánh số ===== */
+function numMap(nd){const abs={},num={};
+  all(nd,'abstractNum').forEach(a=>{const l={};wk(a,'lvl').forEach(v=>{const f=one(v,'numFmt'),t=one(v,'lvlText');l[ga(v,'ilvl')]=(f?ga(f,'val'):'')+'|'+(t?ga(t,'val'):'')});abs[ga(a,'abstractNumId')]=l});
+  all(nd,'num').forEach(x=>{const a=one(x,'abstractNumId');num[ga(x,'numId')]=a?ga(a,'val'):''});
+  return {abs,num}}
+/* web dán từng mục thành danh sách riêng → mỗi mục đều "1." : nối các mục liền nhau cùng kiểu về một danh sách để đánh số liên tục */
+function mergeLists(d,nm){if(!nm)return 0;let n=0;
+  const sig=(id,lv)=>{const a=nm.num[id];return (a&&nm.abs[a]&&nm.abs[a][lv])||''};
+  [d.getElementsByTagNameNS(W,'body')[0]].concat(all(d,'tc')).forEach(ct=>{if(!ct)return;let run=null;
+    Array.from(ct.children).forEach(c=>{
+      const pp=isP(c)?one(c,'pPr'):null,np=pp&&one(pp,'numPr'),ni=np&&one(np,'numId'),il=np&&one(np,'ilvl'),id=ni?ga(ni,'val'):'';
+      if(!id||id==='0'){run=null;return}
+      if(!run){run=id;return}
+      if(id===run)return;
+      const lv=il?ga(il,'val'):'0',a=sig(run,lv),b=sig(id,lv);
+      if(a&&a===b&&!/^(bullet|none)\|/.test(a)){sa(ni,'val',run);n++}else run=id})});
+  return n}
+/* số thứ tự gõ tay liền nhau bị trùng/nhảy (1. 1. 1. hoặc 1. 2. 4.) → đánh lại liên tục */
+function renumber(d){let n=0;
+  [d.getElementsByTagNameNS(W,'body')[0]].concat(all(d,'tc')).forEach(ct=>{if(!ct)return;let grp=[];
+    const fl=()=>{if(grp.length>=3&&grp.some((g,i)=>i&&g.v!==grp[i-1].v+1)){
+      grp.forEach((g,i)=>{const nv=grp[0].v+i;if(g.v===nv)return;
+        for(let k=0;k<g.len;k++)if(g.items[g.off+k].n<0)return;
+        g.items[g.off].c=String(nv);for(let k=1;k<g.len;k++)g.items[g.off+k].c='';
+        flush(g.nodes,g.items);n++})}
+      grp=[]};
+    Array.from(ct.children).forEach(c=>{
+      if(!isP(c)){fl();return}
+      const pp=one(c,'pPr'),st=pp&&one(pp,'pStyle');
+      if((st&&/toc|mục ?lục/i.test(ga(st,'val')))||(pp&&one(pp,'numPr'))||tocSdt(c)){fl();return}
+      const {items,nodes}=collect(c),s=items.map(x=>x.c).join(''),m=/^(\s*)(\d{1,3})([.)])(?=\s)/.exec(s);
+      if(!m){fl();return}
+      if(grp.length&&grp[grp.length-1].d!==m[3])fl();
+      grp.push({v:+m[2],d:m[3],items,nodes,off:m[1].length,len:m[2].length})});
+    fl()});
+  return n}
+const JUNK=/^\s*(?:xem thêm|đọc thêm|tin liên quan|bài liên quan|bài viết liên quan|quảng cáo|chia sẻ|bình luận|theo dõi|từ khóa|tags?|in bài|gửi email|đọc tiếp|xem tất cả|tải thêm|lượt xem|sao chép liên kết|copy link|advertisement|share|print)\s*:?\s*$/giu;
+
+const NDEF={t:20,b:20,l:30,r:15,txt:true,tbl:true,ind:true,dot:true,clean:true,join:true,img:true,lang:true,emoji:true,ref:true,tone:false,head:true,num:true,hid:true,junk:true};
 async function norm(zip,cfg){
-  cfg=Object.assign({},NDEF,cfg||{});
+  cfg=Object.assign({},NDEF,cfg||{});CLEAN=cfg.clean!==false;LANGVI=cfg.lang!==false;HEADON=cfg.head!==false;
   const rep={paras:0,tables:0,warn:[],info:[]},cnt={},notes=[];
+  const NM=zip.file('word/numbering.xml')?numMap(pX(await zip.file('word/numbering.xml').async('string'),'numbering.xml')):null;
   for(const n of Object.keys(zip.files).filter(n=>/^word\/(document|styles|numbering|footnotes|endnotes|header\d*|footer\d*)\.xml$/.test(n))){
     const d=pX(await zip.file(n).async('string'),n);
     if(/styles\.xml$/.test(n))fixStyles(d);
+    {const lg=legacyFonts(d);if(lg)cnt['chữ font cũ (TCVN3/VNI) đã đổi sang Unicode']=(cnt['chữ font cũ (TCVN3/VNI) đã đổi sang Unicode']||0)+lg}
+    if(cfg.hid!==false&&/^word\/(document|footnotes|endnotes|header\d*|footer\d*)\.xml$/.test(n)){const hd=dropHidden(d);if(hd)cnt['đoạn chữ ẩn của web đã xóa']=(cnt['đoạn chữ ẩn của web đã xóa']||0)+hd}
     all(d,'rPr').forEach(r=>fixR(d,r));
+    if(CLEAN&&n==='word/document.xml')all(d,'hyperlink').forEach(h=>all(h,'rPr').forEach(r=>['u','color'].forEach(x=>{const e=one(r,x);if(e)r.removeChild(e)})));   /* link: bỏ gạch chân/màu xanh của web */
     if(cfg.txt!==false&&/^word\/(document|footnotes|endnotes|header\d*|footer\d*)\.xml$/.test(n))await fixText(d,n,cfg,cnt,notes);
-    if(n==='word/document.xml')docNorm(d,cfg,rep);
+    if(n==='word/document.xml'){
+      if(cfg.num!==false){const a=mergeLists(d,NM),b=cfg.txt!==false?renumber(d):0;
+        if(a)cnt['danh sách đánh số bị lặp (1,1,1) đã nối liên tục']=a;if(b)cnt['số thứ tự gõ tay bị trùng/nhảy đã đánh lại']=b}
+      const vh=all(d,'vanish').filter(e=>!/^(0|false|off)$/.test(ga(e,'val'))).length;
+      if(vh)rep.warn.push(vh+' đoạn chữ bị ẩn (hidden text, thường là phần ẩn của trang web): giữ nguyên, hãy kiểm tra/xóa nếu không cần');
+      docNorm(d,cfg,rep)}
     zip.file(n,ser(d),{createFolders:false})}
   if(rep.empty)cnt['đoạn trống thừa đã xóa']=rep.empty;
   if(rep.borders)cnt['bảng thiếu viền đã kẻ viền']=rep.borders;
   if(rep.shrunk)cnt['bảng tràn lề đã co lại']=rep.shrunk;
+  if(rep.imgs)cnt['ảnh vượt lề đã thu nhỏ']=rep.imgs;
+  if(rep.heads)cnt['dòng tiêu đề mất style đã nhận diện (hiện trong Navigation Pane)']=rep.heads;
+  if(rep.floats)cnt['ảnh trôi nổi đã chuyển về cùng dòng']=rep.floats;
+  if(rep.blankRows)rep.warn.push(rep.blankRows+' hàng bảng hoàn toàn trống (có thể là hàng đệm của web): giữ nguyên, hãy kiểm tra');
   rep.fix=cnt;
   rep.info=Object.keys(cnt).map(k=>k+': '+cnt[k]);
   const grp={};notes.forEach(x=>(grp[x.k]=grp[x.k]||[]).push(x));
@@ -494,7 +669,7 @@ function readCfg(p){const v=k=>parseFloat(String(g(p+k).value).replace(',','.'))
   const c={t:v('Top'),b:v('Bot'),l:v('Left'),r:v('Right')};
   if(Object.values(c).some(x=>!isFinite(x)||x<0||x>100)||c.l+c.r>=150||c.t+c.b>=200)throw new Error('Lề không hợp lệ (0–100 mm; tổng trái+phải < 150, trên+dưới < 200).');
   /* tùy chọn (nếu giao diện có checkbox id = tiền tố + Txt/Tbl/Ind/Dot thì đọc, không thì mặc định bật) */
-  c.txt=ob('Txt',true);c.tbl=ob('Tbl',true);c.ind=ob('Ind',true);c.dot=ob('Dot',true);return c}
+  c.txt=ob('Txt',true);c.tbl=ob('Tbl',true);c.ind=ob('Ind',true);c.dot=ob('Dot',true);c.clean=ob('Clean',true);c.join=ob('Join',true);c.img=ob('Img',true);c.lang=ob('Lang',true);c.emoji=ob('Emoji',true);c.ref=ob('Ref',true);c.tone=ob('Tone',false);c.head=ob('Head',true);c.num=ob('Num',true);c.hid=ob('Hid',true);c.junk=ob('Junk',true);return c}
 const setSt=(id,m,k)=>{const e=g(id);e.textContent=m;e.style.color=k==='e'?'#f87171':k==='o'?'#34d399':''};
 const isDocx=f=>/\.docx$/i.test(f.name);
 function dl(name,data,mime){return saveBlob(new Blob([data],{type:mime}),name)}
@@ -516,8 +691,8 @@ const mq=[];
 function rM(){g('wtMList').innerHTML=listHTML(mq,true)}
 g('wtMList').onclick=e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i,a=b.dataset.a;
   if(a==='x')mq.splice(i,1);else{const j=a==='u'?i-1:i+1;if(j<0||j>=mq.length)return;[mq[i],mq[j]]=[mq[j],mq[i]]}rM()};
-/* mặc định tự bật: chuẩn hóa định dạng (Norm) + sửa chữ (Txt) + bảng (Tbl) + thụt lề (Ind) + dấu chấm cuối đoạn (Dot) */
-['Norm','Txt','Tbl','Ind','Dot'].forEach(k=>{const e=g('wtM'+k);if(e&&e.type==='checkbox')e.checked=true});
+/* mặc định tự bật (thêm: Lang, Emoji, Ref; Tone mặc định TẮT): chuẩn hóa định dạng (Norm) + sửa chữ (Txt) + bảng (Tbl) + thụt lề (Ind) + dấu chấm cuối đoạn (Dot) + dọn rác web (Clean) + ghép đoạn ngắt (Join) + ảnh (Img) */
+['Norm','Txt','Tbl','Ind','Dot','Clean','Join','Img'].forEach(k=>{const e=g('wtM'+k);if(e&&e.type==='checkbox')e.checked=true});
 wire(g('wtMerge'),g('wtMIn'),g('wtMPick'),g('wtMClear'),mq,rM,'wtMSt');
 const PDFNOTE='PDF dựng dạng ảnh (không chọn/sao chép được chữ), chỉ giữ chữ đậm/nghiêng/gạch chân, căn lề, cỡ chữ và bảng; không giữ ảnh chèn trong file.';
 async function pdfOf(docXml,st){return blocksToPdfBytes(docxToBlocks(docXml).blocks,(p,n)=>setSt(st,'Đang tạo PDF, trang '+p+'/'+n+'...'))}
