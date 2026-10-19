@@ -6,7 +6,7 @@
   var AB='https://abacus.jasoncameron.dev';                            /* dự phòng 1 */
   var NS='nguyentuan-pages-dev',KEYN='visits';
   var CA='https://api.counterapi.dev/v1/'+NS+'/'+KEYN;                 /* dự phòng 2 */
-  var SUB='Cảm ơn quý thầy cô đã ghé thăm · đếm ẩn danh';
+  var SUB='Cảm ơn quý thầy cô đã ghé thăm! <span class="cc-heart">❤️</span>';
   var SAY=['Meo~ 🐾','Cảm ơn thầy cô đã ghé thăm!','Meo meo! 💖','Chúc thầy cô một ngày vui!'];
   var still=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
 
@@ -32,6 +32,8 @@
 '@keyframes ccBlink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}\n'+
 '@keyframes ccBob{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}\n'+
 '@keyframes ccHop{0%{transform:translateY(0)}35%{transform:translateY(-14px)}70%{transform:translateY(0)}85%{transform:translateY(-4px)}100%{transform:translateY(0)}}\n'+
+'.cc-heart{display:inline-block;animation:ccHeart 1s ease-in-out infinite}\n'+
+'@keyframes ccHeart{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.8)}}\n'+
 '@keyframes ccIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}\n'+
 '@media (max-width:480px){.cc-d{min-width:26px;font-size:24px;padding:5px 3px}.cc-board{padding:16px 16px 9px}.cc-cat{width:100px}}\n'+
 'html.tod-nofx .cc .tail,html.tod-nofx .cc .eye,html.tod-nofx .cc .head{animation:none}\n'+
@@ -62,7 +64,7 @@
   function save(n){try{localStorage.setItem(LK,JSON.stringify({n:n,t:Date.now()}));}catch(e){}}
   var root,tiles=[],loadId=0,failed=false,sayT=0,shown=null;
   function $(s){return root.querySelector(s);}
-  function sub(t){var e=$('.cc-sub');if(e)e.textContent=t;}
+  function sub(t){var e=$('.cc-sub');if(e){if(t===SUB)e.innerHTML=t;else e.textContent=t;}}
   function build(len,ch){
     var row=$('.cc-digits');row.innerHTML='';tiles=[];
     for(var i=0;i<len;i++){var s=document.createElement('span');s.className='cc-d';s.textContent=ch;row.appendChild(s);tiles.push(s);}

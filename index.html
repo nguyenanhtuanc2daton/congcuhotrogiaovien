@@ -685,6 +685,75 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
      Đổi SITE bên dưới nếu bạn đổi tên tài khoản GoatCounter. Cần bật trong GoatCounter:
      Settings → "Allow adding visitor counts on your website". Nếu dịch vụ lỗi/bị chặn, bộ đếm tự ẩn, trang vẫn chạy bình thường. -->
 <script data-goatcounter="https://nguyentuan.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<style id="desk-fit">
+/* Màn máy tính: khung nội dung rộng gần hết màn, bớt thừa hai bên. Cỡ chữ do script "desk-fit" phóng to theo độ rộng màn. */
+@media (min-width:1100px){
+  html body{padding-left:clamp(10px,1.2vw,28px);padding-right:clamp(10px,1.2vw,28px)}
+  html .app{max-width:1640px}
+  html #gkBar{max-width:1640px}
+}
+
+@media (min-width:1100px){
+  html body{min-height:calc(100vh / var(--z,1))}
+  html .wwrap{width:min(100%,460px,calc(78vh / var(--z,1)))!important}
+  html .tx-face{width:min(100%,520px,calc(78vh / var(--z,1)))!important}
+  html #gcv{height:min(calc(62vh / var(--z,1)),560px)!important}
+  html #t9 .doc-frame{height:calc(68vh / var(--z,1))}
+  html #frCv{min-height:min(calc(58vh / var(--z,1)),520px)!important}
+}
+#dfBox{position:fixed;right:14px;bottom:64px;z-index:9998;display:none;align-items:center;gap:2px;padding:3px;border-radius:99px;background:rgba(20,26,46,.82);border:1px solid rgba(255,255,255,.22);box-shadow:0 4px 14px -4px rgba(0,0,0,.5);opacity:.75;transition:opacity .15s}
+#dfBox:hover{opacity:1}
+#dfBox button{min-width:0;width:30px;height:30px;padding:0;border-radius:50%;font:700 14px 'Segoe UI',Arial,sans-serif;line-height:1;background:transparent;color:#fff;box-shadow:none}
+#dfBox button:hover{background:rgba(255,255,255,.18)}
+#dfBox #dfV{width:auto;min-width:46px;padding:0 6px;border-radius:99px;font-size:12px;font-weight:600}
+@media print{#dfBox{display:none!important}}
+</style>
+<script id="desk-fit-js">
+/* Tự phóng to giao diện theo độ rộng màn hình (máy tính, màn lớn, tivi); điện thoại / máy tính bảng giữ nguyên.
+   Có nút A− / A+ ở góc phải dưới để chỉnh tay; bấm vào số % để quay về tự động. Giá trị chỉnh tay được nhớ trên máy. */
+(function(){
+  var KEY='cd_zoom_adj', de=document.documentElement, adj=1, raf=0;
+  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=.6&&s<=1.8)adj=s;}catch(e){}
+  function base(){
+    var w=window.innerWidth||de.clientWidth;
+    if(w<1100)return 1;                       /* điện thoại, máy tính bảng */
+    var h=window.innerHeight||de.clientHeight, z=Math.max(1.05,w/1440);   /* 1366px→1.05 · 1536px≈1.07 · 1920px≈1.33 · 2560px≈1.78 */
+    return Math.min(3,z,Math.max(1.05,h/620));  /* màn rộng nhưng thấp: không phóng quá để khỏi mất chiều cao */
+  }
+  function isFull(){
+    return !!(document.fullscreenElement||document.webkitFullscreenElement||document.querySelector('.kc-stage.on.fs,.tx-fs,.tx-clock:fullscreen'));
+  }
+  function apply(){
+    raf=0;
+    var z=isFull()?1:base()*adj;               /* toàn màn hình: bỏ phóng to để khỏi tràn */
+    z=Math.round(z*100)/100;
+    de.style.zoom=String(z);de.style.setProperty('--z',z);
+    var v=document.getElementById('dfV'); if(v)v.textContent=Math.round(adj*100)+'%';
+    var b=document.getElementById('dfBox'); if(b)b.style.display=(window.innerWidth>=1100&&!isFull())?'flex':'none';
+  }
+  function later(){if(!raf)raf=requestAnimationFrame(apply);}
+  function set(a){adj=Math.min(1.8,Math.max(.6,Math.round(a*100)/100));try{localStorage.setItem(KEY,adj);}catch(e){}later();}
+  function build(){
+    if(document.getElementById('dfBox'))return;
+    var d=document.createElement('div');d.id='dfBox';d.setAttribute('role','group');d.setAttribute('aria-label','Cỡ giao diện');
+    d.innerHTML='<button type="button" id="dfM" title="Thu nhỏ giao diện" aria-label="Thu nhỏ">A−</button><button type="button" id="dfV" title="Bấm để quay về cỡ tự động">100%</button><button type="button" id="dfP" title="Phóng to giao diện" aria-label="Phóng to">A+</button>';
+    document.body.appendChild(d);
+    document.getElementById('dfM').onclick=function(){set(adj-.1);};
+    document.getElementById('dfP').onclick=function(){set(adj+.1);};
+    document.getElementById('dfV').onclick=function(){set(1);};
+    apply();
+  }
+  apply();
+  window.addEventListener('resize',later);
+  document.addEventListener('fullscreenchange',later);
+  document.addEventListener('webkitfullscreenchange',later);
+  if(window.MutationObserver){
+    var start=function(){new MutationObserver(later).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class']});};
+    if(document.body)start();else document.addEventListener('DOMContentLoaded',start);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
+})();
+</script>
 </head>
 <body>
 <div class="curtain-wrap" aria-hidden="true">
