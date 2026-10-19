@@ -600,8 +600,15 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
   /* ----- lời chào + ngày giờ ----- */
   function two(n){return n<10?'0'+n:''+n;}
   function lunarTxt(d){try{var l=window.AmLich.solar2lunar(d.getDate(),d.getMonth()+1,d.getFullYear());return 'Âm lịch '+l.d+'/'+l.m+(l.leap?' nhuận':'');}catch(e){return '';}}
-  function stamp(){var d=new Date(),al=lunarTxt(d);return DAYS[d.getDay()]+', '+two(d.getDate())+'/'+two(d.getMonth()+1)+'/'+d.getFullYear()+(al?' · '+al:'')+' · '+two(d.getHours())+':'+two(d.getMinutes());}
-  function clock(){var e=gEl&&gEl.querySelector('.g-time');if(e)e.textContent=stamp();}
+  function stamp(){var d=new Date(),al=lunarTxt(d);return DAYS[d.getDay()]+', '+two(d.getDate())+'/'+two(d.getMonth()+1)+'/'+d.getFullYear()+(al?' · '+al:'')+' · Thời gian '+two(d.getHours())+':'+two(d.getMinutes());}
+  function fitTime(){var e=gEl&&gEl.querySelector('.g-time');if(!e)return;
+    e.style.fontSize='';e.style.whiteSpace='';
+    var fs=parseFloat(getComputedStyle(e).fontSize)||12.5;
+    while(e.scrollWidth>e.clientWidth+1&&fs>9.5){fs-=.5;e.style.fontSize=fs+'px';}   /* thu chữ cho vừa MỘT hàng */
+    if(e.scrollWidth>e.clientWidth+1)e.style.whiteSpace='normal';                      /* khung quá hẹp: cho xuống dòng thay vì tràn */
+  }
+  var fitT=0;window.addEventListener('resize',function(){clearTimeout(fitT);fitT=setTimeout(fitTime,120);});
+  function clock(){var e=gEl&&gEl.querySelector('.g-time');if(e){e.textContent=stamp();fitTime();}}
   function greet(){
     if(!gEl)return;
     var t=pick(G[cur]);
