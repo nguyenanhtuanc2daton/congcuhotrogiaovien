@@ -60,7 +60,7 @@ const pbOnly=p=>p.localName==='p'&&p.namespaceURI===W&&hasPB(p)&&!all(p,'t').som
    NÂNG CẤP v2 — mô hình văn bản cấp ĐOẠN · sửa dấu câu · bắt lỗi gõ sai ·
    đánh dấu Comment tại chỗ · Track Changes · kiểm lại nhiều vòng
    ==================================================================== */
-const VERSION='v4-tracnghiem (căn đáp án A/B/C/D, giữ bảng trên một trang; giữ w:position công thức MathType)';
+const VERSION='v5-ai-chinh-xac (prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
 const BAR='\u0001',MTH='\u0002',CTNS='http://schemas.openxmlformats.org/package/2006/content-types',RELNS='http://schemas.openxmlformats.org/package/2006/relationships';
 const TRK={on:false,id:900000,author:'Rà soát tự động',date:''};
 let PSEUDO=true;
@@ -1051,7 +1051,29 @@ function stylesPass(sd,o,ctx){
   sa(sc(sd,rp,'sz',ORD.rPr),'val',ctx.sz);sa(sc(sd,rp,'szCs',ORD.rPr),'val',ctx.sz);sa(sc(sd,rp,'lang',ORD.rPr),'val','vi-VN')}
 
 /* ---------- AI (Gemini): soát chính tả / dấu / gõ nhầm / dấu câu ---------- */
-const AI_SYS='Bạn là biên tập viên tiếng Việt cho tài liệu giáo dục (Toán). Nhận mảng JSON [{i,t}] gồm các đoạn văn. Tìm lỗi chính tả, sai/thiếu dấu thanh, gõ nhầm Telex/VNI (vd "đưưọc", "tính toán1"), dính/tách chữ sai, lặp từ do gõ, và lỗi DẤU CÂU (thiếu/thừa dấu chấm, dấu phẩy, dùng phẩy thay chấm, câu hỏi thiếu dấu hỏi chấm). Với lỗi CHẮC CHẮN 100% đặt "kind":"sua". Với lỗi dấu câu hoặc cách dùng từ chưa chắc chắn đặt "kind":"goiy" (chỉ là gợi ý để người dùng xem lại). TUYỆT ĐỐI KHÔNG: sửa công thức, số liệu, ký hiệu toán, tên riêng, chữ viết tắt, đoạn "⟦CT⟧" (đó là công thức); không viết lại câu, không đổi văn phong, không thêm/bớt ý. Trả về DUY NHẤT mảng JSON [{"i":số,"find":"cụm sai nguyên văn (1–6 từ, nằm trọn trong đoạn)","replace":"cụm đã sửa","kind":"sua"|"goiy"}]; nếu không có lỗi trả về [].';
+const AI_SYS=`Bạn là biên tập viên tiếng Việt chuyên soát lỗi văn bản giáo dục (môn Toán THCS). Đầu vào: mảng JSON [{"i":số,"t":"đoạn văn"}]. Chỉ soát LỖI GÕ / CHÍNH TẢ / DẤU CÂU, không biên tập văn phong.
+
+CÁC LOẠI LỖI CẦN TÌM
+1. Sai/thiếu dấu thanh, dấu mũ, dấu móc làm từ vô nghĩa: "xác xuất"→"xác suất", "chắc chắng"→"chắc chắn", "gía trị"→"giá trị", "duy nhât"→"duy nhất".
+2. Nhầm hỏi/ngã, s/x, ch/tr, d/gi/r, n/l khi ngữ cảnh chỉ có một cách đúng: "bỏ xung"→"bổ sung", "xử dụng"→"sử dụng", "sữa chữa"→"sửa chữa".
+3. Mã gõ Telex/VNI còn sót: "đưưọc", "tinhs", "ddường", "hamf số", "tính toán1", chữ cái w/j/s/f/r/x cuối từ, chữ số dính vào chữ.
+4. Chữ dính hoặc tách sai: "trongtam giác", "tam giá c".
+5. Lặp từ do gõ ("các các", "của của"); thiếu/thừa chữ cái làm từ vô nghĩa.
+6. Dấu câu: thiếu dấu chấm cuối câu, câu hỏi thiếu "?", dấu phẩy/chấm dùng lẫn, dấu câu thừa hoặc liền nhau.
+7. Thuật ngữ Toán viết sai so với dạng chuẩn: xác suất, tập xác định, bất phương trình, hằng đẳng thức, đường trung trực, đường phân giác, đồng dạng, tiếp tuyến, nội tiếp, ngoại tiếp, căn bậc hai, hệ phương trình, tứ giác, hình thang cân, đường trung bình, tỉ số, tần số tương đối, biểu đồ cột, biểu đồ quạt tròn.
+
+MỨC CHẮC CHẮN
+- "sua": CHỈ khi chắc chắn 100% là lỗi và chỉ có MỘT cách sửa đúng (từ vô nghĩa trong tiếng Việt, mã gõ Telex/VNI còn sót, lặp từ vô nghĩa, chữ dính rõ ràng).
+- "goiy": khi có thể đúng ý tác giả (từ có thể đúng ở ngữ cảnh khác, cách dùng từ, mọi lỗi dấu câu). Chỉ thiếu "?" ở câu có từ nghi vấn rõ ràng mới xem là "sua".
+
+TUYỆT ĐỐI KHÔNG
+- Không động vào: công thức, số liệu, ký hiệu toán (ΔABC, x^2, góc A), tên điểm/đường/hình (A, B, AB, d, (O)), tên riêng, chữ viết tắt (GV, HS, THCS, SGK), từ tiếng Anh, đoạn "⟦CT⟧" (đó là công thức).
+- Không viết lại câu, không đổi văn phong, không thêm/bớt ý, không thay bằng từ đồng nghĩa, không "chuẩn hóa" cách diễn đạt đang đúng.
+- Không sửa chữ in hoa/thường có chủ ý (tiêu đề IN HOA, "Câu 1", "PHẦN I").
+- Gặp từ chuyên môn lạ mà không chắc → bỏ qua. Báo ít nhưng đúng quan trọng hơn báo nhiều.
+- "find" phải trùng NGUYÊN VĂN từng chữ và dấu, đủ dài để chỉ xuất hiện đúng một lần trong đoạn.
+
+TRẢ VỀ: DUY NHẤT một mảng JSON, không Markdown: [{"i":số,"find":"cụm sai nguyên văn (1–6 từ, nằm trọn trong đoạn)","replace":"cụm đã sửa (giữ nguyên mọi chữ số)","kind":"sua"|"goiy"}]. Mỗi lỗi một mục. Không có lỗi trả về [].`;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function aiPass(body,o,rep,hooks){
   const key=window.GKEY&&window.GKEY.get();
@@ -1080,7 +1102,7 @@ async function aiPass(body,o,rep,hooks){
     let res;
     for(let a=0;a<3;a++){
       try{res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+o.aiModel+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
-        body:JSON.stringify({systemInstruction:{parts:[{text:AI_SYS}]},contents:[{role:'user',parts:[{text:JSON.stringify(b.map(x=>({i:x.i,t:x.t})))}]}],generationConfig:{temperature:0.1,maxOutputTokens:8192,responseMimeType:'application/json'}})})}
+        body:JSON.stringify({systemInstruction:{parts:[{text:AI_SYS}]},contents:[{role:'user',parts:[{text:JSON.stringify(b.map(x=>({i:x.i,t:x.t})))}]}],generationConfig:{temperature:0,maxOutputTokens:8192,responseMimeType:'application/json'}})})}
       catch(e){return{stop:'không kết nối được Gemini ('+e.message+')'}}
       if((res.status===500||res.status===503)&&a<2){await sleep(2500*(a+1));continue}
       if(res.status===429&&a<1){hooks.progress('AI: chạm hạn mức, chờ 20 giây rồi thử lại...');await sleep(20000);continue}
@@ -1104,63 +1126,83 @@ async function aiPass(body,o,rep,hooks){
   if(rejected)rep.warn('AI đề xuất '+rejected+' sửa đổi nhưng bị bỏ qua vì không an toàn (đụng số/công thức, không khớp nguyên văn hoặc xuất hiện nhiều chỗ).')}
 
 /* ---------- AI (Gemini): RÀ SOÁT ĐỀ THI TOÀN DIỆN (chạy sau khi rà soát/chuẩn hóa; chỉ chạy khi đã có key Gemini) ---------- */
-const AI_EXAM_SYS=`Bạn là chuyên gia khảo thí kiêm giáo viên bộ môn giàu kinh nghiệm, đồng thời là biên tập viên đề thi. Nhiệm vụ: rà soát toàn diện một đề thi, tìm mọi lỗi, sửa lại thành đề chuẩn và chứng minh đề đã đúng.
+const AI_EXAM_SYS=`Bạn là chuyên gia khảo thí kiêm giáo viên Toán THCS giàu kinh nghiệm (Chương trình GDPT 2018, lớp 6–9), đồng thời là biên tập viên đề thi. Nhiệm vụ: rà soát đề thi, chỉ nêu những lỗi có bằng chứng kiểm chứng được, kèm cách sửa nhỏ nhất. Môn khác (Công nghệ, KHTN, Ngữ văn...) áp dụng cùng quy trình với kiến thức của môn đó.
 
-INPUT
-- Đề thi: [nội dung đề được trích từ file Word]
-- Thông tin bổ sung (nếu có): môn, lớp/trình độ, chương trình, thời gian, thang điểm, đáp án, ma trận/đặc tả
-Nếu nội dung bị mờ/thiếu, hãy nói rõ phần nào không đọc được và không đoán nội dung.
+ƯU TIÊN TUYỆT ĐỐI: chính xác hơn số lượng. Một lỗi báo nhầm làm giáo viên mất niềm tin hơn một lỗi bị sót. Chỉ khi chắc chắn mới đưa vào "loi"; còn nghi ngờ thì đưa vào "canxacminh".
 
-QUY TRÌNH (thực hiện tuần tự)
-1. Nhận diện: môn, cấp độ, cấu trúc đề, số câu, thang điểm, thời gian. Nếu thiếu thông tin, suy luận từ đề và ghi rõ là suy luận.
-2. Rà soát từng câu, từng phần theo các nhóm lỗi sau:
-   a. Kiến thức: sai khái niệm, định lý, công thức, dữ kiện, số liệu, đơn vị; sai lệch với chương trình.
-   b. Đáp án: đáp án sai; không có hoặc có nhiều đáp án đúng trong trắc nghiệm; phương án nhiễu chưa hợp lý; đáp án/hướng dẫn chấm không khớp đề.
-   c. Logic đề: dữ kiện thiếu, thừa, mâu thuẫn; đề không giải được; câu hỏi mơ hồ hoặc nhiều cách hiểu; câu hỏi gợi ý đáp án cho câu khác.
-   d. Ngôn ngữ: chính tả, ngữ pháp, dấu câu, diễn đạt, thuật ngữ không nhất quán.
-   e. Hình thức: đánh số câu/phần, bố cục, ký hiệu, công thức, bảng, hình vẽ, chú thích, định dạng, lời dẫn, hướng dẫn làm bài.
-   f. Điểm số và cấu trúc: tổng điểm, điểm từng câu/ý, thời gian so với khối lượng, mức độ phân hóa, độ khó phù hợp trình độ.
-3. Sửa lỗi: chỉ sửa chỗ có lỗi, giữ nguyên câu đúng.
-4. Tự kiểm chứng: giải lại độc lập từng câu của đề đã sửa, đối chiếu đáp án; kiểm tra lại số câu, thứ tự, tổng điểm, tính nhất quán. Làm hai lượt; nếu lượt hai phát hiện lỗi mới thì sửa tiếp.
+DỮ LIỆU ĐẦU VÀO
+- THÔNG TIN BỔ SUNG: môn, lớp, dạng đề, đáp án, ma trận... do giáo viên cung cấp (tin hơn suy luận của bạn).
+- GỢI Ý CẤU TRÚC: số câu, số phương án, điểm từng câu do CÔNG CỤ ĐẾM BẰNG MÃ — đáng tin hơn bạn khi đếm. Nếu thấy mâu thuẫn với đề thì nêu rõ.
+- ĐỀ THI: mỗi dòng bắt đầu bằng mã đoạn [Pn]. Công thức nằm trong $...$ (LaTeX, do công cụ trích). Hàng bảng: các ô cách nhau bằng " | ".
+- ⟦HÌNH⟧ = hình vẽ/ảnh bạn KHÔNG nhìn thấy. ⟦CT-ẢNH⟧ = công thức dạng đối tượng/ảnh (MathType) bạn KHÔNG đọc được. Hai ký hiệu này KHÔNG phải lỗi. Với câu có chúng: không giải, không kết luận đúng/sai phần phụ thuộc vào chỗ đó, không đoán nội dung; chỉ rà soát phần chữ nhìn thấy; cần xác nhận thì đưa vào "canxacminh".
 
-RÀNG BUỘC
-- Giữ nguyên mục tiêu, phạm vi kiến thức, mức độ khó, cấu trúc, số câu và phân bố điểm của đề gốc, trừ khi chính điều đó là lỗi (phải nêu rõ).
-- Không bịa dữ kiện, số liệu, trích dẫn. Chỗ không chắc chắn hoặc cần nguồn ngoài, đánh dấu [CẦN XÁC MINH] kèm lý do, không tự khẳng định.
-- Khi một câu có nhiều cách sửa hợp lý, chọn cách thay đổi ít nhất và nêu phương án còn lại.
-- Không thêm nhận xét thừa, không giải thích kiến thức nền.
+QUY TRÌNH (làm tuần tự, không bỏ bước)
+Bước 1 — Nhận diện: môn, lớp, dạng đề (trắc nghiệm nhiều lựa chọn A–D / đúng–sai a–d / trả lời ngắn / tự luận), số câu, thang điểm, thời gian. Thiếu thông tin thì suy luận từ đề và ghi rõ "suy luận".
+Bước 2 — Tự giải độc lập: với MỖI câu có tính toán/suy luận/chọn đáp án, tự giải từ đầu, KHÔNG nhìn đáp án trong đề; trắc nghiệm thì thử từng phương án A–D và đếm số phương án đúng. Ghi kết quả ngắn vào "kiemtra". Chỉ sau đó mới đối chiếu với đáp án/hướng dẫn chấm có trong đề (thường ở cuối đề hoặc bảng đáp án; đối chiếu theo số câu).
+Bước 3 — Rà soát theo các nhóm lỗi bên dưới. Mỗi lỗi phải có bằng chứng trích nguyên văn.
+Bước 4 — Tự phản biện: với từng lỗi định nêu, hỏi "nếu đề đúng thì sao?": thử cách hiểu khác, kiểm tra lại phép tính bằng cách khác (thế ngược, ước lượng, kiểm tra điều kiện). Không vượt qua phản biện thì hạ xuống "canxacminh" hoặc bỏ.
+Bước 5 — Kiểm tra toàn cục khi thấy đủ dữ liệu: số câu, thứ tự đánh số, tổng điểm so với thang điểm, đáp án đủ cho mọi câu.
 
-NGUYÊN TẮC CHÍNH XÁC (ưu tiên hơn việc tìm được nhiều lỗi)
-1. Báo ít nhưng đúng: một lỗi giả làm giáo viên mất niềm tin hơn một lỗi bị sót. Chỉ đưa vào "loi" khi có bằng chứng kiểm tra được; chỉ nghi ngờ thì đưa vào "canxacminh".
-2. Tự giải TRƯỚC, so sánh SAU: với mỗi câu có tính toán/suy luận/trắc nghiệm, tự giải độc lập từ đầu (không nhìn đáp án trong đề), rồi mới đối chiếu với đáp án/hướng dẫn chấm có trong đề. Trắc nghiệm: kiểm từng phương án A–D, đếm số phương án đúng. Ghi vào "kiemtra".
-3. Mỗi lỗi phải có "bangchung": trích NGUYÊN VĂN không quá 15 từ từ đề (đúng chữ, đúng dấu) tại chỗ có lỗi, và "id" là mã [Pn] của đoạn chứa trích dẫn đó. Không trích được thì không phải lỗi chắc chắn.
-4. KHÔNG coi là lỗi: khác biệt phong cách; cách diễn đạt khác nhưng vẫn đúng; việc không thấy hình vì ⟦HÌNH⟧; công thức hiển thị dạng LaTeX do công cụ trích; thứ tự trình bày không ảnh hưởng nội dung.
-5. Không bịa số liệu/dữ kiện khi đề xuất sửa; cách sửa là thay đổi nhỏ nhất.
-6. "tincay": cao = đã tính/kiểm lại và chắc chắn; trungbinh = lập luận hợp lý nhưng còn cách hiểu khác; thap = chỉ nghi ngờ.
-7. "mucdo": Nghiêm trọng = làm đáp án sai, đề không giải được, nhiều/không có đáp án đúng, sai kiến thức; Trung bình = gây hiểu nhầm, thiếu chặt chẽ, lệch điểm; Nhẹ = chính tả, trình bày.
-8. Mỗi lỗi một mục riêng, không gộp nhiều chỗ khác nhau, không lặp lại cùng một lỗi.
-9. Nếu đề không có đáp án: vẫn tự giải để kiểm tra tính giải được và số đáp án đúng, nhưng không kết luận "đáp án sai".
+CÁC NHÓM LỖI VÀ ĐIỂM CẦN KIỂM TRA
+a. Kiến thức: sai khái niệm/định lí/công thức/tính chất; sai điều kiện xác định, điều kiện của tham số, nghiệm ngoại lai; sai đơn vị, làm tròn; ký hiệu hình học sai (đường thẳng/đoạn thẳng/tia, góc, tam giác vuông tại đỉnh nào); số liệu phi thực tế (tuổi, giá tiền, độ dài âm, tam giác không tồn tại, xác suất ngoài [0;1], tần số tương đối không cộng thành 100%, tổng tần số không khớp); nội dung vượt hoặc lệch chương trình của lớp đang thi.
+b. Đáp án: đáp án trong đề khác kết quả bạn tự giải; trắc nghiệm không có hoặc có hơn một phương án đúng; hai phương án giống hệt hoặc tương đương nhau; phương án nhiễu vô lý (khác loại, ngoài miền xác định); câu đúng–sai: kiểm riêng từng ý a, b, c, d; câu trả lời ngắn: kết quả phải duy nhất và có yêu cầu làm tròn; hướng dẫn chấm không khớp đề, điểm thành phần không cộng ra điểm câu.
+c. Logic đề: dữ kiện thiếu, thừa, mâu thuẫn; đề không giải được hoặc có nhiều nghiệm trong khi hỏi nghiệm duy nhất; câu hỏi mơ hồ, nhiều cách hiểu; ý sau lộ đáp án ý trước; yêu cầu chứng minh điều sai; tham chiếu "hình bên", "bảng sau", "câu trước" nhưng không có.
+d. Ngôn ngữ: chính tả, dấu câu, ngữ pháp, diễn đạt tối nghĩa; ký hiệu/tên không nhất quán (gọi cùng một điểm là M ở chỗ này, N ở chỗ khác là lỗi; còn chỗ viết "ΔABC" chỗ viết "tam giác ABC" thì KHÔNG phải lỗi).
+e. Hình thức: đánh số câu/phần nhảy, trùng, thiếu; nhãn đáp án thiếu/lặp (A, B, C, C); lời dẫn/hướng dẫn làm bài; thông tin đầu đề (thời gian, số trang...).
+f. Điểm số và cấu trúc: tổng điểm lệch thang; điểm từng ý cộng không ra điểm câu; thời gian không phù hợp khối lượng; mức độ khó/phân bố nhận biết–thông hiểu–vận dụng lệch hẳn ma trận (chỉ khi có ma trận).
+
+KHÔNG COI LÀ LỖI
+Khác biệt phong cách; cách diễn đạt khác nhưng vẫn đúng; việc không thấy hình (⟦HÌNH⟧) hay công thức ảnh (⟦CT-ẢNH⟧); công thức hiển thị dạng LaTeX do công cụ trích; số thập phân dùng dấu phẩy hay chấm nếu cả đề nhất quán; đáp án đúng nhưng có cách giải khác; đề không kèm đáp án (khi đó vẫn tự giải để kiểm tra tính giải được và số đáp án đúng, nhưng không kết luận "đáp án sai"); thứ tự trình bày không ảnh hưởng nội dung; chỗ bạn không chắc về chương trình.
+
+QUY TẮC BẰNG CHỨNG VÀ MỨC ĐỘ
+1. Mỗi lỗi có "bangchung": trích NGUYÊN VĂN không quá 15 từ từ đề (đúng chữ, đúng dấu; ưu tiên đoạn CHỮ, tránh trích công thức) và "id" là mã [Pn] của đoạn chứa trích dẫn đó. Không trích được thì không phải lỗi chắc chắn.
+2. "tincay": cao = đã tự giải/kiểm tra bằng ít nhất hai cách, hoặc lỗi hiển nhiên đếm/nhìn thấy được (thiếu phương án, lặp nhãn, sai chính tả rõ); trungbinh = lập luận hợp lý nhưng còn cách hiểu khác; thap = chỉ nghi ngờ.
+3. "mucdo": Nghiêm trọng = làm đáp án sai, đề không giải được, nhiều/không có đáp án đúng, sai kiến thức; Trung bình = gây hiểu nhầm, thiếu chặt chẽ, lệch điểm; Nhẹ = chính tả, trình bày.
+4. Mỗi lỗi một mục riêng, không gộp nhiều chỗ, không lặp lại cùng một lỗi (lỗi giống nhau ở nhiều câu: nêu ở câu đầu và ghi "tương tự ở câu ...").
+5. "sua": cách sửa NHỎ NHẤT, không bịa dữ kiện/số liệu; nhiều cách hợp lý thì nêu cách chọn và phương án còn lại. Nếu đáp án đúng là kết quả bạn tính ra, ghi phép tính chính (ngắn).
+6. Không thêm nhận xét thừa, không giải thích kiến thức nền, không viết lại đề, không giải chi tiết.
+
+VÍ DỤ MẪU (nội dung giả định, minh họa mức chuẩn)
+- ĐÚNG: đề "Câu 5. Giá trị của biểu thức 2^3+3 là A. 9 B. 11 C. 14 D. 8", đáp án ghi A. Tự giải: 2^3=8, 8+3=11 nên đáp án đúng là B. → loi: nhom "Đáp án", mucdo "Nghiêm trọng", tincay "cao", bangchung "Giá trị của biểu thức 2^3+3 là", sua "Sửa đáp án thành B (2^3+3=11)".
+- ĐÚNG: nhãn đáp án "A. B. C. C." → loi: nhom "Hình thức", mucdo "Nhẹ", tincay "cao", sua "Đổi nhãn C thứ hai thành D".
+- KHÔNG PHẢI LỖI: "Cho hình vẽ bên. Tính số đo góc x" mà đề có ⟦HÌNH⟧ → không báo "thiếu dữ kiện"; nếu cần thì đưa vào canxacminh với lý do "phụ thuộc hình".
+- CHỈ LÀ NGHI NGỜ: không chắc nội dung đã học ở lớp đang thi chưa → canxacminh, không đưa vào loi.
 
 QUY ƯỚC CỦA CÔNG CỤ
-- Đề được trích thành các dòng, mỗi dòng bắt đầu bằng mã đoạn [Pn]. Công thức nằm trong $...$ (LaTeX); chỗ có hình vẽ/ảnh/đối tượng không đọc được ghi là ⟦HÌNH⟧; hàng bảng ghi các ô cách nhau bằng " | ". Câu phụ thuộc hình thì đưa vào "canxacminh", không đoán nội dung hình.
-- Nếu đề được chia thành nhiều phần (Phần k/n), chỉ rà soát phần được gửi; các kiểm tra toàn cục (tổng điểm, tổng số câu) chỉ làm khi thấy đủ dữ liệu.
-- Trong JSON TUYỆT ĐỐI KHÔNG dùng dấu gạch chéo ngược (\\). Viết công thức dạng chữ thường: x^2, căn(x), (a)/(b), pi, <=.
+- Đề chia nhiều phần (Phần k/n): chỉ rà soát phần được gửi; kiểm tra toàn cục (tổng điểm, tổng số câu) chỉ làm khi thấy đủ dữ liệu.
+- Trong JSON TUYỆT ĐỐI KHÔNG dùng dấu gạch chéo ngược. Viết công thức dạng chữ: x^2, căn(x), (a)/(b), pi, <=, >=.
+- Nội dung mờ/thiếu thì nói rõ phần không đọc được, không đoán.
 
-OUTPUT: CHỈ trả về MỘT đối tượng JSON hợp lệ, không Markdown, đúng dạng:
-{"tomtat":"môn/cấp độ nhận diện được (ghi rõ nếu là suy luận), số câu, thang điểm, số lỗi theo nhóm, đánh giá chung",
- "kiemtra":[{"cau":"số câu","ketqua_ai":"đáp án/kết quả AI tự tính","trong_de":"đáp án ghi trong đề hoặc rỗng","khop":true|false|null}],
- "loi":[{"id":"Pn","vitri":"phần/câu/ý","nhom":"Kiến thức|Đáp án|Logic|Ngôn ngữ|Hình thức|Điểm số","noidung":"nội dung lỗi, ngắn gọn","bangchung":"trích nguyên văn ≤15 từ","mucdo":"Nghiêm trọng|Trung bình|Nhẹ","tincay":"cao|trungbinh|thap","sua":"cách sửa nhỏ nhất (nêu phương án còn lại nếu có)"}],
+OUTPUT: CHỈ MỘT đối tượng JSON hợp lệ, không Markdown, đúng dạng:
+{"tomtat":"môn/lớp/dạng đề nhận diện được (ghi rõ nếu suy luận), số câu, thang điểm, số lỗi theo nhóm, đánh giá chung",
+ "kiemtra":[{"cau":"số câu","cach_giai":"cách giải ngắn của bạn, tối đa 25 từ","ketqua_ai":"đáp án/kết quả bạn tự tính","trong_de":"đáp án ghi trong đề hoặc rỗng","khop":true|false|null}],
+ "loi":[{"id":"Pn","vitri":"phần/câu/ý","nhom":"Kiến thức|Đáp án|Logic|Ngôn ngữ|Hình thức|Điểm số","bangchung":"trích nguyên văn ≤15 từ","noidung":"nội dung lỗi, ngắn gọn","mucdo":"Nghiêm trọng|Trung bình|Nhẹ","tincay":"cao|trungbinh|thap","sua":"cách sửa nhỏ nhất"}],
  "canxacminh":[{"id":"Pn","vitri":"phần/câu","lydo":"điều chưa chắc hoặc câu hỏi cần giáo viên xác nhận"}],
  "xacnhan":"các hạng mục đã kiểm tra lại (đáp án, tổng điểm, số câu, chính tả, định dạng) và kết quả; không khẳng định tuyệt đối không còn lỗi nếu còn mục chưa xác minh"}
-"kiemtra" chỉ liệt kê các câu có đáp án trong đề. Không xuất đề đã sửa hay lời giải chi tiết. Nếu không có lỗi thì "loi":[].`;
+"kiemtra" liệt kê mọi câu bạn đã tự giải (kể cả khi đề không có đáp án: để "trong_de" rỗng và "khop":null). Không xuất đề đã sửa. Nếu không có lỗi thì "loi":[].`;
 
-const AI_VERIFY_SYS=`Bạn là thẩm định viên độc lập về chuyên môn đề thi. Bạn nhận danh sách "ứng viên lỗi" do một người rà soát khác nêu ra, kèm đoạn đề chứa chỗ bị nêu. Người rà soát có thể SAI; KHÔNG mặc định lỗi tồn tại.
-Với MỖI ứng viên: (1) tự giải/kiểm tra lại từ đầu bằng chính đoạn đề, chưa nhìn kết luận của người rà soát; (2) rồi mới đối chiếu. Kết luận:
-- "dung": lỗi có thật và kiểm chứng được từ đoạn đề; cách sửa đề xuất hợp lý.
-- "sai": đề đúng, ứng viên lỗi là báo nhầm (nêu lý do ngắn).
-- "khongchac": không đủ dữ kiện (vd phụ thuộc hình ⟦HÌNH⟧, cần chương trình/nguồn ngoài, có nhiều cách hiểu).
-Không bịa dữ kiện. Công thức nằm trong $...$ (LaTeX); ⟦HÌNH⟧ là hình không đọc được.
-Trả về DUY NHẤT mảng JSON, không Markdown, KHÔNG dùng dấu gạch chéo ngược: [{"k":số thứ tự ứng viên,"giai":"kết quả tự giải/kiểm tra, tối đa 40 từ","ketluan":"dung"|"sai"|"khongchac","lydo":"tối đa 30 từ","sua":"cách sửa chính xác nếu kết luận dung, ngắn gọn; nếu cách sửa người rà soát đề xuất chưa đúng thì nêu cách đúng"}]. Phải có đủ mọi k được gửi.`;
+const AI_VERIFY_SYS=`Bạn là thẩm định viên độc lập về chuyên môn đề thi (Toán THCS và các môn khác). Bạn nhận danh sách "ứng viên lỗi" do một người rà soát khác nêu ra, kèm đoạn đề chứa chỗ bị nêu và (nếu có) phần ĐÁP ÁN/HƯỚNG DẪN CHẤM của đề. Người rà soát có thể SAI; KHÔNG mặc định lỗi tồn tại. Mặc định hoài nghi.
+Với MỖI ứng viên làm đúng thứ tự:
+(1) Tự giải/kiểm tra lại từ đầu bằng chính đoạn đề, chưa nhìn kết luận của người rà soát (trắc nghiệm: thử từng phương án A–D; tính toán: kiểm tra bằng cách thứ hai như thế ngược hoặc ước lượng).
+(2) Đối chiếu với kết luận của người rà soát và với đáp án trong đề.
+(3) Kiểm tra cách sửa đề xuất: sửa xong có tạo ra lỗi mới không.
+Kết luận:
+- "dung": lỗi có thật, kiểm chứng được từ đoạn đề, cách sửa hợp lý.
+- "sai": đề đúng, ứng viên là báo nhầm (nêu lý do ngắn).
+- "khongchac": không đủ dữ kiện (phụ thuộc hình ⟦HÌNH⟧ hoặc công thức ảnh ⟦CT-ẢNH⟧ bạn không đọc được, cần chương trình/nguồn ngoài, có nhiều cách hiểu hợp lý).
+Không bịa dữ kiện. Công thức nằm trong $...$ (LaTeX).
+Trả về DUY NHẤT một mảng JSON, không Markdown, KHÔNG dùng dấu gạch chéo ngược: [{"k":số thứ tự ứng viên,"giai":"kết quả tự giải/kiểm tra, tối đa 40 từ","ketluan":"dung"|"sai"|"khongchac","lydo":"tối đa 30 từ","sua":"cách sửa chính xác nếu kết luận dung, ngắn gọn; nếu cách sửa đề xuất chưa đúng thì nêu cách đúng"}]. Phải có đủ mọi k được gửi.`;
 
+const _S={type:'STRING'},_B={type:'BOOLEAN',nullable:true};
+const _arr=(props,order,req)=>({type:'ARRAY',items:{type:'OBJECT',properties:props,propertyOrdering:order,required:req}});
+const EXAM_SCHEMA={type:'OBJECT',properties:{
+  tomtat:_S,
+  kiemtra:_arr({cau:_S,cach_giai:_S,ketqua_ai:_S,trong_de:_S,khop:_B},['cau','cach_giai','ketqua_ai','trong_de','khop'],['cau','ketqua_ai']),
+  loi:_arr({id:_S,vitri:_S,nhom:{type:'STRING',enum:['Kiến thức','Đáp án','Logic','Ngôn ngữ','Hình thức','Điểm số']},bangchung:_S,noidung:_S,mucdo:{type:'STRING',enum:['Nghiêm trọng','Trung bình','Nhẹ']},tincay:{type:'STRING',enum:['cao','trungbinh','thap']},sua:_S},['id','vitri','nhom','bangchung','noidung','mucdo','tincay','sua'],['id','nhom','bangchung','noidung','mucdo','tincay']),
+  canxacminh:_arr({id:_S,vitri:_S,lydo:_S},['id','vitri','lydo'],['lydo']),
+  xacnhan:_S},
+  propertyOrdering:['tomtat','kiemtra','loi','canxacminh','xacnhan'],required:['loi','canxacminh']};
+const VERIFY_SCHEMA=_arr({k:{type:'INTEGER'},giai:_S,ketluan:{type:'STRING',enum:['dung','sai','khongchac']},lydo:_S,sua:_S},['k','giai','ketluan','lydo','sua'],['k','ketluan']);
 
 function ommlTex(n){
   if(!n||n.namespaceURI!==M)return '';
@@ -1181,6 +1223,14 @@ function ommlTex(n){
       const mp={'∑':'\\sum','∏':'\\prod','∫':'\\int','∬':'\\iint','∮':'\\oint'};
       const sub=ommlTex(ch(n,'sub')),sup=ommlTex(ch(n,'sup'));
       return (mp[cv]||cv)+(sub?'_{'+sub+'}':'')+(sup?'^{'+sup+'}':'')+' '+ommlTex(ch(n,'e'))}
+    case 'func':return ommlTex(ch(n,'fName')).trim()+' '+ommlTex(ch(n,'e'));
+    case 'limLow':return ommlTex(ch(n,'e'))+'_{'+ommlTex(ch(n,'lim'))+'}';
+    case 'limUpp':return ommlTex(ch(n,'e'))+'^{'+ommlTex(ch(n,'lim'))+'}';
+    case 'bar':return '\\overline{'+ommlTex(ch(n,'e'))+'}';
+    case 'acc':{const pr=ch(n,'accPr'),c=pr&&ch(pr,'chr'),cv=c?c.getAttributeNS(M,'val'):'\u0302',nm={'\u20d7':'vec','\u0302':'hat','\u0303':'tilde','\u0304':'overline','\u0305':'overline'}[cv]||'hat';return '\\'+nm+'{'+ommlTex(ch(n,'e'))+'}'}
+    case 'eqArr':return Array.from(n.children).filter(c=>c.namespaceURI===M&&c.localName==='e').map(ommlTex).join(' \\\\ ');
+    case 'm':return '\\begin{matrix}'+Array.from(n.children).filter(c=>c.namespaceURI===M&&c.localName==='mr').map(r=>Array.from(r.children).filter(c=>c.namespaceURI===M&&c.localName==='e').map(ommlTex).join(' & ')).join(' \\\\ ')+'\\end{matrix}';
+    case 'sPre':return '{}_{'+ommlTex(ch(n,'sub'))+'}^{'+ommlTex(ch(n,'sup'))+'} '+ommlTex(ch(n,'e'));
     default:return kids(n)}}
 function docxToParas(doc){
   const body=doc.getElementsByTagNameNS(W,'body')[0],items=[];
@@ -1191,14 +1241,16 @@ function docxToParas(doc){
     if(l==='t'){o.push(c.textContent);continue}
     if(l==='tab'||l==='br'||l==='cr'){o.push(l==='br'&&ga(c,'type')==='page'?'':' ');continue}
     if(l==='delText'||l==='instrText'||l==='rPr'||l==='pPr')continue;
-    if(l==='drawing'||l==='pict'||l==='object'){if(o[o.length-1]!=='⟦HÌNH⟧')o.push('⟦HÌNH⟧');continue}
+    if(l==='drawing'||l==='pict'||l==='object'){let tag='⟦HÌNH⟧';
+      if(l!=='drawing'){const ole=c.getElementsByTagNameNS('urn:schemas-microsoft-com:office:office','OLEObject')[0];if(ole&&/Equation|MathType|DSMT/i.test(ole.getAttribute('ProgID')||''))tag='⟦CT-ẢNH⟧'}
+      if(o[o.length-1]!==tag)o.push(tag);continue}
     walk(c,o)}return o};
   const para=p=>walk(p,[]).join('').replace(/[ \t\u00a0]+/g,' ').trim();
-  const push=t=>{if(t)items.push({id:'P'+(items.length+1),t})};
+  const push=(t,el)=>{if(t)items.push({id:'P'+(items.length+1),t,el})};
   for(const el of Array.from(body.children)){
     if(el.namespaceURI!==W)continue;
-    if(el.localName==='p')push(para(el));
-    else if(el.localName==='tbl')wk(el,'tr').forEach(tr=>{const cells=wk(tr,'tc').map(tc=>wk(tc,'p').map(para).filter(Boolean).join(' / '));if(cells.some(x=>x))push('| '+cells.join(' | ')+' |')})}
+    if(el.localName==='p')push(para(el),el);
+    else if(el.localName==='tbl')wk(el,'tr').forEach(tr=>{const cells=wk(tr,'tc').map(tc=>wk(tc,'p').map(para).filter(Boolean).join(' / '));if(cells.some(x=>x))push('| '+cells.join(' | ')+' |',wk(tr,'tc').map(tc=>wk(tc,'p').find(p=>para(p))).find(Boolean))})}
   /* nhãn Câu/Bài hiện hành và khối (một câu hỏi = một khối) cho từng đoạn */
   let cau='',blk=0;
   items.forEach((it,i)=>{const m=/^[\s$]*(Câu|Bài|CÂU|BÀI)\s*(\d+)/.exec(it.t);if(m){cau=m[1][0].toUpperCase()+m[1].slice(1).toLowerCase()+' '+m[2];blk=i}else if(/^(PHẦN|Phần|PHẦN|ĐỀ|Đề)\s*[IVX\d]/.test(it.t)){cau='';blk=i}
@@ -1208,24 +1260,28 @@ function docxToParas(doc){
 const nzs=t=>String(t||'').normalize('NFC').toLowerCase().replace(/[$\u00a0]/g,' ').replace(/\s+/g,' ').trim();
 function parseJ(t){t=String(t).trim().replace(/^\s*```(?:json)?\s*/,'').replace(/\s*```\s*$/,'');
   try{return JSON.parse(t)}catch(e){return JSON.parse(t.replace(/\\(?!["\\\/bfnrtu])/g,'\\\\'))}}
-let NOTHINK=false;
-async function geminiJSON(key,model,sys,userText,hooks,label,rep){
-  let res=null;
-  for(let a=0;a<4;a++){
-    const gen={temperature:0,maxOutputTokens:32768,responseMimeType:'application/json'};if(!NOTHINK)gen.thinkingConfig={thinkingBudget:8192};
+const FEATS={};
+async function geminiJSON(key,model,sys,userText,hooks,label,rep,schema){
+  const F=FEATS[model]||(FEATS[model]={think:true,schema:true});
+  let useT=F.think,useS=!!schema&&F.schema,res=null,dropped=false;
+  for(let a=0;a<6;a++){
+    const gen={temperature:0,maxOutputTokens:32768,responseMimeType:'application/json'};
+    if(useT)gen.thinkingConfig={thinkingBudget:12288};
+    if(useS)gen.responseSchema=schema;
     try{res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
       body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:[{role:'user',parts:[{text:userText}]}],generationConfig:gen})})}
     catch(e){return{err:'không kết nối được Gemini ('+e.message+')'}}
-    if(res.status===400&&!NOTHINK){NOTHINK=true;continue}
+    /* 400 có thể do model không hỗ trợ schema/thinking: bỏ dần từng tính năng rồi thử lại */
+    if(res.status===400&&(useS||useT)){if(useS)useS=false;else useT=false;dropped=true;continue}
     if((res.status===500||res.status===503)&&a<3){await sleep(3000*(a+1));continue}
-    if(res.status===429&&a<2){hooks.progress(label+': chạm hạn mức, chờ 25 giây rồi thử lại...');await sleep(25000);continue}
+    if(res.status===429&&a<3){hooks.progress(label+': chạm hạn mức, chờ 25 giây rồi thử lại...');await sleep(25000);continue}
     break}
   if(!res.ok)return{err:res.status===429?'hết hạn mức key (đợi ~1 phút rồi chạy lại)':[400,401,403].indexOf(res.status)>=0?'key không hợp lệ hoặc không có quyền dùng model '+model:'lỗi Gemini HTTP '+res.status};
+  if(dropped){F.schema=useS;F.think=useT}
   try{const j=await res.json(),c=(j.candidates||[])[0],fin=c&&c.finishReason||'';
     const t=((c&&c.content&&c.content.parts)||[]).map(x=>x.text||'').filter((x,i)=>!(c.content.parts[i]&&c.content.parts[i].thought)).join('');
     try{return{json:parseJ(t),fin}}catch(e){return{err:'dữ liệu Gemini trả về không đọc được'+(fin==='MAX_TOKENS'?' (bị cắt do quá dài)':''),retry:1}}}
   catch(e){return{err:'dữ liệu Gemini trả về không đọc được',retry:1}}}
-
 function chunkParas(items){
   const LIM=45000,PART=26000,tot=items.reduce((a,x)=>a+x.t.length+8,0);
   if(tot<=LIM)return[items];
@@ -1239,46 +1295,123 @@ function chunkParas(items){
   chunks.forEach((c,k)=>{if(k>0&&head.length)c.head=head});return chunks}
 const fmtP=its=>its.map(x=>'['+x.id+'] '+x.t).join('\n');
 
+/* ---- Chứng cứ: khớp mềm (bỏ dấu câu/ký hiệu, hoặc các từ chữ xuất hiện đúng thứ tự trong đoạn) ---- */
+const nzk=t=>String(t||'').normalize('NFC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,'');
+const wtok=t=>String(t||'').normalize('NFC').toLowerCase().match(/\p{L}{2,}/gu)||[];
+function evHit(bc,text){
+  const a=nzk(bc);if(a.length>=4&&nzk(text).indexOf(a)>=0)return true;
+  const tk=wtok(bc);if(tk.length<3)return false;
+  const tl=String(text).normalize('NFC').toLowerCase();let pos=0;
+  for(const w of tk){const k=tl.indexOf(w,pos);if(k<0)return false;pos=k+w.length}
+  return true}
+const KEY_RE=/^[\s|$]*(BẢNG\s+)?(ĐÁP ÁN|HƯỚNG DẪN CHẤM)/i;
+function answerKeyText(items){
+  const i=items.findIndex((x,k)=>k>0&&KEY_RE.test(x.t));if(i<0)return '';
+  const tx=fmtP(items.slice(i));return tx.length>4500?tx.slice(0,4500)+'…':tx}
+/* Số liệu cấu trúc đếm bằng mã (đáng tin hơn AI khi đếm): số câu, thứ tự, phương án A–D, điểm */
+function structHints(items){
+  const qs=[];let cur=null,stop=false;
+  const optRe=/(?:^|[\s|])([A-F])[.)](?=\s|$)/g;
+  items.forEach((it,k)=>{
+    if(stop)return;const t=it.t;
+    if(k>0&&KEY_RE.test(t)){stop=true;return}
+    if(/^[\s$]*(PHẦN|Phần|ĐỀ|Đề)\s*[IVX\d]/.test(t)){qs.push({sec:true});cur=null;return}
+    const m=/^[\s$|]*(Câu|Bài|CÂU|BÀI)\s*(\d+)/.exec(t);
+    if(m){cur={n:+m[2],lab:m[1][0].toUpperCase()+m[1].slice(1).toLowerCase()+' '+m[2],opts:[],pts:null};
+      const pm=/\(\s*(\d+(?:[.,]\d+)?)\s*(?:điểm|đ)\s*\)/i.exec(t);if(pm)cur.pts=parseFloat(pm[1].replace(',','.'));qs.push(cur)}
+    if(cur){let mm;optRe.lastIndex=0;while((mm=optRe.exec(t)))cur.opts.push(mm[1])}});
+  const real=qs.filter(q=>!q.sec);if(!real.length)return '';
+  const L=['Số câu/bài nhận diện: '+real.length];
+  const odd=[];let prev=null;qs.forEach(q=>{if(q.sec){prev=null;return}if(prev!==null&&q.n!==prev+1)odd.push('sau câu '+prev+' là câu '+q.n);prev=q.n});
+  L.push('Đánh số: '+(odd.length?'có chỗ không liên tục ('+odd.slice(0,6).join('; ')+') — có thể do đề đánh số lại theo từng phần':'liên tục'));
+  const withO=real.filter(q=>q.opts.length>=2),badO=withO.filter(q=>{const s=q.opts.join('');return !'ABCDEF'.startsWith(s)});
+  if(withO.length)L.push('Câu có phương án A, B, C...: '+withO.length+(badO.length?'; thứ tự/nhãn đáng ngờ: '+badO.slice(0,8).map(q=>q.lab+' ('+q.opts.join(',')+')').join('; '):'; nhãn đều đúng thứ tự'));
+  const wp=real.filter(q=>q.pts!=null);
+  if(wp.length)L.push('Câu có ghi điểm dạng "(x điểm)": '+wp.length+'/'+real.length+'; tổng điểm cộng được: '+(Math.round(wp.reduce((a,q)=>a+q.pts,0)*100)/100));
+  const hd=items.slice(0,12).filter(x=>/thời gian|thang điểm|tổng\s*điểm|\d\s*điểm/i.test(x.t)).map(x=>x.t.slice(0,120));
+  if(hd.length)L.push('Dòng đầu đề có nhắc thời gian/điểm: '+hd.join(' // '));
+  const s=L.join('\n');return s.length>1600?s.slice(0,1600)+'…':s}
+
+/* Ghi lỗi AI thành Comment tại đoạn trong file Word */
+async function aiWriteComments(z,dx,groups,origBuf){
+  const pk=PKG();let base=new Set();
+  if(pk){try{base=new Set((await pk(await JSZip.loadAsync(origBuf),true)).er)}catch(e){}}
+  const cf=z.file('word/comments.xml');let cd,isNew=false;
+  if(cf)cd=pX(await cf.async('string'),'comments.xml');else{cd=pX('<w:comments xmlns:w="'+W+'"/>');isNew=true}
+  let id=0;[dx,cd].forEach(d=>all(d,'commentRangeStart').concat(all(d,'comment')).forEach(e=>{id=Math.max(id,(+ga(e,'id')||0)+1)}));
+  const date=TRK.date||new Date().toISOString().replace(/\.\d+Z$/,'Z');let n=0;
+  groups.forEach(grp=>{
+    if(!grp.p||!grp.p.parentNode)return;
+    const cid=id++,c=mk(cd,'comment');
+    sa(c,'id',cid);sa(c,'author','AI rà soát đề');sa(c,'date',date);sa(c,'initials','AI');
+    grp.lines.forEach(line=>{const cp=mk(cd,'p'),cr=mk(cd,'r'),ct=mk(cd,'t');ct.textContent=line;setXS(ct);cr.appendChild(ct);cp.appendChild(cr);c.appendChild(cp)});
+    cd.documentElement.appendChild(c);
+    const st=mk(dx,'commentRangeStart'),en=mk(dx,'commentRangeEnd'),ref=mk(dx,'r'),cr2=mk(dx,'commentReference');
+    sa(st,'id',cid);sa(en,'id',cid);sa(cr2,'id',cid);ref.appendChild(cr2);
+    const pPr=one(grp.p,'pPr');grp.p.insertBefore(st,pPr?pPr.nextSibling:grp.p.firstChild);grp.p.appendChild(en);grp.p.appendChild(ref);n++});
+  if(!n)return{n:0,data:null};
+  z.file('word/document.xml',ser(dx));z.file('word/comments.xml',ser(cd));
+  if(isNew){
+    const ctF=z.file('[Content_Types].xml'),ctd=ctF?pX(await ctF.async('string'),'[Content_Types].xml'):null;
+    if(ctd&&!Array.from(ctd.documentElement.children).some(e=>e.getAttribute('PartName')==='/word/comments.xml')){
+      const e=ctd.createElementNS(CTNS,'Override');e.setAttribute('PartName','/word/comments.xml');
+      e.setAttribute('ContentType','application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml');ctd.documentElement.appendChild(e);z.file('[Content_Types].xml',ser(ctd))}
+    const rF=z.file('word/_rels/document.xml.rels'),rl=rF?pX(await rF.async('string'),'rels'):pX('<Relationships xmlns="'+RELNS+'"/>');
+    if(!Array.from(rl.documentElement.children).some(r=>/\/comments$/.test(r.getAttribute('Type')||''))){
+      const e=rl.createElementNS(RELNS,'Relationship');e.setAttribute('Id','rIdRsAiCmt1');e.setAttribute('Type',R+'/comments');e.setAttribute('Target','comments.xml');rl.documentElement.appendChild(e)}
+    z.file('word/_rels/document.xml.rels',ser(rl))}
+  if(pk){const ck=await pk(z,true);const bad=ck.er.filter(x=>!/^docxToBlocks/.test(x)&&!base.has(x));if(bad.length)throw new Error('kiểm tra cấu trúc: '+bad[0])}
+  return{n,data:await z.generateAsync({type:'uint8array',compression:'DEFLATE'})}}
+
 async function aiExamReview(buf,o,hooks,rep){
   const key=window.GKEY&&window.GKEY.get&&window.GKEY.get();
   if(!key){rep.notes.push('AI rà soát đề: chưa nhập API key Gemini nên bỏ qua — công cụ đã rà soát bình thường không dùng AI (nhập key ở đầu trang để bật AI).');return null}
-  let items;
-  try{const z=await JSZip.loadAsync(buf);items=docxToParas(pX(await z.file('word/document.xml').async('string'),'document.xml'))}
+  let items,z,dx;
+  try{z=await JSZip.loadAsync(buf);dx=pX(await z.file('word/document.xml').async('string'),'document.xml');items=docxToParas(dx)}
   catch(e){rep.warn('AI rà soát đề: không đọc được nội dung file ('+e.message+').');return null}
   if(items.reduce((a,x)=>a+x.t.replace(/\s/g,'').length,0)<30){rep.warn('AI rà soát đề: file gần như không có chữ để rà soát.');return null}
-  const byId=new Map(items.map(x=>[x.id,x])),info=(o.aiInfo||'').trim();
+  const nOle=items.reduce((a,x)=>a+(x.t.split('⟦CT-ẢNH⟧').length-1),0);
+  if(nOle)rep.warn('Đề có '+nOle+' công thức MathType/đối tượng dạng ảnh mà AI KHÔNG đọc được — các câu đó AI chỉ soát phần chữ và sẽ không kết luận đúng/sai về công thức. Muốn AI soát cả công thức: trong Word dùng MathType → Convert Equations sang Equation của Word (hoặc gõ LaTeX rồi dùng công cụ chuyển LaTeX), rồi rà soát lại.');
+  const byId=new Map(items.map(x=>[x.id,x]));
+  const info=[o.aiGrade&&o.aiGrade!=='auto'?'Môn/lớp: '+o.aiGrade:'',o.aiKind&&o.aiKind!=='auto'?'Dạng đề: '+o.aiKind:'',(o.aiInfo||'').trim()].filter(Boolean).join('. ');
+  const keyTx=answerKeyText(items),vModel=o.aiModelV||o.aiModel;
+  const hint=structHints(items)+(items.length?'\nMục ĐÁP ÁN/HƯỚNG DẪN CHẤM trong file: '+(keyTx?'có (đối chiếu theo số câu)':'không thấy — chỉ kiểm tính giải được và số đáp án đúng, không kết luận "đáp án sai"'):'');
   const chunks=chunkParas(items);
   if(chunks.length>1)rep.warn('Đề dài nên AI rà soát theo '+chunks.length+' phần; các kiểm tra toàn cục (tổng điểm, tổng số câu) có thể chưa đầy đủ.');
-  const cand=[],xm=[],ktra=[],tomtat=[],xacnhan=[];let stop=null,lostParts=0;
+  const cand=[],xm=[],ktra=[],kall=[],tomtat=[],xacnhan=[];let stop=null,lostParts=0;
   /* ---- Lượt 1: rà soát ---- */
   for(let k=0;k<chunks.length&&!stop;k++){
     const ch=chunks[k],label='AI rà soát'+(chunks.length>1?' phần '+(k+1)+'/'+chunks.length:'');
     hooks.progress(label+' (tự giải từng câu, có thể mất 1–3 phút)...');
-    const msg='THÔNG TIN BỔ SUNG: '+(info||'(không có — hãy suy luận từ đề và ghi rõ là suy luận)')+'\n'+(chunks.length>1?'PHẦN '+(k+1)+'/'+chunks.length+' của đề.\n':'')
+    const msg='THÔNG TIN BỔ SUNG: '+(info||'(không có — hãy suy luận từ đề và ghi rõ là suy luận)')+'\n'
+      +'GỢI Ý CẤU TRÚC (công cụ đếm bằng mã; có thể sai nếu đề dùng chữ cái/số theo cách khác):\n'+hint+'\n'
+      +(chunks.length>1?'PHẦN '+(k+1)+'/'+chunks.length+' của đề.\n':'')
       +(ch.head?'[NGỮ CẢNH ĐẦU ĐỀ — chỉ để tham khảo, không rà soát lại]\n'+fmtP(ch.head)+'\n[HẾT NGỮ CẢNH]\n':'')+'ĐỀ THI:\n'+fmtP(ch);
-    let r=await geminiJSON(key,o.aiModel,AI_EXAM_SYS,msg,hooks,label,rep);
-    if(r.retry)r=await geminiJSON(key,o.aiModel,AI_EXAM_SYS,msg,hooks,label,rep);
+    let r=await geminiJSON(key,o.aiModel,AI_EXAM_SYS,msg,hooks,label,rep,EXAM_SCHEMA);
+    if(r.retry)r=await geminiJSON(key,o.aiModel,AI_EXAM_SYS,msg,hooks,label,rep,EXAM_SCHEMA);
     if(r.err){if(r.retry){lostParts++;continue}stop=r.err;break}
     const d=r.json||{};
     if(r.fin==='MAX_TOKENS')rep.warn('Phần '+(k+1)+': báo cáo AI bị cắt do quá dài — có thể sót lỗi ở cuối phần này.');
     if(d.tomtat)tomtat.push(String(d.tomtat));if(d.xacnhan)xacnhan.push(String(d.xacnhan));
-    (Array.isArray(d.kiemtra)?d.kiemtra:[]).forEach(x=>{if(x&&x.khop===false)ktra.push(x)});
+    (Array.isArray(d.kiemtra)?d.kiemtra:[]).forEach(x=>{if(!x||!x.cau)return;if(!kall.some(y=>String(y.cau)===String(x.cau)))kall.push(x);if(x.khop===false)ktra.push(x)});
     (Array.isArray(d.loi)?d.loi:[]).forEach(x=>{if(x&&x.noidung)cand.push(Object.assign({},x,{ck:k}))});
     (Array.isArray(d.canxacminh)?d.canxacminh:[]).forEach(x=>{if(x&&x.lydo)xm.push(x)})}
   if(stop)rep.warn('AI rà soát đề dừng: '+stop+'. Phần chưa rà soát có thể sót lỗi — chạy lại để rà soát tiếp.');
   if(lostParts)rep.warn('AI trả về dữ liệu không đọc được ở '+lostParts+' phần của đề (đã thử lại) — các phần đó chưa được AI rà soát.');
   if(!cand.length&&!xm.length&&!ktra.length&&!tomtat.length)return null;
-  /* ---- Kiểm bằng chứng bằng code: trích dẫn phải có thật trong đề ---- */
-  let noEv=0;
-  const located=[];
+  /* ---- Kiểm bằng chứng bằng code: trích dẫn phải có thật trong đề (khớp mềm) ---- */
+  let noEv=0;const located=[];
   cand.forEach(x=>{
-    const bc=nzs(x.bangchung),idm=/(\d+)/.exec(String(x.id||'')),it0=idm?byId.get('P'+idm[1]):null;
+    const bc=String(x.bangchung||''),idm=/(\d+)/.exec(String(x.id||'')),it0=idm?byId.get('P'+idm[1]):null,nb=nzk(bc);
     let it=null;
-    if(bc.length>=4){
-      if(it0&&nzs(it0.t).indexOf(bc)>=0)it=it0;
-      else{const hits=items.filter(y=>nzs(y.t).indexOf(bc)>=0);if(hits.length===1)it=hits[0];else if(hits.length>1&&it0)it=hits.find(y=>y.cau&&y.cau===it0.cau)||hits[0]}}
+    if(nb.length>=4||wtok(bc).length>=3){
+      if(it0&&evHit(bc,it0.t))it=it0;
+      else{
+        let hits=nb.length>=4?items.filter(y=>nzk(y.t).indexOf(nb)>=0):[];
+        if(!hits.length)hits=items.filter(y=>evHit(bc,y.t));
+        if(hits.length===1)it=hits[0];else if(hits.length>1&&it0)it=hits.find(y=>y.cau&&y.cau===it0.cau)||hits[0]}}
     x.it=it||null;x.ev=!!it;if(!it)noEv++;x.itFall=it0;located.push(x)});
-  /* ---- Lượt 2: thẩm định kép (AI khác tự giải lại từng lỗi) ---- */
+  /* ---- Lượt 2: thẩm định kép (AI khác tự giải lại từng lỗi, có thể dùng model mạnh hơn) ---- */
   const stat={giu:0,xm:0,loai:0,chua:0};
   const verify=o.aiVerify!==false&&!stop;
   const verd=new Map();
@@ -1290,31 +1423,44 @@ async function aiExamReview(buf,o,hooks,rep){
       const part=list.slice(b,b+B);hooks.progress('AI thẩm định kép lỗi '+(b+1)+'–'+(b+part.length)+'/'+list.length+'...');
       const pay=part.map((x,i)=>{const it=x.it||x.itFall,blk=it?items.filter(y=>y.blk===it.blk):[];let tx=fmtP(blk);if(tx.length>3500)tx=tx.slice(0,3500)+'…';
         return{k:b+i+1,nhom:x.nhom||'',noidung:x.noidung,bangchung:x.bangchung||'',sua_de_xuat:x.sua||'',doan_de:tx||'(không xác định được đoạn đề)'}});
-      let r=await geminiJSON(key,o.aiModel,AI_VERIFY_SYS,'THÔNG TIN BỔ SUNG: '+(info||'(không có)')+'\nỨNG VIÊN LỖI:\n'+JSON.stringify(pay),hooks,'AI thẩm định',rep);
-      if(r.retry)r=await geminiJSON(key,o.aiModel,AI_VERIFY_SYS,'THÔNG TIN BỔ SUNG: '+(info||'(không có)')+'\nỨNG VIÊN LỖI:\n'+JSON.stringify(pay),hooks,'AI thẩm định',rep);
+      const vmsg='THÔNG TIN BỔ SUNG: '+(info||'(không có)')+(keyTx?'\nĐÁP ÁN/HƯỚNG DẪN CHẤM CÓ TRONG ĐỀ:\n'+keyTx:'\n(đề không kèm đáp án trong file)')+'\nỨNG VIÊN LỖI:\n'+JSON.stringify(pay);
+      let r=await geminiJSON(key,vModel,AI_VERIFY_SYS,vmsg,hooks,'AI thẩm định',rep,VERIFY_SCHEMA);
+      if(r.retry)r=await geminiJSON(key,vModel,AI_VERIFY_SYS,vmsg,hooks,'AI thẩm định',rep,VERIFY_SCHEMA);
       if(r.err){rep.warn('AI thẩm định kép dừng: '+r.err+'. Các lỗi còn lại ghi “chưa thẩm định”.');break}
       (Array.isArray(r.json)?r.json:[]).forEach(v=>{if(v&&+v.k)verd.set(+v.k,v)})}}
   /* ---- Tổng hợp ---- */
   const loi=[],canx=[],seen=new Set();
+  const elOf=x=>{const it=x.it||x.itFall;return it&&it.el||null};
   const where=(x)=>{const it=x.it||x.itFall,cv=it&&it.cau;return (x.vitri&&/câu|bài|phần|ý/i.test(x.vitri)?x.vitri:(cv||'Toàn đề'))};
   located.forEach((x,i)=>{
     const key2=nzs(where(x)+'|'+x.noidung).slice(0,80);if(seen.has(key2))return;seen.add(key2);
     const v=verd.get(i+1),q=x.bangchung?' (trích: “'+String(x.bangchung).slice(0,80)+'”)':'';
     let tin=String(x.tincay||'').toLowerCase().replace(/\s/g,'');
     if(v&&v.ketluan==='sai'){stat.loai++;return}
-    if(v&&v.ketluan==='khongchac'){stat.xm++;canx.push({vitri:where(x),lydo:'AI chưa chắc sau thẩm định: '+x.noidung+q+(v.lydo?' — '+v.lydo:'')});return}
-    if(!x.ev){stat.xm++;canx.push({vitri:where(x),lydo:'AI nêu lỗi nhưng không đối chiếu được trích dẫn với đề: '+x.noidung+q});return}
-    if(tin==='thap'){stat.xm++;canx.push({vitri:where(x),lydo:'AI nghi ngờ (độ tin cậy thấp): '+x.noidung+q});return}
+    if(v&&v.ketluan==='khongchac'){stat.xm++;canx.push({vitri:where(x),el:elOf(x),lydo:'AI chưa chắc sau thẩm định: '+x.noidung+q+(v.lydo?' — '+v.lydo:'')});return}
+    if(!x.ev){stat.xm++;canx.push({vitri:where(x),el:elOf(x),lydo:'AI nêu lỗi nhưng không đối chiếu được trích dẫn với đề: '+x.noidung+q});return}
+    if(tin==='thap'){stat.xm++;canx.push({vitri:where(x),el:elOf(x),lydo:'AI nghi ngờ (độ tin cậy thấp): '+x.noidung+q});return}
+    if(!v&&verify&&/Đáp án|Kiến thức|Logic/i.test(x.nhom||'')&&/Nghiêm/i.test(x.mucdo||'')){stat.xm++;canx.push({vitri:where(x),el:elOf(x),lydo:'Lỗi nghiêm trọng do AI nêu nhưng CHƯA qua thẩm định kép: '+x.noidung+q});return}
     const dk=!!v;if(dk)stat.giu++;else stat.chua++;
-    loi.push({vitri:where(x),nhom:x.nhom||'',mucdo:x.mucdo||'',noidung:x.noidung+q,sua:(v&&v.sua)||x.sua||'',tt:dk?'đã thẩm định kép':(verify?'chưa thẩm định':'')})});
+    loi.push({vitri:where(x),el:elOf(x),nhom:x.nhom||'',mucdo:x.mucdo||'',tincay:tin==='cao'?'cao':'trung bình',noidung:x.noidung+q,sua:(v&&v.sua)||x.sua||'',tt:dk?'đã thẩm định kép':(verify?'chưa thẩm định':'')})});
   xm.forEach(x=>{const idm=/(\d+)/.exec(String(x.id||'')),it=idm?byId.get('P'+idm[1]):null;
-    canx.push({vitri:x.vitri||(it&&it.cau)||'—',lydo:String(x.lydo)})});
+    canx.push({vitri:x.vitri||(it&&it.cau)||'—',el:it&&it.el||null,lydo:String(x.lydo)})});
   /* đối chiếu chéo: AI tự tính khác đáp án trong đề mà không nêu thành lỗi */
   ktra.forEach(x=>{const cv='Câu '+String(x.cau||'').replace(/\D/g,'');if(cv==='Câu ')return;
     if(loi.some(y=>nzs(y.vitri).indexOf(nzs(cv))===0)||canx.some(y=>nzs(y.vitri).indexOf(nzs(cv))===0))return;
-    canx.push({vitri:cv,lydo:'AI tự tính ra “'+String(x.ketqua_ai||'?')+'” nhưng đáp án trong đề là “'+String(x.trong_de||'?')+'” — hãy tự giải lại để xác nhận.'})});
+    const it=items.find(y=>y.cau===cv);
+    canx.push({vitri:cv,el:it&&it.el||null,lydo:'AI tự tính ra “'+String(x.ketqua_ai||'?')+'” nhưng đáp án trong đề là “'+String(x.trong_de||'?')+'” — hãy tự giải lại để xác nhận.'})});
   const tk='AI nêu '+located.length+' lỗi → thẩm định kép: giữ '+stat.giu+(stat.chua?', chưa thẩm định '+stat.chua:'')+', chuyển sang “cần xác minh” '+stat.xm+', loại '+stat.loai+' (thẩm định thấy đề đúng).'+(noEv?' '+noEv+' mục không đối chiếu được trích dẫn nên không xếp vào lỗi chắc chắn.':'');
-  return{d:{tomtat:tomtat.join(' | '),xacnhan:xacnhan.join(' | '),loi,canxacminh:canx,thongke:tk}}}
+  /* ---- Ghi Comment tại câu trong file Word ---- */
+  let ncm=0,newData=null;
+  if(o.aiComment!==false&&(loi.length||canx.length)){
+    const groups=new Map(),add=(el,line)=>{if(!el)return;if(!groups.has(el))groups.set(el,[]);groups.get(el).push(line)};
+    loi.forEach(x=>add(x.el,'[LỖI · '+[x.nhom,x.mucdo,x.tincay&&'tin cậy '+x.tincay].filter(Boolean).join(' · ')+'] '+x.noidung+(x.sua?' → Gợi ý sửa: '+x.sua:'')));
+    canx.forEach(x=>add(x.el,'[CẦN XÁC MINH] '+x.lydo));
+    try{const w=await aiWriteComments(z,dx,Array.from(groups).slice(0,200).map(([p,lines])=>({p,lines})),buf);ncm=w.n;newData=w.data}
+    catch(e){rep.warn('Không ghi được Comment của AI vào file Word: '+e.message+' (lỗi vẫn có đầy đủ trong báo cáo .txt).')}}
+  const strip=a=>a.map(x=>{const y=Object.assign({},x);delete y.el;return y});
+  return{d:{tomtat:tomtat.join(' | '),xacnhan:xacnhan.join(' | '),loi:strip(loi),canxacminh:strip(canx),doichieu:kall,thongke:tk},data:newData,ncmt:ncm}}
 
 /* ====================== HÀM CHÍNH ====================== */
 const PKG=()=>typeof window!=='undefined'&&typeof window.WordPkgCheck==='function'?window.WordPkgCheck:null;
@@ -1485,7 +1631,7 @@ function reportText(name,rep){
   const R=[],ai=rep.ai;
   (rep.lint||[]).forEach(x=>R.push(['Đoạn '+x.n+' “'+x.snip+'”','Công cụ',x.issues.join('; '),'Đã đánh dấu Comment trong file Word, chưa tự sửa — cần kiểm tra tay']));
   if(ai){
-    (ai.d.loi||[]).forEach(x=>R.push([x.vitri||'—','AI ('+[x.nhom,x.mucdo].filter(Boolean).join(', ')+')'+(x.tt?' — '+x.tt:''),x.noidung,'AI đề xuất (chưa sửa trong file): '+(x.sua||'—')]));
+    (ai.d.loi||[]).forEach(x=>R.push([x.vitri||'—','AI ('+[x.nhom,x.mucdo,x.tincay&&'tin cậy '+x.tincay].filter(Boolean).join(', ')+')'+(x.tt?' — '+x.tt:''),x.noidung,'AI đề xuất (chưa sửa trong file): '+(x.sua||'—')]));
     (ai.d.canxacminh||[]).forEach(x=>R.push([x.vitri||'—','AI','[CẦN XÁC MINH] '+x.lydo,'Chưa biết đúng/sai — giáo viên xác nhận']))}
   rep.w.forEach(x=>R.push(['Toàn file','Công cụ',x,'Chưa xử lý — cần kiểm tra tay']));
   L.push('','II. NỘI DUNG CẦN CHÚ Ý (chưa sửa hoặc chưa biết đúng/sai) — '+R.length+' mục');
@@ -1493,10 +1639,26 @@ function reportText(name,rep){
   else L.push('  (không có)');
   if(ai&&(ai.d.tomtat||ai.d.xacnhan||ai.d.thongke)){L.push('','III. NHẬN XÉT CỦA AI');if(ai.d.tomtat)L.push('  Tóm tắt: '+ai.d.tomtat);if(ai.d.thongke)L.push('  Thống kê: '+ai.d.thongke);if(ai.d.xacnhan)L.push('  Xác nhận: '+ai.d.xacnhan);
     L.push('  Lưu ý: AI không nhìn thấy hình vẽ; các đề xuất chỉ để tham khảo — hãy tự giải lại và đối chiếu trước khi sửa đề.')}
+  if(ai&&ai.d.doichieu&&ai.d.doichieu.length){const D=ai.d.doichieu.slice(0,150);L.push('','IV. ĐỐI CHIẾU ĐÁP ÁN (AI tự giải trước, rồi so với đáp án ghi trong đề)');
+    L.push(txtTable(['STT','Câu','Cách giải ngắn của AI','Kết quả AI','Đáp án trong đề','Khớp'],D.map((x,i)=>[String(i+1),String(x.cau||''),String(x.cach_giai||''),String(x.ketqua_ai||''),String(x.trong_de||'—'),x.khop===true?'Khớp':x.khop===false?'KHÔNG KHỚP':'—']),[4,6,34,16,16,11],[]),'  (Chỉ là kết quả AI tự tính để bạn đối chiếu nhanh; câu có hình hoặc công thức ảnh AI có thể không giải được.)')}
   return L.join('\n')}
 
 /* ====================== GIAO DIỆN ====================== */
 const MODELS=[['gemini-3.5-flash-lite','Gemini 3.5 Flash Lite'],['gemini-3.1-flash-lite','Gemini 3.1 Flash Lite'],['gemini-3.8-flash','Gemini 3.8 Flash']];
+/* Model tự động: hỏi Google danh sách model khả dụng của key, ưu tiên bản Lite → Flash → Pro (trong mỗi nhóm lấy phiên bản mới nhất, ưu tiên bản ổn định) */
+let AUTO_MODEL='';
+async function resolveModel(key){
+  if(AUTO_MODEL)return AUTO_MODEL;
+  try{
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':key}});
+    if(r.ok){
+      const j=await r.json();
+      const tier=n=>/lite/.test(n)?0:/flash/.test(n)?1:/pro/.test(n)?2:9,ver=n=>parseFloat((/gemini-(\d+(?:\.\d+)?)/.exec(n)||[])[1])||0;
+      const c=(j.models||[]).filter(x=>(x.supportedGenerationMethods||[]).indexOf('generateContent')>=0).map(x=>String(x.name).replace(/^models\//,''))
+        .filter(n=>/^gemini-/.test(n)&&tier(n)<9&&!/tts|image|embed|live|audio|robotics|computer|-exp|8b|nano|latest|-\d{3}$/.test(n))
+        .sort((a,b)=>tier(a)-tier(b)||ver(b)-ver(a)||(/preview/.test(a)?1:0)-(/preview/.test(b)?1:0)||a.length-b.length);
+      if(c.length)return AUTO_MODEL=c[0]}}catch(e){}
+  return AUTO_MODEL='gemini-flash-lite-latest'}
 const cb=(id,t,on)=>'<label class="raC"><input type="checkbox" id="ra_'+id+'"'+(on?' checked':'')+'> '+t+'</label>';
 const num=(id,v)=>'<input type="number" id="ra_'+id+'" value="'+v+'" min="0" max="100" step="1" style="width:60px">';
 function buildUI(){
@@ -1535,9 +1697,12 @@ function buildUI(){
   +cb('l_dollar','Dấu $ lẻ (LaTeX chưa đóng)',1)+cb('l_punct','Dấu câu liền nhau bất thường',1)+cb('l_lower','Đoạn bắt đầu bằng chữ thường',1)+cb('l_mid','Chữ thường sau dấu kết câu',1)+cb('l_struct','Cấu trúc & ngữ nghĩa: đáp án thiếu/lặp/trùng nội dung, số câu nhảy hoặc trùng, số câu–điểm ở tiêu đề không khớp, nhắc “hình/bảng sau” nhưng không có, mã LaTeX hoặc công thức gõ chữ còn sót, ô giữ chỗ chưa điền, “Câu n” dính giữa đoạn',1)+cb('l_noend','Câu chưa có dấu chấm cuối câu (tự luận…) — chỉ gợi ý bằng Comment, không tự sửa',1)+'</details></details>'
   +'<details class="raG"><summary>🤖 AI &amp; xử lý nâng cao</summary>'
   +cb('ai','AI (Gemini) soát chính tả/dấu/gõ nhầm — chỉ gửi chữ, <b>không gửi công thức/hình</b>; có thể mất vài phút',0)
-  +'<div class="raR">Model: <select id="ra_model">'+MODELS.map(m=>'<option value="'+m[0]+'">'+m[1]+'</option>').join('')+'</select> <span class="note" style="margin:0">(dùng key Gemini đã nhập ở đầu trang)</span></div>'
+  +'<div class="raR">Model: <select id="ra_model"><option value="">Tự động — ưu tiên Lite, rồi Flash, rồi Pro</option>'+MODELS.map(m=>'<option value="'+m[0]+'">'+m[1]+'</option>').join('')+'</select> <span class="note" style="margin:0">(dùng key Gemini đã nhập ở đầu trang)</span></div>'
+  +'<div class="raR">Model thẩm định kép: <select id="ra_modelv"><option value="">Giống model rà soát</option>'+MODELS.map(m=>'<option value="'+m[0]+'">'+m[1]+'</option>').join('')+'</select></div>'
   +'<div class="raR">Cách áp dụng: <select id="ra_aimode"><option value="apply">Tự sửa lỗi chắc chắn, gợi ý còn lại ghi vào Comment</option><option value="comment">Chỉ ghi gợi ý vào Comment, không tự sửa</option></select></div>'
   +cb('aiexam','<b>AI rà soát đề thi toàn diện</b> (kiến thức, đáp án, logic, ngôn ngữ, hình thức, điểm số → ghi các lỗi và gợi ý sửa vào báo cáo .txt). <b>Tự chạy khi đã nhập key Gemini</b>; chưa có key thì công cụ vẫn rà soát và xuất Word bình thường. Chỉ gửi chữ/công thức, không gửi hình',1)
+  +cb('aicmt','Ghi lỗi AI thành <b>Comment ngay tại câu</b> trong file Word (ngoài báo cáo .txt)',1)
+  +'<div class="raR">Lớp/môn: <select id="ra_aigrade"><option value="auto">Tự nhận diện</option>'+['Toán 6','Toán 7','Toán 8','Toán 9','Toán 9 (ôn thi vào lớp 10)','Công nghệ 7','Công nghệ 8','Môn khác'].map(x=>'<option>'+x+'</option>').join('')+'</select> &nbsp; Dạng đề: <select id="ra_aikind"><option value="auto">Tự nhận diện</option><option>Trắc nghiệm</option><option>Tự luận</option><option>Trắc nghiệm + tự luận</option></select></div>'
   +cb('aiverify','Thẩm định kép: một lượt AI khác tự giải lại từng lỗi để loại báo nhầm (chính xác hơn, chậm hơn ~1,5–2 lần)',1)
   +'<div class="raR">Thông tin bổ sung cho AI (không bắt buộc): <textarea id="ra_aiinfo" rows="2" style="width:100%;box-sizing:border-box" placeholder="Môn, lớp, chương trình, thời gian, thang điểm, đáp án, ma trận/đặc tả..."></textarea></div>'
   +cb('accept','Chấp nhận toàn bộ Track Changes (không thể hoàn tác trong file xuất)',0)+cb('nocmt','Xóa toàn bộ ghi chú (Comment)',0)+'</details>'
@@ -1560,7 +1725,7 @@ function readOpts(){
   const c=id=>g('ra_'+id).checked,v=id=>g('ra_'+id).value,n=id=>parseFloat(String(v(id)).replace(',','.'));
   const o={text:c('text'),indent:c('indent'),num:c('num'),font:v('font'),size:v('size'),line:+v('line'),after:+v('after'),spacing:c('spacing'),justify:c('justify'),firstLine:c('firstLine'),shd:c('shd'),color:c('color'),
     blank:c('blank'),keep:c('keep'),page:c('page'),mt:n('mt'),mb:n('mb'),ml:n('ml'),mr:n('mr'),pgnum:c('pgnum'),fields:c('fields'),compat:c('compat'),
-    tbl:c('tbl'),tblborder:c('tblborder'),tblkeep:c('tblkeep'),softbreak:c('softbreak'),imgMaxH:+v('imgmax'),mcq:c('mcq'),mcqMode:v('mcqmode'),mcqStem:c('mcqstem'),mcqDot:c('mcqdot'),imgInline:c('imgInline'),imgFix:c('imgFix'),latex:c('latex'),mathsz:c('mathsz'),ai:c('ai'),aiExam:c('aiexam'),aiVerify:c('aiverify'),aiInfo:v('aiinfo'),aiModel:v('model'),accept:c('accept'),nocmt:c('nocmt'),quotes:c('quotes'),phead:c('phead'),mark:c('mark'),verify:c('verify'),track:c('track'),aiMode:v('aimode'),spell:c('spell'),unify:c('unify'),decimal:c('decimal')?'comma':'',cap:c('cap'),dry:c('dry'),
+    tbl:c('tbl'),tblborder:c('tblborder'),tblkeep:c('tblkeep'),softbreak:c('softbreak'),imgMaxH:+v('imgmax'),mcq:c('mcq'),mcqMode:v('mcqmode'),mcqStem:c('mcqstem'),mcqDot:c('mcqdot'),imgInline:c('imgInline'),imgFix:c('imgFix'),latex:c('latex'),mathsz:c('mathsz'),ai:c('ai'),aiExam:c('aiexam'),aiVerify:c('aiverify'),aiInfo:v('aiinfo'),aiModel:v('model'),aiModelV:v('modelv'),aiComment:c('aicmt'),aiGrade:v('aigrade'),aiKind:v('aikind'),accept:c('accept'),nocmt:c('nocmt'),quotes:c('quotes'),phead:c('phead'),mark:c('mark'),verify:c('verify'),track:c('track'),aiMode:v('aimode'),spell:c('spell'),unify:c('unify'),decimal:c('decimal')?'comma':'',cap:c('cap'),dry:c('dry'),
     lintOff:{typo:!c('l_typo'),dup:!c('l_dup'),bracket:!c('l_bracket'),quote:!c('l_quote'),dollar:!c('l_dollar'),punct:!c('l_punct'),lower:!c('l_lower'),mid:!c('l_mid'),noend:!c('l_noend'),struct:!c('l_struct')}};
   if([o.mt,o.mb,o.ml,o.mr].some(x=>!isFinite(x)||x<0||x>100)||o.ml+o.mr>=150||o.mt+o.mb>=200)throw new Error('Lề không hợp lệ (0–100 mm; trái+phải < 150, trên+dưới < 200).');
   return o}
@@ -1572,14 +1737,17 @@ async function run(){
   if(!q.length)return setSt('Chưa chọn file .docx nào.','e');
   if(typeof JSZip==='undefined')return setSt('Chưa tải được thư viện JSZip (cần mạng để tải từ cdnjs).','e');
   let o;try{o=readOpts()}catch(e){return setSt(e.message,'e')}
+  let autoM=false;
+  if((o.ai||o.aiExam)&&!o.aiModel){const kk=window.GKEY&&window.GKEY.get&&window.GKEY.get();if(kk){setSt('Đang xác định model AI của trang web...');o.aiModel=await resolveModel(kk);autoM=true}else o.aiModel=MODELS[0][0]}
   btn.disabled=true;const res=[];let ok=0;
   for(let k=0;k<q.length;k++){const f=q[k],pre='('+(k+1)+'/'+q.length+') '+f.name+': ';
     const card=document.createElement('div');card.className='raRes';
     try{
       const r=await audit(f.buf,o,{progress:m=>setSt(pre+m)});
+      if(autoM)r.rep.notes.push('Model AI dùng (tự động, ưu tiên Lite → Flash → Pro): '+o.aiModel);
       let aiR=null;
       if(o.aiExam){try{aiR=await aiExamReview(r.data,o,{progress:m=>setSt(pre+m)},r.rep)}catch(e){r.rep.warn('AI rà soát đề gặp lỗi và đã bỏ qua: '+e.message)}
-        if(aiR)r.rep.ai=aiR}
+        if(aiR){r.rep.ai=aiR;if(aiR.data)r.data=aiR.data}}
       const base=f.name.replace(/\.docx$/i,'')+'_rasoat',rt=reportText(f.name,r.rep),total=Array.from(r.rep.f.values()).reduce((a,b)=>a+b,0);
       let pdf=null;
       if(g('ra_pdf').checked){try{
@@ -1595,7 +1763,7 @@ async function run(){
       if(r.rep.notes.length)h+='<div class="note" style="margin:4px 0">'+r.rep.notes.slice(0,8).map(hx).join('<br>')+(r.rep.notes.length>8?'<br>… (xem đủ trong báo cáo .txt)':'')+'</div>';
       if(r.rep.lint&&r.rep.lint.length)h+='<div>📝 <b>'+r.rep.lint.length+' đoạn đã được đánh dấu Comment trong file Word</b> (chi tiết đầy đủ trong báo cáo .txt):<ul>'+r.rep.lint.slice(0,6).map(x=>'<li>Đoạn '+x.n+' “'+hx(x.snip)+'”: '+hx(x.issues.join('; '))+'</li>').join('')+(r.rep.lint.length>6?'<li>…</li>':'')+'</ul></div>';
       if(r.rep.changes&&r.rep.changes.length)h+='<div class="note" style="margin:4px 0">🧾 Báo cáo .txt có <b>nhật ký thay đổi trước → sau</b> của '+r.rep.changes.length+' đoạn để bạn đối chiếu.</div>';
-      if(aiR)h+='<div>🤖 <b>AI đã rà soát đề thi</b>: '+aiR.d.loi.length+' lỗi đề xuất, '+aiR.d.canxacminh.length+' mục cần xác minh — xem trong báo cáo .txt (bảng “Nội dung cần chú ý”).</div>';
+      if(aiR)h+='<div>🤖 <b>AI đã rà soát đề thi</b>: '+aiR.d.loi.length+' lỗi đề xuất, '+aiR.d.canxacminh.length+' mục cần xác minh'+(aiR.ncmt?', đã ghi '+aiR.ncmt+' Comment tại câu trong file Word':'')+' — xem trong báo cáo .txt (bảng “Nội dung cần chú ý”).</div>';
       if(r.rep.w.length)h+='<div>⚠ <b>Cần kiểm tra tay:</b><ul>'+r.rep.w.map(x=>'<li>'+hx(x)+'</li>').join('')+'</ul></div>';
       card.innerHTML=h;
       [[base+'.docx',r.data,MD,'⬇ Tải file Word đã rà soát','green sm'],].concat(pdf?[[base+'.pdf',pdf,'application/pdf','⬇ PDF (xem nhanh)','sec sm']]:[]).concat([[base+'_baocao.txt',new TextEncoder().encode('\ufeff'+rt),'text/plain','📋 Báo cáo (.txt)','sec sm']]).forEach(a=>{
@@ -1618,6 +1786,6 @@ function wire(){
     g('ra_mt').value=20;g('ra_mb').value=20;g('ra_ml').value=30;g('ra_mr').value=15;
     setSt('Đã đặt: Times New Roman 14pt, giãn dòng 1,15, căn đều, thụt đầu dòng 1 cm, A4, lề 20/20/30/15 mm. Bấm “Rà soát & Xuất file” để chạy.','o')};
   g('ra_run').onclick=run}
-window.RaSoatWord={audit,reportText,readOpts,version:VERSION};
+window.RaSoatWord={audit,reportText,readOpts,version:VERSION,_t:{docxToParas,structHints,evHit,ommlTex,aiExamReview,geminiJSON,answerKeyText}};
 buildUI();
 })();
