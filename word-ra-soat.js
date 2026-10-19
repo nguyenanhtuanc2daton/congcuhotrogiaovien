@@ -1075,6 +1075,12 @@ TUYỆT ĐỐI KHÔNG
 
 TRẢ VỀ: DUY NHẤT một mảng JSON, không Markdown: [{"i":số,"find":"cụm sai nguyên văn (1–6 từ, nằm trọn trong đoạn)","replace":"cụm đã sửa (giữ nguyên mọi chữ số)","kind":"sua"|"goiy"}]. Mỗi lỗi một mục. Không có lỗi trả về [].`;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+/* ---- Model Gemini: chỉ 3 tên "latest" (Google tự trỏ tới bản mới nhất nên không hỏng khi đổi phiên bản) ---- */
+const MODELS=[['gemini-flash-lite-latest','Gemini Flash Lite (bản mới nhất)'],['gemini-flash-latest','Gemini Flash (bản mới nhất)'],['gemini-pro-latest','Gemini Pro (bản mới nhất)']];
+const GURL='https://generativelanguage.googleapis.com/v1beta/models/';
+const USED=new Set();   /* model thực sự đã chạy được trong lần xử lý hiện tại */
+/* thứ tự thử: model người dùng chọn (nếu có) trước, rồi các model còn lại theo Lite → Flash → Pro */
+function chainFor(model){const c=MODELS.map(m=>m[0]);const i=c.indexOf(model);if(i>0){c.splice(i,1);c.unshift(model)}else if(i<0&&model)c.unshift(model);return c}
 async function aiPass(body,o,rep,hooks){
   const key=window.GKEY&&window.GKEY.get();
   if(!key){rep.warn('AI soát chính tả: chưa có API key Gemini — bấm "🔑 Nhập key" ở đầu trang rồi chạy lại.');if(window.GKEY&&window.GKEY.open)window.GKEY.open('Nhập key để dùng AI soát chính tả.');return}
@@ -1099,15 +1105,23 @@ async function aiPass(body,o,rep,hooks){
     applyEdit(it.p,{s:pos+a,e:pos+e1,r:x.replace.slice(a,e2),k:'ai'});applied++;rep.notes.push('AI sửa: “'+x.find+'” → “'+x.replace+'”')};
   const doBatch=async(b,label)=>{
     hooks.progress('AI soát chính tả: '+label+'...');
-    let res;
-    for(let a=0;a<3;a++){
-      try{res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+o.aiModel+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
-        body:JSON.stringify({systemInstruction:{parts:[{text:AI_SYS}]},contents:[{role:'user',parts:[{text:JSON.stringify(b.map(x=>({i:x.i,t:x.t})))}]}],generationConfig:{temperature:0,maxOutputTokens:8192,responseMimeType:'application/json'}})})}
-      catch(e){return{stop:'không kết nối được Gemini ('+e.message+')'}}
-      if((res.status===500||res.status===503)&&a<2){await sleep(2500*(a+1));continue}
-      if(res.status===429&&a<1){hooks.progress('AI: chạm hạn mức, chờ 20 giây rồi thử lại...');await sleep(20000);continue}
-      break}
-    if(!res.ok)return{stop:res.status===429?'hết hạn mức key (đợi ~1 phút rồi chạy lại)':res.status===401||res.status===403||res.status===400?'key không hợp lệ hoặc không có quyền dùng model '+o.aiModel:'lỗi Gemini HTTP '+res.status};
+    const body=JSON.stringify({systemInstruction:{parts:[{text:AI_SYS}]},contents:[{role:'user',parts:[{text:JSON.stringify(b.map(x=>({i:x.i,t:x.t})))}]}],generationConfig:{temperature:0,maxOutputTokens:8192,responseMimeType:'application/json'}});
+    let res=null;const tried=[];
+    for(let round=0;round<2;round++){
+      let allRate=true;
+      for(const mdl of chainFor(o.aiModel)){
+        for(let a=0;a<3;a++){
+          try{res=await fetch(GURL+mdl+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body})}
+          catch(e){return{stop:'không kết nối được Gemini ('+e.message+')'}}
+          if((res.status===500||res.status===503)&&a<2){await sleep(2500*(a+1));continue}
+          break}
+        if(res.ok){USED.add(mdl);break}
+        if(res.status!==429)allRate=false;
+        if(tried.indexOf(mdl)<0)tried.push(mdl);
+        hooks.progress('AI: '+mdl+' không dùng được (HTTP '+res.status+'), thử model kế tiếp...')}
+      if(res.ok||!allRate||round)break;
+      hooks.progress('AI: các model đều chạm hạn mức, chờ 25 giây rồi thử lại...');await sleep(25000)}
+    if(!res.ok)return{stop:(res.status===429?'hết hạn mức key (đợi ~1 phút rồi chạy lại)':[400,401,403].indexOf(res.status)>=0?'key không hợp lệ hoặc không có quyền dùng model Gemini':'lỗi Gemini HTTP '+res.status)+' (đã thử: '+tried.join(', ')+')'};
     let fx;try{const data=await res.json();const txt=((data.candidates||[])[0].content.parts||[]).map(p=>p.text||'').join('');fx=JSON.parse(txt.replace(/^\s*```(?:json)?|```\s*$/g,'').trim())}catch(e){return{retry:1}}
     if(!Array.isArray(fx))return{retry:1};
     fx.forEach(x=>handle(b,x));return{ok:1}};
@@ -1261,7 +1275,7 @@ const nzs=t=>String(t||'').normalize('NFC').toLowerCase().replace(/[$\u00a0]/g,'
 function parseJ(t){t=String(t).trim().replace(/^\s*```(?:json)?\s*/,'').replace(/\s*```\s*$/,'');
   try{return JSON.parse(t)}catch(e){return JSON.parse(t.replace(/\\(?!["\\\/bfnrtu])/g,'\\\\'))}}
 const FEATS={};
-async function geminiJSON(key,model,sys,userText,hooks,label,rep,schema){
+async function geminiJSON1(key,model,sys,userText,hooks,label,rep,schema){
   const F=FEATS[model]||(FEATS[model]={think:true,schema:true});
   let useT=F.think,useS=!!schema&&F.schema,res=null,dropped=false;
   for(let a=0;a<6;a++){
@@ -1274,14 +1288,27 @@ async function geminiJSON(key,model,sys,userText,hooks,label,rep,schema){
     /* 400 có thể do model không hỗ trợ schema/thinking: bỏ dần từng tính năng rồi thử lại */
     if(res.status===400&&(useS||useT)){if(useS)useS=false;else useT=false;dropped=true;continue}
     if((res.status===500||res.status===503)&&a<3){await sleep(3000*(a+1));continue}
-    if(res.status===429&&a<3){hooks.progress(label+': chạm hạn mức, chờ 25 giây rồi thử lại...');await sleep(25000);continue}
     break}
-  if(!res.ok)return{err:res.status===429?'hết hạn mức key (đợi ~1 phút rồi chạy lại)':[400,401,403].indexOf(res.status)>=0?'key không hợp lệ hoặc không có quyền dùng model '+model:'lỗi Gemini HTTP '+res.status};
+  if(!res.ok)return{err:'HTTP '+res.status,down:true,st:res.status};   /* model không dùng được → bộ bọc sẽ thử model kế tiếp */
   if(dropped){F.schema=useS;F.think=useT}
   try{const j=await res.json(),c=(j.candidates||[])[0],fin=c&&c.finishReason||'';
     const t=((c&&c.content&&c.content.parts)||[]).map(x=>x.text||'').filter((x,i)=>!(c.content.parts[i]&&c.content.parts[i].thought)).join('');
     try{return{json:parseJ(t),fin}}catch(e){return{err:'dữ liệu Gemini trả về không đọc được'+(fin==='MAX_TOKENS'?' (bị cắt do quá dài)':''),retry:1}}}
   catch(e){return{err:'dữ liệu Gemini trả về không đọc được',retry:1}}}
+/* gọi Gemini, tự chuyển model khi model đó lỗi/hết hạn mức/ngừng hoạt động: Lite → Flash → Pro */
+async function geminiJSON(key,model,sys,userText,hooks,label,rep,schema){
+  const tried=[];let last=null;
+  for(let round=0;round<2;round++){
+    let allRate=true;
+    for(const m of chainFor(model)){
+      const r=await geminiJSON1(key,m,sys,userText,hooks,label,rep,schema);
+      if(!r.down){if(!r.err||r.retry)USED.add(m);return r}
+      last=r;if(r.st!==429)allRate=false;if(tried.indexOf(m)<0)tried.push(m);
+      hooks.progress(label+': '+m+' không dùng được ('+r.err+'), thử model kế tiếp...')}
+    if(!allRate||round)break;
+    hooks.progress(label+': các model đều chạm hạn mức, chờ 25 giây rồi thử lại...');await sleep(25000)}
+  const st=last&&last.st;
+  return{err:(st===429?'hết hạn mức key (đợi ~1 phút rồi chạy lại)':[400,401,403].indexOf(st)>=0?'key không hợp lệ hoặc không có quyền dùng model Gemini':'lỗi Gemini HTTP '+st)+' (đã thử: '+tried.join(', ')+')'}}
 function chunkParas(items){
   const LIM=45000,PART=26000,tot=items.reduce((a,x)=>a+x.t.length+8,0);
   if(tot<=LIM)return[items];
@@ -1644,21 +1671,6 @@ function reportText(name,rep){
   return L.join('\n')}
 
 /* ====================== GIAO DIỆN ====================== */
-const MODELS=[['gemini-3.5-flash-lite','Gemini 3.5 Flash Lite'],['gemini-3.1-flash-lite','Gemini 3.1 Flash Lite'],['gemini-3.8-flash','Gemini 3.8 Flash']];
-/* Model tự động: hỏi Google danh sách model khả dụng của key, ưu tiên bản Lite → Flash → Pro (trong mỗi nhóm lấy phiên bản mới nhất, ưu tiên bản ổn định) */
-let AUTO_MODEL='';
-async function resolveModel(key){
-  if(AUTO_MODEL)return AUTO_MODEL;
-  try{
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':key}});
-    if(r.ok){
-      const j=await r.json();
-      const tier=n=>/lite/.test(n)?0:/flash/.test(n)?1:/pro/.test(n)?2:9,ver=n=>parseFloat((/gemini-(\d+(?:\.\d+)?)/.exec(n)||[])[1])||0;
-      const c=(j.models||[]).filter(x=>(x.supportedGenerationMethods||[]).indexOf('generateContent')>=0).map(x=>String(x.name).replace(/^models\//,''))
-        .filter(n=>/^gemini-/.test(n)&&tier(n)<9&&!/tts|image|embed|live|audio|robotics|computer|-exp|8b|nano|latest|-\d{3}$/.test(n))
-        .sort((a,b)=>tier(a)-tier(b)||ver(b)-ver(a)||(/preview/.test(a)?1:0)-(/preview/.test(b)?1:0)||a.length-b.length);
-      if(c.length)return AUTO_MODEL=c[0]}}catch(e){}
-  return AUTO_MODEL='gemini-flash-lite-latest'}
 const cb=(id,t,on)=>'<label class="raC"><input type="checkbox" id="ra_'+id+'"'+(on?' checked':'')+'> '+t+'</label>';
 const num=(id,v)=>'<input type="number" id="ra_'+id+'" value="'+v+'" min="0" max="100" step="1" style="width:60px">';
 function buildUI(){
@@ -1737,17 +1749,17 @@ async function run(){
   if(!q.length)return setSt('Chưa chọn file .docx nào.','e');
   if(typeof JSZip==='undefined')return setSt('Chưa tải được thư viện JSZip (cần mạng để tải từ cdnjs).','e');
   let o;try{o=readOpts()}catch(e){return setSt(e.message,'e')}
-  let autoM=false;
-  if((o.ai||o.aiExam)&&!o.aiModel){const kk=window.GKEY&&window.GKEY.get&&window.GKEY.get();if(kk){setSt('Đang xác định model AI của trang web...');o.aiModel=await resolveModel(kk);autoM=true}else o.aiModel=MODELS[0][0]}
+  const autoM=!o.aiModel;   /* để trống = tự động: Lite → Flash → Pro, tự chuyển khi model lỗi */
   btn.disabled=true;const res=[];let ok=0;
   for(let k=0;k<q.length;k++){const f=q[k],pre='('+(k+1)+'/'+q.length+') '+f.name+': ';
     const card=document.createElement('div');card.className='raRes';
     try{
+      USED.clear();
       const r=await audit(f.buf,o,{progress:m=>setSt(pre+m)});
-      if(autoM)r.rep.notes.push('Model AI dùng (tự động, ưu tiên Lite → Flash → Pro): '+o.aiModel);
       let aiR=null;
       if(o.aiExam){try{aiR=await aiExamReview(r.data,o,{progress:m=>setSt(pre+m)},r.rep)}catch(e){r.rep.warn('AI rà soát đề gặp lỗi và đã bỏ qua: '+e.message)}
         if(aiR){r.rep.ai=aiR;if(aiR.data)r.data=aiR.data}}
+      if(o.ai||o.aiExam)r.rep.notes.push('Model AI đã dùng'+(autoM?' (tự động, ưu tiên Lite → Flash → Pro)':'')+': '+(Array.from(USED).join(', ')||'chưa gọi được model nào'));
       const base=f.name.replace(/\.docx$/i,'')+'_rasoat',rt=reportText(f.name,r.rep),total=Array.from(r.rep.f.values()).reduce((a,b)=>a+b,0);
       let pdf=null;
       if(g('ra_pdf').checked){try{
