@@ -25,8 +25,18 @@ html.tod-nofx #hol-banner::after{animation:none}
     [0,9,5,'khaigiang','Chúc mừng Ngày khai giảng năm học mới',3,0],[0,10,10,'do','Kỷ niệm Ngày Giải phóng Thủ đô',3,0],[0,10,13,'chung','Chúc mừng Ngày Doanh nhân Việt Nam',3,0],
     [0,10,20,'phunu','Chúc mừng Ngày Phụ nữ Việt Nam 20/10',3,0],[0,11,19,'chung','Chúc mừng Ngày Quốc tế Đàn ông',2,0],[0,11,20,'nhagiao','Chúc mừng Ngày Nhà giáo Việt Nam 20/11',5,1],
     [0,12,22,'do','Kỷ niệm Ngày thành lập Quân đội nhân dân Việt Nam',3,0]];
+  /* Ngày theo ÂM LỊCH: tự quy ra dương lịch cho các năm quanh năm hiện tại (dùng window.AmLich trong index.html).
+     Nếu thiếu thư viện âm lịch thì dùng bảng ghi sẵn bên dưới. */
   var VAR=[[2027,2,6,'tet','Chúc mừng năm mới! Tết Nguyên đán',10,5],[2028,1,26,'tet','Chúc mừng năm mới! Tết Nguyên đán',10,5],[2029,2,13,'tet','Chúc mừng năm mới! Tết Nguyên đán',10,5],
     [2027,4,16,'do','Chào mừng Giỗ Tổ Hùng Vương',3,0],[2028,4,4,'do','Chào mừng Giỗ Tổ Hùng Vương',3,0]];
+  try{if(window.AmLich){
+    var LV=[[1,1,'tet','Chúc mừng năm mới! Tết Nguyên đán',10,5],[10,3,'do','Chào mừng Giỗ Tổ Hùng Vương',3,0],[15,8,'thieunhi','Chúc mừng Tết Trung thu! Chúc các em một đêm rằm vui vẻ',3,1]],
+        y0=new Date().getFullYear(),auto=[];
+    for(var ly=y0-1;ly<=y0+2;ly++)for(var q=0;q<LV.length;q++){
+      var sd=window.AmLich.lunar2solar(LV[q][0],LV[q][1],ly,0);
+      if(sd)auto.push([sd.getFullYear(),sd.getMonth()+1,sd.getDate(),LV[q][2],LV[q][3],LV[q][4],LV[q][5]]);}
+    if(auto.length)VAR=auto;
+  }}catch(e){}
   /* màu: [card, card2, bd, a1, a2, cy, h1, h2, h3, glow, tint]; ic: hình rơi; n: số hình */
   var TH={
     tet:{ic:['🌸','🧧','🏮','✨'],n:12,c:['rgba(110,12,18,.93)','#5a0a10','#d4a017','#b91c1c','#c2410c','#ffd24a','#b91c1c','#dc2626','#f59e0b','rgba(255,210,74,.5)','rgba(220,38,38,.28)']},

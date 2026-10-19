@@ -42,6 +42,42 @@
 html.tod-nofx .hero-deco span{animation:none}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<script id="am-lich-lib">
+/* Âm lịch Việt Nam (múi giờ GMT+7) – thuật toán Hồ Ngọc Đức. window.AmLich.solar2lunar(d,m,y) → {d,m,y,leap}; .lunar2solar(d,m,y,leap) → Date (hoặc null) */
+(function(){
+  var PI=Math.PI,TZ=7,F=Math.floor;
+  function jd(dd,mm,yy){var a=F((14-mm)/12),y=yy+4800-a,m=mm+12*a-3;return dd+F((153*m+2)/5)+365*y+F(y/4)-F(y/100)+F(y/400)-32045;}
+  function newMoon(k){var T=k/1236.85,T2=T*T,T3=T2*T,dr=PI/180,s=Math.sin;
+    var J=2415020.75933+29.53058868*k+0.0001178*T2-0.000000155*T3+0.00033*s((166.56+132.87*T-0.009173*T2)*dr);
+    var M=359.2242+29.10535608*k-0.0000333*T2-0.00000347*T3,Mp=306.0253+385.81691806*k+0.0107306*T2+0.00001236*T3,Ff=21.2964+390.67050646*k-0.0016528*T2-0.00000239*T3;
+    var C=(0.1734-0.000393*T)*s(M*dr)+0.0021*s(2*dr*M)-0.4068*s(Mp*dr)+0.0161*s(dr*2*Mp)-0.0004*s(dr*3*Mp)+0.0104*s(dr*2*Ff)-0.0051*s(dr*(M+Mp))-0.0074*s(dr*(M-Mp))+0.0004*s(dr*(2*Ff+M))-0.0004*s(dr*(2*Ff-M))-0.0006*s(dr*(2*Ff+Mp))+0.0010*s(dr*(2*Ff-Mp))+0.0005*s(dr*(2*Mp+M));
+    var dt=T<-11?(-0.000278+0.000265*T+0.000262*T2):(0.001+0.000839*T+0.0002261*T2-0.00000845*T3-0.000000081*T*T3);
+    return J+C-dt;}
+  function nmDay(k){return F(newMoon(k)+0.5+TZ/24);}
+  function sunLong(j){var T=(j-0.5-TZ/24-2451545.0)/36525,T2=T*T,dr=PI/180;
+    var M=357.52910+35999.05030*T-0.0001559*T2-0.00000048*T*T2,L0=280.46645+36000.76983*T+0.0003032*T2;
+    var DL=(1.914600-0.004817*T-0.000014*T2)*Math.sin(dr*M)+(0.019993-0.000101*T)*Math.sin(dr*2*M)+0.000290*Math.sin(dr*3*M);
+    var L=(L0+DL)*dr;L-=PI*2*F(L/(PI*2));return F(L/PI*6);}
+  function m11(yy){var off=jd(31,12,yy)-2415021,k=F(off/29.530588853),nm=nmDay(k);if(sunLong(nm)>=9)nm=nmDay(k-1);return nm;}
+  function leapOff(a11){var k=F((a11-2415021.076998695)/29.530588853+0.5),last,i=1,arc=sunLong(nmDay(k+i));
+    do{last=arc;i++;arc=sunLong(nmDay(k+i));}while(arc!==last&&i<14);return i-1;}
+  function solar2lunar(dd,mm,yy){
+    var dn=jd(dd,mm,yy),k=F((dn-2415021.076998695)/29.530588853),ms=nmDay(k+1);if(ms>dn)ms=nmDay(k);
+    var a11=m11(yy),b11=a11,ly;
+    if(a11>=ms){ly=yy;a11=m11(yy-1);}else{ly=yy+1;b11=m11(yy+1);}
+    var ld=dn-ms+1,diff=F((ms-a11)/29),leap=0,lm=diff+11;
+    if(b11-a11>365){var lo=leapOff(a11);if(diff>=lo){lm=diff+10;if(diff===lo)leap=1;}}
+    if(lm>12)lm-=12;if(lm>=11&&diff<4)ly-=1;
+    return {d:ld,m:lm,y:ly,leap:leap};}
+  function lunar2solar(ld,lm,ly,leap){
+    var s=new Date(ly,0,1),e=new Date(ly+1,2,1);
+    for(var t=s;t<e;t=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1)){
+      var l=solar2lunar(t.getDate(),t.getMonth()+1,t.getFullYear());
+      if(l.d===ld&&l.m===lm&&l.y===ly&&l.leap===(leap?1:0))return t;}
+    return null;}
+  window.AmLich={solar2lunar:solar2lunar,lunar2solar:lunar2solar};
+})();
+</script>
 <script src="gkey.js?v=20261005"></script>
 
 <script>
@@ -426,17 +462,21 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
   var HOL=[[1,1,'Tết Dương lịch'],[2,3,'Thành lập Đảng Cộng sản Việt Nam'],[2,27,'Thầy thuốc Việt Nam'],[3,8,'Quốc tế Phụ nữ'],[3,26,'Thành lập Đoàn TNCS Hồ Chí Minh'],
     [4,30,'Giải phóng miền Nam'],[5,1,'Quốc tế Lao động'],[5,7,'Chiến thắng Điện Biên Phủ'],[5,19,'Sinh nhật Chủ tịch Hồ Chí Minh'],[6,1,'Quốc tế Thiếu nhi'],[6,21,'Báo chí cách mạng Việt Nam'],[6,28,'Gia đình Việt Nam'],
     [7,27,'Thương binh Liệt sĩ'],[8,19,'Cách mạng Tháng Tám thành công'],[9,2,'Quốc khánh'],[9,5,'Khai giảng năm học'],[10,10,'Giải phóng Thủ đô'],[10,13,'Doanh nhân Việt Nam'],
-    [10,20,'Ngày Phụ nữ Việt Nam'],[11,19,'Quốc tế Đàn ông'],[11,20,'Ngày Nhà giáo Việt Nam'],[12,22,'Ngày thành lập Quân đội nhân dân Việt Nam'],
-    [2027,2,6,'Tết Nguyên đán'],[2028,1,26,'Tết Nguyên đán'],[2029,2,13,'Tết Nguyên đán'],
-    [2027,4,16,'Giỗ Tổ Hùng Vương'],[2028,4,4,'Giỗ Tổ Hùng Vương']];   /* ngày âm lịch quy ra dương: nên đối chiếu lại với lịch hằng năm */
+    [10,20,'Ngày Phụ nữ Việt Nam'],[11,19,'Quốc tế Đàn ông'],[11,20,'Ngày Nhà giáo Việt Nam'],[12,22,'Ngày thành lập Quân đội nhân dân Việt Nam']];
+  /* Ngày lễ theo ÂM LỊCH, tự quy ra dương lịch mỗi năm: [ngày âm, tháng âm, tên] */
+  var LHOL=[[1,1,'Tết Nguyên đán'],[15,1,'Rằm tháng Giêng'],[10,3,'Giỗ Tổ Hùng Vương'],[15,8,'Tết Trung thu']];
   var HOL_DAYS=45,HOL_MAX=1;   /* chỉ nhắc 1 ngày gần nhất, nếu còn trong 45 ngày tới */
   function holidays(){
     var n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),out=[];
     for(var i=0;i<HOL.length;i++){
-      var h=HOL[i],ds=h.length===3?[new Date(t0.getFullYear(),h[0]-1,h[1]),new Date(t0.getFullYear()+1,h[0]-1,h[1])]:[new Date(h[0],h[1]-1,h[2])];
+      var h=HOL[i],ds=[new Date(t0.getFullYear(),h[0]-1,h[1]),new Date(t0.getFullYear()+1,h[0]-1,h[1])];
       for(var j=0;j<ds.length;j++){var d=Math.round((ds[j]-t0)/864e5);
-        if(d>=0&&d<=HOL_DAYS){out.push({d:d,name:h[h.length-1],date:two(ds[j].getDate())+'/'+two(ds[j].getMonth()+1)});break;}}
+        if(d>=0&&d<=HOL_DAYS){out.push({d:d,name:h[2],date:two(ds[j].getDate())+'/'+two(ds[j].getMonth()+1)});break;}}
     }
+    if(window.AmLich){for(var q=0;q<LHOL.length;q++){var L=LHOL[q];
+      for(var yy=t0.getFullYear()-1;yy<=t0.getFullYear()+1;yy++){var sd=window.AmLich.lunar2solar(L[0],L[1],yy,0);
+        if(!sd)continue;var dd=Math.round((sd-t0)/864e5);
+        if(dd>=0&&dd<=HOL_DAYS){out.push({d:dd,name:L[2],date:two(sd.getDate())+'/'+two(sd.getMonth()+1)+' (âm '+L[0]+'/'+L[1]+')'});break;}}}}
     out.sort(function(x,y){return x.d-y.d;});
     return out.slice(0,HOL_MAX);
   }
@@ -444,9 +484,10 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
 
   /* ----- Đúng ngày lễ: khi mở trang hiện lời chúc + pháo hoa khoảng 5 giây rồi tự tắt. Thử: thêm ?ngayle=1 vào địa chỉ trang ----- */
   function holidayToday(){
-    var n=new Date(),m=n.getMonth()+1,d=n.getDate(),y=n.getFullYear();
-    for(var i=0;i<HOL.length;i++){var h=HOL[i];
-      if(h.length===3?(h[0]===m&&h[1]===d):(h[0]===y&&h[1]===m&&h[2]===d))return h[h.length-1];}
+    var n=new Date(),m=n.getMonth()+1,d=n.getDate();
+    for(var i=0;i<HOL.length;i++){var h=HOL[i];if(h[0]===m&&h[1]===d)return h[2];}
+    try{var l=window.AmLich.solar2lunar(d,m,n.getFullYear());
+      if(!l.leap)for(var j=0;j<LHOL.length;j++)if(LHOL[j][0]===l.d&&LHOL[j][1]===l.m)return LHOL[j][2];}catch(e){}
     return null;
   }
   function fireworks(){
@@ -558,7 +599,8 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
 
   /* ----- lời chào + ngày giờ ----- */
   function two(n){return n<10?'0'+n:''+n;}
-  function stamp(){var d=new Date();return DAYS[d.getDay()]+', '+two(d.getDate())+'/'+two(d.getMonth()+1)+'/'+d.getFullYear()+' · '+two(d.getHours())+':'+two(d.getMinutes());}
+  function lunarTxt(d){try{var l=window.AmLich.solar2lunar(d.getDate(),d.getMonth()+1,d.getFullYear());return 'Âm lịch '+l.d+'/'+l.m+(l.leap?' nhuận':'');}catch(e){return '';}}
+  function stamp(){var d=new Date(),al=lunarTxt(d);return DAYS[d.getDay()]+', '+two(d.getDate())+'/'+two(d.getMonth()+1)+'/'+d.getFullYear()+(al?' · '+al:'')+' · '+two(d.getHours())+':'+two(d.getMinutes());}
   function clock(){var e=gEl&&gEl.querySelector('.g-time');if(e)e.textContent=stamp();}
   function greet(){
     if(!gEl)return;
@@ -685,6 +727,11 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
      Đổi SITE bên dưới nếu bạn đổi tên tài khoản GoatCounter. Cần bật trong GoatCounter:
      Settings → "Allow adding visitor counts on your website". Nếu dịch vụ lỗi/bị chặn, bộ đếm tự ẩn, trang vẫn chạy bình thường. -->
 <script data-goatcounter="https://nguyentuan.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<style id="lunar-row-css">
+/* Dòng "Thứ, ngày/tháng/năm · Âm lịch · giờ" luôn nằm trên MỘT hàng; màn hẹp thì tự thu chữ */
+html #tod-greet .g-time,html[data-tod] #tod-greet .g-time{white-space:nowrap;font-size:clamp(10px,3vw,12.5px)}
+@media (min-width:1100px){html #tod-greet .g-time,html[data-tod] #tod-greet .g-time{font-size:12.5px}}
+</style>
 <style id="desk-fit">
 /* Màn máy tính: khung nội dung rộng gần hết màn, bớt thừa hai bên. Cỡ chữ do script "desk-fit" phóng to theo độ rộng màn. */
 @media (min-width:1100px){
@@ -1087,7 +1134,7 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <script src="hieu-ung.js?v=20261005"></script>
 <script src="kho-de.js?v=20261030"></script>
 <script src="qr-nhanh.js?v=20261018"></script>
-<script src="ngay-le.js?v=20261018"></script>
+<script src="ngay-le.js?v=20261019"></script>
 <script src="dem-truy-cap.js?v=20261018"></script>
 <script>
 /* Rèm cửa: tự mở khi trang tải xong */
