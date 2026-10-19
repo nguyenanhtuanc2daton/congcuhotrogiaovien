@@ -374,9 +374,10 @@
      Google tự trỏ về bản ổn định mới nhất nên không cần sửa tay khi có model mới. */
   var MODELS_STATIC = [
     { id: 'gemini-flash-lite-latest', label: 'Gemini Flash Lite (mới nhất)' },
-    { id: 'gemini-flash-latest', label: 'Gemini Flash (mới nhất)' }
+    { id: 'gemini-flash-latest', label: 'Gemini Flash (mới nhất)' },
+    { id: 'gemini-pro-latest', label: 'Gemini Pro (mới nhất)' }
   ];
-  var MODELS_CACHE_KEY = 'ph_models_cache_v2', MODELS_TTL = 12 * 3600 * 1000;
+  var MODELS_CACHE_KEY = 'ph_models_cache_v3', MODELS_TTL = 12 * 3600 * 1000;
   var models = MODELS_STATIC.slice();
   try {
     var mc = JSON.parse(localStorage.getItem(MODELS_CACHE_KEY) || 'null');
@@ -613,23 +614,10 @@
   }
   function cmpVer(a, b) { for (var i = 0; i < 3; i++) { var d = (a[i] || 0) - (b[i] || 0); if (d) return d; } return 0; }
   function pickModels(list) {
-    var byTier = { 'flash-lite': [], 'flash': [], 'pro': [] }, latest = [];
-    list.forEach(function (m) {
-      if (/-latest$/.test(m.id)) { if (/^gemini-(flash-lite|flash|pro)-latest$/.test(m.id)) latest.push(m); return; }
-      var p = parseModel(m.id); if (!p) return;
-      m.p = p; m.stable = !UNSTABLE.test(m.id); byTier[p.tier].push(m);
-    });
+    /* Chỉ giữ 3 alias "-latest"; Google tự trỏ về bản mới nhất nên không cần liệt kê số phiên bản. */
     var out = [];
-    ['flash-lite', 'flash', 'pro'].forEach(function (t) {
-      var arr = byTier[t], st = arr.filter(function (m) { return m.stable; });
-      if (!st.length) st = arr;                         /* chưa có bản ổn định nào thì mới dùng preview */
-      st.sort(function (a, b) { return cmpVer(b.p.ver, a.p.ver) || (a.id.length - b.id.length); });
-      var seen = {}, n = 0;
-      st.forEach(function (m) { var k = m.p.ver.join('.'); if (seen[k] || n >= 1) return; seen[k] = 1; n++; out.push({ id: m.id, label: m.label }); });
-    });
-    ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-pro-latest'].forEach(function (id) {
-      var m = latest.filter(function (x) { return x.id === id; })[0];
-      if (m) out.push({ id: id, label: id.indexOf('lite') >= 0 ? 'Gemini Flash Lite (mới nhất)' : id.indexOf('pro') >= 0 ? 'Gemini Pro (mới nhất)' : 'Gemini Flash (mới nhất)' });
+    [['gemini-flash-lite-latest', 'Gemini Flash Lite (mới nhất)'], ['gemini-flash-latest', 'Gemini Flash (mới nhất)'], ['gemini-pro-latest', 'Gemini Pro (mới nhất)']].forEach(function (x) {
+      if (list.some(function (m) { return m.id === x[0]; })) out.push({ id: x[0], label: x[1] });
     });
     return out;
   }
