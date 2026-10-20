@@ -26,7 +26,7 @@
   function expireTrial(){
     rm('localStorage',K);rm('localStorage',OLD);rm('sessionStorage',SK);rm('localStorage',TE);
     pendingMsg=TRIAL_MSG;
-    setTimeout(function(){fire();if($('gkBox')){open(pendingMsg);pendingMsg='';}},0);}
+    setTimeout(function(){fire();if($('gkBox')){open(TRIAL_MSG);pendingMsg='';}},0);}
   function get(){if(trialExpired()){expireTrial();return '';}return rawKey();}
   function set(v,keep){
     v=String(v||'').trim(); if(!v) return false;
@@ -57,13 +57,14 @@
     bar.style.display=hide?'none':'';
     bar.classList.toggle('gk-float',forced);
     if(fab)fab.style.display=hide?'flex':'none';
-    var c=$('gkClose');if(c)c.style.display=get()?'':'none';}
+    var c=$('gkClose');if(c)c.style.display=(get()||forced)?'':'none';}
   function refresh(){var st=$('gkSt');if(!st)return;var k=get();
     var left=Math.max(0,Math.ceil(((+rd('localStorage',TE))-Date.now())/60000));
     st.textContent=k?(isTrial()?'đã nhập ✓ (key dùng thử – còn ~'+left+' phút)':'đã nhập ✓ (dùng cho mọi tính năng AI)'):'chưa nhập';st.className='gkst '+(k?'ok':'no');
     $('gkDel').style.display=k?'':'none';$('gkBtn').textContent=k?'🔑 Đổi / xem key':'🔑 Nhập key';apply();}
-  function open(msg){var b=$('gkBox');if(!b)return;forced=true;apply();b.hidden=false;$('gkIn').focus();
-    $('gkMsg').textContent=msg||'';try{$('gkBar').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}
+  function open(msg,quiet){var b=$('gkBox');if(!b)return;forced=true;apply();b.hidden=false;
+    $('gkMsg').textContent=msg||'';
+    if(!quiet){$('gkIn').focus();try{$('gkBar').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
   function build(){
     var hero=document.querySelector('.hero');if(!hero||$('gkBar'))return;
     var d=document.createElement('div');d.id='gkBar';
@@ -113,6 +114,7 @@
       });};
     refresh();
     if(pendingMsg){open(pendingMsg);pendingMsg='';}
+    else if(!get()){open('Chưa có API key Gemini — dán key rồi bấm Lưu để dùng các tính năng AI.',true);}
   }
   /* Kiểm tra hết hạn định kỳ + khi quay lại tab */
   function tick(){if(trialExpired())expireTrial();else if(isTrial())refresh();}
