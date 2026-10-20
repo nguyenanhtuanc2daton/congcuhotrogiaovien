@@ -367,7 +367,7 @@
     '<input type="file" id="kcAiDoc" accept=".docx,.pdf,.pptx,.txt,.md,image/*" hidden></div>' +
     '<div class="bar"><input id="kcAiTopic" placeholder="Yêu cầu thêm / chủ đề (không bắt buộc nếu đã chọn tài liệu)" style="flex:1;min-width:180px">' +
     '<label>Số câu <input type="number" id="kcAiN" value="10" min="3" max="30" style="width:64px"></label></div>' +
-    '<div class="bar"><label>Model <select id="kcAiModel"><option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite</option><option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite</option><option value="gemini-3.8-flash">Gemini 3.8 Flash</option></select></label>' +
+    '<div class="bar"><label>Model <select id="kcAiModel"><option value="gemini-flash-lite-latest">Gemini Flash-Lite (mới nhất)</option><option value="gemini-flash-latest">Gemini Flash (mới nhất)</option><option value="gemini-pro-latest">Gemini Pro (mới nhất)</option></select></label>' +
     '<button class="sm" id="kcAiBtn" type="button">✨ Tạo câu hỏi</button>' +
     '<label class="note"><input type="checkbox" id="kcAiAdd"> Nối thêm vào bộ hiện tại</label></div>' +
     '<div id="kcAiMsg" class="note"></div>' +
@@ -852,7 +852,7 @@
   });
 
   /* ---------- Tạo câu hỏi bằng Gemini (dùng khóa chung GKEY từ gkey.js) ---------- */
-  var AI_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.8-flash'];
+  var AI_MODELS = ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-pro-latest'];
   try { var sm = localStorage.getItem('kc_ai_model'); if (sm && AI_MODELS.indexOf(sm) >= 0) $('kcAiModel').value = sm; } catch (e) {}
   $('kcAiModel').addEventListener('change', function () { try { localStorage.setItem('kc_ai_model', this.value); } catch (e) {} });
 
