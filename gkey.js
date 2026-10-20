@@ -26,7 +26,7 @@
   function expireTrial(){
     rm('localStorage',K);rm('localStorage',OLD);rm('sessionStorage',SK);rm('localStorage',TE);
     pendingMsg=TRIAL_MSG;
-    setTimeout(function(){fire();if($('gkBox')){open(TRIAL_MSG);pendingMsg='';}},0);}
+    setTimeout(fire,0);}
   function get(){if(trialExpired()){expireTrial();return '';}return rawKey();}
   function set(v,keep){
     v=String(v||'').trim(); if(!v) return false;
@@ -63,7 +63,8 @@
     st.textContent=k?(isTrial()?'đã nhập ✓ (key dùng thử – còn ~'+left+' phút)':'đã nhập ✓ (dùng cho mọi tính năng AI)'):'chưa nhập';st.className='gkst '+(k?'ok':'no');
     $('gkDel').style.display=k?'':'none';$('gkBtn').textContent=k?'🔑 Đổi / xem key':'🔑 Nhập key';apply();}
   function open(msg,quiet){var b=$('gkBox');if(!b)return;forced=true;apply();b.hidden=false;
-    $('gkMsg').textContent=msg||'';
+    msg=(pendingMsg?pendingMsg+' ':'')+(msg||'');pendingMsg='';
+    $('gkMsg').textContent=msg;
     if(!quiet){$('gkIn').focus();try{$('gkBar').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
   function build(){
     var hero=document.querySelector('.hero');if(!hero||$('gkBar'))return;
@@ -113,8 +114,6 @@
         $('gkIn').value=TK;$('gkMsg').textContent='Không copy được nên đã điền sẵn key vào ô — bấm Lưu (hiệu lực 60 phút).';
       });};
     refresh();
-    if(pendingMsg){open(pendingMsg);pendingMsg='';}
-    else if(!get()){open('Chưa có API key Gemini — dán key rồi bấm Lưu để dùng các tính năng AI.',true);}
   }
   /* Kiểm tra hết hạn định kỳ + khi quay lại tab */
   function tick(){if(trialExpired())expireTrial();else if(isTrial())refresh();}
@@ -122,17 +121,19 @@
   window.addEventListener('focus',tick);
   document.addEventListener('visibilitychange',function(){if(!document.hidden)tick();});
   /* Mọi lời gọi tới Gemini (ở bất kỳ tính năng nào) trả lỗi do key (sai/hết hạn/bị khóa) → khung key tự nổi lên */
-  function keyProblem(){var b=$('gkBar');if(!b||b.classList.contains('gk-float'))return;
+  function keyProblem(byUser){var b=$('gkBar');if(!byUser||!b||b.classList.contains('gk-float'))return;
     open('⚠ Key Gemini đang gặp lỗi (sai, hết hạn hoặc bị khóa). Hãy dán key mới rồi bấm Lưu — khung sẽ tự đóng.');}
+  var lastUI=0;
+  ['pointerdown','touchstart','keydown','click'].forEach(function(ev){window.addEventListener(ev,function(){lastUI=Date.now();},true);});
   var _f=window.fetch;
   if(typeof _f==='function'){window.fetch=function(){
     var a=arguments,u='';try{u=String((a[0]&&a[0].url)||a[0]);}catch(e){}
-    var p=_f.apply(this,a);
+    var p=_f.apply(this,a),byUser=(Date.now()-lastUI)<20000;  /* lệnh gọi do người dùng vừa thao tác */
     if(u.indexOf('generativelanguage.googleapis.com')<0)return p;
     return p.then(function(r){
       try{if(r&&!r.ok&&(r.status===400||r.status===401||r.status===403)){
         r.clone().text().then(function(t){
-          if(r.status!==400||/API_KEY_INVALID|API key not valid|API key expired|key (is )?(invalid|expired)/i.test(t))keyProblem();
+          if(r.status!==400||/API_KEY_INVALID|API key not valid|API key expired|key (is )?(invalid|expired)/i.test(t))keyProblem(byUser);
         }).catch(function(){});}}catch(e){}
       return r;});
   };}
