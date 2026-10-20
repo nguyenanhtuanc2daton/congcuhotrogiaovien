@@ -758,7 +758,7 @@ function mcqPass(doc,body,secs,o,rep,ctx){
       if(li===paras.length-1){const sp=one(pp,'spacing');if(sp){['beforeLines','beforeAutospacing'].forEach(a=>sp.removeAttributeNS(W,a));sa(sp,'before',0)}}});
     /* câu hỏi đi cùng đáp án */
     const pv=stemP||paras[0].previousElementSibling;
-    if(pv&&pv.localName==='p'&&!hasSect(pv)&&!isE(pv)&&!hasPB(pv)){let pp=one(pv,'pPr');if(!pp){pp=mk(doc,'pPr');pv.insertBefore(pp,pv.firstChild)}sc(doc,pp,'keepNext',ORD.pPr)}
+    if(pv&&pv.localName==='p'&&!hasSect(pv)&&!isE(pv)&&!hasPB(pv)&&!STEM_RE.test(ptext(paras[0]).trim())){let pp=one(pv,'pPr');if(!pp){pp=mk(doc,'pPr');pv.insertBefore(pp,pv.firstChild)}sc(doc,pp,'keepNext',ORD.pPr)}
     const after=psig(stemP?[stemP].concat(paras):paras);
     if(after!==snap){if(lay===4)cnt.c4++;else if(lay===2)cnt.c2++;else cnt.c1++}});
   /* lề trái "Câu n." đồng nhất (bỏ qua khi người dùng chọn thụt đầu dòng 1 cm) */
@@ -813,6 +813,7 @@ function softBreaks(doc,body,o,rep){
       if(SOFT_RE.test(nt)&&!HARD_RE.test(nt)&&i>0){rm(p);n++}}});
   rep.fix('Bỏ ngắt trang cứng đặt trước PHẦN/Câu/Bài (hết khoảng trống cuối trang; Word tự ngắt trang theo nội dung)',n)}
 
+const STEM_RE=/^(Câu|CÂU|Bài|BÀI)\s*\d+/;
 function keepPass(doc,body,o,rep){
   let n=0;
   all(body,'p').forEach(p=>{
@@ -824,11 +825,21 @@ function keepPass(doc,body,o,rep){
       if(kn){rm(kn);n++}if(kl){rm(kl);n++}return}
     const stem=/^(Câu|CÂU|Bài|BÀI)\s*\d+/.test(t),cap=nx&&nx.localName==='p'&&/^(Hình|HÌNH)\s*\d*/.test(ptext(nx).trim())&&!t&&all(p,'drawing').length;
     const inTb=!!anc(p,'txbxContent'),optHere=!inTb&&optLead(pModel(p).S),nxOpt=!inTb&&nx&&nx.localName==='p'&&optLead(pModel(nx).S);
-    const want=info.head||stem||cap||(nx&&nx.localName==='tbl'&&t.length<150)||nxOpt;
+    /* Sửa lỗi trống cuối trang: các dòng "Câu n." đứng liền nhau (Đúng/Sai, Trả lời ngắn) KHÔNG được giữ-với-đoạn-sau,
+       nếu không cả chuỗi câu dính thành một khối và bị đẩy nguyên sang trang mới. */
+    const nxStem=!!nx&&nx.localName==='p'&&STEM_RE.test(ptext(nx).trim()),nxHead=!!nx&&nx.localName==='p'&&pInfo(nx).head;
+    const stemKeep=stem&&!nxStem&&!nxHead&&!(nx&&nx.localName==='p'&&isE(nx));
+    const pv=p.previousElementSibling,lead=!stem&&!info.head&&pv&&pv.localName==='p'&&pInfo(pv).head&&t.length>0&&t.length<200&&nxStem;   /* dòng hướng dẫn ngay sau tiêu đề PHẦN */
+    const want=info.head||stemKeep||lead||cap||(nx&&nx.localName==='tbl'&&t.length<150)||nxOpt;
     if(!pPr){if(want&&nx&&nx.localName!=='sectPr'){pPr=mk(doc,'pPr');p.insertBefore(pPr,p.firstChild);sc(doc,pPr,'keepNext',ORD.pPr);n++}return}
     if(kl&&!info.head&&!optHere){rm(kl);n++}
     if(kn&&!want){rm(kn);n++}
     if(!kn&&want&&nx&&nx.localName!=='sectPr'){sc(doc,pPr,'keepNext',ORD.pPr);n++}});
+  /* Chốt an toàn: chuỗi keepNext liên tiếp quá dài (>8 đoạn) sẽ bị cắt ở ranh giới giữa các câu */
+  {const kids=Array.from(body.children);let run=[];
+   const flush=()=>{if(run.length>8)run.forEach(q=>{const nq=q.nextElementSibling;
+     if(nq&&nq.localName==='p'&&STEM_RE.test(ptext(nq).trim())&&!pInfo(q).head){const kn=one(one(q,'pPr'),'keepNext');if(kn){rm(kn);n++}}});run=[]};
+   kids.forEach(q=>{const pp=q.localName==='p'&&one(q,'pPr');if(pp&&one(pp,'keepNext'))run.push(q);else flush()});flush()}
   rep.fix('Chỉnh "giữ với đoạn sau" (tiêu đề/câu hỏi/hình không bị tách trang; bỏ ràng buộc gây đẩy đoạn sang trang mới)',n)}
 
 function sections(doc,body,o,rep){

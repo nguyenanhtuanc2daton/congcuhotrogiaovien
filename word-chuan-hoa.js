@@ -129,7 +129,9 @@ function docNorm(d,cfg,rep){
     const cs=one(pPr,'contextualSpacing');if(cs)pPr.removeChild(cs);   /* làm mất khoảng cách giữa các đoạn cùng kiểu */
     {const fp=one(pPr,'framePr');if(fp&&!ga(fp,'dropCap'))pPr.removeChild(fp)}   /* khung định vị khi dán từ web */
     if(CLEAN){if(!inTc){const sh=one(pPr,'shd');if(sh)pPr.removeChild(sh)}
-      if(!inTc&&!head&&!keep){['keepNext','keepLines'].forEach(n=>{const e=one(pPr,n);if(e)pPr.removeChild(e)});   /* giữ-với-đoạn-sau từ web gây trống cả trang */
+      if(!inTc&&!head&&!keep){const _t=p.textContent.trim(),_n=p.nextElementSibling,_nt=_n&&isP(_n)?_n.textContent.trim():'',
+          _qs=/^(Câu|CÂU|Bài|BÀI)\s*\d+/,_keepQ=_qs.test(_t)&&!!_n&&!_qs.test(_nt)&&_nt.length>0;   /* câu hỏi đi cùng đáp án ngay sau; các câu liền nhau thì KHÔNG dính nhau */
+        ['keepNext','keepLines'].forEach(n=>{const e=one(pPr,n);if(e&&!(_keepQ&&n==='keepNext'))pPr.removeChild(e)});   /* giữ-với-đoạn-sau từ web gây trống cả trang */
         if(!list){const e=one(pPr,'pBdr');if(e)pPr.removeChild(e)}}   /* khung viền đoạn (blockquote/hộp web) */                /* nền đoạn từ web */
       ['snapToGrid','autoSpaceDE','autoSpaceDN'].forEach(n=>sa(sc(d,pPr,n,ORD.pPr),'val',0))}   /* tắt lưới/khoảng cách tự động gây giãn không đều */
     if(head&&!inTc)sc(d,pPr,'keepNext',ORD.pPr);
@@ -148,6 +150,10 @@ function docNorm(d,cfg,rep){
     for(const t of ts){const v=t.textContent.replace(/^[\s\u00a0]+/,'');if(v!==t.textContent)t.textContent=v;if(v)break}
     for(const t of ts.slice().reverse()){const v=t.textContent.replace(/[\s\u00a0]+$/,'');if(v!==t.textContent)t.textContent=v;if(v)break}
   });
+  /* Chốt an toàn: cắt chuỗi "giữ với đoạn sau" quá dài (>8 đoạn liên tiếp) — nguyên nhân khoảng trống lớn cuối trang */
+  {let run=[];const flush=()=>{if(run.length>8)run.forEach(q=>{const nq=q.nextElementSibling,pp=one(q,'pPr'),kn=pp&&one(pp,'keepNext');
+      if(kn&&nq&&isP(nq)&&/^(Câu|CÂU|Bài|BÀI)\s*\d+/.test(nq.textContent.trim()))pp.removeChild(kn)});run=[]};
+    Array.from(body.children).forEach(q=>{const pp=isP(q)&&one(q,'pPr');if(pp&&one(pp,'keepNext'))run.push(q);else flush()});flush()}
   if(cfg.img!==false)floatToInline(body,rep);   /* ảnh trôi nổi từ web đè lên chữ */
   if(cfg.img!==false){const mx=Math.min(...secs.map(s=>s.aw))*635,k=[0];   /* twip → EMU */
     const WP='http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing',A='http://schemas.openxmlformats.org/drawingml/2006/main';
