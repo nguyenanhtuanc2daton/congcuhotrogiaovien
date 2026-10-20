@@ -814,6 +814,27 @@ function softBreaks(doc,body,o,rep){
   rep.fix('Bỏ ngắt trang cứng đặt trước PHẦN/Câu/Bài (hết khoảng trống cuối trang; Word tự ngắt trang theo nội dung)',n)}
 
 const STEM_RE=/^(Câu|CÂU|Bài|BÀI)\s*\d+/;
+/* Khoảng cách giữa các câu đều nhau: bỏ dòng trống đơn lẻ trước "Câu n"/PHẦN và đặt cùng một khoảng sau đoạn cuối của mỗi câu */
+function questionGaps(doc,body,rep){
+  const GAP=120;let em=0,sp=0;
+  const isStemP=q=>!!q&&q.localName==='p'&&q.namespaceURI===W&&STEM_RE.test(ptext(q).trim());
+  const plainE=q=>!!q&&q.localName==='p'&&q.namespaceURI===W&&isE(q)&&!hasPB(q)&&!hasSect(q);
+  const kids=Array.from(body.children);
+  kids.forEach((q,i)=>{
+    if(!plainE(q))return;
+    let j=i+1;while(kids[j]&&plainE(kids[j]))j++;
+    const nx=kids[j],pv=kids[i-1];
+    if(pv&&pv.localName==='p'&&!isE(pv)&&(isStemP(nx)||(nx&&nx.localName==='p'&&pInfo(nx).head&&/^(PHẦN|Phần)\b/.test(ptext(nx).trim())))){rm(q);em++}});
+  const setSp=(p,before,after)=>{let pp=one(p,'pPr');if(!pp){pp=mk(doc,'pPr');p.insertBefore(pp,p.firstChild)}
+    const e=sc(doc,pp,'spacing',ORD.pPr);['beforeLines','afterLines','beforeAutospacing','afterAutospacing'].forEach(a=>e.removeAttributeNS(W,a));
+    if(before!==null)sa(e,'before',before);if(after!==null)sa(e,'after',after)};
+  Array.from(body.children).forEach(q=>{
+    if(!isStemP(q)||anc(q,'tc'))return;
+    const pv=q.previousElementSibling;
+    setSp(q,0,null);
+    if(pv&&pv.localName==='p'&&!isE(pv)&&!hasSect(pv)&&!hasPB(pv)&&!pInfo(pv).head){setSp(pv,null,GAP);sp++}});
+  rep.fix('Đều khoảng cách giữa các câu (bỏ dòng trống lẻ, cùng một khoảng sau mỗi câu)',em+sp)}
+
 function keepPass(doc,body,o,rep){
   let n=0;
   all(body,'p').forEach(p=>{
@@ -1554,6 +1575,7 @@ async function auditOnce(buf,o,hooks){
   if(!secs){secs=[{end:body.children.length,sp:one(body,'sectPr')||mk(doc,'sectPr'),aw:9071,ah:14570}];secs.bk=Array.from(body.children)}
   ctx.szEst=o.size==='auto'?dominantSize(body,defSz):(+o.size)*2;
   if(o.mcq)step('căn đáp án trắc nghiệm',()=>mcqPass(doc,body,secs,o,rep,ctx));
+  if(o.mcq||o.blank)step('đều khoảng cách giữa các câu',()=>questionGaps(doc,body,rep));
   if(o.tbl)step('bảng',()=>tablePass(doc,body,secs,o,rep,ctx));
   if(o.img||o.imgInline||o.imgFix)step('hình ảnh',()=>imgPass(doc,secs,o,rep,ctx));
   step('danh sách',()=>numberingCheck(doc,numd,rep));

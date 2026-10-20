@@ -85,6 +85,7 @@ function pinfo(p,pPr){const st=pPr&&one(pPr,'pStyle'),sv=st?ga(st,'val'):'',je=p
     head:sh||lv>=0,
     keep:jc==='center'||jc==='right'||jc==='end'||img}}
 let CLEAN=true,LANGVI=true,HEADON=true;
+const hasBreak=p=>Array.from(p.getElementsByTagNameNS(W,'br')).some(b=>ga(b,'type')==='page');
 const isP=c=>c.localName==='p'&&c.namespaceURI===W;
 const RI=['hanging','hangingChars','firstLine','firstLineChars','left','leftChars','start','startChars','right','rightChars','end','endChars'];
 const CM=['top','start','left','bottom','end','right'];
@@ -154,6 +155,13 @@ function docNorm(d,cfg,rep){
   {let run=[];const flush=()=>{if(run.length>8)run.forEach(q=>{const nq=q.nextElementSibling,pp=one(q,'pPr'),kn=pp&&one(pp,'keepNext');
       if(kn&&nq&&isP(nq)&&/^(Câu|CÂU|Bài|BÀI)\s*\d+/.test(nq.textContent.trim()))pp.removeChild(kn)});run=[]};
     Array.from(body.children).forEach(q=>{const pp=isP(q)&&one(q,'pPr');if(pp&&one(pp,'keepNext'))run.push(q);else flush()});flush()}
+  /* Dòng trống đơn lẻ đứng trước "Câu n"/PHẦN làm khoảng cách giữa các câu không đều → bỏ (khoảng cách đã do spacing quy định) */
+  {const QS=/^(Câu|CÂU|Bài|BÀI|PHẦN|Phần)\s*[\dA-Z]/;
+   Array.from(body.children).forEach(q=>{if(!isP(q)||!isEmpty(q)||hasBreak(q))return;const pv=q.previousElementSibling,nx=q.nextElementSibling;
+     if(pv&&nx&&isP(pv)&&isP(nx)&&!isEmpty(pv)&&!one(one(pv,'pPr')||pv,'sectPr')&&QS.test(nx.textContent.trim())){body.removeChild(q);rep.empty=(rep.empty||0)+1}})}
+  /* cùng một khoảng sau đoạn cuối của mỗi câu */
+  {Array.from(body.children).forEach(q=>{if(!isP(q)||!/^(Câu|CÂU|Bài|BÀI)\s*\d+/.test(q.textContent.trim()))return;const pv=q.previousElementSibling;
+     if(!pv||!isP(pv)||isEmpty(pv))return;const pp=one(pv,'pPr');if(!pp||one(pp,'sectPr'))return;const e=one(pp,'spacing');if(e&&!/^(PHẦN|Phần)/.test(pv.textContent.trim())&&!one(pp,'outlineLvl'))sa(e,'after',120)})}
   if(cfg.img!==false)floatToInline(body,rep);   /* ảnh trôi nổi từ web đè lên chữ */
   if(cfg.img!==false){const mx=Math.min(...secs.map(s=>s.aw))*635,k=[0];   /* twip → EMU */
     const WP='http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing',A='http://schemas.openxmlformats.org/drawingml/2006/main';
