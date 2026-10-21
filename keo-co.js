@@ -92,7 +92,7 @@
     '.kc-grp.r{transform:scaleX(-1);filter:drop-shadow(0 0 5px var(--kr1))}',
     '.kc-rope{height:8px;width:clamp(20px,5vw,90px);background:repeating-linear-gradient(90deg,#b08a4e 0 7px,#8a6a36 7px 14px);border-radius:6px}',
     '.kc-knot{width:18px;height:30px;background:#ef4444;border:3px solid #7f1d1d;border-radius:8px;box-shadow:0 2px 6px #0005;flex:none}',
-    '.kc-info{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);background:#0f172ae6;color:#d1fae5;border-radius:999px;padding:3px 12px;font-size:12px;text-align:center;white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis;z-index:2}',
+    '.kc-info{background:#0f172ae6;color:#d1fae5;border-radius:999px;padding:4px 14px;font-size:14px;text-align:center;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}',
     '.kc-ov{position:absolute;inset:0;background:#000b;border-radius:14px;display:none;align-items:center;justify-content:center;z-index:5}',
     '.kc-ov.on{display:flex}',
     '.kc-ovbox{background:#fff;color:#111;border-radius:20px;padding:26px 34px;text-align:center;max-width:90%;max-height:92%;overflow:auto;box-sizing:border-box}',
@@ -489,13 +489,14 @@
     '<button class="kc-btn" id="kcRestart" type="button">↻ Chơi lại</button>' +
     '<button class="kc-btn" id="kcFarBtn" type="button" title="Chữ to, đáp án 1 cột, dễ đọc từ cuối lớp">👓 Nhìn xa</button>' +
     '<button class="kc-btn" id="kcFull" type="button">⛶ Toàn màn hình</button>' +
+    '<div class="kc-info" id="kcInfo"></div>' +
     '</div>' +
     '<div class="kc-grid">' +
     '<div class="kc-team b" id="kcTB"></div>' +
     '<div class="kc-field" id="kcField"><div class="kc-prog"><i class="kc-pb" id="kcPB"></i><i class="kc-pr" id="kcPR"></i></div>' +
     '<div class="kc-mid"></div><div class="kc-win b"><small id="kcFlagB">🏁 ĐÍCH</small></div><div class="kc-win r"><small id="kcFlagR">ĐÍCH 🏁</small></div>' +
     '<div class="kc-mover" id="kcMover"><span class="kc-grp b">🧑‍🎓🧑‍🎓</span><span class="kc-rope"></span><span class="kc-knot"></span><span class="kc-rope"></span><span class="kc-grp r">🧑‍🎓🧑‍🎓</span></div>' +
-    '<div class="kc-info" id="kcInfo"></div></div>' +
+    '</div>' +
     '<div class="kc-team r" id="kcTR"></div>' +
     '</div>' +
     '<div class="kc-cd" id="kcCd"></div>' +
