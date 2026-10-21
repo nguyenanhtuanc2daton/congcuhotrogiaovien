@@ -165,7 +165,7 @@
     /* Chế độ Ôn tập */
     '.kc-rvwrap{display:flex;flex-direction:column;gap:10px}',
     '.kc-rv .kc-rvbox{min-height:340px}',
-    '.kc-rv .kc-opt{display:flex;align-items:center;justify-content:center;text-align:center;cursor:default}',
+    '.kc-rv .kc-opt{display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer}',
     '.kc-opt.dim{opacity:.3}',
     '.kc-rvside{display:flex;flex-direction:column;gap:8px}.kc-rvside:empty{display:none}',
     '.kc-exp{background:#fef3c7;color:#422006;border-radius:12px;padding:10px 16px;font-weight:600;line-height:1.5;font-size:calc(clamp(16px,2vw,28px)*var(--kc-fs,1));overflow:auto;max-height:34vh}',
@@ -436,7 +436,7 @@
     '<div class="note">Huy hiệu: thắng liên tiếp 2 ván 🔥 Nóng máy · 3 ván ⭐ Ngôi sao kéo co · 4 ván 💎 Kim cương · 5 ván 👑 Nhà vô địch. Hòa hoặc thua thì chuỗi về 0 (huy hiệu đã nhận vẫn được giữ). Thành tích lưu theo tên đội, nên hãy giữ nguyên tên đội khi chơi nhiều ván.</div>' +
     '</div>' +
     '<div id="kcCfgOn" style="display:none">' +
-    '<div class="bar"><label>⏱ Giây mỗi câu <input type="number" id="kcRvSecs" min="0" max="300" style="width:80px"></label><span class="note">0 = không đếm giờ</span></div>' +
+    '<div class="bar"><label>⏱ Giây mỗi câu <input type="number" id="kcRvSecs" min="0" max="300" style="width:80px"></label><span class="note">0 = không đếm giờ. Hết giờ không tự hiện đáp án.</span></div>' +
     '<div class="bar"><label>Số câu ôn <input type="number" id="kcRvLimit" min="0" max="200" style="width:80px"></label><span class="note">0 = dùng hết bộ câu hỏi</span></div>' +
     '<div class="bar"><label><input type="checkbox" id="kcRvShufQ"> 🔀 Xáo trộn thứ tự câu hỏi</label></div>' +
     '<div class="bar"><label><input type="checkbox" id="kcRvShufO"> 🔀 Xáo trộn thứ tự đáp án</label></div>' +
@@ -445,7 +445,7 @@
     '<div id="kcRvTeamBox" class="kc-tcfg" style="display:none">' +
     '<div class="bar"><label>Tên các đội, cách nhau bằng dấu phẩy (2–6 đội)<input id="kcRvNames" style="width:100%;box-sizing:border-box"></label></div>' +
     '<div class="bar"><label><input type="checkbox" id="kcRvBonus"> ⭐ Câu thưởng x2 điểm (khoảng 1/5 số câu, chọn ngẫu nhiên)</label></div></div>' +
-    '<div class="note">Cách chơi: chiếu câu hỏi, các đội thảo luận, giáo viên bấm “Hiện đáp án”, xem giải thích rồi bấm tên đội trả lời đúng để cộng điểm. Phím tắt: Space hoặc → = hiện đáp án / câu tiếp, ← = câu trước.</div>' +
+    '<div class="note">Cách chơi: gọi học sinh lên bấm chọn 1 đáp án (mỗi câu chỉ chọn một lần). Chọn đúng: có tiếng vỗ tay, hiện đáp án và giải thích ngay. Chọn sai: đáp án tô đỏ kèm nhạc buồn, giáo viên bấm “Hiện đáp án” để chiếu đáp án đúng và giải thích. Có thể bấm tên đội để cộng điểm. Phím tắt: Space hoặc → = hiện đáp án / câu tiếp, ← = câu trước.</div>' +
     '</div>' +
     '<div class="bar"><button class="red" id="kcStart\" type="button" style="font-size:18px;padding:12px 26px">▶ BẮT ĐẦU / TRÌNH CHIẾU</button></div>' +
     '<div class="note" id="kcKeoTip">Cả hai đội đều thấy đáp án <b>A B C D</b>. Chạm / bấm chuột để chọn, hoặc dùng chung một bàn phím: đội Xanh bấm <b>A S D F</b> (= A B C D), đội Đỏ bấm <b>J K L ;</b> (= A B C D).</div>' +
@@ -462,7 +462,7 @@
     '<button class="kc-btn" id="kcRvFull" type="button">⛶ Toàn màn hình</button>' +
     '</div>' +
     '<div class="kc-rvwrap"><div class="kc-team b kc-rvbox" id="kcRvBox"></div><div class="kc-rvside" id="kcRvSide"></div></div>' +
-    '<div class="kc-rvbar"><button class="kc-btn" id="kcRvPrev" type="button">◀ Câu trước</button><button class="kc-btn kc-go" id="kcRvShow" type="button">👁 Hiện đáp án</button><button class="kc-btn" id="kcRvNext" type="button">Câu tiếp ▶</button></div>' +
+    '<div class="kc-rvbar"><button class="kc-btn" id="kcRvPrev" type="button">◀ Câu trước</button><button class="kc-btn" id="kcRvRetry" type="button" style="display:none">↺ Chọn lại</button><button class="kc-btn kc-go" id="kcRvShow" type="button">👁 Hiện đáp án</button><button class="kc-btn" id="kcRvNext" type="button">Câu tiếp ▶</button></div>' +
     '<div class="kc-ov" id="kcRvOv"><div class="kc-ovbox" id="kcRvOvBox"></div></div>' +
     '</div>' +
     '<div class="kc-stage" id="kcStage">' +
@@ -1175,7 +1175,7 @@
   var RV_COL = ['#ea580c', '#2563eb', '#7c3aed', '#16a34a', '#dc2626', '#ca8a04'];
   var RV_EM = ['🟠', '🔵', '🟣', '🟢', '🔴', '🟡'];
   var KEO_NOTE = $('kcNote').textContent;
-  var rv = { list: [], opts: [], rev: [], aw: [], bonus: [], teams: [], i: 0, active: false, paused: false, endAt: 0, remain: 0, timer: null, last: -1 };
+  var rv = { list: [], opts: [], rev: [], aw: [], bonus: [], teams: [], i: 0, active: false, paused: false, endAt: 0, remain: 0, timer: null, last: -1, pick: [], up: [] };
   rvEl.style.setProperty('--kc-fs', cfg.fscale);
 
   function rvSetMode(m) {
@@ -1184,7 +1184,7 @@
     $('kcCfgKeo').style.display = on ? 'none' : '';
     $('kcCfgOn').style.display = on ? '' : 'none';
     $('kcKeoTip').style.display = on ? 'none' : '';
-    $('kcNote').textContent = on ? 'Chiếu lần lượt từng câu hỏi cho cả lớp ôn luyện. Giáo viên bấm “Hiện đáp án”, xem giải thích, và có thể tính điểm theo đội.' : KEO_NOTE;
+    $('kcNote').textContent = on ? 'Chiếu từng câu cho cả lớp. Gọi học sinh lên bấm chọn đáp án: đúng thì có tiếng vỗ tay và hiện giải thích ngay, sai thì có nhạc buồn. Giáo viên bấm “Hiện đáp án” khi cần; có thể tính điểm theo đội.' : KEO_NOTE;
     Array.prototype.forEach.call(document.getElementsByName('kcMode'), function (r) { r.checked = r.value === cfg.mode; });
   }
   Array.prototype.forEach.call(document.getElementsByName('kcMode'), function (r) { r.addEventListener('change', function () { if (r.checked) rvSetMode(r.value); }); });
@@ -1207,8 +1207,8 @@
       (rv.bonus[rv.i] ? '<small class="kc-fire">⭐ Câu thưởng x2</small>' : '') + '</div>' +
       '<div class="kc-q"><span>' + mathHTML(q.q) + '</span></div>' +
       '<div class="kc-opts">' + opts.map(function (o, j) {
-        var c = rev ? (o === q.ans ? ' ok' : ' dim') : '';
-        return '<div class="kc-opt' + c + '"><i>' + keys[j] + '</i><span>' + mathHTML(o) + '</span></div>';
+        var pk = rv.pick[rv.i], c = rev ? (o === q.ans ? ' ok' : (j === pk ? ' bad' : ' dim')) : (j === pk ? ' bad' : '');
+        return '<div class="kc-opt' + c + '" data-o="' + j + '"><i>' + keys[j] + '</i><span>' + mathHTML(o) + '</span></div>';
       }).join('') + '</div>';
   }
   function rvRenderSide() {
@@ -1223,37 +1223,81 @@
     $('kcRvSide').innerHTML = h;
   }
   function rvRenderBtns() {
-    var rev = rv.rev[rv.i], last = rv.i >= rv.list.length - 1, tm = $('kcRvTime'), timed = cfg.rvSecs > 0 && !rev;
+    var rev = rv.rev[rv.i], last = rv.i >= rv.list.length - 1, tm = $('kcRvTime'), timed = rvTimed(rv.i), showT = cfg.rvSecs > 0 && !rev && rv.pick[rv.i] == null;
     $('kcRvPrev').disabled = rv.i === 0;
     $('kcRvShow').disabled = !!rev; $('kcRvShow').textContent = rev ? '✓ Đã hiện đáp án' : '👁 Hiện đáp án';
     $('kcRvNext').textContent = last ? '🏁 Kết thúc' : 'Câu tiếp ▶';
-    tm.style.display = timed ? '' : 'none'; tm.textContent = fmt(rv.remain); tm.classList.toggle('low', rv.remain <= 5000);
+    tm.style.display = showT ? '' : 'none'; tm.textContent = rv.up[rv.i] ? '⏰ Hết giờ' : fmt(rv.remain); tm.classList.toggle('low', !!rv.up[rv.i] || rv.remain <= 5000);
+    $('kcRvRetry').style.display = (rv.pick[rv.i] != null || rv.up[rv.i]) && !rev ? '' : 'none';
     $('kcRvPause').style.display = timed ? '' : 'none';
     $('kcRvMute').textContent = cfg.sound ? '🔊' : '🔇';
   }
   function rvRender() { rvRenderBox(); rvRenderSide(); rvRenderBtns(); rvScoreRender(); fitSoon(); }
 
+  function rvTimed(i) { return cfg.rvSecs > 0 && !rv.rev[i] && rv.pick[i] == null && !rv.up[i]; }
   function rvTick() {
     if (!rv.active || rv.paused || rv.rev[rv.i]) return;
     rv.remain = Math.max(0, rv.endAt - Date.now());
     var tm = $('kcRvTime'); tm.textContent = fmt(rv.remain); tm.classList.toggle('low', rv.remain <= 5000);
     var sc = Math.ceil(rv.remain / 1000); if (sc <= 3 && sc > 0 && sc !== rv.last) beep(520, 0.05); rv.last = sc;
-    if (rv.remain <= 0) rvReveal();
+    if (rv.remain <= 0) { rv.up[rv.i] = true; clearInterval(rv.timer); beep(300, 0.4, 'square'); rvRenderBtns(); }
   }
   function rvGo(i) {
     rv.i = Math.max(0, Math.min(rv.list.length - 1, i)); rv.paused = false; rv.last = -1; clearInterval(rv.timer);
     $('kcRvPause').textContent = '⏸ Tạm dừng';
-    if (!rv.rev[rv.i] && cfg.rvSecs > 0) { rv.remain = cfg.rvSecs * 1000; rv.endAt = Date.now() + rv.remain; rv.timer = setInterval(rvTick, 200); }
+    if (rvTimed(rv.i)) { rv.remain = cfg.rvSecs * 1000; rv.endAt = Date.now() + rv.remain; rv.timer = setInterval(rvTick, 200); }
     rvRender();
   }
   function rvReveal() {
     if (!rv.active || rv.rev[rv.i]) return;
     rv.rev[rv.i] = true; clearInterval(rv.timer); beep(880, 0.15); rvRender();
   }
+  function rvCtx() {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended' && actx.resume) actx.resume();
+    return actx;
+  }
+  function rvApplause() {          /* tiếng vỗ tay: nhiều cú vỗ ngắn ngẫu nhiên, lọc băng tần cao */
+    if (!cfg.sound) return;
+    try {
+      var c = rvCtx(), sr = c.sampleRate, dur = 2.2, buf = c.createBuffer(1, Math.floor(sr * dur), sr), d = buf.getChannelData(0), n, k, mx = 0, i;
+      for (n = 0; n < 150; n++) {
+        var t0 = (0.05 + Math.random() * 1.7) * sr, amp = 0.4 + Math.random() * 0.6, len = Math.floor(sr * 0.04);
+        for (k = 0; k < len; k++) { i = Math.floor(t0) + k; if (i < d.length) d[i] += (Math.random() * 2 - 1) * Math.exp(-k / (sr * 0.007)) * amp; }
+      }
+      for (i = 0; i < d.length; i++) { d[i] *= Math.min(1, 1 - Math.max(0, (i / sr - 1.5) / 0.7)); mx = Math.max(mx, Math.abs(d[i])); }
+      for (i = 0; i < d.length; i++) d[i] /= (mx || 1);
+      var src = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain();
+      src.buffer = buf; bp.type = 'bandpass'; bp.frequency.value = 2200; bp.Q.value = 0.6; g.gain.value = 0.9;
+      src.connect(bp); bp.connect(g); g.connect(c.destination); src.start();
+      beep(784, 0.1); setTimeout(function () { beep(988, 0.1); }, 110); setTimeout(function () { beep(1319, 0.2); }, 220);
+    } catch (e) {}
+  }
+  function rvSad() {               /* nhạc buồn: kèn trombone đi xuống "wah-wah-wah-waaah" */
+    if (!cfg.sound) return;
+    try {
+      var c = rvCtx(), t0 = c.currentTime, notes = [[392, 0], [370, 0.36], [349, 0.72], [329, 1.08]];
+      notes.forEach(function (nt, k) {
+        var o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter(), st = t0 + nt[1], len = k === 3 ? 0.95 : 0.3;
+        o.type = 'sawtooth'; o.frequency.setValueAtTime(nt[0], st);
+        if (k === 3) o.frequency.linearRampToValueAtTime(nt[0] * 0.8, st + len);
+        f.type = 'lowpass'; f.frequency.value = 900;
+        g.gain.setValueAtTime(0.0001, st); g.gain.exponentialRampToValueAtTime(0.2, st + 0.04); g.gain.exponentialRampToValueAtTime(0.0001, st + len);
+        o.connect(f); f.connect(g); g.connect(c.destination); o.start(st); o.stop(st + len + 0.05);
+      });
+    } catch (e) {}
+  }
+  function rvPick(j) {             /* học sinh chọn 1 đáp án: đúng → hiện luôn đáp án + giải thích; sai → chỉ tô đỏ */
+    if (!rv.active || rv.paused || rv.rev[rv.i] || rv.pick[rv.i] != null || rv.up[rv.i]) return;
+    var ok = rv.opts[rv.i][j] === rv.list[rv.i].ans;
+    rv.pick[rv.i] = j; clearInterval(rv.timer);
+    if (ok) { rv.rev[rv.i] = true; rvApplause(); } else rvSad();
+    rvRender();
+  }
   function rvNext() { if (!rv.active) return; if (rv.i >= rv.list.length - 1) rvFinish(); else rvGo(rv.i + 1); }
   function rvPrev() { if (rv.active && rv.i > 0) rvGo(rv.i - 1); }
   function rvSetPause(v) {
-    if (!rv.active || rv.rev[rv.i] || cfg.rvSecs <= 0 || rv.paused === v) return;
+    if (!rv.active || !rvTimed(rv.i) || rv.paused === v) return;
     rv.paused = v;
     if (v) rv.remain = Math.max(0, rv.endAt - Date.now()); else rv.endAt = Date.now() + rv.remain;
     $('kcRvPause').textContent = v ? '▶ Tiếp tục' : '⏸ Tạm dừng';
@@ -1263,6 +1307,7 @@
     rv.list = list; rv.i = 0; rv.active = true;
     rv.rev = list.map(function () { return false; });
     rv.aw = list.map(function () { return []; });
+    rv.pick = list.map(function () { return null; }); rv.up = list.map(function () { return false; });
     rv.bonus = list.map(function () { return false; });
     if (cfg.rvTeams && cfg.rvBonus && list.length >= 3) {
       shuffle(list.map(function (_, i) { return i; })).slice(0, Math.max(1, Math.round(list.length / 5))).forEach(function (i) { rv.bonus[i] = true; });
@@ -1319,6 +1364,8 @@
   }
 
   rvEl.addEventListener('click', function (e) {
+    var op = e.target.closest('.kc-opt');
+    if (op && rvBox.contains(op)) { rvPick(+op.getAttribute('data-o')); return; }
     var b = e.target.closest('button'); if (!b) return;
     var aw = e.target.closest('.kc-awb');
     if (aw && rv.active && rv.rev[rv.i]) {
@@ -1332,6 +1379,7 @@
     b.blur();
   });
   $('kcRvShow').onclick = rvReveal;
+  $('kcRvRetry').onclick = function () { if (rv.active && !rv.rev[rv.i] && (rv.pick[rv.i] != null || rv.up[rv.i])) { rv.pick[rv.i] = null; rv.up[rv.i] = false; rvGo(rv.i); } };
   $('kcRvNext').onclick = rvNext;
   $('kcRvPrev').onclick = rvPrev;
   $('kcRvPause').onclick = function () { rvSetPause(!rv.paused); };
