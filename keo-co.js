@@ -7,7 +7,7 @@
 
   var LS = 'kc_cfg_v1';
   /* Bộ mẫu: [câu hỏi, A, B, C, D, đáp án đúng]. Công thức Toán viết LaTeX trong $...$ */
-  var SAMPLE_HEAD = ['Câu hỏi', 'Đáp án A', 'Đáp án B', 'Đáp án C', 'Đáp án D', 'Đáp án đúng (A/B/C/D)'];
+  var SAMPLE_HEAD = ['Câu hỏi', 'Đáp án A', 'Đáp án B', 'Đáp án C', 'Đáp án D', 'Đáp án đúng (A/B/C/D)', 'Giải thích (không bắt buộc)'];
   var SAMPLE_ROWS = [
     ['Khai triển $(a+b)^2$ bằng gì?', '$a^2+2ab+b^2$', '$a^2+b^2$', '$a^2-2ab+b^2$', '$a^2+ab+b^2$', 'A'],
     ['Hằng đẳng thức hiệu hai bình phương là?', '$(a-b)^2$', '$(a+b)(a-b)$', '$a^2+b^2$', '$(a+b)^2$', 'B'],
@@ -25,6 +25,24 @@
     ['Giá trị của $2^3$ là?', '6', '9', '8', '5', 'C'],
     ['Giá trị của $\\lvert -5 \\rvert$ là?', '$-5$', '$5$', '$0$', '$\\frac{1}{5}$', 'B']
   ];
+  var SAMPLE_EXP = [
+    'Bình phương của một tổng: $(a+b)^2=a^2+2ab+b^2$.',
+    'Hiệu hai bình phương: $a^2-b^2=(a+b)(a-b)$.',
+    'Vì $7^2=49$ và 7 > 0 nên căn bậc hai số học của 49 là 7.',
+    'Chuyển vế: $2x=6$, suy ra $x=3$.',
+    'Biệt thức bằng b bình phương trừ 4ac, tức là 25 − 24 = 1.',
+    'Phân tích: $(x-2)(x-3)=0$ nên $x=2$ hoặc $x=3$.',
+    'Chia cả tử và mẫu cho 2 thì 6/8 = 3/4.',
+    'Quy đồng mẫu số 6: 3/6 + 2/6 = 5/6.',
+    'Theo định lí Pythagore: $3^2+4^2=25$, nên cạnh huyền bằng 5.',
+    'Giá trị cần nhớ: sin 30° bằng một phần hai.',
+    'Thay x = 3: y = 2·3 − 1 = 5.',
+    'Diện tích hình tròn bằng số pi nhân bình phương bán kính.',
+    'Tổng ba góc trong một tam giác luôn bằng 180 độ.',
+    'Lũy thừa: 2 nhân 2 nhân 2 bằng 8.',
+    'Giá trị tuyệt đối của số âm là số đối của nó nên kết quả là 5.'
+  ];
+  SAMPLE_ROWS.forEach(function (r, i) { r.push(SAMPLE_EXP[i] || ''); });
   var SAMPLE = SAMPLE_ROWS.map(function (r) { return r.join(' | '); }).join('\n');
 
   /* ---------- CSS ---------- */
@@ -144,13 +162,36 @@
     '.kc-stage.on.fs .kc-ovbox h2{font-size:clamp(34px,7vh,88px)}',
     '.kc-stage.on.fs .kc-ovbox p,.kc-stage.on.fs .kc-bnew{font-size:clamp(20px,3.2vh,40px);line-height:1.5}',
     '.kc-stage.on.fs .kc-mem{font-size:.8em}',
+    /* Chế độ Ôn tập */
+    '.kc-rvwrap{display:flex;flex-direction:column;gap:10px}',
+    '.kc-rv .kc-rvbox{min-height:340px}',
+    '.kc-rv .kc-opt{display:flex;align-items:center;justify-content:center;text-align:center;cursor:default}',
+    '.kc-opt.dim{opacity:.3}',
+    '.kc-rvside{display:flex;flex-direction:column;gap:8px}.kc-rvside:empty{display:none}',
+    '.kc-exp{background:#fef3c7;color:#422006;border-radius:12px;padding:10px 16px;font-weight:600;line-height:1.5;font-size:calc(clamp(16px,2vw,28px)*var(--kc-fs,1));overflow:auto;max-height:34vh}',
+    '.kc-aw{display:flex;flex-wrap:wrap;gap:8px;align-items:center}',
+    '.kc-awl{font-weight:700;opacity:.85}',
+    '.kc-awb{border:2px solid var(--c,#fff);background:transparent;color:#fff;border-radius:12px;padding:8px 16px;font-weight:800;cursor:pointer;font-size:calc(clamp(15px,1.8vw,24px)*var(--kc-fs,1))}',
+    '.kc-awb.on{background:var(--c)}',
+    '.kc-rvbar{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}',
+    '.kc-rvbar .kc-btn{font-size:17px;padding:10px 22px}',
+    '.kc-btn.kc-go{background:#16a34a;border-color:#22c55e;font-weight:800}',
+    '.kc-btn:disabled{opacity:.4;cursor:default}',
+    '.kc-rvscore{display:inline-flex;flex-wrap:wrap;gap:6px}',
+    '.kc-rv.on.fs .kc-rvwrap{flex:1 1 auto;min-height:0}',
+    '.kc-rv.on.fs .kc-rvbox{flex:1 1 auto;min-height:0;height:auto}',
+    '.kc-rv.on.fs .kc-rvbar{flex:0 0 auto}',
+    '.kc-rv.on.fs .kc-exp{font-size:calc(clamp(18px,3.2vh,44px)*var(--kc-fs,1));max-height:30vh}',
+    '.kc-rv.on.fs .kc-awb{font-size:calc(clamp(16px,2.8vh,34px)*var(--kc-fs,1))}',
+    '.kc-rv.on.fs .kc-rvbar .kc-btn{font-size:clamp(16px,2.6vh,30px);padding:10px 26px}',
     '@media(max-width:700px){.kc-grid{grid-template-columns:1fr;grid-template-areas:"f" "b" "r"}.kc-team{min-height:0}}'
   ].join('\n');
   document.head.appendChild(st);
 
   /* ---------- Trạng thái ---------- */
   var cfg = { bank: SAMPLE, secs: 120, nameB: 'Đội Xanh', nameR: 'Đội Đỏ', sound: true, combo: true, gold: true, penalty: false,
-    emB: '🔵', emR: '🔴', colB: '#2563eb', colR: '#dc2626', memB: '', memR: '', memN: 4, cap: false, badges: true, fscale: 1, rec: {} };
+    emB: '🔵', emR: '🔴', colB: '#2563eb', colR: '#dc2626', memB: '', memR: '', memN: 4, cap: false, badges: true, fscale: 1, rec: {},
+    mode: 'keo', rvSecs: 20, rvLimit: 0, rvShufQ: true, rvShufO: true, rvExp: true, rvTeams: false, rvNames: 'Đội Cam, Đội Xanh, Đội Tím', rvBonus: false };
   try { var saved = JSON.parse(localStorage.getItem(LS) || 'null'); if (saved) for (var k in saved) cfg[k] = saved[k]; } catch (e) {}
   cfg.fscale = +cfg.fscale || 1; if (!cfg.rec || typeof cfg.rec !== 'object') cfg.rec = {};
   function save() { try { localStorage.setItem(LS, JSON.stringify(cfg)); } catch (e) {} }
@@ -210,9 +251,9 @@
     if (window.katex || kxState) return;
     kxState = 1;
     var base = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/' + KATEX_V + '/';
-    var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + 'katex.min.css'; l.onload = function () { if (phase !== 'setup') fitSoon(); }; document.head.appendChild(l);
+    var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + 'katex.min.css'; l.onload = function () { fitSoon(); }; document.head.appendChild(l);
     var sc = document.createElement('script'); sc.src = base + 'katex.min.js';
-    sc.onload = function () { kxState = 2; if (phase !== 'setup' && teams.length) renderAll(); };
+    sc.onload = function () { kxState = 2; if (phase !== 'setup' && teams.length) renderAll(); if (rvEl && rvEl.classList.contains('on')) rvRender(); };
     sc.onerror = function () { kxState = 3; };
     document.head.appendChild(sc);
   }
@@ -338,13 +379,16 @@
     String(text).split(/\r?\n/).forEach(function (l) {
       l = l.trim(); if (!l) return;
       var p = (l.indexOf('|') >= 0 ? l.split('|') : l.split('\t')).map(function (s) { return s.trim(); });
+      while (p.length > 4 && p[p.length - 1] === '') p.pop();
       if (p.length < 4) return;
-      var q = p[0], ans = p[p.length - 1], opts = p.slice(1, -1), idx = -1;
+      var q = p[0], ans, opts, idx = -1, ex = '', TOK = /^[A-Fa-f1-6]$/;
+      if (p.length >= 7 && TOK.test(p[5]) && !TOK.test(p[p.length - 1])) { ans = p[5]; opts = p.slice(1, 5); ex = p.slice(6).join(' | '); }
+      else { ans = p[p.length - 1]; opts = p.slice(1, -1); }
       if (/^[A-Fa-f]$/.test(ans)) idx = ans.toUpperCase().charCodeAt(0) - 65;
       else if (/^[1-6]$/.test(ans)) idx = +ans - 1;
       else idx = opts.indexOf(ans);
       if (!q || idx < 0 || idx >= opts.length) return;
-      out.push({ q: q, opts: opts, ans: opts[idx] });
+      out.push({ q: q, opts: opts, ans: opts[idx], exp: ex });
     });
     return out;
   }
@@ -353,7 +397,10 @@
   root.innerHTML =
     '<div class="kc-setup" id="kcSetup">' +
     '<h2>🪢 Kéo Co Kiến Thức</h2>' +
-    '<p class="note">Hai đội cùng trả lời trên một màn hình. Đội nào trả lời đúng thì kéo dây về phía mình. Hết giờ, đội nào kéo được nhiều hơn sẽ thắng.</p>' +
+    '<div class="bar" id="kcModeBar"><b>Chế độ</b>' +
+    '<label><input type="radio" name="kcMode" value="keo"> ⚔️ Kéo co (hai đội đối đầu)</label>' +
+    '<label><input type="radio" name="kcMode" value="on"> 📖 Ôn tập (chiếu câu hỏi cho cả lớp)</label></div>' +
+    '<p class="note" id="kcNote">Hai đội cùng trả lời trên một màn hình. Đội nào trả lời đúng thì kéo dây về phía mình. Hết giờ, đội nào kéo được nhiều hơn sẽ thắng.</p>' +
     '<div class="grid2"><div>' +
     '<b>Bộ câu hỏi</b> <span class="note" id="kcCount"></span>' +
     '<textarea id="kcBank" spellcheck="false" placeholder="Câu hỏi | Đáp án A | Đáp án B | Đáp án C | Đáp án D | Đáp án đúng (A/B/C/D)"></textarea>' +
@@ -373,8 +420,9 @@
     '<div id="kcAiMsg" class="note"></div>' +
     '<div class="note">Có tài liệu: AI ra câu hỏi đúng trọng tâm bài, mỗi câu tự đủ dữ kiện để học sinh không cần xem tài liệu. Không có tài liệu: AI ra câu hỏi theo chủ đề đã nhập. Công thức Toán được hiển thị đúng khi chiếu; chữ tự co để câu hỏi luôn hiện trọn vẹn (có nút A− / A+ chỉnh cỡ chữ khi chơi).</div>' +
     '<div class="note">Mỗi dòng một câu: <code>Câu hỏi | A | B | C | D | B</code>. Cột cuối là đáp án đúng (chữ A–D, số 1–4 hoặc chính nội dung đáp án). Excel: cột A câu hỏi, các cột kế tiếp là đáp án, cột cuối là đáp án đúng.</div>' +
+    '<div class="note">Giải thích (không bắt buộc, dùng cho chế độ Ôn tập): thêm cột thứ 7 sau đáp án đúng, ví dụ <code>Câu hỏi | A | B | C | D | B | Giải thích ngắn</code>. Bộ câu cũ không có cột này vẫn chạy bình thường.</div>' +
     '</div><div>' +
-    '<b>Cấu hình</b>' +
+    '<b>Cấu hình</b>' + '<div id="kcCfgKeo">' +
     teamCfgHTML('B', 'Đội 1') + teamCfgHTML('R', 'Đội 2') +
     '<div class="bar"><label>Thời gian (giây) <input type="number" id="kcSecs" min="20" max="3600" style="width:90px"></label></div>' +
     '<div class="bar"><label><input type="checkbox" id="kcSnd"> Bật âm thanh</label></div>' +
@@ -386,11 +434,37 @@
     '<div class="bar"><label><input type="checkbox" id="kcBdg"> 🏅 Huy hiệu: đội thắng liên tiếp nhiều ván được nhận huy hiệu</label><button class="sec sm" id="kcRecClear" type="button">🧹 Xóa huy hiệu và thành tích</button></div>' +
     '<div id="kcRecInfo" class="note kc-rec"></div>' +
     '<div class="note">Huy hiệu: thắng liên tiếp 2 ván 🔥 Nóng máy · 3 ván ⭐ Ngôi sao kéo co · 4 ván 💎 Kim cương · 5 ván 👑 Nhà vô địch. Hòa hoặc thua thì chuỗi về 0 (huy hiệu đã nhận vẫn được giữ). Thành tích lưu theo tên đội, nên hãy giữ nguyên tên đội khi chơi nhiều ván.</div>' +
-    '<div class="bar"><button class="red" id="kcStart" type="button" style="font-size:18px;padding:12px 26px">▶ BẮT ĐẦU / TRÌNH CHIẾU</button></div>' +
-    '<div class="note">Cả hai đội đều thấy đáp án <b>A B C D</b>. Chạm / bấm chuột để chọn, hoặc dùng chung một bàn phím: đội Xanh bấm <b>A S D F</b> (= A B C D), đội Đỏ bấm <b>J K L ;</b> (= A B C D).</div>' +
+    '</div>' +
+    '<div id="kcCfgOn" style="display:none">' +
+    '<div class="bar"><label>⏱ Giây mỗi câu <input type="number" id="kcRvSecs" min="0" max="300" style="width:80px"></label><span class="note">0 = không đếm giờ</span></div>' +
+    '<div class="bar"><label>Số câu ôn <input type="number" id="kcRvLimit" min="0" max="200" style="width:80px"></label><span class="note">0 = dùng hết bộ câu hỏi</span></div>' +
+    '<div class="bar"><label><input type="checkbox" id="kcRvShufQ"> 🔀 Xáo trộn thứ tự câu hỏi</label></div>' +
+    '<div class="bar"><label><input type="checkbox" id="kcRvShufO"> 🔀 Xáo trộn thứ tự đáp án</label></div>' +
+    '<div class="bar"><label><input type="checkbox" id="kcRvExp"> 💡 Hiện giải thích sau khi hiện đáp án (câu nào có giải thích)</label></div>' +
+    '<div class="bar"><label><input type="checkbox" id="kcRvTeams"> 👥 Tính điểm theo đội</label></div>' +
+    '<div id="kcRvTeamBox" class="kc-tcfg" style="display:none">' +
+    '<div class="bar"><label>Tên các đội, cách nhau bằng dấu phẩy (2–6 đội)<input id="kcRvNames" style="width:100%;box-sizing:border-box"></label></div>' +
+    '<div class="bar"><label><input type="checkbox" id="kcRvBonus"> ⭐ Câu thưởng x2 điểm (khoảng 1/5 số câu, chọn ngẫu nhiên)</label></div></div>' +
+    '<div class="note">Cách chơi: chiếu câu hỏi, các đội thảo luận, giáo viên bấm “Hiện đáp án”, xem giải thích rồi bấm tên đội trả lời đúng để cộng điểm. Phím tắt: Space hoặc → = hiện đáp án / câu tiếp, ← = câu trước.</div>' +
+    '</div>' +
+    '<div class="bar"><button class="red" id="kcStart\" type="button" style="font-size:18px;padding:12px 26px">▶ BẮT ĐẦU / TRÌNH CHIẾU</button></div>' +
+    '<div class="note" id="kcKeoTip">Cả hai đội đều thấy đáp án <b>A B C D</b>. Chạm / bấm chuột để chọn, hoặc dùng chung một bàn phím: đội Xanh bấm <b>A S D F</b> (= A B C D), đội Đỏ bấm <b>J K L ;</b> (= A B C D).</div>' +
     '<div id="kcMsg" class="status info"></div>' +
     '</div></div></div>' +
 
+    '<div class="kc-stage kc-rv" id="kcRv">' +
+    '<div class="kc-top">' +
+    '<button class="kc-btn" id="kcRvBack" type="button">← Cài đặt</button>' +
+    '<div class="kc-time" id="kcRvTime">0:00</div><span class="kc-rvscore" id="kcRvScore"></span><span class="kc-sp"></span>' +
+    '<button class="kc-btn" id="kcRvPause" type="button">⏸ Tạm dừng</button>' +
+    '<button class="kc-btn" id="kcRvMute" type="button"></button>' +
+    '<span class="kc-fsz"><button class="kc-btn" id="kcRvFm" type="button" title="Giảm cỡ chữ">A−</button><button class="kc-btn" id="kcRvFp" type="button" title="Tăng cỡ chữ">A+</button></span>' +
+    '<button class="kc-btn" id="kcRvFull" type="button">⛶ Toàn màn hình</button>' +
+    '</div>' +
+    '<div class="kc-rvwrap"><div class="kc-team b kc-rvbox" id="kcRvBox"></div><div class="kc-rvside" id="kcRvSide"></div></div>' +
+    '<div class="kc-rvbar"><button class="kc-btn" id="kcRvPrev" type="button">◀ Câu trước</button><button class="kc-btn kc-go" id="kcRvShow" type="button">👁 Hiện đáp án</button><button class="kc-btn" id="kcRvNext" type="button">Câu tiếp ▶</button></div>' +
+    '<div class="kc-ov" id="kcRvOv"><div class="kc-ovbox" id="kcRvOvBox"></div></div>' +
+    '</div>' +
     '<div class="kc-stage" id="kcStage">' +
     '<div class="kc-top">' +
     '<button class="kc-btn" id="kcBack" type="button">← Cài đặt</button>' +
@@ -470,7 +544,7 @@
   }
   function setFs(v) {
     cfg.fscale = Math.max(0.6, Math.min(1.6, Math.round(v * 10) / 10));
-    el.stage.style.setProperty('--kc-fs', cfg.fscale); save();
+    el.stage.style.setProperty('--kc-fs', cfg.fscale); if (rvEl) rvEl.style.setProperty('--kc-fs', cfg.fscale); save();
     $('kcFm').title = 'Giảm cỡ chữ (hiện ' + Math.round(cfg.fscale * 100) + '%)'; $('kcFp').title = 'Tăng cỡ chữ (hiện ' + Math.round(cfg.fscale * 100) + '%)';
     fitSoon();
   }
@@ -516,10 +590,11 @@
       ['3. Công thức Toán viết bằng LaTeX đặt trong dấu $...$, ví dụ $x^2$, $\\frac{a}{b}$, $\\sqrt{3}$, $\\leq$, $\\pi$.'],
       ['4. Không dùng ký tự | (gạch đứng) trong ô; với giá trị tuyệt đối hãy viết $\\lvert x \\rvert$.'],
       ['5. Lưu file, vào Kéo co kiến thức > "Nhập file câu hỏi" > chọn file này > Bắt đầu.'],
-      ['6. Chỉ sheet đầu tiên ("Câu hỏi") được đọc. Nên có từ 10 câu trở lên để trò chơi hay hơn.']];
+      ['6. Chỉ sheet đầu tiên ("Câu hỏi") được đọc. Nên có từ 10 câu trở lên để trò chơi hay hơn.'],
+      ['7. Cột G (không bắt buộc) = giải thích ngắn cho đáp án đúng, hiện ra khi dùng chế độ Ôn tập.']];
     if (window.XLSX) {
       var wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows), wg = XLSX.utils.aoa_to_sheet(guide);
-      ws['!cols'] = [{ wch: 58 }, { wch: 26 }, { wch: 26 }, { wch: 26 }, { wch: 26 }, { wch: 22 }]; wg['!cols'] = [{ wch: 120 }];
+      ws['!cols'] = [{ wch: 58 }, { wch: 26 }, { wch: 26 }, { wch: 26 }, { wch: 26 }, { wch: 22 }, { wch: 60 }]; wg['!cols'] = [{ wch: 120 }];
       XLSX.utils.book_append_sheet(wb, ws, 'Câu hỏi'); XLSX.utils.book_append_sheet(wb, wg, 'Hướng dẫn');
       XLSX.writeFile(wb, fname + '.xlsx');
     } else {
@@ -538,7 +613,7 @@
     var rows = qs.map(function (q) {
       var o = q.opts.slice(), i = o.indexOf(q.ans);
       while (o.length < 4) o.push('');
-      return [q.q].concat(o, ['ABCDEF'.charAt(i)]);
+      return [q.q].concat(o, ['ABCDEF'.charAt(i)], o.length <= 4 ? [q.exp || ''] : []);
     });
     dlXlsx(rows, 'keo-co-cau-hoi-' + stamp(), 'Đã tải ' + qs.length + ' câu. Sửa xong bấm "Nhập file câu hỏi" để chơi lại.');
   };
@@ -635,10 +710,10 @@
     fitSoon();
   }
   /* Tự co chữ câu hỏi / đáp án cho tới khi hiện TRỌN VẸN trong khung: không bị cắt, không tràn ngang, công thức không vỡ */
-  function fit(box) {
+  function fit(box, fsOv) {
     var q = box.querySelector('.kc-q'), btns = box.querySelectorAll('.kc-opt');
     if (!q || !btns.length) return;
-    var qs = q.firstElementChild, fsMode = el.stage.classList.contains('fs'), maxH = Math.max(260, window.innerHeight * 0.92), i;
+    var qs = q.firstElementChild, fsMode = fsOv !== undefined ? fsOv : el.stage.classList.contains('fs'), maxH = Math.max(260, window.innerHeight * 0.92), i;
     box.classList.remove('tight'); q.style.fontSize = ''; q.style.overflowY = '';
     for (i = 0; i < btns.length; i++) btns[i].style.fontSize = '';
     /* Chỉ so sánh kích thước hộp thật (getBoundingClientRect), KHÔNG dùng scrollHeight của vùng chứa công thức:
@@ -678,7 +753,7 @@
     }
     q.style.overflowY = 'auto';                  /* hết cách: cho cuộn riêng phần câu hỏi, không bao giờ bị cắt cụt */
   }
-  function fitAll() { if (phase === 'setup' || !el.stage.classList.contains('on')) return; fit(el.tb); fit(el.tr); }
+  function fitAll() { if (rvEl && rvEl.classList.contains('on')) { fit(rvBox, rvEl.classList.contains('fs')); return; } if (phase === 'setup' || !el.stage.classList.contains('on')) return; fit(el.tb); fit(el.tr); }
   var fitTick = 0;
   function fitSoon() { cancelAnimationFrame(fitTick); fitTick = requestAnimationFrame(function () { fitTick = requestAnimationFrame(fitAll); }); fitLater(); }
   window.addEventListener('resize', fitSoon);
@@ -692,7 +767,7 @@
       es.forEach(function (e) { var d = Math.round(e.contentRect.width) + 'x' + Math.round(e.contentRect.height); if (roDims[e.target.id] !== d) { roDims[e.target.id] = d; ch = true; } });
       if (ch) fitSoon();
     });
-    ro.observe(el.tb); ro.observe(el.tr);
+    ro.observe(el.tb); ro.observe(el.tr); ro.observe($('kcRvBox'));
   }
 
   function renderRope() {
@@ -814,7 +889,7 @@
   }
 
   /* ---------- Sự kiện ---------- */
-  $('kcStart').onclick = start;
+  $('kcStart').onclick = function () { if (cfg.mode === 'on') rvStart(); else start(); };
   function midGame() { return phase === 'play' || phase === 'count'; }
   $('kcRestart').onclick = function () { if (midGame() && !confirm('Đang giữa ván. Chơi lại từ đầu và bỏ kết quả hiện tại?')) return; start(); };
   $('kcAgain').onclick = start;
@@ -829,7 +904,7 @@
   el.pause.onclick = function () { setPause(!paused); };
   el.mute.onclick = function () { cfg.sound = !cfg.sound; el.snd.checked = cfg.sound; save(); el.mute.textContent = cfg.sound ? '🔊 Âm thanh' : '🔇 Tắt âm'; };
   function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
-  function syncFs() { el.stage.classList.toggle('fs', fsEl() === el.stage); fitSoon(); setTimeout(fitAll, 250); }
+  function syncFs() { el.stage.classList.toggle('fs', fsEl() === el.stage); rvEl.classList.toggle('fs', fsEl() === rvEl); fitSoon(); setTimeout(fitAll, 250); }
   document.addEventListener('fullscreenchange', syncFs);
   document.addEventListener('webkitfullscreenchange', syncFs);
   $('kcFull').onclick = function () {
@@ -1061,8 +1136,9 @@
       'Mỗi câu có đúng 4 đáp án, chỉ 1 đáp án đúng, 3 đáp án nhiễu hợp lý (là lỗi học sinh hay mắc), vị trí đáp án đúng phân bố đều. Viết bằng tiếng Việt. ' +
       'QUY TẮC TOÁN HỌC: mọi công thức, biểu thức, số mũ, phân số, căn, phương trình, ký hiệu toán PHẢI viết bằng LaTeX đặt trong cặp dấu $...$ — KỂ CẢ trong từng đáp án (ví dụ đáp án phân số viết $\\frac{7}{6}$, không viết \\frac{7}{6} trần). ' +
       'Ví dụ: $x^2$, $\\frac{a}{b}$, $\\sqrt{3}$, $(a+b)^2$, $x \\leq 5$. Không dùng ký tự Unicode như ², √, ≤ trong công thức. Không dùng ký tự | trong công thức (dùng \\lvert, \\rvert). Phần chữ thường nằm ngoài dấu $. ' +
+      'GIẢI THÍCH: mỗi câu kèm trường "exp" là lời giải thích ngắn 1-2 câu (khoảng 35 từ trở xuống) cho biết vì sao đáp án đúng là đúng, có thể nêu thêm lỗi sai hay gặp ở một đáp án nhiễu. Giải thích dựa trên kiến thức của bài, tự đủ ý, KHÔNG nhắc "đáp án A/B/C/D" hay "như trên" mà nêu thẳng nội dung; công thức toán trong giải thích cũng đặt trong $...$. ' +
       'Vì kết quả là JSON nên mọi dấu gạch chéo ngược phải viết đôi (\\\\frac, \\\\sqrt, \\\\leq). ' +
-      'Chỉ trả về một mảng JSON, mỗi phần tử có dạng {"q":"...","options":["...","...","...","..."],"answer":0} với answer là chỉ số (0-3) của đáp án đúng.';
+      'Chỉ trả về một mảng JSON, mỗi phần tử có dạng {"q":"...","options":["...","...","...","..."],"answer":0} với answer là chỉ số (0-3) của đáp án đúng. Mỗi phần tử có thêm trường "exp" (chuỗi) là lời giải thích theo quy tắc GIẢI THÍCH ở trên.';
     var parts;
     if (aiDoc && aiDoc.text !== undefined) parts = [{ text: prompt + '\n\n===== NỘI DUNG TÀI LIỆU (' + aiDoc.name + ') =====\n' + aiDoc.text }];
     else if (aiDoc) parts = [{ text: prompt + '\n\nTài liệu được đính kèm (' + aiDoc.name + ').' }, { inlineData: { mimeType: aiDoc.mime, data: aiDoc.b64 } }];
@@ -1082,7 +1158,7 @@
         var opts = x.options.slice(0, 4).map(cleanCell);
         var a = typeof x.answer === 'number' ? x.answer : (/^\d$/.test(String(x.answer).trim()) ? +String(x.answer).trim() : 'ABCD'.indexOf(String(x.answer).trim().toUpperCase()));
         if (!(a >= 0 && a < opts.length)) return;
-        lines.push(cleanCell(x.q) + ' | ' + opts.join(' | ') + ' | ' + 'ABCD'.charAt(a));
+        lines.push(cleanCell(x.q) + ' | ' + opts.join(' | ') + ' | ' + 'ABCD'.charAt(a) + (x.exp && opts.length === 4 ? ' | ' + cleanCell(x.exp) : ''));
       });
       if (!lines.length) throw new Error('Không đọc được kết quả của AI. Hãy thử lại.');
       var cur = el.bank.value.trim();
@@ -1093,6 +1169,189 @@
       m.textContent = '⚠ ' + (e && e.message ? e.message : 'Không tạo được câu hỏi.');
     }).then(function () { btn.disabled = false; });
   };
+
+  /* ================= CHẾ ĐỘ ÔN TẬP ================= */
+  var rvEl = $('kcRv'), rvBox = $('kcRvBox');
+  var RV_COL = ['#ea580c', '#2563eb', '#7c3aed', '#16a34a', '#dc2626', '#ca8a04'];
+  var RV_EM = ['🟠', '🔵', '🟣', '🟢', '🔴', '🟡'];
+  var KEO_NOTE = $('kcNote').textContent;
+  var rv = { list: [], opts: [], rev: [], aw: [], bonus: [], teams: [], i: 0, active: false, paused: false, endAt: 0, remain: 0, timer: null, last: -1 };
+  rvEl.style.setProperty('--kc-fs', cfg.fscale);
+
+  function rvSetMode(m) {
+    cfg.mode = m === 'on' ? 'on' : 'keo'; save();
+    var on = cfg.mode === 'on';
+    $('kcCfgKeo').style.display = on ? 'none' : '';
+    $('kcCfgOn').style.display = on ? '' : 'none';
+    $('kcKeoTip').style.display = on ? 'none' : '';
+    $('kcNote').textContent = on ? 'Chiếu lần lượt từng câu hỏi cho cả lớp ôn luyện. Giáo viên bấm “Hiện đáp án”, xem giải thích, và có thể tính điểm theo đội.' : KEO_NOTE;
+    Array.prototype.forEach.call(document.getElementsByName('kcMode'), function (r) { r.checked = r.value === cfg.mode; });
+  }
+  Array.prototype.forEach.call(document.getElementsByName('kcMode'), function (r) { r.addEventListener('change', function () { if (r.checked) rvSetMode(r.value); }); });
+  $('kcRvSecs').value = cfg.rvSecs; $('kcRvLimit').value = cfg.rvLimit; $('kcRvShufQ').checked = !!cfg.rvShufQ; $('kcRvShufO').checked = !!cfg.rvShufO;
+  $('kcRvExp').checked = !!cfg.rvExp; $('kcRvTeams').checked = !!cfg.rvTeams; $('kcRvNames').value = cfg.rvNames; $('kcRvBonus').checked = !!cfg.rvBonus;
+  function rvTeamBoxSync() { $('kcRvTeamBox').style.display = $('kcRvTeams').checked ? '' : 'none'; }
+  $('kcRvTeams').addEventListener('change', rvTeamBoxSync); rvTeamBoxSync();
+  rvSetMode(cfg.mode);
+
+  function rvScore(t) { var s = 0; rv.list.forEach(function (_, i) { if (rv.aw[i][t]) s += rv.bonus[i] ? 2 : 1; }); return s; }
+  function rvScoreRender() {
+    $('kcRvScore').innerHTML = cfg.rvTeams ? rv.teams.map(function (T, t) {
+      return '<span class="kc-chip" style="background:' + T.th[3] + ';border-color:' + T.th[0] + ';color:' + T.th[4] + '">' + esc(T.em) + ' ' + esc(T.name) + ': <b>' + rvScore(t) + '</b></span>';
+    }).join('') : '';
+  }
+  function rvRenderBox() {
+    var q = rv.list[rv.i], opts = rv.opts[rv.i], rev = rv.rev[rv.i], keys = ['A', 'B', 'C', 'D', 'E', 'F'];
+    rvBox.innerHTML =
+      '<div class="kc-th"><span class="kc-tn"><span class="kc-em">📖</span><span class="kc-nm">Câu ' + (rv.i + 1) + ' / ' + rv.list.length + '</span></span>' +
+      (rv.bonus[rv.i] ? '<small class="kc-fire">⭐ Câu thưởng x2</small>' : '') + '</div>' +
+      '<div class="kc-q"><span>' + mathHTML(q.q) + '</span></div>' +
+      '<div class="kc-opts">' + opts.map(function (o, j) {
+        var c = rev ? (o === q.ans ? ' ok' : ' dim') : '';
+        return '<div class="kc-opt' + c + '"><i>' + keys[j] + '</i><span>' + mathHTML(o) + '</span></div>';
+      }).join('') + '</div>';
+  }
+  function rvRenderSide() {
+    var q = rv.list[rv.i], rev = rv.rev[rv.i], bon = rv.bonus[rv.i], h = '';
+    if (rev && cfg.rvExp && q.exp) h += '<div class="kc-exp"><b>💡 Giải thích:</b> ' + mathHTML(q.exp) + '</div>';
+    if (rev && cfg.rvTeams) {
+      h += '<div class="kc-aw"><span class="kc-awl">Đội trả lời đúng' + (bon ? ' (x2 điểm)' : '') + ':</span>' + rv.teams.map(function (T, t) {
+        var on = rv.aw[rv.i][t];
+        return '<button type="button" class="kc-awb' + (on ? ' on' : '') + '" data-t="' + t + '" style="--c:' + T.th[0] + '">' + esc(T.em) + ' ' + esc(T.name) + (on ? ' ✓ +' + (bon ? 2 : 1) : '') + '</button>';
+      }).join('') + '</div>';
+    }
+    $('kcRvSide').innerHTML = h;
+  }
+  function rvRenderBtns() {
+    var rev = rv.rev[rv.i], last = rv.i >= rv.list.length - 1, tm = $('kcRvTime'), timed = cfg.rvSecs > 0 && !rev;
+    $('kcRvPrev').disabled = rv.i === 0;
+    $('kcRvShow').disabled = !!rev; $('kcRvShow').textContent = rev ? '✓ Đã hiện đáp án' : '👁 Hiện đáp án';
+    $('kcRvNext').textContent = last ? '🏁 Kết thúc' : 'Câu tiếp ▶';
+    tm.style.display = timed ? '' : 'none'; tm.textContent = fmt(rv.remain); tm.classList.toggle('low', rv.remain <= 5000);
+    $('kcRvPause').style.display = timed ? '' : 'none';
+    $('kcRvMute').textContent = cfg.sound ? '🔊' : '🔇';
+  }
+  function rvRender() { rvRenderBox(); rvRenderSide(); rvRenderBtns(); rvScoreRender(); fitSoon(); }
+
+  function rvTick() {
+    if (!rv.active || rv.paused || rv.rev[rv.i]) return;
+    rv.remain = Math.max(0, rv.endAt - Date.now());
+    var tm = $('kcRvTime'); tm.textContent = fmt(rv.remain); tm.classList.toggle('low', rv.remain <= 5000);
+    var sc = Math.ceil(rv.remain / 1000); if (sc <= 3 && sc > 0 && sc !== rv.last) beep(520, 0.05); rv.last = sc;
+    if (rv.remain <= 0) rvReveal();
+  }
+  function rvGo(i) {
+    rv.i = Math.max(0, Math.min(rv.list.length - 1, i)); rv.paused = false; rv.last = -1; clearInterval(rv.timer);
+    $('kcRvPause').textContent = '⏸ Tạm dừng';
+    if (!rv.rev[rv.i] && cfg.rvSecs > 0) { rv.remain = cfg.rvSecs * 1000; rv.endAt = Date.now() + rv.remain; rv.timer = setInterval(rvTick, 200); }
+    rvRender();
+  }
+  function rvReveal() {
+    if (!rv.active || rv.rev[rv.i]) return;
+    rv.rev[rv.i] = true; clearInterval(rv.timer); beep(880, 0.15); rvRender();
+  }
+  function rvNext() { if (!rv.active) return; if (rv.i >= rv.list.length - 1) rvFinish(); else rvGo(rv.i + 1); }
+  function rvPrev() { if (rv.active && rv.i > 0) rvGo(rv.i - 1); }
+  function rvSetPause(v) {
+    if (!rv.active || rv.rev[rv.i] || cfg.rvSecs <= 0 || rv.paused === v) return;
+    rv.paused = v;
+    if (v) rv.remain = Math.max(0, rv.endAt - Date.now()); else rv.endAt = Date.now() + rv.remain;
+    $('kcRvPause').textContent = v ? '▶ Tiếp tục' : '⏸ Tạm dừng';
+  }
+
+  function rvBegin(list) {
+    rv.list = list; rv.i = 0; rv.active = true;
+    rv.rev = list.map(function () { return false; });
+    rv.aw = list.map(function () { return []; });
+    rv.bonus = list.map(function () { return false; });
+    if (cfg.rvTeams && cfg.rvBonus && list.length >= 3) {
+      shuffle(list.map(function (_, i) { return i; })).slice(0, Math.max(1, Math.round(list.length / 5))).forEach(function (i) { rv.bonus[i] = true; });
+    }
+    rv.opts = list.map(function (q) { return cfg.rvShufO ? shuffle(q.opts) : q.opts.slice(); });
+    el.setup.style.display = 'none'; el.stage.classList.remove('on'); rvEl.classList.add('on'); $('kcRvOv').classList.remove('on');
+    rvGo(0);
+  }
+  function rvStart() {
+    var all = parse(el.bank.value);
+    if (!all.length) { el.msg.textContent = 'Chưa có câu hỏi hợp lệ. Mỗi dòng cần: Câu hỏi | các đáp án | đáp án đúng.'; return; }
+    cfg.bank = el.bank.value;
+    cfg.rvSecs = Math.max(0, Math.min(300, parseInt($('kcRvSecs').value, 10) || 0));
+    cfg.rvLimit = Math.max(0, Math.min(200, parseInt($('kcRvLimit').value, 10) || 0));
+    cfg.rvShufQ = $('kcRvShufQ').checked; cfg.rvShufO = $('kcRvShufO').checked; cfg.rvExp = $('kcRvExp').checked;
+    cfg.rvTeams = $('kcRvTeams').checked; cfg.rvBonus = $('kcRvBonus').checked; cfg.rvNames = $('kcRvNames').value.trim();
+    if (cfg.rvTeams) {
+      var names = cfg.rvNames.split(/[,;\n]+/).map(function (x) { return x.trim(); }).filter(Boolean).slice(0, 6);
+      if (names.length < 2) { el.msg.textContent = 'Hãy nhập ít nhất 2 tên đội, cách nhau bằng dấu phẩy.'; return; }
+      rv.teams = names.map(function (n, i) { return { name: n, em: RV_EM[i], th: themeVars(RV_COL[i]) }; });
+    } else rv.teams = [];
+    save();
+    var list = cfg.rvShufQ ? shuffle(all) : all.slice();
+    if (cfg.rvLimit > 0 && cfg.rvLimit < list.length) list = list.slice(0, cfg.rvLimit);
+    el.msg.textContent = '';
+    rvBegin(list);
+  }
+  function rvFinish() {
+    clearInterval(rv.timer); rv.active = false;
+    var n = rv.list.length, h = '<div style="font-size:54px">🏁</div><h2>Hoàn thành ôn tập!</h2><p>Đã ôn ' + n + ' câu.</p>', hard = [];
+    if (cfg.rvTeams) {
+      var order = rv.teams.map(function (T, t) { return { t: t, s: rvScore(t) }; }).sort(function (a, b) { return b.s - a.s; }), any = false;
+      h += '<div class="kc-bm">' + order.map(function (o, k) {
+        var T = rv.teams[o.t];
+        return '<div class="kc-bnew">' + (['🥇', '🥈', '🥉'][k] || (k + 1) + '.') + ' <b>' + esc(T.em) + ' ' + esc(T.name) + '</b>: ' + o.s + ' điểm</div>';
+      }).join('') + '</div>';
+      rv.list.forEach(function (_, i) { rv.aw[i].forEach(function (v) { if (v) any = true; }); });
+      if (any) rv.list.forEach(function (_, i) {
+        var c = rv.aw[i].filter(Boolean).length;
+        if (rv.rev[i] && c * 2 < rv.teams.length) hard.push(i);
+      });
+      if (hard.length) h += '<p>Câu nhiều đội trả lời sai: ' + hard.map(function (i) { return i + 1; }).join(', ') + '</p>';
+    }
+    h += '<div class="bar">' + (hard.length ? '<button class="red" type="button" data-act="hard">🔁 Ôn lại ' + hard.length + ' câu khó</button>' : '') +
+      '<button class="' + (hard.length ? 'sec' : 'red') + '" type="button" data-act="again">↻ Ôn lại từ đầu</button><button class="sec" type="button" data-act="setup">Về cài đặt</button></div>';
+    $('kcRvOvBox').innerHTML = h; rv.hardList = hard.map(function (i) { return rv.list[i]; });
+    $('kcRvOv').classList.add('on');
+    beep(660, 0.15); setTimeout(function () { beep(880, 0.15); }, 160); setTimeout(function () { beep(1100, 0.3); }, 320);
+  }
+  function rvToSetup() {
+    rv.active = false; clearInterval(rv.timer);
+    if (fsEl()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+    rvEl.classList.remove('fs'); rvEl.classList.remove('on'); el.setup.style.display = '';
+  }
+
+  rvEl.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var aw = e.target.closest('.kc-awb');
+    if (aw && rv.active && rv.rev[rv.i]) {
+      var t = +aw.getAttribute('data-t'); rv.aw[rv.i][t] = !rv.aw[rv.i][t];
+      if (rv.aw[rv.i][t]) beep(1000, 0.1); rvRenderSide(); rvScoreRender(); fitSoon(); b.blur(); return;
+    }
+    var act = b.getAttribute('data-act');
+    if (act === 'again') rvStart();
+    else if (act === 'hard') { if (rv.hardList && rv.hardList.length) rvBegin(rv.hardList); }
+    else if (act === 'setup') rvToSetup();
+    b.blur();
+  });
+  $('kcRvShow').onclick = rvReveal;
+  $('kcRvNext').onclick = rvNext;
+  $('kcRvPrev').onclick = rvPrev;
+  $('kcRvPause').onclick = function () { rvSetPause(!rv.paused); };
+  $('kcRvMute').onclick = function () { cfg.sound = !cfg.sound; el.snd.checked = cfg.sound; save(); $('kcRvMute').textContent = cfg.sound ? '🔊' : '🔇'; };
+  $('kcRvBack').onclick = function () { if (rv.active && rv.rev.some(Boolean) && !confirm('Đang ôn dở. Thoát về cài đặt và bỏ kết quả hiện tại?')) return; rvToSetup(); };
+  $('kcRvFm').onclick = function () { setFs(cfg.fscale - 0.1); };
+  $('kcRvFp').onclick = function () { setFs(cfg.fscale + 0.1); };
+  $('kcRvFull').onclick = function () {
+    if (fsEl()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+    else if (rvEl.requestFullscreen) rvEl.requestFullscreen();
+    else if (rvEl.webkitRequestFullscreen) rvEl.webkitRequestFullscreen();
+  };
+  document.addEventListener('keydown', function (e) {
+    if (!rv.active || !rvEl.classList.contains('on') || !rvEl.getClientRects().length) return;
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+    var tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
+    if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') { e.preventDefault(); if (rv.rev[rv.i]) rvNext(); else rvReveal(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); rvPrev(); }
+  });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) rvSetPause(true); });
 
   /* Tự tạm dừng khi chuyển cửa sổ / ẩn tab, để đồng hồ không chạy ngầm (không tự tiếp tục: cô bấm ▶ khi sẵn sàng) */
   document.addEventListener('visibilitychange', function () { if (document.hidden) setPause(true); });
