@@ -77,7 +77,7 @@
     '.kc-opt.bad{background:#ef4444;color:#fff}',
     '.kc-team.lock .kc-opt{pointer-events:none}',
     /* Sân kéo co: dải ngang thấp ở trên cùng, nhường chỗ cho câu hỏi */
-    '.kc-field{grid-area:f;background:linear-gradient(180deg,#dbeafe 0,#eff6ff 58%,#cdb98c 58%,#b79f6f 100%);border-radius:14px;position:relative;overflow:hidden;height:clamp(124px,22vh,200px);color:#222;border:2px solid #334155;box-sizing:border-box}',
+    '.kc-field{grid-area:f;background:linear-gradient(180deg,#dbeafe 0,#eff6ff 58%,#cdb98c 58%,#b79f6f 100%);border-radius:14px;position:relative;overflow:hidden;height:clamp(84px,14vh,140px);color:#222;border:2px solid #334155;box-sizing:border-box}',
     '.kc-prog{position:absolute;left:0;right:0;top:0;height:9px;display:flex;background:#0003;z-index:2}',
     '.kc-prog i{display:block;height:100%;transition:width .45s ease}',
     '.kc-pb{background:var(--kb1);width:50%}.kc-pr{background:var(--kr1);width:50%}',
@@ -87,7 +87,7 @@
     '.kc-win small{position:absolute;top:4px;left:50%;transform:translateX(-50%);color:#fff;font-weight:800;font-size:11px;border-radius:6px;padding:1px 7px;white-space:nowrap}',
     '.kc-win.b small{background:var(--kb1)}.kc-win.r small{background:var(--kr1)}',
     '.kc-mover{position:absolute;top:47%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;transition:left .45s cubic-bezier(.3,1.4,.5,1);z-index:1}',
-    '.kc-grp{font-size:clamp(22px,min(4.4vw,8vh),72px);letter-spacing:-5px;white-space:nowrap;line-height:1}',
+    '.kc-grp{font-size:clamp(18px,min(3.4vw,6vh),50px);letter-spacing:-5px;white-space:nowrap;line-height:1}',
     '.kc-grp.b{filter:drop-shadow(0 0 5px var(--kb1))}',
     '.kc-grp.r{transform:scaleX(-1);filter:drop-shadow(0 0 5px var(--kr1))}',
     '.kc-rope{height:8px;width:clamp(20px,5vw,90px);background:repeating-linear-gradient(90deg,#b08a4e 0 7px,#8a6a36 7px 14px);border-radius:6px}',
@@ -144,7 +144,7 @@
     '.kc-stage.on.fs .kc-grid{flex:1 1 auto;min-height:0;grid-template-rows:auto minmax(0,1fr)}',
     '@media(max-width:700px){.kc-stage.on.fs .kc-grid{grid-template-rows:auto minmax(0,1fr) minmax(0,1fr)}}',
     '.kc-stage.on.fs .kc-team{min-height:0;height:100%}',
-    '.kc-stage.on.fs .kc-field{height:clamp(110px,21vh,230px)}',
+    '.kc-stage.on.fs .kc-field{height:clamp(80px,13vh,150px)}',
     '.kc-stage.on.fs .kc-q{min-height:0;overflow:hidden;font-size:calc(clamp(26px,min(5.6vw,10vh),170px)*var(--kc-fs,1))}',
     '.kc-stage.on.fs .kc-opts{flex:0 0 auto}',
     '.kc-stage.on.fs .kc-opt{min-height:clamp(64px,15vh,170px);font-size:calc(clamp(20px,min(3.6vw,7vh),120px)*var(--kc-fs,1))}',
@@ -183,6 +183,16 @@
     '.kc-rv.on.fs .kc-rvbar{flex:0 0 auto}',
     '.kc-rv.on.fs .kc-exp{font-size:calc(clamp(18px,3.2vh,44px)*var(--kc-fs,1));max-height:30vh}',
     '.kc-rv.on.fs .kc-awb{font-size:calc(clamp(16px,2.8vh,34px)*var(--kc-fs,1))}',
+    /* Chế độ Nhìn xa: đáp án 1 cột, chữ đáp án thẳng hàng, nền câu hỏi đặc, sân kéo co thấp hơn */
+    '.kc-btn.on{background:#f59e0b;border-color:#fbbf24;color:#111;font-weight:800}',
+    '.kc-stage.far .kc-opts{grid-template-columns:1fr}',
+    '.kc-stage.far .kc-opt{display:flex;align-items:center;justify-content:flex-start;gap:.45em;text-align:left;padding:.3em .6em!important;min-height:0!important;font-weight:800;color:#000}',
+    '.kc-stage.far .kc-opt i{position:static!important;flex:none;font-size:1em!important;opacity:1!important;color:#1d4ed8!important;font-weight:900;left:auto;top:auto}',
+    '.kc-stage.far .kc-opt i::after{content:"."}',
+    '.kc-stage.far .kc-opt>span{flex:1 1 auto;min-width:0}',
+    '.kc-stage.far .b .kc-q{background:var(--kb3)}.kc-stage.far .r .kc-q{background:var(--kr3)}',
+    '.kc-stage.far .kc-field,.kc-stage.on.fs.far .kc-field{height:clamp(72px,11vh,120px)}',
+    '.kc-stage.far .kc-grp{font-size:clamp(16px,min(3vw,5vh),40px)}',
     '.kc-rv.on.fs .kc-rvbar .kc-btn{font-size:clamp(16px,2.6vh,30px);padding:10px 26px}',
     '@media(max-width:700px){.kc-grid{grid-template-columns:1fr;grid-template-areas:"f" "b" "r"}.kc-team{min-height:0}}'
   ].join('\n');
@@ -191,7 +201,7 @@
   /* ---------- Trạng thái ---------- */
   var cfg = { bank: SAMPLE, secs: 120, nameB: 'Đội Xanh', nameR: 'Đội Đỏ', sound: true, combo: true, gold: true, penalty: false,
     emB: '🔵', emR: '🔴', colB: '#2563eb', colR: '#dc2626', memB: '', memR: '', memN: 4, cap: false, badges: true, fscale: 1, rec: {},
-    mode: 'keo', rvSecs: 20, rvLimit: 0, rvShufQ: true, rvShufO: true, rvExp: true, rvTeams: false, rvNames: 'Đội Cam, Đội Xanh, Đội Tím', rvBonus: false };
+    mode: 'keo', rvSecs: 20, rvLimit: 0, rvShufQ: true, rvShufO: true, rvExp: true, rvTeams: false, rvNames: 'Đội Cam, Đội Xanh, Đội Tím', rvBonus: false, far: false };
   try { var saved = JSON.parse(localStorage.getItem(LS) || 'null'); if (saved) for (var k in saved) cfg[k] = saved[k]; } catch (e) {}
   cfg.fscale = +cfg.fscale || 1; if (!cfg.rec || typeof cfg.rec !== 'object') cfg.rec = {};
   function save() { try { localStorage.setItem(LS, JSON.stringify(cfg)); } catch (e) {} }
@@ -399,7 +409,8 @@
     '<h2>🪢 Kéo Co Kiến Thức</h2>' +
     '<div class="bar" id="kcModeBar"><b>Chế độ</b>' +
     '<label><input type="radio" name="kcMode" value="keo"> ⚔️ Kéo co (hai đội đối đầu)</label>' +
-    '<label><input type="radio" name="kcMode" value="on"> 📖 Ôn tập (chiếu câu hỏi cho cả lớp)</label></div>' +
+    '<label><input type="radio" name="kcMode" value="on"> 📖 Ôn tập (chiếu câu hỏi cho cả lớp)</label>' +
+    '<label><input type="checkbox" id="kcFar"> 👓 Chế độ Nhìn xa (chữ to, đáp án 1 cột, tương phản cao)</label></div>' +
     '<p class="note" id="kcNote">Hai đội cùng trả lời trên một màn hình. Đội nào trả lời đúng thì kéo dây về phía mình. Hết giờ, đội nào kéo được nhiều hơn sẽ thắng.</p>' +
     '<div class="grid2"><div>' +
     '<b>Bộ câu hỏi</b> <span class="note" id="kcCount"></span>' +
@@ -459,6 +470,7 @@
     '<button class="kc-btn" id="kcRvPause" type="button">⏸ Tạm dừng</button>' +
     '<button class="kc-btn" id="kcRvMute" type="button"></button>' +
     '<span class="kc-fsz"><button class="kc-btn" id="kcRvFm" type="button" title="Giảm cỡ chữ">A−</button><button class="kc-btn" id="kcRvFp" type="button" title="Tăng cỡ chữ">A+</button></span>' +
+    '<button class="kc-btn" id="kcRvFar" type="button" title="Chữ to, đáp án 1 cột, dễ đọc từ cuối lớp">👓 Nhìn xa</button>' +
     '<button class="kc-btn" id="kcRvFull" type="button">⛶ Toàn màn hình</button>' +
     '</div>' +
     '<div class="kc-rvwrap"><div class="kc-team b kc-rvbox" id="kcRvBox"></div><div class="kc-rvside" id="kcRvSide"></div></div>' +
@@ -475,6 +487,7 @@
     '<button class="kc-btn" id="kcMute" type="button"></button>' +
     '<span class="kc-fsz"><button class="kc-btn" id="kcFm" type="button" title="Giảm cỡ chữ">A−</button><button class="kc-btn" id="kcFp" type="button" title="Tăng cỡ chữ">A+</button></span>' +
     '<button class="kc-btn" id="kcRestart" type="button">↻ Chơi lại</button>' +
+    '<button class="kc-btn" id="kcFarBtn" type="button" title="Chữ to, đáp án 1 cột, dễ đọc từ cuối lớp">👓 Nhìn xa</button>' +
     '<button class="kc-btn" id="kcFull" type="button">⛶ Toàn màn hình</button>' +
     '</div>' +
     '<div class="kc-grid">' +
@@ -543,7 +556,7 @@
     $('kcFlagB').textContent = em(0) + ' ĐÍCH'; $('kcFlagR').textContent = 'ĐÍCH ' + em(1);
   }
   function setFs(v) {
-    cfg.fscale = Math.max(0.6, Math.min(1.6, Math.round(v * 10) / 10));
+    cfg.fscale = Math.max(0.6, Math.min(2.2, Math.round(v * 10) / 10));
     el.stage.style.setProperty('--kc-fs', cfg.fscale); if (rvEl) rvEl.style.setProperty('--kc-fs', cfg.fscale); save();
     $('kcFm').title = 'Giảm cỡ chữ (hiện ' + Math.round(cfg.fscale * 100) + '%)'; $('kcFp').title = 'Tăng cỡ chữ (hiện ' + Math.round(cfg.fscale * 100) + '%)';
     fitSoon();
@@ -551,7 +564,14 @@
   $('kcFm').onclick = function () { setFs(cfg.fscale - 0.1); };
   $('kcFp').onclick = function () { setFs(cfg.fscale + 0.1); };
   applyTheme();
-  function updCount() { el.count.textContent = '(' + parse(el.bank.value).length + ' câu hợp lệ)'; }
+  function updCount() {
+    var qs = parse(el.bank.value), lg = [];
+    qs.forEach(function (q, i) {
+      var wq = q.q.split(/\s+/).length, wo = Math.max.apply(null, q.opts.map(function (o) { return o.split(/\s+/).length; }));
+      if (wq > 35 || wo > 12) lg.push(i + 1);
+    });
+    el.count.textContent = '(' + qs.length + ' câu hợp lệ)' + (lg.length ? ' · ⚠ Câu dài: ' + lg.slice(0, 10).join(', ') + (lg.length > 10 ? '…' : '') + ' (chữ sẽ nhỏ hơn khi chiếu, nên xem lại)' : '');
+  }
   updCount();
   el.bank.addEventListener('input', updCount);
 
@@ -740,7 +760,7 @@
       /* Bước 1: chữ câu hỏi ở cỡ nhỏ nhất, tìm cỡ chữ đáp án LỚN NHẤT còn vừa */
       apply(0.2, 0.3, tight);
       if (!ok()) continue;                       /* vẫn chưa vừa: thử chế độ gọn */
-      lo = 0.3; hi = 1;
+      lo = 0.3; hi = box.closest('.far') ? 0.7 : 0.8;
       apply(0.2, hi, tight);
       if (ok()) lo = hi; else for (n = 0; n < 8; n++) { mid = (lo + hi) / 2; apply(0.2, mid, tight); if (ok()) lo = mid; else hi = mid; }
       so = lo;
@@ -1132,7 +1152,7 @@
       '(3) Cấm các cụm phụ thuộc ngữ cảnh: "theo tài liệu", "theo đề bài", "ở ví dụ trên", "trong hình", "bảng trên", "bài toán trên", "đoạn văn trên", và các từ như "thực tế", "kế hoạch", "dự kiến" khi chưa nêu rõ chúng là gì. Không dùng đại từ chỉ thứ chưa được nhắc trong câu. ' +
       '(4) Mỗi câu chỉ có MỘT đáp án đúng, tính được hoặc suy ra được. Hãy tự giải lại từng câu để kiểm tra đáp án trước khi trả về; các câu không được trùng ý nhau; nếu không thể viết thành câu độc lập thì bỏ câu đó và chọn ý khác. ' +
       '(5) Với bài toán có lời văn, nêu rõ đại lượng cần tìm và đơn vị. ' +
-      'ĐỘ DÀI: câu hỏi kiến thức thì ngắn gọn (khoảng 20 từ); câu có nêu dữ kiện bài toán được dài tới khoảng 40 từ — ưu tiên đủ dữ kiện hơn là ngắn. Mỗi đáp án tối đa 6 từ hoặc một biểu thức ngắn. ' +
+      'ĐỘ DÀI: câu hỏi kiến thức thì ngắn gọn (khoảng 20 từ); câu có nêu dữ kiện bài toán được dài tới khoảng 40 từ — ưu tiên đủ dữ kiện hơn là ngắn. Mỗi đáp án tối đa 6 từ hoặc một biểu thức ngắn. Chỉ viết gọn khi vẫn giữ nguyên nghĩa và đủ dữ kiện; tuyệt đối không bỏ dữ kiện hay làm đổi ý chỉ để cho ngắn. ' +
       'Mỗi câu có đúng 4 đáp án, chỉ 1 đáp án đúng, 3 đáp án nhiễu hợp lý (là lỗi học sinh hay mắc), vị trí đáp án đúng phân bố đều. Viết bằng tiếng Việt. ' +
       'QUY TẮC TOÁN HỌC: mọi công thức, biểu thức, số mũ, phân số, căn, phương trình, ký hiệu toán PHẢI viết bằng LaTeX đặt trong cặp dấu $...$ — KỂ CẢ trong từng đáp án (ví dụ đáp án phân số viết $\\frac{7}{6}$, không viết \\frac{7}{6} trần). ' +
       'Ví dụ: $x^2$, $\\frac{a}{b}$, $\\sqrt{3}$, $(a+b)^2$, $x \\leq 5$. Không dùng ký tự Unicode như ², √, ≤ trong công thức. Không dùng ký tự | trong công thức (dùng \\lvert, \\rvert). Phần chữ thường nằm ngoài dấu $. ' +
@@ -1400,6 +1420,18 @@
     else if (e.key === 'ArrowLeft') { e.preventDefault(); rvPrev(); }
   });
   document.addEventListener('visibilitychange', function () { if (document.hidden) rvSetPause(true); });
+
+  /* ---------- Chế độ Nhìn xa (dùng chung cho Kéo co và Ôn tập) ---------- */
+  function setFar(v) {
+    cfg.far = !!v; save();
+    el.stage.classList.toggle('far', cfg.far); rvEl.classList.toggle('far', cfg.far);
+    $('kcFar').checked = cfg.far; $('kcFarBtn').classList.toggle('on', cfg.far); $('kcRvFar').classList.toggle('on', cfg.far);
+    fitSoon();
+  }
+  $('kcFar').onchange = function () { setFar(this.checked); };
+  $('kcFarBtn').onclick = function () { setFar(!cfg.far); };
+  $('kcRvFar').onclick = function () { setFar(!cfg.far); };
+  setFar(cfg.far);
 
   /* Tự tạm dừng khi chuyển cửa sổ / ẩn tab, để đồng hồ không chạy ngầm (không tự tiếp tục: cô bấm ▶ khi sẵn sàng) */
   document.addEventListener('visibilitychange', function () { if (document.hidden) setPause(true); });
