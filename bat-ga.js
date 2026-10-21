@@ -216,14 +216,19 @@
     if(!pool.length){info('Hãy nhập ít nhất một tên học sinh.');return;}
     caught=[];info('');
     q('bgSetup').style.display='none';q('bgGame').style.display='block';
-    startRound();
+    goFs();startRound();
   };
   function exitFs(){if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen();}
+  function goFs(){
+    if(document.fullscreenElement||document.webkitFullscreenElement)return;
+    var f=stage.requestFullscreen||stage.webkitRequestFullscreen;
+    if(f){try{var r=f.call(stage);if(r&&r.catch)r.catch(function(){});}catch(e){}}
+  }
   function backToList(){phase='idle';cancelAnimationFrame(raf);exitFs();q('bgGame').style.display='none';q('bgSetup').style.display='block';}
   q('bgBack').onclick=backToList;q('bgBack2').onclick=backToList;
   q('bgAgain').onclick=function(){
     if(!pool.length){backToList();info('Đã hết tên trong danh sách!');return;}
-    startRound();
+    goFs();startRound();
   };
   q('bgFs').onclick=function(){
     if(document.fullscreenElement){exitFs();return;}
@@ -239,7 +244,7 @@
 
   function loop(now){
     if(phase==='idle'||phase==='done')return;
-    if(!stage.offsetParent){t0+=now-last;last=now;raf=requestAnimationFrame(loop);return;} /* đang ẩn: dừng đồng hồ */
+    if(!stage.getClientRects().length){t0+=now-last;last=now;raf=requestAnimationFrame(loop);return;} /* đang ẩn: dừng đồng hồ */
     var gap=now-last;if(gap>250)t0+=gap-16;
     var dt=Math.min(.05,gap/1000);last=now;
     var el=now-t0;
@@ -296,6 +301,7 @@
   }
 
   function finish(){
+    exitFs();
     caught.push(target.name);
     if(q('bgRemove').checked)pool=pool.filter(function(n){return n!==target.name;});
     q('bgWin').textContent=target.name;
