@@ -775,7 +775,7 @@ html #tod-greet .g-time,html[data-tod] #tod-greet .g-time{white-space:nowrap;fon
     return Math.min(3,z,Math.max(1.05,h/620));  /* màn rộng nhưng thấp: không phóng quá để khỏi mất chiều cao */
   }
   function isFull(){
-    return !!(document.fullscreenElement||document.webkitFullscreenElement||document.querySelector('.kc-stage.on.fs,.tx-fs,.tx-clock:fullscreen'));
+    return !!(document.fullscreenElement||document.webkitFullscreenElement||document.querySelector('.kc-stage.on.fs,.tx-fs,.tx-clock:fullscreen,.bg-stage.fs'));
   }
   function apply(){
     raf=0;
@@ -1141,7 +1141,7 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <script src="hieu-ung.js?v=20261005"></script>
 <script src="kho-de.js?v=20261030"></script>
 <script src="qr-nhanh.js?v=20261018"></script>
-<script src="bat-ga.js?v=20261124"></script>
+<script src="bat-ga.js?v=20261125"></script>
 <script src="ngay-le.js?v=20261019"></script>
 <script src="dem-truy-cap.js?v=20261018"></script>
 <script>
