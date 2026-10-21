@@ -695,7 +695,7 @@
     teams.forEach(loadQ);
     pos = 0; step = 1 / bank.length; paused = false; phase = 'count'; goldOn = false; lastSec = -1;
     remain = cfg.secs * 1000;
-    el.setup.style.display = 'none'; el.stage.classList.add('on'); el.ov.classList.remove('on');
+    el.setup.style.display = 'none'; el.stage.classList.add('on'); el.ov.classList.remove('on'); enterFs(el.stage);
     el.pause.textContent = '⏸ Tạm dừng';
     el.time.classList.remove('gold'); el.field.classList.remove('gold');
     renderAll();
@@ -924,6 +924,13 @@
   }
   el.pause.onclick = function () { setPause(!paused); };
   el.mute.onclick = function () { cfg.sound = !cfg.sound; el.snd.checked = cfg.sound; save(); el.mute.textContent = cfg.sound ? '🔊 Âm thanh' : '🔇 Tắt âm'; };
+  function enterFs(node) {          /* tự vào toàn màn hình khi bắt đầu chơi (gọi ngay trong lúc bấm nút) */
+    if (fsEl()) return;
+    try {
+      var r = node.requestFullscreen ? node.requestFullscreen() : (node.webkitRequestFullscreen ? node.webkitRequestFullscreen() : null);
+      if (r && r.catch) r.catch(function () {});
+    } catch (e) {}
+  }
   function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
   function syncFs() { el.stage.classList.toggle('fs', fsEl() === el.stage); rvEl.classList.toggle('fs', fsEl() === rvEl); fitSoon(); setTimeout(fitAll, 250); }
   document.addEventListener('fullscreenchange', syncFs);
@@ -1334,7 +1341,7 @@
       shuffle(list.map(function (_, i) { return i; })).slice(0, Math.max(1, Math.round(list.length / 5))).forEach(function (i) { rv.bonus[i] = true; });
     }
     rv.opts = list.map(function (q) { return cfg.rvShufO ? shuffle(q.opts) : q.opts.slice(); });
-    el.setup.style.display = 'none'; el.stage.classList.remove('on'); rvEl.classList.add('on'); $('kcRvOv').classList.remove('on');
+    el.setup.style.display = 'none'; el.stage.classList.remove('on'); rvEl.classList.add('on'); $('kcRvOv').classList.remove('on'); enterFs(rvEl);
     rvGo(0);
   }
   function rvStart() {
