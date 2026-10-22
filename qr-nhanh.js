@@ -1,6 +1,7 @@
 /* Tạo mã QR nhanh từ link — tab "Công cụ thường dùng" (mục #utQr trong index.html).
    Bản nâng cấp: nhiều cỡ ảnh, màu (đơn sắc/chuyển màu), hình ô & 3 ô góc, viền, bo góc, logo (logo trường / logo riêng),
-   dòng chữ dưới mã, xuất PNG / JPG / WebP / SVG (vector) / PDF, chia sẻ nhanh trên điện thoại.
+   dòng chữ dưới mã, xuất PNG / JPG / WebP / SVG (vector) / PDF, chia sẻ nhanh trên điện thoại,
+   WiFi: tạo mã QR để vào WiFi + quét mã QR WiFi bằng camera/ảnh (hiện tên & mật khẩu).
    Các ô điều khiển mới được tạo bằng JS ngay dưới ô "Chèn logo", KHÔNG cần sửa index.html. Thư viện QR chỉ tải khi dùng. */
 (function(){
   'use strict';
@@ -18,7 +19,7 @@
   if(window.MutationObserver)new MutationObserver(ensureOpt).observe(s,{childList:true});
 
   var stat=document.getElementById('qrStat'),size=document.getElementById('qrSize'),logoChk=document.getElementById('qrLogo'),
-      dl=document.getElementById('qrDl'),cp=document.getElementById('qrCopy'),holder=document.createElement('div'),cur='',tm=0,rt=0,last=null;
+      dl=document.getElementById('qrDl'),cp=document.getElementById('qrCopy'),holder=document.createElement('div'),cur='',tm=0,rt=0,last=null,wifiStr='';
   holder.style.cssText='position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden';document.body.appendChild(holder);
 
   /* ====== CÀI ĐẶT (nhớ lại lần sau) ====== */
@@ -214,6 +215,7 @@
   }
   function refresh(){if(cur)need(render,function(){});}
   function update(){
+    if(wifiStr){cur=wifiStr;say('Đang tạo mã QR WiFi…');need(render,function(){off('⚠ Chưa tải được thư viện tạo QR (cần mạng). Hãy kiểm tra mạng rồi thử lại.');});return;}
     var v=norm(inp.value);
     if(v===''){off('Dán link vào ô trên, mã QR tự hiện ngay.');return;}
     if(v===null){off('⚠ Link chưa hợp lệ — kiểm tra lại (không chứa dấu cách).');return;}
@@ -321,6 +323,170 @@
   addTxt(gl,'Dòng chữ dưới mã (vd: Quét để vào lớp học)','caption','Để trống nếu không cần',60);
   gl.appendChild(el('div',{cls:'sm',text:'Khi chèn logo, mã tự dùng mức sửa lỗi cao nhất (H) để vẫn quét được.'}));
 
+  /* ====== WIFI: TẠO MÃ ĐỂ NGƯỜI KHÁC QUÉT + QUÉT MÃ WIFI (camera / ảnh) ====== */
+  var gw=group('📶 WiFi — tạo mã & quét mã',false),wd=gw.parentNode;
+  var wSsid=el('input',{type:'text',cls:inp.className,placeholder:'Tên WiFi (SSID)',maxLength:32,autocomplete:'off'}),
+      wPass=el('input',{type:'text',cls:inp.className,placeholder:'Mật khẩu WiFi',maxLength:63,autocomplete:'off'}),
+      wSec=el('select',{cls:size.className}),wHid=el('input',{type:'checkbox'}),
+      wPassRow=el('label',{cls:'w'},[el('span',{text:'Mật khẩu'}),wPass]),
+      wMsg=el('div',{cls:'sm'}),
+      wRes=el('div',{cls:'w',style:'display:none;border:1px solid rgba(125,211,252,.3);border-radius:12px;padding:10px'});
+  [['WPA','WPA / WPA2 / WPA3 (phổ biến)'],['WEP','WEP (cũ)'],['nopass','Không mật khẩu']].forEach(function(p){wSec.appendChild(el('option',{value:p[0],text:p[1]}));});
+
+  gw.appendChild(el('div',{cls:'qt w',text:'① Tạo mã để người khác quét và vào WiFi'}));
+  gw.appendChild(el('label',{cls:'w'},[el('span',{text:'Tên WiFi'}),wSsid]));
+  gw.appendChild(wPassRow);
+  gw.appendChild(el('label',{cls:'w'},[el('span',{text:'Kiểu bảo mật'}),wSec]));
+  gw.appendChild(el('label',{cls:'w c'},[wHid,el('span',{text:'Mạng WiFi ẩn'})]));
+  gw.appendChild(wMsg);
+
+  function wq(v){var e=v.replace(/([\\;,:"])/g,'\\$1');return /^[0-9a-f]+$/i.test(v)?'"'+e+'"':e;}   /* thoát ký tự đặc biệt */
+  function wClear(){var had=!!wifiStr;wifiStr='';if(had)update();}
+  function wifiGen(){
+    var ss=wSsid.value,pw=wPass.value,sec=wSec.value;
+    wPassRow.style.display=sec==='nopass'?'none':'';
+    if(!ss){wMsg.textContent='Nhập tên WiFi để tạo mã.';wClear();return;}
+    if(sec!=='nopass'&&!pw){wMsg.textContent='Nhập mật khẩu WiFi (hoặc chọn "Không mật khẩu").';wClear();return;}
+    wifiStr='WIFI:T:'+sec+';S:'+wq(ss)+';'+(sec!=='nopass'?'P:'+wq(pw)+';':'')+(wHid.checked?'H:true;':'')+';';
+    wMsg.textContent=(sec==='WPA'&&pw.length<8?'⚠ WPA yêu cầu mật khẩu từ 8 ký tự. ':'')+'Mã WiFi hiện ở phần xem trước phía dưới — ai quét bằng camera điện thoại sẽ được hỏi kết nối. Mật khẩu không được lưu lại trong trình duyệt.';
+    clearTimeout(tm);tm=setTimeout(update,150);
+  }
+  [wSsid,wPass].forEach(function(e){e.addEventListener('input',wifiGen);});
+  wSec.addEventListener('change',wifiGen);wHid.addEventListener('change',wifiGen);
+
+  /* --- quét mã --- */
+  gw.appendChild(el('div',{cls:'qt w',text:'② Quét mã QR WiFi có sẵn'}));
+  var camBtn=el('button',{type:'button',text:'📷 Mở camera quét mã',cls:dl.className}),
+      fileScan=el('input',{type:'file',accept:'image/*'}),
+      vid=el('video',{muted:true,style:'display:none;width:100%;border-radius:12px;background:#000'});
+  vid.setAttribute('playsinline','');
+  gw.appendChild(el('div',{cls:'w'},[camBtn]));
+  gw.appendChild(vid);
+  gw.appendChild(el('label',{cls:'w'},[el('span',{text:'…hoặc chọn ảnh có chứa mã QR'}),fileScan]));
+  gw.appendChild(wRes);
+  gw.appendChild(el('div',{cls:'sm',text:'Trang web không thể tự kết nối WiFi (do trình duyệt không cho phép). Sau khi quét, bạn sẽ thấy tên và mật khẩu để nhập vào máy.'}));
+
+  var JSQR='https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js',jsLoad=null,bd=null;
+  try{if(window.BarcodeDetector)bd=new BarcodeDetector({formats:['qr_code']});}catch(e){bd=null;}
+  function needJs(cb,fail){
+    if(window.jsQR){cb();return;}
+    if(!jsLoad){jsLoad=document.createElement('script');jsLoad.src=JSQR;document.head.appendChild(jsLoad);}
+    jsLoad.addEventListener('load',function(){cb();});
+    jsLoad.addEventListener('error',function(){jsLoad.parentNode&&jsLoad.parentNode.removeChild(jsLoad);jsLoad=null;fail();});
+  }
+  function jsDecode(c){
+    return new Promise(function(res){needJs(function(){
+      try{var d=c.getContext('2d').getImageData(0,0,c.width,c.height),r=window.jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'});res(r?r.data:null);}catch(e){res(null);}
+    },function(){res(null);});});
+  }
+  function decodeCv(c){   /* ưu tiên bộ quét có sẵn của trình duyệt, dự phòng jsQR */
+    if(bd)return bd.detect(c).then(function(r){return r&&r[0]?r[0].rawValue:jsDecode(c);},function(){return jsDecode(c);});
+    return jsDecode(c);
+  }
+
+  /* đọc chuỗi WIFI:T:WPA;S:ten;P:matkhau;H:true;; (có xử lý ký tự thoát \) */
+  function parseWifi(t){
+    if(!/^WIFI:/i.test(t))return null;
+    var b=t.slice(5),out={},k='',v='',isKey=true,i,ch;
+    for(i=0;i<b.length;i++){
+      ch=b.charAt(i);
+      if(ch==='\\'&&i+1<b.length){ch=b.charAt(++i);if(isKey)k+=ch;else v+=ch;continue;}
+      if(isKey){if(ch===':')isKey=false;else if(ch===';')k='';else k+=ch;}
+      else if(ch===';'){out[k.toUpperCase()]=v;k='';v='';isKey=true;}
+      else v+=ch;
+    }
+    if(!isKey&&k)out[k.toUpperCase()]=v;
+    function unq(x){x=x||'';return /^".*"$/.test(x)&&x.length>=2?x.slice(1,-1):x;}
+    if(!out.S)return null;
+    return {ssid:unq(out.S),pass:unq(out.P),sec:out.T||(out.P?'WPA':'nopass'),hidden:/^true$/i.test(out.H||'')};
+  }
+  function cpy(txt,okMsg){
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(function(){wMsg.textContent='✅ '+okMsg;},function(){wMsg.textContent='Không sao chép được — hãy nhấn giữ vào chữ để chép.';});
+    else wMsg.textContent='Trình duyệt không hỗ trợ sao chép — hãy nhấn giữ vào chữ để chép.';
+  }
+  function showResult(t){
+    var w=parseWifi(t);
+    wRes.innerHTML='';wRes.style.display='';
+    function line(label,val){wRes.appendChild(el('div',{style:'margin:3px 0;word-break:break-all'},[el('b',{text:label+': '}),el('span',{text:val})]));}
+    function btn(txt,fn){var b=el('button',{type:'button',text:txt,cls:dl.className,style:'margin:8px 8px 0 0'});b.addEventListener('click',fn);wRes.appendChild(b);}
+    if(w){
+      wRes.appendChild(el('div',{text:'📶 Đã đọc được mã WiFi',style:'font-weight:700;margin-bottom:4px'}));
+      line('Tên WiFi',w.ssid);
+      line('Mật khẩu',(w.sec==='nopass'||!w.pass)?'(không có)':w.pass);
+      line('Bảo mật',w.sec);
+      if(w.hidden)line('Mạng ẩn','có');
+      btn('Sao chép tên WiFi',function(){cpy(w.ssid,'Đã sao chép tên WiFi.');});
+      if(w.pass)btn('Sao chép mật khẩu',function(){cpy(w.pass,'Đã sao chép mật khẩu — vào Cài đặt › WiFi, chọn mạng rồi dán.');});
+      btn('Tạo lại mã QR này',function(){
+        wSsid.value=w.ssid;wPass.value=w.pass;wHid.checked=w.hidden;
+        wSec.value=/^nopass$/i.test(w.sec)||!w.pass?'nopass':/^wep$/i.test(w.sec)?'WEP':'WPA';wifiGen();
+      });
+      wRes.appendChild(el('div',{cls:'sm',style:'margin-top:8px',text:'Mẹo: trên iPhone và Android 10 trở lên, quét mã này bằng camera mặc định sẽ có nút "Kết nối" ngay.'}));
+    }else{
+      wRes.appendChild(el('div',{text:'Đây không phải mã WiFi',style:'font-weight:700;margin-bottom:4px'}));
+      line('Nội dung',t);
+      if(/^https?:\/\//i.test(t)){wRes.appendChild(el('a',{href:t,target:'_blank',rel:'noopener noreferrer',text:'🔗 Mở liên kết',style:'display:inline-block;margin:8px 8px 0 0'}));}
+      btn('Sao chép nội dung',function(){cpy(t,'Đã sao chép nội dung mã.');});
+    }
+  }
+
+  /* camera */
+  var stream=null,scTm=0,scBusy=false,scCv=document.createElement('canvas');
+  function stopCam(){
+    clearTimeout(scTm);scBusy=false;
+    if(stream){stream.getTracks().forEach(function(t){t.stop();});stream=null;}
+    vid.srcObject=null;vid.style.display='none';camBtn.textContent='📷 Mở camera quét mã';
+  }
+  function tick(){
+    if(!stream)return;
+    if(vid.readyState>=2&&vid.videoWidth&&!scBusy){
+      scBusy=true;
+      var k=Math.min(1,720/Math.max(vid.videoWidth,vid.videoHeight));
+      scCv.width=Math.round(vid.videoWidth*k);scCv.height=Math.round(vid.videoHeight*k);
+      scCv.getContext('2d').drawImage(vid,0,0,scCv.width,scCv.height);
+      decodeCv(scCv).then(function(t){
+        scBusy=false;
+        if(t&&stream){stopCam();showResult(t);wMsg.textContent='✅ Đã quét xong.';}
+        else if(stream)scTm=setTimeout(tick,150);
+      });
+    }else scTm=setTimeout(tick,150);
+  }
+  camBtn.addEventListener('click',function(){
+    if(stream){stopCam();return;}
+    if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){wMsg.textContent='⚠ Trình duyệt không mở được camera (cần HTTPS). Hãy dùng ô chọn ảnh bên dưới.';return;}
+    wMsg.textContent='Đang mở camera…';
+    navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false}).then(function(st){
+      stream=st;vid.srcObject=st;vid.style.display='block';camBtn.textContent='⏹ Tắt camera';
+      var p=vid.play();if(p&&p.catch)p.catch(function(){});
+      wRes.style.display='none';wMsg.textContent='Hướng camera vào mã QR WiFi…';tick();
+    },function(){wMsg.textContent='⚠ Không mở được camera — hãy cho phép quyền camera, hoặc chọn ảnh có chứa mã.';});
+  });
+  wd.addEventListener('toggle',function(){if(!wd.open)stopCam();});
+  document.addEventListener('visibilitychange',function(){if(document.hidden)stopCam();});
+
+  /* quét từ ảnh */
+  fileScan.addEventListener('change',function(){
+    var fl=fileScan.files&&fileScan.files[0];if(!fl)return;
+    wMsg.textContent='Đang đọc ảnh…';
+    var rd=new FileReader();
+    rd.onload=function(){
+      var im=new Image();
+      im.onload=function(){
+        var k=Math.min(1,1600/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement('canvas');
+        c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));
+        c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+        decodeCv(c).then(function(t){
+          if(t){showResult(t);wMsg.textContent='✅ Đã quét xong.';}
+          else{wRes.style.display='none';wMsg.textContent='⚠ Không tìm thấy mã QR trong ảnh (hoặc cần mạng để tải bộ quét). Hãy thử ảnh rõ nét hơn.';}
+        });
+      };
+      im.onerror=function(){wMsg.textContent='⚠ Không đọc được ảnh này.';};
+      im.src=rd.result;
+    };
+    rd.readAsDataURL(fl);
+  });
+  wifiGen();wMsg.textContent='Nhập tên và mật khẩu WiFi để tạo mã QR.';
+
   /* hàng chọn định dạng file — đặt ngay trên hai nút Tải / Sao chép */
   var FMT={png:['PNG','ảnh PNG'],jpg:['JPG','ảnh JPG'],webp:['WebP','ảnh WebP'],svg:['SVG','file SVG (vector)'],pdf:['PDF','file PDF (A4)']};
   var fmtRow=el('div',{cls:'qx'}),fg=el('div',{cls:'g'});fmtRow.appendChild(fg);
@@ -345,18 +511,18 @@
   syncAll();
 
   /* ====== SỰ KIỆN CHÍNH ====== */
-  inp.addEventListener('input',function(){clearTimeout(tm);tm=setTimeout(update,250);});
+  inp.addEventListener('input',function(){clearTimeout(tm);tm=setTimeout(function(){wifiStr='';update();},250);});
   size.addEventListener('change',function(){persist();sync();refresh();});
   logoChk.addEventListener('change',refresh);
-  document.getElementById('qrThis').addEventListener('click',function(){inp.value=location.href.split('#')[0];update();});
+  document.getElementById('qrThis').addEventListener('click',function(){wifiStr='';inp.value=location.href.split('#')[0];update();});
   document.getElementById('qrPaste').addEventListener('click',function(){
     if(navigator.clipboard&&navigator.clipboard.readText){
-      navigator.clipboard.readText().then(function(t){inp.value=(t||'').trim();update();},function(){say('Trình duyệt không cho đọc bộ nhớ tạm — hãy nhấn giữ vào ô và chọn Dán.');inp.focus();});
+      navigator.clipboard.readText().then(function(t){wifiStr='';inp.value=(t||'').trim();update();},function(){say('Trình duyệt không cho đọc bộ nhớ tạm — hãy nhấn giữ vào ô và chọn Dán.');inp.focus();});
     }else{say('Trình duyệt không hỗ trợ nút Dán — hãy nhấn giữ vào ô và chọn Dán.');inp.focus();}
   });
 
   /* ====== XUẤT FILE ====== */
-  function fname(ext){try{return 'QR_'+new URL(cur).hostname.replace(/[^\w.\-]/g,'_')+'.'+ext;}catch(e){return 'QR.'+ext;}}
+  function fname(ext){if(wifiStr){var m=/;S:"?([^;]*)/.exec(wifiStr);return 'QR_WiFi_'+((m&&m[1]||'').replace(/[^\w\-]/g,'_').slice(0,30)||'mang')+'.'+ext;}try{return 'QR_'+new URL(cur).hostname.replace(/[^\w.\-]/g,'_')+'.'+ext;}catch(e){return 'QR.'+ext;}}
   function blobErr(){logoChk.checked=false;render();say('⚠ Trình duyệt chặn xuất ảnh khi có logo — đã tắt logo, hãy bấm lại.');}
   function ascii(t){var u=new Uint8Array(t.length);for(var i=0;i<t.length;i++)u[i]=t.charCodeAt(i)&255;return u;}
   function makePdf(jpg,w,h){   /* PDF A4 tối giản, nhúng 1 ảnh JPEG ở giữa phía trên */
