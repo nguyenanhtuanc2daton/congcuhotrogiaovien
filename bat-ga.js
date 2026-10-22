@@ -57,7 +57,7 @@
 '</div>'+
 '<div id="bgGame" style="display:none">'+
 '<div class="bg-hud"><button class="ghost sm" id="bgBack" type="button">← Danh sách</button><span id="bgTimer">15s</span>'+
-'<span><span class="note" id="bgLeft"></span> <button class="ghost sm" id="bgFs" type="button">⛶ Toàn màn hình</button></span></div>'+
+'<span><span class="note" id="bgLeft"></span> <button class="ghost sm" id="bgSnd" type="button">🔊</button> <button class="ghost sm" id="bgFs" type="button">⛶ Toàn màn hình</button></span></div>'+
 '<div class="bg-stage" id="bgStage"><canvas id="bgCv" width="1000" height="600"></canvas><button class="sec sm bg-x" id="bgX" type="button">✕ Thu nhỏ</button>'+
 '<div class="bg-ov" id="bgOv"><div class="bg-pop"><div>Mời em</div><div class="bg-name" id="bgWin"></div><div style="margin-bottom:6px">lên bảng ❤️</div>'+
 '<div class="bg-hist" id="bgHist"></div>'+
@@ -243,6 +243,43 @@
   if(window.ResizeObserver)new ResizeObserver(function(){fit();}).observe(stage);   /* khung đổi cỡ (vào/ra toàn màn hình, đổi độ phóng) → vẽ lại đúng cỡ */
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&pseudo)exitFs();});
 
+
+  /* ---------- tiếng gà (tổng hợp bằng Web Audio, không cần file âm thanh) ---------- */
+  var AC=null,soundOn=true,lastCluck=0;
+  function audio(){
+    if(!soundOn)return null;
+    if(!AC){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;try{AC=new C();}catch(e){return null;}}
+    if(AC.state==='suspended'){try{AC.resume();}catch(e){}}
+    return AC;
+  }
+  function voice(ac,x,vol,t,dur,f0,f1,f2,q,fm){
+    var o=ac.createOscillator(),f=ac.createBiquadFilter(),g=ac.createGain(),out=g;
+    o.type='sawtooth';
+    o.frequency.setValueAtTime(f0,t);o.frequency.linearRampToValueAtTime(f1,t+dur*.45);o.frequency.linearRampToValueAtTime(f2,t+dur);
+    if(fm){var l=ac.createOscillator(),lg=ac.createGain();l.frequency.value=fm;lg.gain.value=f0*.12;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+dur+.05);}
+    f.type='bandpass';f.frequency.value=(f0+f1)*1.4;f.Q.value=q;
+    g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(f);f.connect(g);
+    if(ac.createStereoPanner){var p=ac.createStereoPanner();p.pan.value=Math.max(-1,Math.min(1,(x/W)*2-1))*.8;g.connect(p);out=p;}
+    out.connect(ac.destination);
+    o.start(t);o.stop(t+dur+.05);
+  }
+  /* cục tác ngắn khi gà bị đuổi */
+  function cluck(x,vol,pitch){
+    var ac=audio();if(!ac)return;
+    var n=1+Math.floor(Math.random()*3),p=(pitch||1)*(.85+Math.random()*.4),t=ac.currentTime+.01;
+    for(var i=0;i<n;i++)voice(ac,x,.16*(vol||1),t+i*.13,.11,420*p,520*p,300*p,4,0);
+  }
+  /* kêu thất thanh khi bị bắt */
+  function squawk(x,vol){
+    var ac=audio();if(!ac)return;
+    var t=ac.currentTime+.01;
+    voice(ac,x,.3*(vol||1),t,.7,520,880,380,2.5,22);
+    voice(ac,x,.18*(vol||1),t+.05,.65,780,1250,560,3,26);
+  }
+  function setSnd(){q('bgSnd').textContent=soundOn?'🔊':'🔇';}
+  q('bgSnd').onclick=function(){soundOn=!soundOn;setSnd();if(soundOn)cluck(W/2,1,1);};
+
   /* ---------- pháo hoa khi hiện tên ---------- */
   var exitT=0,fwT=0,fwCv=document.createElement('canvas'),fw={on:false,raf:0,last:0,parts:[],rockets:[],nextL:0,W:0,H:0,d:1};
   fwCv.className='bg-fw';q('bgOv').insertBefore(fwCv,q('bgOv').firstChild);
@@ -310,7 +347,7 @@
   q('bgStart').onclick=function(){
     pool=parseNames();
     if(!pool.length){info('Hãy nhập ít nhất một tên học sinh.');return;}
-    caught=[];info('');
+    audio();caught=[];info('');
     q('bgSetup').style.display='none';q('bgGame').style.display='block';
     goFs();startRound();
   };
@@ -336,7 +373,7 @@
   q('bgBack').onclick=backToList;q('bgBack2').onclick=backToList;
   q('bgAgain').onclick=function(){
     if(!pool.length){backToList();info('Đã hết tên trong danh sách!');return;}
-    goFs();startRound();
+    audio();goFs();startRound();
   };
   q('bgX').onclick=function(){exitFs();};
   q('bgFs').onclick=function(){if(isFs)exitFs();else goFs();};
@@ -354,7 +391,7 @@
     var gap=now-last;if(gap>250)t0+=gap-16;
     var dt=Math.min(.05,gap/1000);last=now;
     var el=now-t0;
-    if(phase==='run'&&el>=T){phase='catch';target=chase||chickens[0];}
+    if(phase==='run'&&el>=T){phase='catch';target=chase||chickens[0];squawk(target.x,.8);}
     var prog=Math.min(el/T,1);
 
     chickens.forEach(function(c){
@@ -374,6 +411,7 @@
       if(c.x>W-40){c.x=W-40;c.a=Math.PI-c.a;}
       if(c.y<85){c.y=85;c.a=-c.a;}
       if(c.y>H-40){c.y=H-40;c.a=-c.a;}
+      if(fleeing&&!frozen&&now-lastCluck>170&&Math.random()<dt*.8){lastCluck=now;cluck(c.x,Math.max(.35,1-d/260),.9+(c.u*.2));}
       c.ph+=sp*dt*.11;
       c.fl+=(frozen?38:fleeing?30:7)*dt;
       if(sp>0)c.flip=c.vx>=0?1:-1;
@@ -414,7 +452,8 @@
     q('bgLeft').textContent='🐔 '+pool.length;
     q('bgOv').style.display='flex';
     fwStart();
-    clearTimeout(exitT);exitT=setTimeout(exitFs,5000); /* 5 giây sau thì thu nhỏ màn hình */
+    squawk(target.x,1.3);setTimeout(function(){cluck(target.x,1,1.2);},350);setTimeout(function(){cluck(target.x,.9,1.1);},600);
+    /* giữ nguyên toàn màn hình; giáo viên tự bấm "Thu nhỏ" khi cần */
     fwT=setTimeout(fwStop,12000);
   }
 
