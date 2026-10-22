@@ -1,25 +1,21 @@
 /* Tạo mã QR (link, WiFi, Zalo/Facebook/MXH, hàng loạt ZIP, văn bản, email, điện thoại, SMS, danh thiếp, vị trí, sự kiện) — tab "Công cụ thường dùng" (mục #utQr trong index.html).
-   Bản nâng cấp: Giao diện dạng Tab trực quan, tối ưu cho điện thoại, không dùng dropdown thô. */
+   Bản nâng cấp: nhiều cỡ ảnh, màu (đơn sắc/chuyển màu), hình ô & 3 ô góc, viền, bo góc, logo (logo trường / logo riêng),
+   dòng chữ dưới mã, xuất PNG / JPG / WebP / SVG (vector) / PDF, chia sẻ nhanh trên điện thoại,
+   WiFi: tạo mã QR để vào WiFi + quét mã QR WiFi bằng camera/ảnh (hiện tên & mật khẩu).
+   Các ô điều khiển mới được tạo bằng JS ngay dưới ô "Chèn logo", KHÔNG cần sửa index.html. Thư viện QR chỉ tải khi dùng. */
 (function(){
   'use strict';
   var s=document.getElementById('utSel'),inp=document.getElementById('qrIn'),cv=document.getElementById('qrCv');
   if(!s||!inp||!cv)return;
   var LIB='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',loading=null;
-  
   function need(cb,fail){   /* chỉ tải thư viện QR khi thật sự dùng */
     if(window.QRCode){cb();return;}
     if(!loading){loading=document.createElement('script');loading.src=LIB;document.head.appendChild(loading);}
     loading.addEventListener('load',function(){cb();});
     loading.addEventListener('error',function(){loading.parentNode&&loading.parentNode.removeChild(loading);loading=null;fail();});
   }
-  
-  function ensureOpt(){
-    if(!s.querySelector('option[value="utQr"]')){
-      var o=document.createElement('option');o.value='utQr';o.textContent='📱 Tạo mã QR';s.appendChild(o);
-    }
-    var ex=s.querySelector('option[value="utQr"]');
-    if(ex&&ex.textContent!=='📱 Tạo mã QR')ex.textContent='📱 Tạo mã QR';
-  }
+  function ensureOpt(){if(!s.querySelector('option[value="utQr"]')){var o=document.createElement('option');o.value='utQr';o.textContent='📱 Tạo mã QR';s.appendChild(o);}
+    var ex=s.querySelector('option[value="utQr"]');if(ex&&ex.textContent!=='📱 Tạo mã QR')ex.textContent='📱 Tạo mã QR';}
   ensureOpt();window.addEventListener('load',ensureOpt);
   if(window.MutationObserver)new MutationObserver(ensureOpt).observe(s,{childList:true});
 
@@ -29,7 +25,6 @@
       if(e.children.length===0&&/^(\s*\S*\s*)?Tạo mã QR nhanh từ link\s*$/i.test(e.textContent)&&e.tagName!=='OPTION')e.textContent=e.textContent.replace(/Tạo mã QR nhanh từ link/i,'Tạo mã QR');}
   }
   retitle();
-  
   var mode='link',stat=document.getElementById('qrStat'),size=document.getElementById('qrSize'),logoChk=document.getElementById('qrLogo'),
       dl=document.getElementById('qrDl'),cp=document.getElementById('qrCopy'),holder=document.createElement('div'),cur='',tm=0,rt=0,last=null,wifiStr='',extraStr='',extraName='',batchAbort=null;
   holder.style.cssText='position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden';document.body.appendChild(holder);
@@ -253,13 +248,7 @@
    +'.qx input[type=file]{width:100%;font-size:.85em}'
    +'.qx .sw{display:flex;flex-wrap:wrap;gap:9px;margin:4px 0 6px}'
    +'.qx .sw button{width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,.75);cursor:pointer;padding:0}'
-   +'.qx .sm{font-size:.82em;opacity:.8;grid-column:1/-1}'
-   /* CSS cho thanh Tab loại QR */
-   +'.qr-tabs-wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:15px 0}'
-   +'.qr-tab-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:12px 8px;color:#fff;cursor:pointer;font-size:14px;text-align:center;transition:all .2s}'
-   +'.qr-tab-btn:hover{background:rgba(255,255,255,.1)}'
-   +'.qr-tab-btn.on{background:linear-gradient(135deg,var(--a1,#1e40af),var(--a2,#0369a1));border-color:transparent;box-shadow:0 4px 12px rgba(0,0,0,.3);font-weight:bold}'
-   +'.qr-form-container{border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:15px;background:rgba(0,0,0,.15);margin-bottom:15px}';
+   +'.qx .sm{font-size:.82em;opacity:.8;grid-column:1/-1}';
   document.head.appendChild(css);
 
   function el(t,p,kids){var e=document.createElement(t);if(p)for(var a in p){if(a==='text')e.textContent=p[a];else if(a==='cls')e.className=p[a];else if(a==='style')e.style.cssText=p[a];else e[a]=p[a];}(kids||[]).forEach(function(k){e.appendChild(k);});return e;}
@@ -570,33 +559,34 @@
   };
   var ORDER=['link','wifi','social','text','email','tel','sms','vcard','geo','event','batch'];
   var qThis=document.getElementById('qrThis'),qPaste=document.getElementById('qrPaste'),
-      rowP=inp.parentNode,linkRow=(rowP&&rowP.contains(qPaste)&&!rowP.contains(cv)&&rowP!==panel.parentNode)?rowP:null,
-      linkEls=linkRow?[linkRow,qThis]:[inp,qPaste,qThis],
+      root=document.getElementById('utQr')||cv.parentNode,hs=[inp,qPaste,qThis],linkEls,
       wifiWrap=el('div',{cls:'qx'}),
       typeSel=el('select',{cls:size.className}),
-      tabsWrap=el('div',{cls:'qr-tabs-wrap'}), // Container cho các nút Tab
-      formContainer=el('div',{cls:'qr-form-container'}); // Container cho form nhập liệu
-
-  // Ẩn thẻ select gốc (và label của nó)
-  var oldLabel = typeSel.parentNode;
-  typeSel.style.display='none';
-  
+      tabs=el('div',{cls:'qx'},[el('label',{cls:'w',style:'display:flex;flex-direction:column;gap:4px;margin:10px 0'},[el('span',{text:'Loại mã QR',style:'font-weight:700'}),typeSel])]),formUI={};
+  css.textContent+='.qx .tabs{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}'
+   +'.qx .tabs button{flex:1 1 calc(50% - 8px);padding:10px 6px;border-radius:12px;border:2px solid rgba(125,211,252,.5);background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}'
+   +'.qx .tabs button.on{background:linear-gradient(135deg,#4f46e5,#7c3aed);border-color:transparent;color:#fff}'
+   +'.qx textarea{width:100%;max-width:100%;resize:vertical;font:inherit}'
+   +'.qx input[type=datetime-local]{width:100%;max-width:100%}';
+  /* các phần tử của chế độ "link": ô nhập, nút Dán, nút Link trang này (kèm khung chứa nếu khung chỉ chứa chúng) */
+  (function(){
+    function onlyHs(P){for(var i=0;i<P.children.length;i++)if(hs.indexOf(P.children[i])<0)return false;return true;}
+    var ch=true;
+    while(ch){ch=false;hs.slice().forEach(function(n){var P=n.parentNode;
+      if(P&&P!==root&&P!==document.body&&hs.indexOf(P)<0&&!P.contains(cv)&&onlyHs(P)){hs.push(P);ch=true;}});}
+    linkEls=hs.filter(function(n){return hs.indexOf(n.parentNode)<0;});
+    linkEls.sort(function(a,b){return (a.compareDocumentPosition(b)&4)?-1:1;});
+  })();
+  css.textContent+='.qx{flex:0 0 100%;width:100%;grid-column:1/-1}';
   wifiWrap.appendChild(gw);if(wd.parentNode)wd.parentNode.removeChild(wd);   /* bỏ ô thu gọn, dùng tab thay thế */
-  
-  // Chèn thanh Tab và Form Container vào vị trí
-  linkEls[0].parentNode.insertBefore(tabsWrap,linkEls[0]);
-  var anc=qThis;qThis.parentNode.insertBefore(wifiWrap,anc.nextSibling);anc=wifiWrap;
-  linkEls[0].parentNode.insertBefore(formContainer,anc.nextSibling);
+  linkEls[0].parentNode.insertBefore(tabs,linkEls[0]);
+  var lastLink=linkEls[linkEls.length-1],anc=lastLink;lastLink.parentNode.insertBefore(wifiWrap,anc.nextSibling);anc=wifiWrap;
 
-  // Tạo các nút Tab
   ORDER.forEach(function(id){
-    var lab=id==='link'?'🔗 Link':id==='wifi'?'📶 WiFi':id==='batch'?'📦 Hàng loạt':FORMS[id].label.replace('💙 Zalo / Facebook / MXH', '💙 MXH');
-    var btn = el('button', {type:'button', cls:'qr-tab-btn', 'data-id':id, text:lab});
-    btn.addEventListener('click', function(){ setMode(id, true); });
-    tabsWrap.appendChild(btn);
+    var lab=id==='link'?'🔗 Tạo mã QR từ link':id==='wifi'?'📶 Tạo mã WiFi':id==='batch'?'📦 Tạo hàng loạt (ZIP)':FORMS[id].label;
+    typeSel.appendChild(el('option',{value:id,text:lab}));
   });
-
-  // Xây dựng Form cho từng loại (trừ link và wifi)
+  typeSel.addEventListener('change',function(){setMode(typeSel.value,true);});
   Object.keys(FORMS).forEach(function(id){
     var F=FORMS[id],g=el('div',{cls:'g'}),wrap=el('div',{cls:'qx',style:'display:none'},[g]),msg=el('div',{cls:'sm w'}),ins={},t2=0;
     function gen(){
@@ -618,7 +608,7 @@
     });
     if(F.after)F.after(g,ins,gen);
     g.appendChild(msg);msg.textContent=F.hint;
-    formContainer.appendChild(wrap);
+    anc.parentNode.insertBefore(wrap,anc.nextSibling);anc=wrap;
     formUI[id]={wrap:wrap,gen:gen};
   });
 
@@ -652,7 +642,7 @@
         g=el('div',{cls:'g'},[el('label',{cls:'w'},[el('span',{text:'Danh sách link / nội dung (tối đa 100 dòng)'}),ta]),el('div',{cls:'w'},[btn]),bmsg]),
         wrap=el('div',{cls:'qx',style:'display:none'},[g]),busy=false,HINT='Mỗi dòng một mã. Dòng có dấu cách được tạo thành văn bản, còn lại coi là link. Định dạng file, cỡ ảnh, màu, logo lấy theo cài đặt bên dưới.';
     bmsg.textContent=HINT;
-    formContainer.appendChild(wrap);
+    anc.parentNode.insertBefore(wrap,anc.nextSibling);anc=wrap;
     function done(msg){busy=false;btn.disabled=false;batchAbort=null;bmsg.textContent=msg;off(msg);}
     btn.addEventListener('click',function(){
       if(busy)return;
@@ -700,20 +690,11 @@
     formUI.batch={wrap:wrap,gen:function(){extraStr='';off('Nhập danh sách ở phía trên rồi bấm nút tạo file ZIP.');}};
   })();
 
-  // Hàm chuyển đổi chế độ (Tab)
   function setMode(m,run){
     mode=m;
-    
-    // Cập nhật trạng thái nút Tab
-    Array.from(tabsWrap.children).forEach(function(btn){
-      btn.classList.toggle('on', btn.getAttribute('data-id') === m);
-    });
-
-    // Ẩn/hiện các khối nhập liệu
     linkEls.forEach(function(e){e.style.display=m==='link'?'':'none';});
     wifiWrap.style.display=m==='wifi'?'':'none';
     for(var id in formUI)formUI[id].wrap.style.display=id===m?'':'none';
-    
     typeSel.value=m;
     if(m!=='wifi')stopCam();
     if(!run)return;
