@@ -26,7 +26,7 @@
   }
   retitle();
   var mode='link',stat=document.getElementById('qrStat'),size=document.getElementById('qrSize'),logoChk=document.getElementById('qrLogo'),
-      dl=document.getElementById('qrDl'),cp=document.getElementById('qrCopy'),holder=document.createElement('div'),cur='',tm=0,rt=0,last=null,wifiStr='',extraStr='',extraName='',batchAbort=null;
+      dl=document.getElementById('qrDl'),cp=document.getElementById('qrCopy'),holder=document.createElement('div'),cur='',tm=0,rt=0,last=null,wifiStr='',extraStr='',extraName='',batchAbort=null,pvs=[];
   holder.style.cssText='position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden';document.body.appendChild(holder);
 
   /* ====== CÀI ĐẶT (nhớ lại lần sau) ====== */
@@ -51,13 +51,20 @@
     }catch(e){return null;}
   }
 
-  function say(t){stat.textContent=t;}
+  function say(t){stat.textContent=t;pvs.forEach(function(p){p.s.textContent=t;});}
+  function mirror(show){   /* chép mã QR sang khung xem trước ngay dưới các ô nhập */
+    pvs.forEach(function(p){
+      if(!show){p.c.style.display='none';return;}
+      try{p.c.width=cv.width;p.c.height=cv.height;var x=p.c.getContext('2d');x.clearRect(0,0,p.c.width,p.c.height);x.drawImage(cv,0,0);
+          p.c.style.background=cv.style.background;p.c.style.display='block';}catch(e){p.c.style.display='none';}
+    });
+  }
   function norm(v){
     v=(v||'').trim();if(!v)return '';
     if(!/^[a-z][a-z0-9+.\-]*:/i.test(v))v='https://'+v;
     try{return new URL(v).href;}catch(e){return null;}
   }
-  function off(msg){cur='';last=null;cv.style.display='none';dl.disabled=cp.disabled=true;if(shareBtn)shareBtn.disabled=true;say(msg);}
+  function off(msg){cur='';last=null;cv.style.display='none';mirror(false);dl.disabled=cp.disabled=true;if(shareBtn)shareBtn.disabled=true;say(msg);}
 
   /* ====== HÌNH HỌC (đường vẽ SVG dùng chung cho canvas + file SVG) ====== */
   function f3(v){return String(+v.toFixed(3));}
@@ -188,13 +195,26 @@
   }
 
   /* ====== TẠO MÃ & VẼ ====== */
+  /* Thư viện qrcodejs tự chèn 3 byte BOM (EF BB BF) đầu nội dung khi có chữ có dấu → danh thiếp/sự kiện/văn bản quét ra bị lỗi.
+     Hàm này bỏ 3 byte đó rồi tạo lại ma trận; nếu cấu trúc thư viện khác dự kiến thì giữ nguyên bản gốc. */
+  function noBom(qr,remake){
+    try{
+      var d=qr&&qr.dataList&&qr.dataList.length===1?qr.dataList[0]:null,p=d&&d.parsedData;
+      if(p&&p[0]===239&&p[1]===187&&p[2]===191&&cur.charCodeAt(0)!==0xFEFF){
+        p.splice(0,3);qr.dataCache=null;qr.make();
+        if(!(qr.getModuleCount()>0))return remake();
+      }
+    }catch(e){try{return remake();}catch(e2){}}
+    return qr;
+  }
   function build(wantLogo){
     var order=['L','M','Q','H'],chain,qr=null,used='',lv=0;
     if(wantLogo)chain=['H'];
     else if(o.ecc==='auto')chain=['M','L'];
     else{lv=order.indexOf(o.ecc);chain=order.slice(0,lv+1).reverse();}
     for(var i=0;i<chain.length&&!qr;i++){
-      try{holder.innerHTML='';var q=new QRCode(holder,{text:cur,width:128,height:128,correctLevel:QRCode.CorrectLevel[chain[i]]});qr=q._oQRCode;used=chain[i];}catch(e){qr=null;}
+      try{holder.innerHTML='';var q=new QRCode(holder,{text:cur,width:128,height:128,correctLevel:QRCode.CorrectLevel[chain[i]]});qr=q._oQRCode;used=chain[i];
+          qr=noBom(qr,function(){holder.innerHTML='';return new QRCode(holder,{text:cur,width:128,height:128,correctLevel:QRCode.CorrectLevel[chain[i]]})._oQRCode;});}catch(e){qr=null;}
     }
     return {qr:qr,used:used};
   }
@@ -214,7 +234,7 @@
     }catch(e){off('⚠ Kích thước quá lớn so với thiết bị — hãy chọn cỡ ảnh nhỏ hơn.');return;}
     last={g:g,sc:sc,W:W,Hpx:Hpx};
     cv.style.background=o.tr?'repeating-conic-gradient(#d0d0d0 0% 25%,#fff 0% 50%) 50%/16px 16px':'';
-    cv.style.display='inline-block';dl.disabled=cp.disabled=false;if(shareBtn)shareBtn.disabled=false;
+    cv.style.display='inline-block';mirror(true);dl.disabled=cp.disabled=false;if(shareBtn)shareBtn.disabled=false;
     var cm=(W/300*2.54).toFixed(1);
     say('✅ Đã tạo mã QR ('+W+'×'+Hpx+' px, in 300 dpi ≈ '+cm+' cm). Hãy quét thử bằng điện thoại trước khi dùng.'
         +(logoChk.checked&&!wantLogo?' (Không chèn được logo.)':'')+(wantLogo?' (Có logo → tự dùng mức sửa lỗi cao H.)':'')
@@ -594,7 +614,10 @@
       var r=F.b(v);
       if(!r){msg.textContent=F.hint;extraStr='';}
       else if(r.e){msg.textContent=r.e;extraStr='';}
-      else{msg.textContent='';extraStr=r.s;extraName=F.name;}
+      else{
+        var nb=utf8(r.s).length;
+        msg.textContent=nb>271?'⚠ Nội dung dài '+nb+' byte, vượt giới hạn khoảng 271 byte của mã QR (chữ có dấu tính 2–3 byte). Hãy rút gọn bớt.':(nb>200?'Độ dài '+nb+'/271 byte — gần chạm giới hạn, mã sẽ dày và khó quét.':'');
+        extraStr=r.s;extraName=F.name;}
       update();
     }
     F.f.forEach(function(d){
@@ -690,6 +713,14 @@
     formUI.batch={wrap:wrap,gen:function(){extraStr='';off('Nhập danh sách ở phía trên rồi bấm nút tạo file ZIP.');}};
   })();
 
+  function mkPreview(parent,before){
+    var c=document.createElement('canvas'),sd=el('div',{cls:'sm'}),box=el('div',{cls:'w',style:'text-align:center'},[c,sd]);
+    c.style.cssText='display:none;width:100%;max-width:240px;height:auto;margin:8px auto 4px;border-radius:8px';
+    if(before)parent.insertBefore(box,before);else parent.appendChild(box);
+    pvs.push({c:c,s:sd});
+  }
+  Object.keys(formUI).forEach(function(id){if(id!=='batch')mkPreview(formUI[id].wrap.firstChild);});
+  (function(){var kids=gw.children,mark=null,i;for(i=0;i<kids.length;i++)if(/^\s*②/.test(kids[i].textContent)){mark=kids[i];break;}mkPreview(gw,mark);})();
   function setMode(m,run){
     mode=m;
     linkEls.forEach(function(e){e.style.display=m==='link'?'':'none';});
