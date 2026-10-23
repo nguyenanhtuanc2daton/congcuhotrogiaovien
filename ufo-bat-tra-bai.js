@@ -100,7 +100,9 @@ function mkpoles(){poles=[[.14,.76],[.5,.76],[.86,.76],[.12,.93],[.5,.93],[.88,.
 function resize(){if(!cv)return;const r=cv.getBoundingClientRect();if(!r.width||!r.height)return;dpr=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr;mkbg();mkpoles();ufo.x=W/2;people.forEach(p=>{p.x=Math.min(p.x,W);p.y=Math.min(Math.max(p.y,H*.48),H*.97)})}
 function mk(n){const sk=Math.random()<.5;return{name:n,x:R(0,W),y:R(.5,.96)*H,dir:Math.random()<.5?-1:1,spd:R(.04,.08),ph:R(0,6),mode:'walk',t:0,sk,long:sk||Math.random()<.2,
  skin:P(['#f1c9a5','#e0a97d','#b9794f','#8a5a3a']),hair:P(['#2a1b14','#1d1d22','#4a2c1c']),shirt:P(['#f4f4ee','#dbe9f2','#f6d9de','#fbf0d6']),pant:sk?P(['#7a6a55','#5b5f78']):P(['#4b5b58','#2f3c55','#6d6f61']),bag:P(['#d9798b','#8a7ac8','#e0a24a','#d86b52']),up:0}}
-function rebuild(){people=names.filter(n=>!called.includes(n)).map(mk);$('pill').textContent=names.length+' học sinh'}
+function updPill(){const left=Math.max(0,names.length-called.filter(n=>names.includes(n)).length);$('pill').textContent=called.length?('Còn '+left+'/'+names.length+' học sinh'):(names.length+' học sinh')}
+function rebuild(){people=names.filter(n=>!called.includes(n)).map(mk);updPill()}
+function enterFs(){try{if(document.fullscreenElement||document.webkitFullscreenElement)return;const f=app.requestFullscreen||app.webkitRequestFullscreen;if(f){const r=f.call(app);if(r&&r.catch)r.catch(()=>{})}}catch(e){}}
 const ufoBot=()=>ufo.fy*H+Math.min(W*.8,H*.8)*.1;
 /* ---------- drawing people ---------- */
 function head(c,p,pan){if(p.long){c.fillStyle=p.hair;c.fillRect(-12,-90,24,28)}c.fillStyle=p.skin;c.beginPath();c.arc(0,-84,11,0,7);c.fill();c.fillStyle=p.hair;c.beginPath();c.arc(0,-86,12,Math.PI,0);c.fill();c.fillRect(-12,-87,24,4);
@@ -171,7 +173,7 @@ const ctrls=['go','rs','cfg','edit','cnt'];const lock=v=>ctrls.forEach(i=>$(i).d
 function avatar(p){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.scale(5,5);x.translate(12.8,12.8+84);x.fillStyle=p.shirt;x.fillRect(-14,-76,28,14);head(x,p,false);return c}
 async function round(){let ch=0;try{
  if(busy)return;const alive=people.filter(p=>p.mode!=='gone');if(!alive.length){say('Hết tên rồi! Bấm “Vòng mới” để chơi lại.');return}
- busy=true;lock(true);au();bubbles=[];const k=Math.max(1,Math.min(+$('cnt').value||1,alive.length,10));
+ busy=true;lock(true);au();enterFs();bubbles=[];const k=Math.max(1,Math.min(+$('cnt').value||1,alive.length,10));
  say('Cảnh báo! UFO đang đến gần…',1);sirenOn();
  const t0=night;await tw(3200,t=>{ufo.fy=L(-.3,.13,E(t));night=L(t0,1,t);$('hud').classList.toggle('dark',t>.4)});
  say('Chạy đi! Mọi người hoảng loạn!',1);alive.forEach(p=>{p.mode='panic';p.t=0});
@@ -195,7 +197,7 @@ async function round(){let ch=0;try{
   p.y0=p.y;p.mode='up';p.up=0;tone(200,3.2*f,'triangle',.12,1100);const sx=p.x;
   await tw(3200*f,t=>{p.up=t;p.x=L(sx,ufo.x,E(t))});
   p.mode='gone';flash=1;tone(900,.3,'sine',.12,1800);await tw(350,t=>flash=1-t);flash=0;
-  got.push(p);called.push(p.name);
+  got.push(p);called.push(p.name);updPill();
   ban={t:p.name,s:0};say('Đã bắt được: '+p.name+'!',1);[659,784,1047].forEach((fr,j)=>tone(fr,.4,'triangle',.12,0,j*.1));
   await tw(500,t=>ban.s=t);await wait(1500*f);ban=null}
  ufo.scan=false;await tw(500,t=>beam.on=1-t);beam.wd=0;sirenOff();
