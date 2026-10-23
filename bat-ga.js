@@ -45,9 +45,7 @@
 '<h3 style="margin:4px 0 8px">🐔 Bắt gà gọi tên</h3>'+
 '<textarea id="bgNames" style="min-height:170px" placeholder="Mỗi dòng một tên học sinh"></textarea>'+
 '<div class="bar">'+
-'<label class="ghost sm" style="cursor:pointer;display:inline-block;padding:8px 12px;border-radius:10px">📂 Nhập Excel/CSV<input id="bgFile" type="file" accept=".xlsx,.xls,.csv,.txt" hidden></label>'+
-'<button class="ghost sm" id="bgWheel" type="button">⬇ Lấy từ Vòng quay</button>'+
-'<button class="ghost sm" id="bgTG" type="button">⬇ Từ Bảng điểm</button>'+
+'<label class="ghost sm" style="cursor:pointer;display:inline-block;padding:8px 12px;border-radius:10px;position:relative;overflow:hidden">📂 Nhập Excel/CSV<input id="bgFile" type="file" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0"></label>'+
 '<button class="sec sm" id="bgClear" type="button">Xóa</button>'+
 '<span class="note" id="bgCount"></span></div>'+
 '<div class="bar"><label>Thời gian đuổi <input type="number" id="bgDur" value="15" min="5" max="120" style="width:70px"> giây</label>'+
@@ -176,16 +174,7 @@
   function upd(){q('bgCount').textContent=parseNames().length+' học sinh';}
   q('bgNames').addEventListener('input',upd);upd();
   q('bgClear').onclick=function(){q('bgNames').value='';upd();info();};
-  q('bgWheel').onclick=function(){
-    var w=q('wNames');
-    if(!w||!w.value.trim()){info('Vòng Quay Gọi Tên chưa có tên học sinh nào.');return;}
-    q('bgNames').value=w.value;upd();info('');
-  };
-  q('bgTG').onclick=function(){
-    var ns=(window.TG&&window.TG.names)?window.TG.names():[];
-    if(!ns.length){info('Bảng điểm (tab Công cụ Word) chưa có tên học sinh nào.');return;}
-    q('bgNames').value=ns.join('\n');upd();info('');
-  };
+  function loadX(cb){if(window.XLSX)return cb(true);var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=function(){cb(!!window.XLSX)};s.onerror=function(){cb(false)};document.head.appendChild(s);}
   q('bgFile').onchange=function(e){
     var f=e.target.files[0];if(!f)return;
     var fin=function(rows){
@@ -200,13 +189,15 @@
     };
     var fail=function(){info('Không đọc được file. Hãy thử dán tên trực tiếp vào ô nhập.');};
     if(/\.(txt|csv)$/i.test(f.name)){
-      f.text().then(function(t){fin(t.split(/\r?\n/).map(function(r){return [r.split(',')[0]];}));},fail);
-    }else if(window.XLSX){
-      f.arrayBuffer().then(function(b){
-        var wb=XLSX.read(b,{type:'array'});
-        fin(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''}));
-      }).catch(fail);
-    }else fail();
+      f.text().then(function(t){fin(t.replace(/^\uFEFF/,'').split(/\r?\n/).map(function(r){return [r.split(/[,;\t]/)[0].trim().replace(/^"|"$/g,'')];}));},fail);
+    }else{
+      loadX(function(ok){
+        if(!ok)return fail();
+        var r=new FileReader();
+        r.onload=function(){try{var wb=XLSX.read(new Uint8Array(r.result),{type:'array'});fin(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''}));}catch(x){fail();}};
+        r.onerror=fail;r.readAsArrayBuffer(f);
+      });
+    }
     e.target.value='';
   };
 

@@ -49,7 +49,7 @@ const HTML=`<div id="app">
 <div id="hud"><div id="msg"></div><span id="pill"></span> <button id="edit" style="padding:4px 12px;margin-left:8px" title="Sửa danh sách">✏️ Sửa</button></div>
 <div class="ov" id="res"><div id="card"><div class="st">ĐÃ BẮT</div><div style="font-weight:700;opacity:.8">Khoang hành khách</div><h2>Chuyến bay này cần phi hành gia thuộc bài!</h2><div id="tiles"></div><div style="text-align:right"><button id="close">Đóng</button></div></div></div>
 <div class="ov" id="sov"><div id="set"><b>Danh sách học sinh (mỗi dòng một tên)</b><textarea id="ta"></textarea>
-<div class="row"><label class="fb">📂 Nhập Excel/CSV<input type="file" id="fi" accept=".xlsx,.xls,.csv,.txt" hidden></label><button id="sw">⬇ Từ Vòng quay</button><button id="sb">⬇ Từ Bắt gà</button><button id="st">⬇ Từ Bảng điểm</button><button id="sx">Xóa</button></div>
+<div class="row"><label class="fb" style="position:relative;overflow:hidden">📂 Nhập Excel/CSV<input type="file" id="fi" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0"></label><button id="sx">Xóa</button></div>
 <div class="row"><span id="scnt"></span></div><div id="sinfo"></div>
 <label><input type="checkbox" id="shn" checked> Hiện tên trên đầu nhân vật</label>
 <div style="display:flex;gap:8px;justify-content:flex-end"><button id="sc">Hủy</button><button class="main" id="ss" style="min-width:0">Lưu</button></div></div></div>
@@ -219,8 +219,8 @@ function readNamesFile(f,ok,fail){
   if(l.length&&/^(stt|họ|ho|tên|ten|name|danh sách)/i.test(l[0]))l.shift();
   ok(l)};
  if(/\.(txt|csv)$/i.test(f.name))f.text().then(t=>fin(t.replace(/^\uFEFF/,'').split(/\r?\n/).map(r=>r.split(/[,;\t]/).map(x=>x.trim().replace(/^"|"$/g,'')))),fail);
- else if(window.XLSX)f.arrayBuffer().then(b=>{const wb=XLSX.read(b,{type:'array'});fin(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''}))}).catch(fail);
- else fail();
+ else{const go=()=>{const r=new FileReader();r.onload=()=>{try{const wb=XLSX.read(new Uint8Array(r.result),{type:'array'});fin(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''}))}catch(x){fail()}};r.onerror=fail;r.readAsArrayBuffer(f)};
+  if(window.XLSX)go();else{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=()=>window.XLSX?go():fail();s.onerror=fail;document.head.appendChild(s)}}
 }
 
 const uniq=a=>{const s={};return a.map(n=>{s[n]=(s[n]||0)+1;return s[n]>1?n+' ('+s[n]+')':n})};
@@ -253,7 +253,6 @@ function build(){
  const info=m=>$('sinfo').textContent=m||'',cnt=()=>$('scnt').textContent=lines($('ta').value).length+' học sinh';
  $('ta').addEventListener('input',cnt);
  const put=(n,msg)=>{if(!n.length){info('Nguồn này chưa có tên học sinh nào.');return}$('ta').value=n.join('\n');cnt();info(msg||'Đã lấy '+n.length+' tên. Bấm Lưu để áp dụng.')};
- $('sw').onclick=()=>put(srcWheel());$('sb').onclick=()=>put(srcChicken());$('st').onclick=()=>put(srcScore());
  $('sx').onclick=()=>{$('ta').value='';cnt();info('')};
  $('fi').onchange=e=>{const f=e.target.files[0];if(!f)return;
   readNamesFile(f,l=>l.length?put(l,'Đã nhập '+l.length+' tên từ file. Bấm Lưu để áp dụng.'):info('Không tìm thấy tên học sinh trong file.'),()=>info('Không đọc được file. Hãy thử dán tên trực tiếp vào ô nhập.'));
@@ -301,10 +300,7 @@ function inject(){
  const pn=document.createElement('div');pn.id='utUfo';pn.style.display='none';
  pn.innerHTML='<h3 style="margin:4px 0 8px">🛸 UFO bắt trả bài</h3>'+
  '<textarea id="ufNames" style="min-height:170px" placeholder="Mỗi dòng một tên học sinh"></textarea>'+
- '<div class="bar"><label class="ghost sm" style="cursor:pointer;display:inline-block;padding:8px 12px;border-radius:10px">📂 Nhập Excel/CSV<input id="ufFile" type="file" accept=".xlsx,.xls,.csv,.txt" hidden></label>'+
- '<button class="ghost sm" id="ufWheel" type="button">⬇ Lấy từ Vòng quay</button>'+
- '<button class="ghost sm" id="ufChicken" type="button">⬇ Lấy từ Bắt gà</button>'+
- '<button class="ghost sm" id="ufTG" type="button">⬇ Từ Bảng điểm</button>'+
+ '<div class="bar"><label class="ghost sm" style="cursor:pointer;display:inline-block;padding:8px 12px;border-radius:10px;position:relative;overflow:hidden">📂 Nhập Excel/CSV<input id="ufFile" type="file" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0"></label>'+
  '<button class="sec sm" id="ufClear" type="button">Xóa</button><span class="note" id="ufCount"></span></div>'+
  '<div id="ufInfo" class="status info"></div>'+
  '<div class="bar" style="justify-content:center"><button class="red" id="ufStart" type="button" style="font-size:18px;padding:13px 30px">🛸 BẮT ĐẦU UFO</button></div>';
@@ -313,9 +309,6 @@ function inject(){
  const info=m=>q('ufInfo').textContent=m||'',cnt=()=>q('ufCount').textContent=lines(ta.value).length+' học sinh';
  const put=(n,msg,emptyMsg)=>{if(!n.length){info(emptyMsg||'Nguồn này chưa có tên học sinh nào.');return}ta.value=n.join('\n');cnt();info(msg||'')};
  ta.addEventListener('input',cnt);cnt();
- q('ufWheel').onclick=()=>put(srcWheel(),'','Vòng Quay Gọi Tên chưa có tên học sinh nào.');
- q('ufChicken').onclick=()=>put(srcChicken(),'','Bắt gà chưa có tên học sinh nào.');
- q('ufTG').onclick=()=>put(srcScore(),'','Bảng điểm (tab Công cụ Word) chưa có tên học sinh nào.');
  q('ufClear').onclick=()=>{ta.value='';cnt();info('')};
  q('ufFile').onchange=e=>{const f=e.target.files[0];if(!f)return;
   readNamesFile(f,l=>l.length?put(l,'Đã nhập '+l.length+' tên từ file.'):info('Không tìm thấy tên học sinh trong file.'),()=>info('Không đọc được file. Hãy thử dán tên trực tiếp vào ô nhập.'));

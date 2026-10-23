@@ -5,6 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bộ công cụ trợ giảng Toán - GV Nguyễn Anh Tuấn</title>
 <!-- Thư viện CDN: math.js 12.4.1 (cdnjs) · SheetJS xlsx 0.18.5 · jsPDF 2.5.1 · html2canvas 1.4.1 (cdnjs). Mô-đun 1 dùng bộ chuyển LaTeX→OMML và ZIP tự viết, không cần thư viện. -->
+<script>
+/* Android làm mờ file khi ô chọn file giới hạn theo đuôi (.xlsx, .docx...). Bỏ giới hạn đuôi cho MỌI ô chọn file, kể cả ô do các file JS khác tạo ra sau này. Việc kiểm tra loại file do từng công cụ tự xử lý. */
+(function(){
+  function fix(v){return /\.[a-z0-9]+/i.test(v||'')?'':v;}
+  try{
+    var d=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'accept');
+    if(d&&d.set)Object.defineProperty(HTMLInputElement.prototype,'accept',{configurable:true,enumerable:d.enumerable,get:d.get,set:function(v){d.set.call(this,fix(v));}});
+    var sa=Element.prototype.setAttribute;
+    Element.prototype.setAttribute=function(n,v){
+      if(this instanceof HTMLInputElement&&String(n).toLowerCase()==='accept')v=fix(v);
+      return sa.call(this,n,v);
+    };
+  }catch(e){}
+  function scan(root){
+    try{(root||document).querySelectorAll('input[type=file][accept]').forEach(function(i){
+      var a=i.getAttribute('accept');if(fix(a)!==a)i.removeAttribute('accept');
+    });}catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    scan();
+    try{new MutationObserver(function(){scan();}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['accept']});}catch(e){}
+  });
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -921,7 +945,7 @@ html #tod-greet .g-hl{text-wrap:balance;font-size:clamp(11px,3vw,12.5px)}
 <div class="note" id="fml"></div>
 <div class="bar"><span class="note" style="margin:0">Đang nhập / xem:</span>
 <button class="sm sec mb on" data-m="1" type="button">Học kỳ 1</button><button class="sm sec mb" data-m="2" type="button">Học kỳ 2</button><button class="sm sec mb" data-m="3" type="button">Cả năm (chỉ xem)</button></div>
-<div class="bar"><button class="sm" id="gAdd" type="button">＋ Thêm dòng</button><button class="sm" id="gImp" type="button" title="Nhập file bảng điểm theo mẫu (.xlsx)">📤 Nhập file Excel (.xlsx)</button><button class="green sm" id="gExpImp" type="button" title="Xuất lại đúng file đã nhập, có điền ĐTB">📥 Xuất file Excel đã nhập (có ĐTB)</button><input type="file" id="gFile" accept=".xlsx" hidden><button class="sec sm" id="gClear" type="button">🗑 Xóa dữ liệu</button><button class="sm" id="gAI" type="button" title="Gemini phân tích bảng điểm: ĐTB, học sinh thiếu điểm, điểm cần bổ sung để đạt 5,0 / 8,0 / 9,0 → xuất file Word">🤖 Phân tích AI</button></div>
+<div class="bar"><button class="sm" id="gAdd" type="button">＋ Thêm dòng</button><button class="sm" id="gImp" type="button" title="Nhập file bảng điểm theo mẫu (.xlsx)">📤 Nhập file Excel (.xlsx)</button><button class="green sm" id="gExpImp" type="button" title="Xuất lại đúng file đã nhập, có điền ĐTB">📥 Xuất file Excel đã nhập (có ĐTB)</button><input type="file" id="gFile" hidden><button class="sec sm" id="gClear" type="button">🗑 Xóa dữ liệu</button><button class="sm" id="gAI" type="button" title="Gemini phân tích bảng điểm: ĐTB, học sinh thiếu điểm, điểm cần bổ sung để đạt 5,0 / 8,0 / 9,0 → xuất file Word">🤖 Phân tích AI</button></div>
 <div class="bar" id="gAiKey" style="display:none"><label for="gAiK" class="note" style="margin:0">API key Gemini · <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">lấy miễn phí tại Google AI Studio</a></label><input type="password" id="gAiK" placeholder="Dán API key vào đây" autocomplete="off" spellcheck="false" style="flex:1 1 220px;min-width:180px"><button class="green sm" id="gAiOk" type="button">Xác nhận &amp; phân tích</button></div>
 <div class="tw"><table class="g"><thead><tr><th rowspan="2">STT</th><th rowspan="2">Họ &amp; Tên</th><th class="ix" rowspan="2">Mã định danh</th><th class="ix" rowspan="2">Ngày sinh</th><th class="ix" rowspan="2">Giới tính</th><th class="tx" colspan="5" title="Điểm đánh giá thường xuyên">ĐĐGtx</th><th class="tx" rowspan="2" title="Điểm đánh giá giữa kì">ĐĐGgk</th><th class="tx" rowspan="2" title="Điểm đánh giá cuối kì">ĐĐGck</th><th rowspan="2" title="Điểm trung bình môn học kì 1">ĐTBmhk1</th><th class="h1x" rowspan="2" title="Điểm trung bình môn học kì 2">ĐTBmhk2</th><th class="h1x" rowspan="2" title="Điểm trung bình môn cả năm">ĐTBmcn</th><th rowspan="2" id="thXl">Xếp loại</th><th rowspan="2"></th></tr><tr class="txsub"><th class="tx">1</th><th class="tx">2</th><th class="tx">3</th><th class="tx">4</th><th class="tx">5</th></tr></thead><tbody id="gBody"></tbody></table></div>
 <div class="note" id="gMeta" style="display:none"></div>
@@ -932,7 +956,7 @@ html #tod-greet .g-hl{text-wrap:balance;font-size:clamp(11px,3vw,12.5px)}
 <div id="gMsg" class="status"></div>
 </div>
 <div class="wtool" id="wtMerge">
-<div class="bar"><input type="file" id="wtMIn" accept=".docx" multiple style="display:none"><button class="ghost" id="wtMPick" type="button">📁 Thêm file .docx (thêm dần / kéo thả vào đây)</button><button class="sec sm" id="wtMClear" type="button">🗑 Xóa tất cả</button></div>
+<div class="bar"><input type="file" id="wtMIn" multiple style="display:none"><button class="ghost" id="wtMPick" type="button">📁 Thêm file .docx (thêm dần / kéo thả vào đây)</button><button class="sec sm" id="wtMClear" type="button">🗑 Xóa tất cả</button></div>
 <div id="wtMList"></div>
 <div class="bar"><label class="note" style="margin:0"><input type="checkbox" id="wtMBrk" checked> Ngắt trang giữa các file</label><label class="note" style="margin:0"><input type="checkbox" id="wtMNorm" checked> Chuẩn hóa font/lề khi ghép</label><label class="note" style="margin:0">Tên file <input type="text" id="wtMName" value="ghep.docx" style="width:150px"></label><label class="note" style="margin:0">Xuất ra: <select id="wtMFmt"><option value="docx">Word (.docx)</option><option value="pdf">PDF (.pdf)</option><option value="both">Cả Word và PDF</option></select></label></div>
 <div class="bar"><span class="note" style="margin:0">Lề (mm):</span><label class="note" style="margin:0">Trên <input type="number" id="wtMTop" value="20" min="0" max="100" step="1" style="width:64px"></label><label class="note" style="margin:0">Dưới <input type="number" id="wtMBot" value="20" min="0" max="100" step="1" style="width:64px"></label><label class="note" style="margin:0">Trái <input type="number" id="wtMLeft" value="30" min="0" max="100" step="1" style="width:64px"></label><label class="note" style="margin:0">Phải <input type="number" id="wtMRight" value="15" min="0" max="100" step="1" style="width:64px"></label></div>
@@ -945,7 +969,7 @@ html #tod-greet .g-hl{text-wrap:balance;font-size:clamp(11px,3vw,12.5px)}
 <div id="t1">
 <h2>📝 Chuyển LaTeX → Word (.docx) / PDF <span id="modeBadge" class="modebadge" style="display:none"></span></h2>
 <div class="grid2"><div>
-<div class="bar"><input type="file" id="fileInput" accept=".docx,.txt" multiple style="display:none">
+<div class="bar"><input type="file" id="fileInput" multiple style="display:none">
 <button class="ghost" id="btnChoose" type="button">📁 Chọn file (.docx / .txt) — chọn được nhiều file</button>
 <button class="sec sm" id="btnCmdCopy" type="button">📋 Câu lệnh</button>
 <button class="sec sm" id="btnClearFiles" type="button" style="display:none">🗑 Xóa danh sách</button></div>
@@ -1081,7 +1105,7 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 </div>
 
 <div class="mt" id="mH">
-<div class="bar"><input type="file" id="xFile" accept=".docx"><label>Mã đề <input type="text" id="xCodes" value="101,102,103,104" style="width:170px"></label></div>
+<div class="bar"><input type="file" id="xFile"><label>Mã đề <input type="text" id="xCodes" value="101,102,103,104" style="width:170px"></label></div>
 <div class="bar">
 <label class="qchip"><input type="checkbox" id="xQ" checked> Trộn câu</label>
 <label class="qchip"><input type="checkbox" id="xO" checked> Trộn phương án</label>
@@ -1121,7 +1145,7 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <script src="word-zip-pdf.js?v=20261101"></script>
 <script src="word-ui.js?v=20261101"></script>
 <script src="core.js?v=20261005"></script>
-<script src="goi-ten.js?v=20261201"></script>
+<script src="goi-ten.js?v=20261210"></script>
 <script src="lich-bao-giang.js?v=20261011"></script>
 <script src="so-do-dung.js?v=20261020"></script>
 <script src="tinh-diem.js?v=20261005"></script>
@@ -1143,8 +1167,8 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <script src="hieu-ung.js?v=20261005"></script>
 <script src="kho-de.js?v=20261030"></script>
 <script src="qr-nhanh.js?v=20261023"></script>
-<script src="bat-ga.js?v=20261126"></script>
-<script src="ufo-bat-tra-bai.js?v=20261204"></script>
+<script src="bat-ga.js?v=20261210"></script>
+<script src="ufo-bat-tra-bai.js?v=20261210"></script>
 <script src="ngay-le.js?v=20261019"></script>
 <script src="dem-truy-cap.js?v=20261018"></script>
 <script>

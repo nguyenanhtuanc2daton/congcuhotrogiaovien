@@ -243,11 +243,34 @@
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOv();});
   $('wNames').addEventListener('input',()=>{if(!spinning){draw();info();}});
   $('wRemove').addEventListener('change',()=>{draw();info();});
-  $('wImport').addEventListener('click',()=>{
-    const ns=window.TG.names();
-    if(!ns.length){info('Bảng điểm (tab Công cụ Word) chưa có tên học sinh nào.');return;}
-    $('wNames').value=ns.join('\n');reset();
-  });
+  // Nhập Excel/CSV (thay cho nút "Nhập từ Bảng điểm"); input phủ trong nhãn để điện thoại chọn được mọi file
+  (function(){
+    const old=$('wImport');
+    const lab=document.createElement('label');
+    lab.className='ghost sm';
+    lab.style.cssText='cursor:pointer;display:inline-block;padding:8px 12px;border-radius:10px;position:relative;overflow:hidden';
+    lab.innerHTML='📂 Nhập Excel/CSV<input id="wFile" type="file" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0">';
+    if(old&&old.parentNode)old.parentNode.replaceChild(lab,old);
+    const fail=()=>info('Không đọc được file. Hãy thử dán tên trực tiếp vào ô nhập.');
+    const fin=rows=>{
+      const cols=Math.max(1,...rows.map(r=>r.length));let best=0,bs=-1;
+      for(let c=0;c<cols;c++){const k=rows.filter(r=>{const v=String(r[c]==null?'':r[c]).trim();return v&&isNaN(Number(v));}).length;if(k>bs){bs=k;best=c;}}
+      const l=rows.map(r=>String(r[best]==null?'':r[best]).trim()).filter(Boolean);
+      if(l.length&&/^(stt|họ|ho|tên|ten|name|danh sách)/i.test(l[0]))l.shift();
+      if(!l.length){fail();return;}
+      $('wNames').value=l.join('\n');reset();
+    };
+    $('wFile').addEventListener('change',e=>{
+      const f=e.target.files[0];if(!f)return;
+      if(/\.(txt|csv)$/i.test(f.name)){
+        f.text().then(t=>fin(t.replace(/^\uFEFF/,'').split(/\r?\n/).map(r=>r.split(/[,;\t]/).map(x=>x.trim().replace(/^"|"$/g,'')))),fail);
+      }else{
+        const go=()=>{const r=new FileReader();r.onload=()=>{try{const wb=XLSX.read(new Uint8Array(r.result),{type:'array'});fin(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''}));}catch(x){fail();}};r.onerror=fail;r.readAsArrayBuffer(f);};
+        if(window.XLSX)go();else{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=()=>window.XLSX?go():fail();s.onerror=fail;document.head.appendChild(s);}
+      }
+      e.target.value='';
+    });
+  })();
   window.addEventListener('resize',draw);
   window.addEventListener('tabshow',e=>{if(e.detail==='t2'||e.detail==='t8'){draw();info();}});
   // Sửa lỗi: vòng quay nằm trong khối ẩn nên lúc tải trang rộng = 0 → không vẽ. Vẽ lại ngay khi canvas có kích thước.
