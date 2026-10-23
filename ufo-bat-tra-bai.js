@@ -98,7 +98,32 @@ function mkbg(){
 }
 function mkpoles(){poles=[[.14,.76],[.5,.76],[.86,.76],[.12,.93],[.5,.93],[.88,.93]].map(([a,b])=>({x:W*a,y:H*b,isPole:1}))}
 function resize(){if(!cv)return;const r=cv.getBoundingClientRect();if(!r.width||!r.height)return;dpr=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr;mkbg();mkpoles();ufo.x=W/2;people.forEach(p=>{p.x=Math.min(p.x,W);p.y=Math.min(Math.max(p.y,H*.48),H*.97)})}
-function mk(n){const sk=Math.random()<.5;return{name:n,x:R(0,W),y:R(.5,.96)*H,dir:Math.random()<.5?-1:1,spd:R(.04,.08),ph:R(0,6),mode:'walk',t:0,sk,long:sk||Math.random()<.2,
+/* ---------- đoán nam/nữ theo tên tiếng Việt ---------- */
+const GN=s=>String(s).toLowerCase().normalize('NFC');
+const GS=s=>GN(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');
+const mkSet=a=>new Set(a.split(' '));
+const F_GIVEN=mkSet('lan hoa hương mai liên nga ngân ngọc nhung nhi oanh phương quỳnh thảo thủy thùy thu thư trang trinh trâm uyên vy yến hằng hạnh huệ huyền kiều loan ly my nguyệt tuyền tuyết thương tiên diệp dung hân linh lệ lụa mỹ nhàn như phượng quyên sương thắm thúy vân ánh chi đào diễm diệu duyên hồng nhã nhiên nương trà trúc ngà oanh nhàn hiền thy tâm');
+const M_GIVEN=mkSet('an bảo bình cường công dũng duy đạt đức đông hải hào hiếu hoàng hùng hưng huy hữu khang khoa khôi kiên lâm long lộc mạnh nam nghĩa nguyên nhân phát phong phúc phước quân quang quốc sơn tài thắng thành thiện thịnh tiến toàn trung trường tuấn tùng việt vinh vũ khải kiệt luân nhật phi tân thái thế tín trí triều vương đăng đại danh hậu hiệp huân khiêm lợi quý sang sỹ thọ thuận tuân tường vĩ bách đình dương hiển hoài khoa quyền thiên tâm');
+const F_MID=mkSet('thị ngọc kim bích diễm thùy thủy mỹ hồng phương quỳnh như thu tuyết lan mai ánh diệu hạ');
+const M_MID=mkSet('văn hữu đức quốc mạnh quang trọng đình công bá thành tiến hoàng nhật duy đăng thế');
+function strip(set){const o=new Set();set.forEach(w=>o.add(GS(w)));return o}
+const F_G2=strip(F_GIVEN),M_G2=strip(M_GIVEN),F_M2=strip(F_MID),M_M2=strip(M_MID);
+[...F_G2].forEach(w=>{if(M_G2.has(w)){F_G2.delete(w);M_G2.delete(w)}});
+[...F_M2].forEach(w=>{if(M_M2.has(w)){F_M2.delete(w);M_M2.delete(w)}});
+function guessFemale(name){
+ const raw=GN(name).replace(/[^\p{L}\s]/gu,' ').split(/\s+/).filter(Boolean);
+ if(!raw.length)return Math.random()<.5;
+ const acc=/[^\u0000-\u007f]/.test(raw.join(''));
+ const w=acc?raw:raw.map(GS);
+ const fg=acc?F_GIVEN:F_G2,mg=acc?M_GIVEN:M_G2,fm=acc?F_MID:F_M2,mm=acc?M_MID:M_M2;
+ let s=0;const g=w[w.length-1];
+ if(fg.has(g))s+=3;if(mg.has(g))s-=3;
+ for(let i=1;i<w.length-1;i++){const m=w[i];
+  if(m==='thị'||m==='thi')s+=5;else if(m==='văn'||m==='van')s-=5;
+  else{if(fm.has(m))s+=1.5;if(mm.has(m))s-=1.5}}
+ if(s>0)return true;if(s<0)return false;
+ let h=0;for(const c of raw.join(' '))h=(h*31+c.charCodeAt(0))|0;return (h&1)===0}
+function mk(n){const sk=guessFemale(n);return{name:n,x:R(0,W),y:R(.5,.96)*H,dir:Math.random()<.5?-1:1,spd:R(.04,.08),ph:R(0,6),mode:'walk',t:0,sk,long:sk||Math.random()<.2,
  skin:P(['#f1c9a5','#e0a97d','#b9794f','#8a5a3a']),hair:P(['#2a1b14','#1d1d22','#4a2c1c']),shirt:P(['#f4f4ee','#dbe9f2','#f6d9de','#fbf0d6']),pant:sk?P(['#7a6a55','#5b5f78']):P(['#4b5b58','#2f3c55','#6d6f61']),bag:P(['#d9798b','#8a7ac8','#e0a24a','#d86b52']),up:0}}
 function updPill(){const left=Math.max(0,names.length-called.filter(n=>names.includes(n)).length);$('pill').textContent=called.length?('Còn '+left+'/'+names.length+' học sinh'):(names.length+' học sinh')}
 function rebuild(){people=names.filter(n=>!called.includes(n)).map(mk);updPill()}
@@ -115,10 +140,11 @@ function drawP(p,tm){
  if(p.mode==='lock'){ox=Math.sin(tm*60)*1.6;oy=-lk}
  if(p.mode==='up'){const e=E(p.up);oy=-(p.y0-ufoBot())*e-lk*(1-e);rot=Math.sin(e*10)*.4+e*2.5;sc=1-.9*e}
  if(p.mode==='up'||p.mode==='lock'){const gx=p.x+ox,gy=p.y+oy-50*hs*sc,gr=hs*55*Math.max(sc,.3);const gg=ctx.createRadialGradient(gx,gy,0,gx,gy,gr);gg.addColorStop(0,'rgba(215,255,240,.8)');gg.addColorStop(1,'rgba(215,255,240,0)');ctx.fillStyle=gg;ctx.fillRect(gx-gr,gy-gr,gr*2,gr*2)}
- if(p.mode==='hug')ox=Math.sin(tm*40+p.ph)*.8;
+ if(p.mode==='hug')ox=Math.sin(tm*40+p.ph)*(.8+(p.cl||0)*2.6);
  if(p.mode==='panic')oy=-Math.abs(Math.sin(p.ph))*H*.008;
  ctx.translate(p.x+ox,p.y+oy);ctx.translate(0,-50*hs*sc);ctx.rotate(rot);ctx.translate(0,50*hs*sc);
- ctx.fillStyle='#0002';ctx.beginPath();ctx.ellipse(0,0,hs*14*sc,hs*4*sc,0,0,7);if(p.mode!=='up')ctx.fill();
+ if(p.mode==='hug'&&p.cl>0){const px=17*hs*p.dir,py=-62*hs,a=p.dir*p.cl*(2.05+Math.sin(tm*22+p.ph)*.13)+Math.sin(tm*31+p.ph*2)*.07*p.cl;ctx.translate(px,py);ctx.rotate(a);ctx.translate(-px,-py)}
+ ctx.fillStyle='#0002';ctx.beginPath();ctx.ellipse(0,0,hs*14*sc,hs*4*sc,0,0,7);if(p.mode!=='up'&&!(p.cl>.25))ctx.fill();
  ctx.scale(hs*p.dir*sc,hs*sc);
  const mv=p.mode==='walk'||p.mode==='run'||p.mode==='panic',sw=mv?Math.sin(p.ph)*(p.mode==='walk'?.7:1):0,pan=p.mode==='panic'||p.mode==='hug'||p.mode==='up'||p.mode==='lock';
  ctx.lineCap='round';ctx.fillStyle=p.bag;ctx.beginPath();ctx.roundRect(-18,-74,10,28,4);ctx.fill();
@@ -184,14 +210,21 @@ async function round(){let ch=0;try{
  for(let i=0;i<35&&!sh.every(p=>p.mode==='hug');i++)await wait(200);
  sh.forEach(p=>{if(p.mode!=='hug'){p.x=p.tx;p.y=p.ty;p.mode='hug';p.dir=p.pole.x>=p.x?1:-1}});
  await wait(500);say('Bạn nào sắp tuột tay đây…',1);ufo.scan=true;beam.x=W/2;beam.y=H*.8;
- tone(220,1.2,'sine',.1,660);await tw(5000,t=>{beam.on=Math.min(1,t*4);beam.x=W/2+Math.sin(t*Math.PI*3)*W*.4;beam.y=H*(.7+.12*Math.sin(t*9))});
+ tone(220,1.2,'sine',.1,660);sh.forEach(p=>{p.cl=0;p.rs=R(.75,1.05)});
+ say('Lực hút mạnh quá! Cố bám chặt cột nhé!',1);
+ await tw(5000,t=>{beam.on=Math.min(1,t*4);beam.x=W/2+Math.sin(t*Math.PI*3)*W*.4;beam.y=H*(.7+.12*Math.sin(t*9));
+  const g=Math.min(1,t*2.2)*(.55+.3*t);sh.forEach(p=>{p.cl=g*p.rs*(.9+.1*Math.sin(t*26+p.ph))});
+  if(t>.55&&!window.__ufoShout){window.__ufoShout=1;bubbles=[{p:P(sh),t:P(['Á! Em sắp bay rồi!','Bám chặt vào!','Đừng buông tay!','Cứu em với!']),until:performance.now()+1800}]}});
+ window.__ufoShout=0;
  const picks=sh.slice().sort(()=>Math.random()-.5).slice(0,k),got=[];
  tagsOff=true;
  for(const [i,p] of picks.entries()){const f=i?.6:1,bx0=beam.x,by0=beam.y,w0=beam.wd||W*.1;
   say(i?'UFO dò tiếp một mục tiêu…':'UFO đã phát hiện một mục tiêu…',1);
   await tw(1100*f,t=>{beam.x=L(bx0,p.x,E(t));beam.y=L(by0,p.y,E(t));beam.wd=L(w0,W*.1,E(t))});
+  say('Người này sắp không giữ nổi nữa…',1);const c0=p.cl||0;
+  await tw(900*f,t=>{p.cl=L(c0,1,E(t))});
   say('Khóa mục tiêu! Có người đang bị hút lên…',1);
-  const w1=W*.1;p.mode='lock';p.lk=0;tone(300,1,'sawtooth',.06,900);
+  const w1=W*.1;p.cl=0;p.mode='lock';p.lk=0;tone(300,1,'sawtooth',.06,900);
   await tw(1000*f,t=>{beam.wd=L(w1,Math.max(H*.055,W*.04),E(t));p.lk=E(t)});
   say('Aaa… người đó đang bị hút lên UFO!',1);
   p.y0=p.y;p.mode='up';p.up=0;tone(200,3.2*f,'triangle',.12,1100);const sx=p.x;
@@ -200,7 +233,8 @@ async function round(){let ch=0;try{
   got.push(p);called.push(p.name);updPill();
   ban={t:p.name,s:0};say('Đã bắt được: '+p.name+'!',1);[659,784,1047].forEach((fr,j)=>tone(fr,.4,'triangle',.12,0,j*.1));
   await tw(500,t=>ban.s=t);await wait(1500*f);ban=null}
- ufo.scan=false;await tw(500,t=>beam.on=1-t);beam.wd=0;sirenOff();
+ ufo.scan=false;{const cs=sh.map(p=>p.cl||0);await tw(900,t=>{sh.forEach((p,i)=>{if(p.mode==='hug')p.cl=cs[i]*(1-E(t))})});sh.forEach(p=>p.cl=0)}
+ await tw(500,t=>beam.on=1-t);beam.wd=0;sirenOff();
  [523,659,784,1047].forEach((f,i)=>tone(f,.5,'triangle',.12,0,i*.14));
  say('Phù… chuyến này thoát rồi! Ai sẽ là người tiếp theo?',1);
  const tl=$('tiles');tl.innerHTML='';got.forEach(p=>{const d=document.createElement('div');d.className='tile';d.appendChild(avatar(p));d.appendChild(document.createTextNode(p.name));tl.appendChild(d)});
