@@ -777,7 +777,7 @@ html #tod-greet .g-hl{text-wrap:balance;font-size:clamp(11px,3vw,12.5px)}
     return Math.min(3,z,Math.max(1.05,h/620));  /* màn rộng nhưng thấp: không phóng quá để khỏi mất chiều cao */
   }
   function isFull(){
-    return !!(document.fullscreenElement||document.webkitFullscreenElement||document.querySelector('.kc-stage.on.fs,.tx-fs,.tx-clock:fullscreen,.bg-stage.fs'));
+    return !!(document.fullscreenElement||document.webkitFullscreenElement||document.querySelector('#ufo-bat-tra-bai-host.on,.kc-stage.on.fs,.tx-fs,.tx-clock:fullscreen,.bg-stage.fs'));
   }
   function apply(){
     raf=0;
@@ -1144,6 +1144,7 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <script src="kho-de.js?v=20261030"></script>
 <script src="qr-nhanh.js?v=20261023"></script>
 <script src="bat-ga.js?v=20261126"></script>
+<script src="ufo-bat-tra-bai.js?v=20261203"></script>
 <script src="ngay-le.js?v=20261019"></script>
 <script src="dem-truy-cap.js?v=20261018"></script>
 <script>
