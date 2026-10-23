@@ -553,13 +553,13 @@
         if(v.tel)L.push('TEL;TYPE=CELL:'+phone(v.tel));if(v.mail)L.push('EMAIL:'+v.mail);
         if(v.web)L.push('URL:'+v.web);if(v.adr)L.push('ADR:;;'+esc(v.adr)+';;;;');
         L.push('END:VCARD');return {s:L.join('\r\n')};}},
-    geo:{label:'📍 Vị trí',name:'ViTri',hint:'Nhập toạ độ (vd: 10.7769, 106.7009) hoặc bấm nút lấy vị trí hiện tại.',
+    geo:{label:'📍 Vị trí',name:'ViTri',hint:'Nhập toạ độ (vd: 10.7769, 106.7009) hoặc bấm nút lấy vị trí hiện tại. Quét mã sẽ tự mở Google Maps tại vị trí đó.',
       f:[{k:'c',l:'Toạ độ: vĩ độ, kinh độ',ph:'10.776889, 106.700806'}],
       b:function(v){
         if(!v.c)return null;
         var m=/^\s*(-?\d+(?:\.\d+)?)\s*[,;\s]\s*(-?\d+(?:\.\d+)?)\s*$/.exec(v.c);
         if(!m||Math.abs(+m[1])>90||Math.abs(+m[2])>180)return {e:'⚠ Toạ độ chưa hợp lệ. Ví dụ: 10.776889, 106.700806 (dán từ Google Maps cũng được).'};
-        return {s:'geo:'+(+m[1])+','+(+m[2])};},
+        return {s:'https://www.google.com/maps?q='+(+m[1])+','+(+m[2])};},
       after:function(g,ins,gen){
         var bt=el('button',{type:'button',text:'📍 Lấy vị trí hiện tại của tôi',cls:dl.className}),r=el('div',{cls:'w'},[bt]);
         bt.addEventListener('click',function(){
