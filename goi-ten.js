@@ -423,7 +423,8 @@
       l.setAttribute('x1',200+Math.sin(a)*r1);l.setAttribute('y1',240-Math.cos(a)*r1);l.setAttribute('x2',200+Math.sin(a)*r2);l.setAttribute('y2',240-Math.cos(a)*r2);
       l.setAttribute('stroke','#475577');l.setAttribute('stroke-width',major?4:2);l.setAttribute('stroke-linecap','round');ticks.appendChild(l);tk.push(l);
     }
-    let tot=300000,left=300000,end=0,tid=null,done=false,lastSec=-1,hl=-1,hideT=0;
+    let tot=300000,left=300000,end=0,tid=null,done=false,lastSec=-1,hl=-1,hideT=0,fsExitT=0;
+    const FS_EXIT_MS=10000; // sau khi hết giờ 10 giây thì tự thoát toàn màn hình
     const minI=$('txMin'),secI=$('txSec');
     function readInput(){
       let m=Math.max(0,Math.min(180,parseInt(minI.value)||0)),s=Math.max(0,Math.min(59,parseInt(secI.value)||0));
@@ -444,7 +445,7 @@
     function setBtn(){ $('txGo').textContent=tid?'⏸ Tạm dừng':(done?'▶ Bắt đầu lại':(left<tot?'▶ Tiếp tục':'▶ Bắt đầu')); }
     function silence(){Snd.stop();$('txStop').classList.remove('on');clearTimeout(hideT);}
     function setT(ms){
-      clearInterval(tid);tid=null;silence();done=false;card.classList.remove('tx-done');
+      clearInterval(tid);tid=null;silence();clearTimeout(fsExitT);done=false;card.classList.remove('tx-done');
       tot=left=ms;lastSec=-1;
       const s=Math.round(ms/1000);minI.value=Math.floor(s/60);secI.value=s%60;
       render(left);setBtn();
@@ -454,6 +455,7 @@
       const dur=Snd.finish();
       if(dur){$('txStop').classList.add('on');hideT=setTimeout(()=>$('txStop').classList.remove('on'),dur*1000+800);}
       try{navigator.vibrate&&navigator.vibrate([400,150,400,150,400]);}catch(e){}
+      clearTimeout(fsExitT);fsExitT=setTimeout(exitFs,FS_EXIT_MS);
     }
     function tick(){
       left=end-Date.now(); if(left<=0){finish();return;}
@@ -462,7 +464,8 @@
     }
     function go(){
       if(tid){clearInterval(tid);tid=null;left=Math.max(0,end-Date.now());render(left);setBtn();return;}
-      Snd.init(); silence();
+      Snd.init(); silence(); clearTimeout(fsExitT);
+      enterFs();
       if(done||left<=0) setT(readInput());
       end=Date.now()+left; tid=setInterval(tick,100); tick(); setBtn();
     }
@@ -480,13 +483,18 @@
     $('txTest').onclick=()=>{Snd.demo();$('txStop').classList.add('on');clearTimeout(hideT);hideT=setTimeout(()=>$('txStop').classList.remove('on'),7500);};
     // Toàn màn hình (dự phòng bằng lớp CSS khi trình duyệt như Safari iPhone không hỗ trợ)
     const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
-    function fsToggle(){
-      if(card.classList.contains('tx-fs')){card.classList.remove('tx-fs');return;}
-      if(fsEl()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return;}
+    const isFs=()=>card.classList.contains('tx-fs')||fsEl()===card;
+    function enterFs(){
+      if(isFs()) return;
       const rq=card.requestFullscreen||card.webkitRequestFullscreen;
       if(rq){try{const p=rq.call(card);if(p&&p.catch)p.catch(()=>card.classList.add('tx-fs'));}catch(e){card.classList.add('tx-fs');}}
       else card.classList.add('tx-fs');
     }
+    function exitFs(){
+      card.classList.remove('tx-fs');
+      if(fsEl()){try{(document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+    }
+    function fsToggle(){ if(isFs()) exitFs(); else enterFs(); }
     $('txFs').onclick=fsToggle;
     card.addEventListener('keydown',e=>{
       if(e.code==='Space'&&!/^(INPUT|TEXTAREA|BUTTON|SELECT)$/.test(e.target.tagName)){e.preventDefault();go();}
