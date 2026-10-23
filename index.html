@@ -624,7 +624,7 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
     gEl.style.animation='none';void gEl.offsetWidth;gEl.style.animation='';
     var hl=holidays(),he=gEl.querySelector('.g-hl');
     if(hl.length){
-      he.textContent='';he.appendChild(document.createTextNode('🎉 Sắp tới: '));
+      he.textContent='';he.appendChild(document.createTextNode('🎉 '));
       hl.forEach(function(x,i){
         if(i)he.appendChild(document.createTextNode(' · '));
         he.appendChild(document.createTextNode(x.name+' '+x.date+' '));
@@ -738,6 +738,8 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
 /* Dòng "Thứ, ngày/tháng/năm · Âm lịch · giờ" luôn nằm trên MỘT hàng; màn hẹp thì tự thu chữ */
 html #tod-greet .g-time,html[data-tod] #tod-greet .g-time{white-space:nowrap;font-size:clamp(10px,3vw,12.5px)}
 @media (min-width:1100px){html #tod-greet .g-time,html[data-tod] #tod-greet .g-time{font-size:12.5px}}
+html #tod-greet .g-hl b{white-space:nowrap}
+html #tod-greet .g-hl{text-wrap:balance;font-size:clamp(11px,3vw,12.5px)}
 </style>
 <style id="desk-fit">
 /* Màn máy tính: khung nội dung rộng gần hết màn, bớt thừa hai bên. Cỡ chữ do script "desk-fit" phóng to theo độ rộng màn. */
