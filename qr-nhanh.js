@@ -8,10 +8,29 @@
   var s=document.getElementById('utSel'),inp=document.getElementById('qrIn'),cv=document.getElementById('qrCv');
   if(!s||!inp||!cv)return;
   var LIB='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',loading=null;
+  /* Thư viện phụ (qrcode-generator): chứa được tới ~2300 byte; chỉ tải khi nội dung dài hoặc có logo
+     (qrcodejs chỉ chứa tối đa ~213 byte, ~119 byte nếu có logo → danh thiếp/sự kiện đầy đủ sẽ không tạo được mã). */
+  var LIB2=['https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js','https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js'],lib2Busy=false,lib2Wait=[];
+  function byteLen(t){try{return unescape(encodeURIComponent(t)).length;}catch(e){return String(t).length*3;}}
+  function need2(cb){
+    if(typeof window.qrcode==='function'){cb();return;}
+    lib2Wait.push(cb);if(lib2Busy)return;lib2Busy=true;
+    var i=0;
+    function fin(){lib2Busy=false;var w=lib2Wait;lib2Wait=[];w.forEach(function(f){f();});}
+    function tryNext(){
+      if(i>=LIB2.length){fin();return;}   /* không tải được thì vẫn chạy tiếp, nội dung quá dài sẽ được báo */
+      var sc=document.createElement('script');sc.src=LIB2[i++];
+      sc.onload=function(){if(typeof window.qrcode==='function')fin();else tryNext();};
+      sc.onerror=function(){if(sc.parentNode)sc.parentNode.removeChild(sc);tryNext();};
+      document.head.appendChild(sc);
+    }
+    tryNext();
+  }
   function need(cb,fail){   /* chỉ tải thư viện QR khi thật sự dùng */
-    if(window.QRCode){cb();return;}
+    function ok(){if(cur&&byteLen(cur)>((typeof logoChk!=='undefined'&&logoChk&&logoChk.checked)?100:190))need2(cb);else cb();}
+    if(window.QRCode){ok();return;}
     if(!loading){loading=document.createElement('script');loading.src=LIB;document.head.appendChild(loading);}
-    loading.addEventListener('load',function(){cb();});
+    loading.addEventListener('load',ok);
     loading.addEventListener('error',function(){loading.parentNode&&loading.parentNode.removeChild(loading);loading=null;fail();});
   }
   function ensureOpt(){if(!s.querySelector('option[value="utQr"]')){var o=document.createElement('option');o.value='utQr';o.textContent='📱 Tạo mã QR';s.appendChild(o);}
@@ -216,6 +235,13 @@
       try{holder.innerHTML='';var q=new QRCode(holder,{text:cur,width:128,height:128,correctLevel:QRCode.CorrectLevel[chain[i]]});qr=q._oQRCode;used=chain[i];
           qr=noBom(qr,function(){holder.innerHTML='';return new QRCode(holder,{text:cur,width:128,height:128,correctLevel:QRCode.CorrectLevel[chain[i]]})._oQRCode;});}catch(e){qr=null;}
     }
+    if(!qr&&typeof window.qrcode==='function'){   /* nội dung dài: dùng thư viện phụ */
+      try{window.qrcode.stringToBytes=function(t){var r=[],k;for(k=0;k<t.length;k++)r.push(t.charCodeAt(k)&255);return r;};}catch(e){}
+      var bin=unescape(encodeURIComponent(cur));
+      for(var j=0;j<chain.length&&!qr;j++){
+        try{var g=window.qrcode(0,chain[j]);g.addData(bin,'Byte');g.make();if(g.getModuleCount()>0){qr=g;used=chain[j];}}catch(e){qr=null;}
+      }
+    }
     return {qr:qr,used:used};
   }
   function getSize(){
@@ -227,6 +253,7 @@
     if(!window.Path2D){off('⚠ Trình duyệt quá cũ, không vẽ được mã QR tuỳ chỉnh. Hãy cập nhật trình duyệt.');return;}
     var im=curLogo(),wantLogo=logoChk.checked&&im.complete&&im.naturalWidth>0,b=build(wantLogo);
     if(!b.qr&&wantLogo){wantLogo=false;b=build(false);}
+    if(!b.qr&&typeof window.qrcode!=='function'&&byteLen(cur)>100){off('⚠ Nội dung khá dài nên cần tải thêm thư viện QR (cần mạng). Hãy kiểm tra mạng rồi sửa nhẹ nội dung để thử lại, hoặc rút gọn bớt.');return;}
     if(!b.qr){off('⚠ Nội dung quá dài để tạo mã QR. Hãy rút gọn bớt (với link: dùng bit.ly, tinyurl…) rồi thử lại.');return;}
     var g=geometry(b.qr,wantLogo),S=getSize(),sc=Math.max(2,Math.floor(S/g.tot)),W=sc*g.tot,Hpx=lastFix(g,sc),c=cv.getContext('2d');
     try{
@@ -617,7 +644,7 @@
       else if(r.e){msg.textContent=r.e;extraStr='';}
       else{
         var nb=utf8(r.s).length;
-        msg.textContent=nb>271?'⚠ Nội dung dài '+nb+' byte, vượt giới hạn khoảng 271 byte của mã QR (chữ có dấu tính 2–3 byte). Hãy rút gọn bớt.':(nb>200?'Độ dài '+nb+'/271 byte — gần chạm giới hạn, mã sẽ dày và khó quét.':'');
+        msg.textContent=nb>2300?'⚠ Nội dung dài '+nb+' byte, vượt giới hạn của mã QR (khoảng 2300 byte; chữ có dấu tính 2–3 byte). Hãy rút gọn bớt.':(nb>700?'Nội dung khá dài ('+nb+' byte) — mã sẽ dày, khó quét; nên rút gọn bớt.':'');
         extraStr=r.s;extraName=F.name;}
       update();
     }
@@ -709,7 +736,7 @@
           fr.readAsArrayBuffer(b);
         });
       }
-      need(next,function(){done('⚠ Chưa tải được thư viện tạo QR (cần mạng).');});
+      need2(function(){need(next,function(){done('⚠ Chưa tải được thư viện tạo QR (cần mạng).');});});
     });
     formUI.batch={wrap:wrap,gen:function(){extraStr='';off('Nhập danh sách ở phía trên rồi bấm nút tạo file ZIP.');}};
   })();
