@@ -21,7 +21,12 @@
   var HAND = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
   var CH = ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b'], LET = 'ABCD';
   var TEAMC = ['#60a5fa', '#f87171'];
-  var LEG = '☝️ 1 ngón = A · ✌️ 2 ngón = B · 🤟 3 ngón = C · 🖐 4 ngón = D';
+  function handSvg(n) {      /* bàn tay giơ n ngón (ngón trỏ, giữa, áp út, út), ngón cái gập */
+    var xs = [9, 15.5, 22, 28.5], hs = [19, 23, 21, 16], sk = 'fill="#fcd9a8" stroke="#92400e" stroke-width="1.5"', o = '<svg viewBox="0 0 40 46" width="26" height="30" style="vertical-align:middle">';
+    for (var i = 0; i < 4; i++) o += i < n ? '<rect x="' + xs[i] + '" y="' + (23 - hs[i]) + '" width="5.5" height="' + (hs[i] + 4) + '" rx="2.75" ' + sk + '/>' : '<rect x="' + xs[i] + '" y="19" width="5.5" height="8" rx="2.75" ' + sk + '/>';
+    return o + '<rect x="7" y="22" width="27" height="21" rx="8" ' + sk + '/><rect x="3" y="29" width="14" height="8" rx="4" ' + sk + '/></svg>';
+  }
+  var LEG = [1, 2, 3, 4].map(function (n) { return handSvg(n) + ' = <b>' + LET.charAt(n - 1) + '</b>'; }).join(' &nbsp;·&nbsp; ');
   var BONES = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [5, 9], [9, 10], [10, 11], [11, 12], [9, 13], [13, 14], [14, 15], [15, 16], [13, 17], [17, 18], [18, 19], [19, 20], [0, 17]];
 
   /* ---------- CSS ---------- */
@@ -32,7 +37,7 @@
     '.cc-panel{position:relative;margin:8px auto 0;z-index:8;width:min(100%,380px);flex:0 0 auto;background:#0b1020ee;color:#fff;border:2px solid #fbbf24;border-radius:12px;padding:6px;box-sizing:border-box;font-size:14px}',
     '.cc-panel.inline{margin:8px 0;max-width:460px;width:100%}',
     /* Màn hình ngang: dành hẳn một cột bên phải cho camera, nội dung câu hỏi co lại nhường chỗ */
-    '@media(min-width:701px) and (min-aspect-ratio:1/1){.kc-stage.on.cc-dock{padding-right:calc(clamp(230px,22vw,380px) + 24px)!important}.kc-stage.cc-dock>.cc-panel{position:absolute;right:10px;top:10px;margin:0;width:clamp(230px,22vw,380px)}}',
+    '@media(min-width:701px) and (min-aspect-ratio:1/1){.kc-stage.on.cc-dock{padding-right:calc(clamp(230px,22vw,380px) + 24px)!important}.kc-stage.on.cc-dock{min-height:380px}.kc-stage.cc-dock>.cc-panel{position:absolute;right:10px;top:10px;bottom:10px;margin:0;width:clamp(230px,22vw,380px);display:flex;flex-direction:column}.kc-stage.cc-dock>.cc-panel.min{bottom:auto}.kc-stage.cc-dock>.cc-panel canvas{flex:1 1 0;min-height:0;width:100%;max-height:none;margin:0}}',
     '.cc-hd{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:4px}',
     '.cc-hd b{font-size:1em;line-height:1.25}',
     '.cc-b{background:#1b2347;color:#fff;border:1px solid #333f77;border-radius:8px;padding:2px 8px;font-size:15px;cursor:pointer;flex:none;min-height:0}',
@@ -55,7 +60,7 @@
   cfgBox.innerHTML =
     '<label><input type="checkbox" id="ccOn"> 📷 <b>Chế độ Camera</b> (một học sinh lên bảng, giơ ngón tay để chọn đáp án)</label>' +
     '<div id="ccBox" style="display:none">' +
-    '<div class="note"><b>Cử chỉ:</b> ☝️ 1 ngón = <b>A</b> · ✌️ 2 ngón = <b>B</b> · 🤟 3 ngón = <b>C</b> · 🖐 4 ngón (xòe bàn tay) = <b>D</b> · ✊ nắm tay = chưa chọn. Ngón cái không tính.</div>' +
+    '<div class="note"><b>Cử chỉ</b> (ngón cái gập, không tính): ' + LEG + ' &nbsp;·&nbsp; nắm tay = chưa chọn.</div>' +
     '<div class="bar"><label>⏱ Thời gian tối đa mỗi câu (giây) <input type="number" id="ccSecs" min="5" max="180" style="width:70px"></label>' +
     '<label>Giữ yên cử chỉ (giây) <input type="number" id="ccHold" min="0.5" max="5" step="0.5" style="width:60px"></label></div>' +
     '<div class="bar"><label>Chốt xong, hiện đáp án đúng sau (giây) <input type="number" id="ccRev" min="1" max="15" style="width:60px"></label>' +
@@ -179,22 +184,30 @@
     for (var i = 1; i < ns.length; i++) if (ns[i] !== ns[0]) return -1;
     return ns[0] >= 1 && ns[0] <= 4 ? ns[0] - 1 : -1;
   }
+  var FILLQ = '(min-width:701px) and (min-aspect-ratio:1/1)';
   function draw() {
     if (!panel.offsetWidth || panel.classList.contains('min')) return;
-    var w = cv.width, h = cv.height, g = cv.getContext('2d');
+    var fill = !panel.classList.contains('inline') && window.matchMedia && window.matchMedia(FILLQ).matches;
+    var tw = 480, th = 270;
+    if (fill && cv.clientWidth > 20 && cv.clientHeight > 20) { tw = Math.min(900, Math.round(cv.clientWidth)); th = Math.round(cv.clientHeight * tw / cv.clientWidth); }
+    if (cv.width !== tw || cv.height !== th) { cv.width = tw; cv.height = th; }
+    var w = cv.width, h = cv.height, g = cv.getContext('2d'), has = vid.videoWidth && vid.readyState >= 2;
+    var sc = has ? Math.max(w / vid.videoWidth, h / vid.videoHeight) : 1, dw = has ? vid.videoWidth * sc : w, dh = has ? vid.videoHeight * sc : h, ox = (w - dw) / 2, oy = (h - dh) / 2;
+    function PX(x) { return ox + x * dw; } function PY(y) { return oy + y * dh; }
     g.fillStyle = '#111'; g.fillRect(0, 0, w, h);
-    if (vid.videoWidth && vid.readyState >= 2) { g.save(); if (C.mirror) { g.translate(w, 0); g.scale(-1, 1); } g.drawImage(vid, 0, 0, w, h); g.restore(); }
+    if (has) { g.save(); if (C.mirror) { g.translate(w, 0); g.scale(-1, 1); } g.drawImage(vid, ox, oy, dw, dh); g.restore(); }
+    var fs = Math.max(12, Math.round(h * 0.07));
     if (chans() === 2) { g.strokeStyle = '#ffffffcc'; g.lineWidth = 4; g.beginPath(); g.moveTo(w / 2, 0); g.lineTo(w / 2, h); g.stroke();
-      g.font = 'bold ' + Math.round(h * 0.07) + 'px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.fillText('Đội 1', w * 0.25, h * 0.08); g.fillText('Đội 2', w * 0.75, h * 0.08); }
+      g.font = 'bold ' + fs + 'px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.shadowColor = '#000'; g.shadowBlur = 4; g.fillText('Đội 1', w * 0.25, fs * 1.2); g.fillText('Đội 2', w * 0.75, fs * 1.2); g.shadowBlur = 0; }
     hands.forEach(function (hd) {
       var v = hd.n >= 1 && hd.n <= 4 ? hd.n - 1 : -1, col = v >= 0 ? CH[v] : '#ffffff';
       g.strokeStyle = col; g.lineWidth = 3; g.beginPath();
-      BONES.forEach(function (b) { g.moveTo(hd.pts[b[0]].x * w, hd.pts[b[0]].y * h); g.lineTo(hd.pts[b[1]].x * w, hd.pts[b[1]].y * h); });
+      BONES.forEach(function (bn) { g.moveTo(PX(hd.pts[bn[0]].x), PY(hd.pts[bn[0]].y)); g.lineTo(PX(hd.pts[bn[1]].x), PY(hd.pts[bn[1]].y)); });
       g.stroke(); g.fillStyle = col;
-      hd.pts.forEach(function (p) { g.beginPath(); g.arc(p.x * w, p.y * h, 3, 0, 6.3); g.fill(); });
+      hd.pts.forEach(function (p) { g.beginPath(); g.arc(PX(p.x), PY(p.y), 3, 0, 6.3); g.fill(); });
       if (v >= 0) {
         g.font = 'bold ' + Math.round(h * 0.22) + 'px sans-serif'; g.textAlign = 'center'; g.shadowColor = '#000'; g.shadowBlur = 6; g.fillStyle = '#fff';
-        g.fillText(LET.charAt(v), hd.pts[9].x * w, Math.max(h * 0.25, hd.pts[9].y * h - h * 0.1)); g.shadowBlur = 0;
+        g.fillText(LET.charAt(v), PX(hd.pts[9].x), Math.max(h * 0.25, PY(hd.pts[9].y) - h * 0.1)); g.shadowBlur = 0;
       }
     });
   }
