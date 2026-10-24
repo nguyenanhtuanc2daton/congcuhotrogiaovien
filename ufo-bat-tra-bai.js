@@ -137,15 +137,15 @@ function head(c,p,pan){if(p.long){c.fillStyle=p.hair;c.fillRect(-12,-90,24,28)}c
 function drawP(p,tm){
  const hs=H*(.07+.06*p.y/H)/100;ctx.save();
  let ox=0,oy=0,rot=0,sc=1;
- const lk=(p.lk||0)*H*.015;
- if(p.mode==='lock'){ox=Math.sin(tm*60)*(1.2+3.2*(p.lk||0));oy=-lk*.5}
- if(p.mode==='up'){const e=E(p.up);oy=-(p.y0-ufoBot())*e-lk*.5*(1-e);rot=Math.sin(e*10)*.4+e*2.5;sc=1-.9*e}
+ const lk=(p.lk||0)*H*.015,lf=(p.lf||0)*H*.27*(1+.1*Math.sin(tm*5+p.ph));
+ if(p.mode==='lock'){ox=Math.sin(tm*60)*(1.2+3.2*(p.lk||0));oy=-lk*.5-lf}
+ if(p.mode==='up'){const e=E(p.up);oy=-(p.y0-ufoBot())*e-lk*.5*(1-e)-lf*(1-e);rot=Math.sin(e*10)*.4+e*2.5;sc=1-.9*e}
  if(p.mode==='up'||p.mode==='lock'){const gx=p.x+ox,gy=p.y+oy-50*hs*sc,gr=hs*55*Math.max(sc,.3);const gg=ctx.createRadialGradient(gx,gy,0,gx,gy,gr);gg.addColorStop(0,'rgba(215,255,240,.8)');gg.addColorStop(1,'rgba(215,255,240,0)');ctx.fillStyle=gg;ctx.fillRect(gx-gr,gy-gr,gr*2,gr*2)}
- if(p.mode==='hug')ox=Math.sin(tm*40+p.ph)*(.8+(p.cl||0)*2.6);
+ if(p.mode==='hug'){ox=Math.sin(tm*40+p.ph)*(.8+(p.cl||0)*2.6);oy=-lf}
  if(p.mode==='panic')oy=-Math.abs(Math.sin(p.ph))*H*.008;
  ctx.translate(p.x+ox,p.y+oy);ctx.translate(0,-50*hs*sc);ctx.rotate(rot);ctx.translate(0,50*hs*sc);
  const grip=p.mode==='up'?1-E(Math.min(1,p.up*4)):1;
- if((p.mode==='hug'||p.mode==='lock'||p.mode==='up')&&p.cl>0&&grip>0){const cl=p.cl*grip,px=17*hs*p.dir,py=-62*hs,a=p.dir*cl*(2.05+Math.sin(tm*22+p.ph)*.13)+Math.sin(tm*31+p.ph*2)*.07*cl;ctx.translate(px,py);ctx.rotate(a);ctx.translate(-px,-py)}
+ if((p.mode==='hug'||p.mode==='lock'||p.mode==='up')&&p.cl>0&&grip>0){const cl=p.cl*grip,px=17*hs*p.dir,py=-62*hs,a=p.dir*cl*((p.am||2.05)+Math.sin(tm*22+p.ph)*.13)+Math.sin(tm*31+p.ph*2)*.07*cl;ctx.translate(px,py);ctx.rotate(a);ctx.translate(-px,-py)}
  ctx.fillStyle='#0002';ctx.beginPath();ctx.ellipse(0,0,hs*14*sc,hs*4*sc,0,0,7);if(p.mode!=='up'&&!(p.cl>.25))ctx.fill();
  ctx.scale(hs*p.dir*sc,hs*sc);
  const mv=p.mode==='walk'||p.mode==='run'||p.mode==='panic',sw=mv?Math.sin(p.ph)*(p.mode==='walk'?.7:1):0,pan=p.mode==='panic'||p.mode==='hug'||p.mode==='up'||p.mode==='lock';
@@ -208,14 +208,15 @@ async function round(){let ch=0;try{
  ch=setInterval(()=>tone(R(800,1300),.14,'square',.03,R(1300,1800)),260);await wait(3600);clearInterval(ch);
  say('Bám chặt nhé! UFO đang dò tín hiệu…',1);
  const sh=alive.slice().sort(()=>Math.random()-.5),per=Math.ceil(sh.length/poles.length)+1;
- sh.forEach((p,i)=>{const pl=poles[i%poles.length],j=Math.floor(i/poles.length),s=j%2?1:-1,r=Math.floor(j/2);p.pole=pl;p.tx=pl.x+s*(H*.022+r*H*.014);p.ty=pl.y+((r%3)-1)*H*.02;p.mode='run'});
+ sh.forEach((p,i)=>{const pl=poles[i%poles.length],j=Math.floor(i/poles.length),s=j%2?1:-1,r=Math.floor(j/2);p.pole=pl;p.tx=pl.x+s*(H*.022+r*H*.014);p.ty=pl.y+((r%3)-1)*H*.02;p.mode='run';
+  {const q=Math.random();if(q<.22){p.am=1.35;p.lm=0}else if(q<.5){p.am=2.05;p.lm=R(.1,.28)}else if(q<.76){p.am=2.95;p.lm=R(.25,.6)}else{p.am=2.25;p.lm=R(.75,1)}}});
  for(let i=0;i<35&&!sh.every(p=>p.mode==='hug');i++)await wait(200);
  sh.forEach(p=>{if(p.mode!=='hug'){p.x=p.tx;p.y=p.ty;p.mode='hug';p.dir=p.pole.x>=p.x?1:-1}});
  await wait(500);say('Bạn nào sắp tuột tay đây…',1);ufo.scan=true;beam.x=W/2;beam.y=H*.8;
- tone(220,1.2,'sine',.1,660);sh.forEach(p=>{p.cl=0;p.rs=R(.75,1.05)});
+ tone(220,1.2,'sine',.1,660);sh.forEach(p=>{p.cl=0;p.lf=0;p.rs=R(.75,1.05)});
  say('Lực hút mạnh quá! Cố bám chặt cột nhé!',1);
  await tw(5000,t=>{beam.on=Math.min(1,t*4);beam.x=W/2+Math.sin(t*Math.PI*3)*W*.4;beam.y=H*(.7+.12*Math.sin(t*9));
-  const g=Math.min(1,t*2.2)*(.55+.3*t);sh.forEach(p=>{p.cl=g*p.rs*(.9+.1*Math.sin(t*26+p.ph))});
+  const g=Math.min(1,t*2.2)*(.55+.3*t);sh.forEach(p=>{p.cl=g*p.rs*(.9+.1*Math.sin(t*26+p.ph));p.lf=Math.min(1,Math.max(0,(t-.12)*1.8))*p.lm});
   if(t>.55&&!window.__ufoShout){window.__ufoShout=1;bubbles=[{p:P(sh),t:P(['Á! Em sắp bay rồi!','Bám chặt vào!','Đừng buông tay!','Cứu em với!']),until:performance.now()+1800}]}});
  window.__ufoShout=0;
  const picks=sh.slice().sort(()=>Math.random()-.5).slice(0,k),got=[];
@@ -235,7 +236,7 @@ async function round(){let ch=0;try{
   got.push(p);called.push(p.name);updPill();
   ban={t:p.name,s:0};say('Đã bắt được: '+p.name+'!',1);[659,784,1047].forEach((fr,j)=>tone(fr,.4,'triangle',.12,0,j*.1));
   await tw(500,t=>ban.s=t);await wait(1500*f);ban=null}
- ufo.scan=false;{const cs=sh.map(p=>p.cl||0);await tw(900,t=>{sh.forEach((p,i)=>{if(p.mode==='hug')p.cl=cs[i]*(1-E(t))})});sh.forEach(p=>p.cl=0)}
+ ufo.scan=false;{const cs=sh.map(p=>p.cl||0),ls=sh.map(p=>p.lf||0);await tw(900,t=>{sh.forEach((p,i)=>{if(p.mode==='hug'){p.cl=cs[i]*(1-E(t));p.lf=ls[i]*(1-E(t))}})});sh.forEach(p=>{p.cl=0;p.lf=0})}
  await tw(500,t=>beam.on=1-t);beam.wd=0;sirenOff();
  [523,659,784,1047].forEach((f,i)=>tone(f,.5,'triangle',.12,0,i*.14));
  say('Phù… chuyến này thoát rồi! Ai sẽ là người tiếp theo?',1);
