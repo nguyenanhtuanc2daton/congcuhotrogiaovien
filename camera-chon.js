@@ -26,7 +26,7 @@
     for (var i = 0; i < 4; i++) o += i < n ? '<rect x="' + xs[i] + '" y="' + (23 - hs[i]) + '" width="5.5" height="' + (hs[i] + 4) + '" rx="2.75" ' + sk + '/>' : '<rect x="' + xs[i] + '" y="19" width="5.5" height="8" rx="2.75" ' + sk + '/>';
     return o + '<rect x="7" y="22" width="27" height="21" rx="8" ' + sk + '/><rect x="3" y="29" width="14" height="8" rx="4" ' + sk + '/></svg>';
   }
-  var LEG = [1, 2, 3, 4].map(function (n) { return handSvg(n) + ' = <b>' + LET.charAt(n - 1) + '</b>'; }).join(' &nbsp;·&nbsp; ');
+  var LEG = '<span class="cc-lg">' + [1, 2, 3, 4].map(function (n) { return '<span class="cc-li">' + handSvg(n) + '<b>' + LET.charAt(n - 1) + '</b></span>'; }).join('') + '</span>';
   var BONES = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [5, 9], [9, 10], [10, 11], [11, 12], [9, 13], [13, 14], [14, 15], [15, 16], [13, 17], [17, 18], [18, 19], [19, 20], [0, 17]];
 
   /* ---------- CSS ---------- */
@@ -44,8 +44,14 @@
     '.cc-panel canvas{display:block;border-radius:8px;background:#000;max-height:24vh;width:auto;max-width:100%;margin:0 auto}',
     '.cc-ct{margin-top:4px;font-weight:700;text-align:center;line-height:1.35}',
     '.cc-leg{margin-top:3px;font-size:.85em;opacity:.9;text-align:center;line-height:1.35}',
+    '.cc-lg{display:inline-flex;gap:14px;vertical-align:middle}.cc-leg .cc-lg{display:flex;justify-content:space-around;gap:6px}',
+    '.cc-li{display:inline-flex;flex-direction:column;align-items:center;font-weight:800;font-size:1.05em;gap:1px}',
+    '.cc-leg2{margin-top:4px;font-size:.78em;opacity:.85;text-align:center;line-height:1.3}',
+    /* Chế độ camera: ẩn các nút điều khiển để dành chỗ cho câu hỏi và đáp án */
+    '.kc-stage.cc-dock .kc-top .kc-btn,.kc-stage.cc-dock .kc-fsz,.kc-stage.cc-dock .kc-rvbar{display:none!important}',
+    '#kcRv.cc-dock .kc-top{margin:0}',
     '.cc-bar{height:6px;border-radius:4px;background:#ffffff33;margin-top:4px;overflow:hidden}.cc-bar i{display:block;height:100%;width:0;background:#fbbf24}',
-    '.cc-panel.min canvas,.cc-panel.min .cc-ct,.cc-panel.min .cc-leg,.cc-panel.min .cc-bar{display:none}',
+    '.cc-panel.min canvas,.cc-panel.min .cc-ct,.cc-panel.min .cc-leg,.cc-panel.min .cc-leg2,.cc-panel.min .cc-bar{display:none}',
     '.cc-big{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:7;pointer-events:none;font-weight:900;color:#fff;font-size:clamp(90px,34vh,300px);text-shadow:0 6px 30px #000,0 0 40px #000}',
     '.cc-big.on{display:flex}.cc-big span{animation:ccPop .8s ease-out}',
     '@keyframes ccPop{from{transform:scale(2);opacity:0}to{transform:scale(1);opacity:1}}',
@@ -60,7 +66,7 @@
   cfgBox.innerHTML =
     '<label><input type="checkbox" id="ccOn"> 📷 <b>Chế độ Camera</b> (một học sinh lên bảng, giơ ngón tay để chọn đáp án)</label>' +
     '<div id="ccBox" style="display:none">' +
-    '<div class="note"><b>Cử chỉ</b> (ngón cái gập, không tính): ' + LEG + ' &nbsp;·&nbsp; nắm tay = chưa chọn.</div>' +
+    '<div class="note"><b>Cử chỉ</b> (ngón cái gập, không tính): ' + LEG + ' &nbsp;nắm tay = chưa chọn. <b>Hai tay ghép hình trái tim 💗 (giữ 2 giây) = dừng chơi và thoát.</b> Khi bật camera, các nút điều khiển trên màn hình chơi được ẩn đi để dành chỗ cho câu hỏi.</div>' +
     '<div class="bar"><label>⏱ Thời gian tối đa mỗi câu (giây) <input type="number" id="ccSecs" min="5" max="180" style="width:70px"></label>' +
     '<label>Giữ yên cử chỉ (giây) <input type="number" id="ccHold" min="0.5" max="5" step="0.5" style="width:60px"></label></div>' +
     '<div class="bar"><label>Chốt xong, hiện đáp án đúng sau (giây) <input type="number" id="ccRev" min="1" max="15" style="width:60px"></label>' +
@@ -88,8 +94,8 @@
   /* ---------- Bảng camera (nằm trong màn hình chơi để vẫn thấy khi toàn màn hình) ---------- */
   var panel = document.createElement('div');
   panel.className = 'cc-panel inline'; panel.style.display = 'none';
-  panel.innerHTML = '<div class="cc-hd"><b id="ccSt">📷</b><span><button class="cc-b" id="ccSkip" type="button" title="Bỏ qua, hiện đáp án luôn">⏭</button> <button class="cc-b" id="ccHold2" type="button" title="Tạm dừng đếm giờ / giữ câu hiện tại">⏸</button> <button class="cc-b" id="ccMin" type="button" title="Thu nhỏ">▾</button></span></div>' +
-    '<canvas id="ccCv" width="480" height="270"></canvas><div class="cc-bar"><i id="ccPg"></i></div><div class="cc-ct" id="ccCt"></div><div class="cc-leg">' + LEG + '</div>';
+  panel.innerHTML = '<div class="cc-hd"><b id="ccSt">📷</b><span><button class="cc-b" id="ccSkip" type="button" title="Bỏ qua, hiện đáp án luôn">⏭</button> <button class="cc-b" id="ccHold2" type="button" title="Tạm dừng đếm giờ / giữ câu hiện tại">⏸</button> <button class="cc-b" id="ccMin" type="button" title="Thu nhỏ">▾</button> <button class="cc-b" id="ccExit" type="button" title="Dừng chơi và thoát">✕</button></span></div>' +
+    '<canvas id="ccCv" width="480" height="270"></canvas><div class="cc-bar"><i id="ccPg"></i></div><div class="cc-ct" id="ccCt"></div><div class="cc-leg">' + LEG + '</div><div class="cc-leg2">💗 Hai tay ghép trái tim (giữ 2 giây) = dừng chơi và thoát</div>';
   var big = document.createElement('div'); big.className = 'cc-big';
   var cv = panel.querySelector('#ccCv');
   $('ccBox').appendChild(panel);
@@ -99,6 +105,13 @@
   panel.querySelector('#ccMin').onclick = function () { panel.classList.toggle('min'); };
   var hold = false;
   panel.querySelector('#ccHold2').onclick = function () { hold = !hold; this.textContent = hold ? '▶' : '⏸'; };
+  var heartLive = false, heartBuf = [], heartSince = 0;
+  function exitGame() {              /* thoát về cài đặt, không hỏi xác nhận */
+    var b = kind === 'rv' ? $('kcRvBack') : (kind === 'keo' ? $('kcBack') : null); if (!b) return;
+    var oc = window.confirm; window.confirm = function () { return true; };
+    try { b.click(); } finally { window.confirm = oc; }
+  }
+  panel.querySelector('#ccExit').onclick = exitGame;
   panel.querySelector('#ccSkip').onclick = function () { if (S && S.p === 'select') S.skip = true; };
 
   /* ---------- Camera + nhận dạng bàn tay ---------- */
@@ -154,6 +167,7 @@
   function ready() { return !!(stream && det && vid.videoWidth && vid.readyState >= 2); }
 
   /* Đếm số ngón đang duỗi (không tính ngón cái): đầu ngón xa cổ tay hơn khớp giữa ngón → ngón duỗi. Không phụ thuộc hướng tay. */
+  function dist(a, b, ar) { var dx = (a.x - b.x) * ar, dy = a.y - b.y; return Math.sqrt(dx * dx + dy * dy); }
   function countFingers(lm, ar) {
     function d(a, b) { var dx = (a.x - b.x) * ar, dy = a.y - b.y; return Math.sqrt(dx * dx + dy * dy); }
     var tips = [8, 12, 16, 20], pips = [6, 10, 14, 18], n = 0;
@@ -169,15 +183,23 @@
         var r = det.detectForVideo(vid, now), ar = vid.videoWidth / vid.videoHeight, hs = [];
         (r.landmarks || []).forEach(function (lm) {
           var pts = lm.map(function (p) { return { x: C.mirror ? 1 - p.x : p.x, y: p.y }; });
-          hs.push({ pts: pts, n: countFingers(lm, ar), cx: (pts[0].x + pts[9].x) / 2 });
+          hs.push({ pts: pts, n: countFingers(lm, ar), cx: (pts[0].x + pts[9].x) / 2, lm: lm });
         });
-        hands = hs;
+        hands = hs; heartLive = false;
+        if (hs.length === 2) {         /* hai tay ghép trái tim: hai đầu ngón cái chạm nhau, hai đầu ngón trỏ chạm nhau, ngón trỏ ở phía trên */
+          var A = hs[0].lm, B = hs[1].lm, sz = (dist(A[0], A[9], ar) + dist(B[0], B[9], ar)) / 2;
+          if (sz > 0.02) {
+            var tt = dist(A[4], B[4], ar) / sz, ti = dist(A[8], B[8], ar) / sz, up = ((A[4].y + B[4].y) / 2 - (A[8].y + B[8].y) / 2) / sz;
+            heartLive = tt < 0.8 && ti < 0.8 && up > 0.3;
+          }
+        }
       } catch (e) {}
     }
     draw();
   }
   /* Đọc cử chỉ hiện tại của một "kênh": kênh 0 = nửa trái (hoặc cả khung nếu chỉ 1 kênh), kênh 1 = nửa phải. Trả về 0..3 (A..D) hoặc -1 */
   function reading(ch, chans) {
+    if (heartLive) return -1;
     var ns = [];
     hands.forEach(function (h) { if (chans === 1 || (ch === 0 ? h.cx < 0.5 : h.cx >= 0.5)) ns.push(h.n); });
     if (!ns.length) return -1;
@@ -205,11 +227,12 @@
       BONES.forEach(function (bn) { g.moveTo(PX(hd.pts[bn[0]].x), PY(hd.pts[bn[0]].y)); g.lineTo(PX(hd.pts[bn[1]].x), PY(hd.pts[bn[1]].y)); });
       g.stroke(); g.fillStyle = col;
       hd.pts.forEach(function (p) { g.beginPath(); g.arc(PX(p.x), PY(p.y), 3, 0, 6.3); g.fill(); });
-      if (v >= 0) {
+      if (v >= 0 && !heartLive) {
         g.font = 'bold ' + Math.round(h * 0.22) + 'px sans-serif'; g.textAlign = 'center'; g.shadowColor = '#000'; g.shadowBlur = 6; g.fillStyle = '#fff';
         g.fillText(LET.charAt(v), PX(hd.pts[9].x), Math.max(h * 0.25, PY(hd.pts[9].y) - h * 0.1)); g.shadowBlur = 0;
       }
     });
+    if (heartLive) { g.font = Math.round(h * 0.4) + 'px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.fillText('💗', w / 2, h * 0.62); }
   }
 
   /* ---------- Âm thanh nhỏ ---------- */
@@ -339,6 +362,7 @@
       for (i = 0; i < n; i++) if (S.ch[i].cand >= 0 && S.ch[i].lock < 0) pr = Math.max(pr, Math.min(1, (vt - S.ch[i].since) / (C.hold * 1000)));
       pg.style.width = Math.round(pr * 100) + '%';
     } else ct.textContent = '';
+    if (heartSince) { stx.textContent = '💗 Giữ hình trái tim để thoát…'; pg.style.width = Math.min(100, Math.round((Date.now() - heartSince) / 20)) + '%'; }
     var rem = S.p === 'locked' && !hold ? secs(C.rev * 1000 - (vt - S.t)) : 0;
     if (rem >= 1 && rem <= 3) {
       big.classList.add('on'); if (rem !== lastBig) { big.innerHTML = '<span>' + rem + '</span>'; beep(520, 0.1); }
@@ -349,7 +373,7 @@
     var n = chans(), parts = [], i, v;
     for (i = 0; i < n; i++) { v = reading(i, n); parts.push((n === 2 ? 'Đội ' + (i + 1) + ': ' : '') + (v >= 0 ? '✋ ' + LET.charAt(v) : '—')); }
     $('ccSt').textContent = failed ? '⚠ ' + failed : (ready() ? '🎥 Thử camera: thấy ' + hands.length + ' bàn tay' : '⏳ Đang chuẩn bị camera và bộ nhận dạng…');
-    $('ccCt').textContent = failed || !ready() ? '' : parts.join(' · ');
+    $('ccCt').textContent = failed || !ready() ? '' : (heartLive ? '💗 Trái tim (dùng để thoát khi đang chơi)' : parts.join(' · '));
     $('ccPg').style.width = '0';
     $('ccMsg').textContent = failed ? '' : (ready() ? 'Camera hoạt động. Giơ 1–4 ngón tay, chữ cái hiện trên bàn tay là đáp án máy nhận được.' : 'Lần đầu cần tải bộ nhận dạng (vài MB), vui lòng chờ…');
   }
@@ -376,6 +400,11 @@
       if (kind) { testing = false; $('ccTest').textContent = '🎥 Thử camera'; place(kind === 'rv' ? rvEl : kcSt); startCam(); }
       else { big.classList.remove('on'); if (!testing) { placeInline(); stopCam(); } }
     }
+    heartBuf.push(heartLive ? 1 : 0); if (heartBuf.length > 4) heartBuf.shift();
+    if (kind && ready() && heartBuf.reduce(function (a, b) { return a + b; }, 0) >= 3) {
+      if (!heartSince) heartSince = now;
+      if (now - heartSince >= 2000) { heartSince = 0; heartBuf = []; beep(660, 0.3); exitGame(); return; }
+    } else heartSince = 0;
     if (!kind) { if (testing) paintTest(); return; }
     var blocked = !!failed || !ready() || (kind === 'keo' && keoBlocked());
     if (!hold && !blocked) vt += dt;
