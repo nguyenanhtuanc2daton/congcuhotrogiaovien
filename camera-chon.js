@@ -25,12 +25,16 @@
   var st = document.createElement('style');
   st.textContent = [
     '.cc-cfg{border:1px solid #8885;border-radius:10px;padding:6px 10px;margin:8px 0}',
-    '.cc-panel{position:absolute;right:10px;bottom:10px;z-index:8;width:clamp(230px,24vw,440px);background:#0b1020ee;color:#fff;border:2px solid #fbbf24;border-radius:12px;padding:6px;box-sizing:border-box;font-size:14px}',
-    '.cc-panel.inline{position:relative;right:auto;bottom:auto;margin:8px 0;max-width:460px;width:100%}',
+    /* Mặc định (điện thoại / màn hình dọc): bảng camera nằm DƯỚI cùng, không đè lên đáp án */
+    '.cc-panel{position:relative;margin:8px auto 0;z-index:8;width:min(100%,380px);flex:0 0 auto;background:#0b1020ee;color:#fff;border:2px solid #fbbf24;border-radius:12px;padding:6px;box-sizing:border-box;font-size:14px}',
+    '.cc-panel.inline{margin:8px 0;max-width:460px;width:100%}',
+    /* Màn hình ngang: dành hẳn một cột bên phải cho camera, nội dung câu hỏi co lại nhường chỗ */
+    '@media(min-width:701px) and (min-aspect-ratio:1/1){.kc-stage.on.cc-dock{padding-right:calc(clamp(230px,22vw,380px) + 24px)!important}.kc-stage.cc-dock>.cc-panel{position:absolute;right:10px;top:10px;margin:0;width:clamp(230px,22vw,380px)}}',
+    '.cc-panel canvas{max-height:22vh;width:auto;max-width:100%;margin:0 auto}',
     '.cc-hd{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:4px}',
     '.cc-hd b{font-size:1em;line-height:1.25}',
     '.cc-b{background:#1b2347;color:#fff;border:1px solid #333f77;border-radius:8px;padding:2px 8px;font-size:15px;cursor:pointer;flex:none;min-height:0}',
-    '.cc-panel canvas{width:100%;display:block;border-radius:8px;background:#000}',
+    '.cc-panel canvas{display:block;border-radius:8px;background:#000}',
     '.cc-ct{margin-top:4px;font-weight:700;text-align:center;line-height:1.35}',
     '.cc-panel.min canvas,.cc-panel.min .cc-ct{display:none}',
     '.cc-big{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:7;pointer-events:none;font-weight:900;color:#fff;font-size:clamp(90px,34vh,300px);text-shadow:0 6px 30px #000,0 0 40px #000}',
@@ -81,8 +85,9 @@
   var big = document.createElement('div'); big.className = 'cc-big';
   var cv = panel.querySelector('#ccCv');
   $('ccBox').appendChild(panel);
-  function place(parent) { parent.appendChild(panel); parent.appendChild(big); panel.classList.remove('inline'); }
-  function placeInline() { $('ccBox').appendChild(panel); panel.classList.add('inline'); if (big.parentNode) big.parentNode.removeChild(big); }
+  function undock() { rvEl.classList.remove('cc-dock'); kcSt.classList.remove('cc-dock'); }
+  function place(parent) { undock(); parent.classList.add('cc-dock'); parent.appendChild(panel); parent.appendChild(big); panel.classList.remove('inline'); }
+  function placeInline() { undock(); $('ccBox').appendChild(panel); panel.classList.add('inline'); if (big.parentNode) big.parentNode.removeChild(big); }
   panel.querySelector('#ccMin').onclick = function () { panel.classList.toggle('min'); };
   var hold = false;
   panel.querySelector('#ccHold').onclick = function () { hold = !hold; this.textContent = hold ? '▶' : '⏸'; };
