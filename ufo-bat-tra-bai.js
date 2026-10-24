@@ -102,8 +102,8 @@ function resize(){if(!cv)return;const r=cv.getBoundingClientRect();if(!r.width||
 const GN=s=>String(s).toLowerCase().normalize('NFC');
 const GS=s=>GN(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');
 const mkSet=a=>new Set(a.split(' '));
-const F_GIVEN=mkSet('lan hoa hương mai liên nga ngân ngọc nhung nhi oanh phương quỳnh thảo thủy thùy thu thư trang trinh trâm uyên vy yến hằng hạnh huệ huyền kiều loan ly my nguyệt tuyền tuyết thương tiên diệp dung hân linh lệ lụa mỹ nhàn như phượng quyên sương thắm thúy vân ánh chi đào diễm diệu duyên hồng nhã nhiên nương trà trúc ngà oanh nhàn hiền thy tâm');
-const M_GIVEN=mkSet('an bảo bình cường công dũng duy đạt đức đông hải hào hiếu hoàng hùng hưng huy hữu khang khoa khôi kiên lâm long lộc mạnh nam nghĩa nguyên nhân phát phong phúc phước quân quang quốc sơn tài thắng thành thiện thịnh tiến toàn trung trường tuấn tùng việt vinh vũ khải kiệt luân nhật phi tân thái thế tín trí triều vương đăng đại danh hậu hiệp huân khiêm lợi quý sang sỹ thọ thuận tuân tường vĩ bách đình dương hiển hoài khoa quyền thiên tâm');
+const F_GIVEN=mkSet('hà châu khuê phụng nhiên bích thanh lam mẫn lan hoa hương mai liên nga ngân ngọc nhung nhi oanh phương quỳnh thảo thủy thùy thu thư trang trinh trâm uyên vy yến hằng hạnh huệ huyền kiều loan ly my nguyệt tuyền tuyết thương tiên diệp dung hân linh lệ lụa mỹ nhàn như phượng quyên sương thắm thúy vân ánh chi đào diễm diệu duyên hồng nhã nhiên nương trà trúc ngà oanh nhàn hiền thy tâm');
+const M_GIVEN=mkSet('chiến cương đoàn kha lương quyết thạch tuyên vỹ hiệp an bảo bình cường công dũng duy đạt đức đông hải hào hiếu hoàng hùng hưng huy hữu khang khoa khôi kiên lâm long lộc mạnh nam nghĩa nguyên nhân phát phong phúc phước quân quang quốc sơn tài thắng thành thiện thịnh tiến toàn trung trường tuấn tùng việt vinh vũ khải kiệt luân nhật phi tân thái thế tín trí triều vương đăng đại danh hậu hiệp huân khiêm lợi quý sang sỹ thọ thuận tuân tường vĩ bách đình dương hiển hoài khoa quyền thiên tâm');
 const F_MID=mkSet('thị ngọc kim bích diễm thùy thủy mỹ hồng phương quỳnh như thu tuyết lan mai ánh diệu hạ');
 const M_MID=mkSet('văn hữu đức quốc mạnh quang trọng đình công bá thành tiến hoàng nhật duy đăng thế');
 function strip(set){const o=new Set();set.forEach(w=>o.add(GS(w)));return o}
@@ -120,10 +120,10 @@ function guessFemale(name){
  if(fg.has(g))s+=3;if(mg.has(g))s-=3;
  for(let i=1;i<w.length-1;i++){const m=w[i];
   if(m==='thị'||m==='thi')s+=5;else if(m==='văn'||m==='van')s-=5;
-  else{if(fm.has(m))s+=1.5;if(mm.has(m))s-=1.5}}
+  else{if(fm.has(m))s+=1.5;if(mm.has(m))s-=1.5;if(fg.has(m))s+=1.2;if(mg.has(m))s-=1.2}}
  if(s>0)return true;if(s<0)return false;
  let h=0;for(const c of raw.join(' '))h=(h*31+c.charCodeAt(0))|0;return (h&1)===0}
-function mk(n){const sk=guessFemale(n);return{name:n,x:R(0,W),y:R(.5,.96)*H,dir:Math.random()<.5?-1:1,spd:R(.04,.08),ph:R(0,6),mode:'walk',t:0,sk,long:sk||Math.random()<.2,
+function mk(n){const sk=guessFemale(n);return{name:n,x:R(0,W),y:R(.5,.96)*H,dir:Math.random()<.5?-1:1,spd:R(.04,.08),ph:R(0,6),mode:'walk',t:0,sk,long:sk,
  skin:P(['#f1c9a5','#e0a97d','#b9794f','#8a5a3a']),hair:P(['#2a1b14','#1d1d22','#4a2c1c']),shirt:P(['#f4f4ee','#dbe9f2','#f6d9de','#fbf0d6']),pant:sk?P(['#7a6a55','#5b5f78']):P(['#4b5b58','#2f3c55','#6d6f61']),bag:P(['#d9798b','#8a7ac8','#e0a24a','#d86b52']),up:0}}
 function updPill(){const left=Math.max(0,names.length-called.filter(n=>names.includes(n)).length);$('pill').textContent=called.length?('Còn '+left+'/'+names.length+' học sinh'):(names.length+' học sinh')}
 function rebuild(){people=names.filter(n=>!called.includes(n)).map(mk);updPill()}
@@ -132,18 +132,20 @@ const ufoBot=()=>ufo.fy*H+Math.min(W*.8,H*.8)*.1;
 /* ---------- drawing people ---------- */
 function head(c,p,pan){if(p.long){c.fillStyle=p.hair;c.fillRect(-12,-90,24,28)}c.fillStyle=p.skin;c.beginPath();c.arc(0,-84,11,0,7);c.fill();c.fillStyle=p.hair;c.beginPath();c.arc(0,-86,12,Math.PI,0);c.fill();c.fillRect(-12,-87,24,4);
  c.fillStyle='#222';c.beginPath();c.arc(-4,-83,1.7,0,7);c.arc(4,-83,1.7,0,7);c.fill();c.strokeStyle='#7a3b30';c.lineWidth=1.4;c.beginPath();if(pan)c.ellipse(0,-77,3,3.6,0,0,7);else c.arc(0,-78,3,.2,2.9);c.stroke();
+ if(p.sk){c.fillStyle='#e8618c';c.beginPath();c.arc(-9,-94,3.6,0,7);c.arc(-14,-92,3,0,7);c.fill();c.fillStyle='#fff';c.beginPath();c.arc(-10.5,-93.3,1.2,0,7);c.fill()}
  if(pan){c.fillStyle='#7ad0ff';c.beginPath();c.arc(-14,-92,2,0,7);c.arc(15,-88,2,0,7);c.fill()}}
 function drawP(p,tm){
  const hs=H*(.07+.06*p.y/H)/100;ctx.save();
  let ox=0,oy=0,rot=0,sc=1;
  const lk=(p.lk||0)*H*.015;
- if(p.mode==='lock'){ox=Math.sin(tm*60)*1.6;oy=-lk}
- if(p.mode==='up'){const e=E(p.up);oy=-(p.y0-ufoBot())*e-lk*(1-e);rot=Math.sin(e*10)*.4+e*2.5;sc=1-.9*e}
+ if(p.mode==='lock'){ox=Math.sin(tm*60)*(1.2+3.2*(p.lk||0));oy=-lk*.5}
+ if(p.mode==='up'){const e=E(p.up);oy=-(p.y0-ufoBot())*e-lk*.5*(1-e);rot=Math.sin(e*10)*.4+e*2.5;sc=1-.9*e}
  if(p.mode==='up'||p.mode==='lock'){const gx=p.x+ox,gy=p.y+oy-50*hs*sc,gr=hs*55*Math.max(sc,.3);const gg=ctx.createRadialGradient(gx,gy,0,gx,gy,gr);gg.addColorStop(0,'rgba(215,255,240,.8)');gg.addColorStop(1,'rgba(215,255,240,0)');ctx.fillStyle=gg;ctx.fillRect(gx-gr,gy-gr,gr*2,gr*2)}
  if(p.mode==='hug')ox=Math.sin(tm*40+p.ph)*(.8+(p.cl||0)*2.6);
  if(p.mode==='panic')oy=-Math.abs(Math.sin(p.ph))*H*.008;
  ctx.translate(p.x+ox,p.y+oy);ctx.translate(0,-50*hs*sc);ctx.rotate(rot);ctx.translate(0,50*hs*sc);
- if(p.mode==='hug'&&p.cl>0){const px=17*hs*p.dir,py=-62*hs,a=p.dir*p.cl*(2.05+Math.sin(tm*22+p.ph)*.13)+Math.sin(tm*31+p.ph*2)*.07*p.cl;ctx.translate(px,py);ctx.rotate(a);ctx.translate(-px,-py)}
+ const grip=p.mode==='up'?1-E(Math.min(1,p.up*4)):1;
+ if((p.mode==='hug'||p.mode==='lock'||p.mode==='up')&&p.cl>0&&grip>0){const cl=p.cl*grip,px=17*hs*p.dir,py=-62*hs,a=p.dir*cl*(2.05+Math.sin(tm*22+p.ph)*.13)+Math.sin(tm*31+p.ph*2)*.07*cl;ctx.translate(px,py);ctx.rotate(a);ctx.translate(-px,-py)}
  ctx.fillStyle='#0002';ctx.beginPath();ctx.ellipse(0,0,hs*14*sc,hs*4*sc,0,0,7);if(p.mode!=='up'&&!(p.cl>.25))ctx.fill();
  ctx.scale(hs*p.dir*sc,hs*sc);
  const mv=p.mode==='walk'||p.mode==='run'||p.mode==='panic',sw=mv?Math.sin(p.ph)*(p.mode==='walk'?.7:1):0,pan=p.mode==='panic'||p.mode==='hug'||p.mode==='up'||p.mode==='lock';
@@ -154,7 +156,7 @@ function drawP(p,tm){
  ctx.fillStyle=p.shirt;ctx.beginPath();ctx.roundRect(-11,-74,22,30,6);ctx.fill();
  ctx.strokeStyle=p.shirt;ctx.lineWidth=6;
  [-1,1].forEach(s=>{ctx.beginPath();ctx.moveTo(s*11,-70);
-  if(p.mode==='hug')ctx.lineTo(17,-62+s*3);else if(p.mode==='panic'||p.mode==='up'||p.mode==='lock')ctx.lineTo(s*22,-100+Math.sin(tm*25+s)*5);else ctx.lineTo(s*13-s*sw*8,-50);ctx.stroke()});
+  if(p.mode==='hug'||p.mode==='lock'||(p.mode==='up'&&p.up<.12))ctx.lineTo(17,-62+s*3);else if(p.mode==='panic'||p.mode==='up')ctx.lineTo(s*22,-100+Math.sin(tm*25+s)*5);else ctx.lineTo(s*13-s*sw*8,-50);ctx.stroke()});
  head(ctx,p,pan);ctx.restore()}
 function drawPole(p){const x=p.x,y=p.y,h=H*.33,w=H*.011;ctx.fillStyle='#2f5b47';ctx.beginPath();ctx.moveTo(x-w*1.8,y);ctx.lineTo(x-w*.5,y-h*.12);ctx.lineTo(x+w*.5,y-h*.12);ctx.lineTo(x+w*1.8,y);ctx.fill();
  ctx.fillRect(x-w/2,y-h,w,h*.9);ctx.fillRect(x-w/2,y-h,w*5,w*.8);ctx.fillStyle=night>.3?'#fff7c0':'#cfd6c4';ctx.fillRect(x+w*3,y-h+w*.5,w*2.4,w*.7);
@@ -224,9 +226,9 @@ async function round(){let ch=0;try{
   say('Người này sắp không giữ nổi nữa…',1);const c0=p.cl||0;
   await tw(900*f,t=>{p.cl=L(c0,1,E(t))});
   say('Khóa mục tiêu! Có người đang bị hút lên…',1);
-  const w1=W*.1;p.cl=0;p.mode='lock';p.lk=0;tone(300,1,'sawtooth',.06,900);
+  const w1=W*.1;p.cl=1;p.mode='lock';p.lk=0;tone(300,1,'sawtooth',.06,900);
   await tw(1000*f,t=>{beam.wd=L(w1,Math.max(H*.055,W*.04),E(t));p.lk=E(t)});
-  say('Aaa… người đó đang bị hút lên UFO!',1);
+  say('Tuột tay rồi! Người đó bị hút lên UFO!',1);bubbles=[{p:p,t:P(['Á! Tuột tay rồi!','Không giữ nổi nữa!','Cứu em với!']),until:performance.now()+1600}];
   p.y0=p.y;p.mode='up';p.up=0;tone(200,3.2*f,'triangle',.12,1100);const sx=p.x;
   await tw(3200*f,t=>{p.up=t;p.x=L(sx,ufo.x,E(t))});
   p.mode='gone';flash=1;tone(900,.3,'sine',.12,1800);await tw(350,t=>flash=1-t);flash=0;
