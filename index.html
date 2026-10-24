@@ -1006,7 +1006,7 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <section class="panel" id="t8">
 <h2>🛠 Công cụ thường dùng</h2>
 <div class="bar"><label for="utSel" style="font-weight:600">Chọn công cụ:</label>
-<select id="utSel"><option value="utWheel" selected>🎯 Gọi tên học sinh</option><option value="utTimer">⏱ Đếm giờ &amp; chia nhóm</option><option value="utLich">📅 Lịch báo giảng tự động</option><option value="utKeoCo">🪢 Kéo co &amp; Ôn tập kiến thức</option><option value="utQr">📱 Tạo mã QR</option></select></div>
+<select id="utSel"><option value="utWheel" selected>🎯 Gọi tên học sinh</option><option value="utTimer">⏱ Đếm giờ &amp; chia nhóm</option><option value="utLich">📅 Lịch báo giảng tự động</option><option value="utKeoCo">🪢 Kéo co &amp; Ôn tập kiến thức</option><option value="utQr">📱 Tạo mã QR</option><option value="utFile">☁ Lưu file tạm (file.kiwi)</option></select></div>
 <div class="ut on" id="utWheel">
 <div id="t2">
 <h2>🎯 Vòng Quay Gọi Tên Học Sinh</h2>
@@ -1047,6 +1047,20 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <div style="text-align:center;margin:10px 0"><canvas id="qrCv" width="300" height="300" style="display:none;width:min(320px,100%);height:auto;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.35)"></canvas></div>
 <div class="bar" style="justify-content:center"><button id="qrDl" type="button" disabled>⬇ Tải ảnh PNG</button><button class="sec" id="qrCopy" type="button" disabled>📄 Sao chép ảnh</button></div>
 <div class="note" style="text-align:center">Dán ảnh QR vào Word/PowerPoint/Zalo; nên quét thử bằng điện thoại trước khi in.</div>
+</div>
+<div class="ut" id="utFile">
+<h3 style="margin:4px 0 8px">☁ Lưu file tạm <span style="display:inline-block;vertical-align:middle;margin-left:6px;padding:3px 10px;border-radius:99px;border:1px solid #f5c542;background:rgba(245,197,66,.14);color:#f5c542;font-size:12.5px;font-weight:700;letter-spacing:.2px">🌐 dịch vụ file.kiwi</span></h3>
+<div class="note" style="font-size:13.5px;line-height:1.5">Gửi <b>tệp hoặc cả thư mục</b> lên <b>file.kiwi</b> rồi nhận <b>link tải về</b> để gửi cho học sinh, đồng nghiệp. File tự xóa sau khoảng <b>90 giờ</b>. Việc lưu file do <b>file.kiwi</b> xử lý — bộ công cụ này chỉ mở cửa sổ kết nối tới đó và giúp bạn nhớ các link đã tạo.</div>
+<ol style="margin:10px 0;padding-left:22px;line-height:1.7;font-size:14px">
+<li>Bấm <b>☁ Mở file.kiwi</b> → chọn tệp (hoặc thư mục) cần gửi.</li>
+<li>Bấm <b>SAO CHÉP</b> để lấy link — <b>giữ nguyên phần sau dấu #</b> (khóa giải mã).</li>
+<li>Sang mục <b>🔗 Link của tôi</b> → bấm <b>📋 Dán</b> → <b>＋ Lưu</b>. Link tự biến mất khi file hết hạn.</li>
+</ol>
+<div class="bar" style="justify-content:center">
+<button id="ffOpen" type="button" data-luu-file style="font-size:17px;padding:12px 24px">☁ Mở file.kiwi</button>
+<button class="ghost" id="ffLinks" type="button" data-luu-file="links" style="font-size:17px;padding:12px 24px">🔗 Link của tôi (<span data-luu-count>0</span>)</button>
+</div>
+<div class="note" style="text-align:center;font-size:12.5px">Không muốn mở trong khung? Vào thẳng <a href="https://file.kiwi/vi" target="_blank" rel="noopener" style="color:#f5c542;font-weight:700">file.kiwi/vi ↗</a> rồi quay lại dán link ở mục “Link của tôi”.</div>
 </div>
 </section>
 
@@ -1171,6 +1185,7 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <script src="ufo-bat-tra-bai.js?v=20261211"></script>
 <script src="ngay-le.js?v=20261019"></script>
 <script src="dem-truy-cap.js?v=20261018"></script>
+<script src="luu-file-tam.js?v=20261213"></script>
 <script>
 /* Rèm cửa: tự mở khi trang tải xong */
 (function(){
