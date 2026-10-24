@@ -102,10 +102,10 @@ function resize(){if(!cv)return;const r=cv.getBoundingClientRect();if(!r.width||
 const GN=s=>String(s).toLowerCase().normalize('NFC');
 const GS=s=>GN(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');
 const mkSet=a=>new Set(a.split(' '));
-const F_GIVEN=mkSet('hà châu khuê phụng nhiên bích thanh lam mẫn lan hoa hương mai liên nga ngân ngọc nhung nhi oanh phương quỳnh thảo thủy thùy thu thư trang trinh trâm uyên vy yến hằng hạnh huệ huyền kiều loan ly my nguyệt tuyền tuyết thương tiên diệp dung hân linh lệ lụa mỹ nhàn như phượng quyên sương thắm thúy vân ánh chi đào diễm diệu duyên hồng nhã nhiên nương trà trúc ngà oanh nhàn hiền thy tâm');
+const F_GIVEN=mkSet('hà châu khuê phụng nhiên bích lam mẫn lan hoa hương mai liên nga ngân ngọc nhung nhi oanh phương quỳnh thảo thủy thùy thu thư trang trinh trâm uyên vy yến hằng hạnh huệ huyền kiều loan ly my nguyệt tuyền tuyết thương tiên diệp dung hân linh lệ lụa mỹ nhàn như phượng quyên sương thắm thúy vân ánh chi đào diễm diệu duyên hồng nhã nhiên nương trà trúc ngà oanh nhàn hiền thy tâm');
 const M_GIVEN=mkSet('chiến cương đoàn kha lương quyết thạch tuyên vỹ hiệp an bảo bình cường công dũng duy đạt đức đông hải hào hiếu hoàng hùng hưng huy hữu khang khoa khôi kiên lâm long lộc mạnh nam nghĩa nguyên nhân phát phong phúc phước quân quang quốc sơn tài thắng thành thiện thịnh tiến toàn trung trường tuấn tùng việt vinh vũ khải kiệt luân nhật phi tân thái thế tín trí triều vương đăng đại danh hậu hiệp huân khiêm lợi quý sang sỹ thọ thuận tuân tường vĩ bách đình dương hiển hoài khoa quyền thiên tâm');
 const F_MID=mkSet('thị ngọc kim bích diễm thùy thủy mỹ hồng phương quỳnh như thu tuyết lan mai ánh diệu hạ');
-const M_MID=mkSet('văn hữu đức quốc mạnh quang trọng đình công bá thành tiến hoàng nhật duy đăng thế');
+const M_MID=mkSet('chí trung khắc vĩnh văn hữu đức quốc mạnh quang trọng đình công bá thành tiến hoàng nhật duy đăng thế');
 function strip(set){const o=new Set();set.forEach(w=>o.add(GS(w)));return o}
 const F_G2=strip(F_GIVEN),M_G2=strip(M_GIVEN),F_M2=strip(F_MID),M_M2=strip(M_MID);
 [...F_G2].forEach(w=>{if(M_G2.has(w)){F_G2.delete(w);M_G2.delete(w)}});
@@ -137,15 +137,16 @@ function head(c,p,pan){if(p.long){c.fillStyle=p.hair;c.fillRect(-12,-90,24,28)}c
 function drawP(p,tm){
  const hs=H*(.07+.06*p.y/H)/100;ctx.save();
  let ox=0,oy=0,rot=0,sc=1;
- const lk=(p.lk||0)*H*.015,lf=(p.lf||0)*H*.27*(1+.1*Math.sin(tm*5+p.ph));
+ const lk=(p.lk||0)*H*.015,lf=(p.lf||0)*(p.lx||0)*(.94+.06*Math.sin(tm*5+p.ph));
  if(p.mode==='lock'){ox=Math.sin(tm*60)*(1.2+3.2*(p.lk||0));oy=-lk*.5-lf}
  if(p.mode==='up'){const e=E(p.up);oy=-(p.y0-ufoBot())*e-lk*.5*(1-e)-lf*(1-e);rot=Math.sin(e*10)*.4+e*2.5;sc=1-.9*e}
  if(p.mode==='up'||p.mode==='lock'){const gx=p.x+ox,gy=p.y+oy-50*hs*sc,gr=hs*55*Math.max(sc,.3);const gg=ctx.createRadialGradient(gx,gy,0,gx,gy,gr);gg.addColorStop(0,'rgba(215,255,240,.8)');gg.addColorStop(1,'rgba(215,255,240,0)');ctx.fillStyle=gg;ctx.fillRect(gx-gr,gy-gr,gr*2,gr*2)}
  if(p.mode==='hug'){ox=Math.sin(tm*40+p.ph)*(.8+(p.cl||0)*2.6);oy=-lf}
  if(p.mode==='panic')oy=-Math.abs(Math.sin(p.ph))*H*.008;
  ctx.translate(p.x+ox,p.y+oy);ctx.translate(0,-50*hs*sc);ctx.rotate(rot);ctx.translate(0,50*hs*sc);
+ let hx=17;if(p.pole&&(p.mode==='hug'||p.mode==='lock')){hx=Math.min(54,Math.max(17,Math.abs(p.pole.x-p.x)/hs));p.hx=hx}else if(p.mode==='up')hx=p.hx||17;
  const grip=p.mode==='up'?1-E(Math.min(1,p.up*4)):1;
- if((p.mode==='hug'||p.mode==='lock'||p.mode==='up')&&p.cl>0&&grip>0){const cl=p.cl*grip,px=17*hs*p.dir,py=-62*hs,a=p.dir*cl*((p.am||2.05)+Math.sin(tm*22+p.ph)*.13)+Math.sin(tm*31+p.ph*2)*.07*cl;ctx.translate(px,py);ctx.rotate(a);ctx.translate(-px,-py)}
+ if((p.mode==='hug'||p.mode==='lock'||p.mode==='up')&&p.cl>0&&grip>0){const cl=p.cl*grip,px=hx*hs*p.dir,py=-62*hs,a=p.dir*cl*((p.am||2.05)+Math.sin(tm*22+p.ph)*.13)+Math.sin(tm*31+p.ph*2)*.07*cl;ctx.translate(px,py);ctx.rotate(a);ctx.translate(-px,-py)}
  ctx.fillStyle='#0002';ctx.beginPath();ctx.ellipse(0,0,hs*14*sc,hs*4*sc,0,0,7);if(p.mode!=='up'&&!(p.cl>.25))ctx.fill();
  ctx.scale(hs*p.dir*sc,hs*sc);
  const mv=p.mode==='walk'||p.mode==='run'||p.mode==='panic',sw=mv?Math.sin(p.ph)*(p.mode==='walk'?.7:1):0,pan=p.mode==='panic'||p.mode==='hug'||p.mode==='up'||p.mode==='lock';
@@ -156,7 +157,7 @@ function drawP(p,tm){
  ctx.fillStyle=p.shirt;ctx.beginPath();ctx.roundRect(-11,-74,22,30,6);ctx.fill();
  ctx.strokeStyle=p.shirt;ctx.lineWidth=6;
  [-1,1].forEach(s=>{ctx.beginPath();ctx.moveTo(s*11,-70);
-  if(p.mode==='hug'||p.mode==='lock'||(p.mode==='up'&&p.up<.12))ctx.lineTo(17,-62+s*3);else if(p.mode==='panic'||p.mode==='up')ctx.lineTo(s*22,-100+Math.sin(tm*25+s)*5);else ctx.lineTo(s*13-s*sw*8,-50);ctx.stroke()});
+  if(p.mode==='hug'||p.mode==='lock'||(p.mode==='up'&&p.up<.12))ctx.lineTo(hx,-62+s*3);else if(p.mode==='panic'||p.mode==='up')ctx.lineTo(s*22,-100+Math.sin(tm*25+s)*5);else ctx.lineTo(s*13-s*sw*8,-50);ctx.stroke()});
  head(ctx,p,pan);ctx.restore()}
 function drawPole(p){const x=p.x,y=p.y,h=H*.33,w=H*.011;ctx.fillStyle='#2f5b47';ctx.beginPath();ctx.moveTo(x-w*1.8,y);ctx.lineTo(x-w*.5,y-h*.12);ctx.lineTo(x+w*.5,y-h*.12);ctx.lineTo(x+w*1.8,y);ctx.fill();
  ctx.fillRect(x-w/2,y-h,w,h*.9);ctx.fillRect(x-w/2,y-h,w*5,w*.8);ctx.fillStyle=night>.3?'#fff7c0':'#cfd6c4';ctx.fillRect(x+w*3,y-h+w*.5,w*2.4,w*.7);
@@ -208,7 +209,8 @@ async function round(){let ch=0;try{
  ch=setInterval(()=>tone(R(800,1300),.14,'square',.03,R(1300,1800)),260);await wait(3600);clearInterval(ch);
  say('Bám chặt nhé! UFO đang dò tín hiệu…',1);
  const sh=alive.slice().sort(()=>Math.random()-.5),per=Math.ceil(sh.length/poles.length)+1;
- sh.forEach((p,i)=>{const pl=poles[i%poles.length],j=Math.floor(i/poles.length),s=j%2?1:-1,r=Math.floor(j/2);p.pole=pl;p.tx=pl.x+s*(H*.022+r*H*.014);p.ty=pl.y+((r%3)-1)*H*.02;p.mode='run';
+ sh.forEach((p,i)=>{const pl=poles[i%poles.length],j=Math.floor(i/poles.length),s=j%2?1:-1,r=Math.floor(j/2);p.pole=pl;p.tx=pl.x+s*(H*.022+r*H*.010);p.ty=pl.y+((r%3)-1)*H*.02;p.mode='run';
+  p.lx=Math.max(0,H*.33-H*.05-62*(H*(.07+.06*p.ty/H)/100)+(p.ty-pl.y));
   {const q=Math.random();if(q<.22){p.am=1.35;p.lm=0}else if(q<.5){p.am=2.05;p.lm=R(.1,.28)}else if(q<.76){p.am=2.95;p.lm=R(.25,.6)}else{p.am=2.25;p.lm=R(.75,1)}}});
  for(let i=0;i<35&&!sh.every(p=>p.mode==='hug');i++)await wait(200);
  sh.forEach(p=>{if(p.mode!=='hug'){p.x=p.tx;p.y=p.ty;p.mode='hug';p.dir=p.pole.x>=p.x?1:-1}});
