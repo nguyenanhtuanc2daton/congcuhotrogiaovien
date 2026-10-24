@@ -7,7 +7,7 @@
    - Chạy trong Shadow DOM nên không va chạm CSS & JS của trang.
    - Gọi tay:  LuuFileTam.open()  |  LuuFileTam.close()
    - Gắn vào nút có sẵn:  thêm thuộc tính  data-luu-file
-   - Nhúng vào index.html:  <script src="luu-file-tam.js?v=20261220"></script>
+   - Nhúng vào index.html:  <script src="luu-file-tam.js?v=20261221"></script>
    ===================================================================== */
 (function(){
 'use strict';
@@ -75,7 +75,7 @@ iframe{position:absolute;left:0;width:100%;border:0;background:#141210}
   <div class="top">
     <div class="ttl">
       <h2>☁ Lưu file tạm</h2>
-      <span class="chip" title="Dịch vụ lưu file bên ngoài"><i class="dot wait" id="dot"></i><span id="stat">Đang kết nối file.kiwi…</span></span>
+      <span class="chip" title="Dịch vụ lưu file bên ngoài"><i class="dot wait" id="dot"></i><span id="stat">Đang kết nối với máy chủ…</span></span>
     </div>
     <button class="xbtn" id="x" type="button" aria-label="Đóng" title="Đóng">✕</button>
   </div>
@@ -138,9 +138,9 @@ function loadFrame(force){
   if(loaded&&!force)return;
   loaded=true;frameOK=false;
   $('help').classList.remove('on');
-  setStat('wait','Đang kết nối file.kiwi…');
+  setStat('wait','Đang kết nối với máy chủ…');
   clearTimeout(loadT);
-  loadT=setTimeout(()=>{if(!frameOK){setStat('bad','Chưa tải được file.kiwi');$('help').classList.add('on')}},LOAD_TIMEOUT);
+  loadT=setTimeout(()=>{if(!frameOK){setStat('bad','Chưa kết nối được với máy chủ');$('help').classList.add('on')}},LOAD_TIMEOUT);
   fr.src='about:blank';
   setTimeout(()=>{fr.src=SITE},30);
 }
@@ -148,7 +148,7 @@ fr.addEventListener('load',()=>{
   const s=fr.getAttribute('src');
   if(!s||s==='about:blank')return;
   frameOK=true;clearTimeout(loadT);
-  setStat('ok','Đã kết nối file.kiwi');
+  setStat('ok','Đã kết nối với máy chủ của Nguyễn Tuấn');
   $('help').classList.remove('on');
 });
 
