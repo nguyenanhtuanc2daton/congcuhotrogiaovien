@@ -8,7 +8,7 @@
    - Gọi tay:  LuuFileTam.open()  |  LuuFileTam.open(2)  |  LuuFileTam.close()
    - Gắn vào nút có sẵn:  data-luu-file  (mở tab Tải lên)  |  data-luu-file="links"  (mở tab Link của tôi)
    - Chỗ hiển thị số link đã lưu:  <span data-luu-count></span>
-   - Nhúng vào index.html:  <script src="luu-file-tam.js?v=20261214"></script>
+   - Nhúng vào index.html:  <script src="luu-file-tam.js?v=20261215"></script>
    ===================================================================== */
 (function(){
 'use strict';
@@ -21,6 +21,7 @@ const LAUNCHER=false;                // true: thêm nút nổi "☁ file.kiwi"; 
 const LAUNCHER_POS={right:'14px',bottom:'92px'};
 const CROP_TOP=0;                    // px cắt bớt phía trên trang file.kiwi (logo/tiêu đề) để khu "Chọn Tệp" nằm sát đầu khung. Tăng dần (vd 80, 120) nếu muốn đẩy lên cao hơn
 const LOCK_DEFAULT=true;             // true: khóa cuộn khung file.kiwi (không kéo lên/xuống); bấm 🔒 để mở khóa khi cần
+const RETURN_SECONDS=15;             // upload xong (phát hiện link được sao chép) → tự quay về trang sau số giây này
 const LOAD_TIMEOUT=10000;            // quá thời gian này chưa tải được khung → hiện hướng dẫn mở tab mới
 const STORE_KEY='luuFileTam.links.v1';
 const LINK_RE=/https?:\/\/(?:[\w-]+\.)*file\.kiwi\/[^\s"'<>]+/i;
@@ -64,6 +65,9 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
 .pane.on{display:flex}
 .frwrap{position:relative;flex:1;min-height:0;overflow:hidden;overscroll-behavior:none}
 iframe{position:absolute;left:0;top:calc(-1px * var(--crop,0));width:100%;height:calc(100% + 1px * var(--crop,0));border:0;background:#141210}
+
+.done{display:none;align-items:center;gap:8px;padding:8px 10px;background:#12404f;border-top:2px solid #f5c542;font-size:13.5px}
+.done.on{display:flex}.done span{flex:1;min-width:0}
 button.lock.on{background:#f5c542;border-color:#f5c542;color:#1b1500}
 .help{display:none;position:absolute;left:10px;right:10px;top:10px;padding:14px;border-radius:12px;background:#3d2c08;border:1px solid #f5c542;color:#ffe2a8;font-size:14px;box-shadow:0 6px 20px #0008}
 .help.on{display:block}
@@ -94,7 +98,7 @@ button.lock.on{background:#f5c542;border-color:#f5c542;color:#1b1500}
     <button class="sm" id="x" type="button" aria-label="Đóng">✕</button>
   </div>
   <div class="tabs">
-    <button id="t1" class="on" type="button">⬆ Gửi file</button>
+    <button id="t1" class="on" type="button">⬆ Upload file</button>
     <button id="t2" type="button">🔗 Link của tôi<span class="cnt" id="cnt">0</span></button>
   </div>
   <div class="pane on" id="p1">
@@ -107,6 +111,7 @@ button.lock.on{background:#f5c542;border-color:#f5c542;color:#1b1500}
         <p style="margin:10px 0 0;font-size:12.5px">Gửi file xong, sao chép link rồi quay lại đây — ứng dụng sẽ tự chuyển sang “Link của tôi” để bạn dán và lưu.</p>
       </div>
     </div>
+    <div class="done" id="done"><span id="doneTxt"></span><button class="sm gold" id="doneGo" type="button">Về ngay</button><button class="sm" id="doneStay" type="button">Ở lại</button></div>
   </div>
   <div class="pane" id="p2">
     <div class="list">
@@ -152,6 +157,44 @@ fr.addEventListener('load',()=>{
   $('help').classList.remove('on');
 });
 
+/* ---------- Upload xong → tự quay về trang ----------
+   file.kiwi là trang của bên khác nên không đọc được nội dung khung. Cách nhận biết: khi bấm SAO CHÉP,
+   link mới (có dấu #) nằm trong bộ nhớ tạm → phát hiện, tự lưu vào "Link của tôi", đếm ngược rồi đóng cửa sổ. */
+let baseLink='',pollT=null,backT=null,polling=false,justUploaded=false;
+async function clipLink(){try{return pickLink(await navigator.clipboard.readText())}catch(e){return null}}
+async function clipDenied(){try{const p=await navigator.permissions.query({name:'clipboard-read'});return p.state==='denied'}catch(e){return false}}
+function stopWatch(){clearInterval(pollT);pollT=null}
+async function startWatch(){
+  stopWatch();
+  if(!navigator.clipboard||!navigator.clipboard.readText||await clipDenied())return;
+  const c=await clipLink();baseLink=c||'';
+  pollT=setInterval(poll,1500);
+}
+async function poll(){
+  if(polling||backT||!ov.classList.contains('on')||!$('p1').classList.contains('on'))return;
+  polling=true;
+  try{if(await clipDenied()){stopWatch();return}
+    const c=await clipLink();if(c&&c!==baseLink&&c.indexOf('#')>0)uploaded(c)}
+  finally{polling=false}
+}
+function autoSave(u){
+  const list=alive(load());if(list.some(x=>x.url===u))return;
+  const now=Date.now();
+  list.push({id:now.toString(36)+Math.random().toString(36).slice(2,6),url:u,lab:'',t:now,exp:now+KEEP_HOURS*3600000});
+  save(list);updateCount();
+}
+function uploaded(u){
+  baseLink=u;justUploaded=true;autoSave(u);
+  let n=RETURN_SECONDS;
+  const upd=()=>{$('doneTxt').textContent='✓ Upload xong, đã lưu link. Tự quay về sau '+n+' giây…'};
+  setStat('ok','Upload xong');$('done').classList.add('on');upd();
+  backT=setInterval(()=>{n--;if(n<=0)close();else upd()},1000);
+}
+function cancelBack(){clearInterval(backT);backT=null;$('done').classList.remove('on')}
+function resetFrame(){loaded=false;frameOK=false;clearTimeout(loadT);$('help').classList.remove('on');fr.src='about:blank';setStat('wait','Sẵn sàng upload')}
+$('doneGo').onclick=()=>close();
+$('doneStay').onclick=cancelBack;
+
 /* ---------- Khóa cuộn khung file.kiwi ---------- */
 function applyLock(){
   fr.setAttribute('scrolling',locked?'no':'auto');
@@ -173,7 +216,7 @@ function open(n){
   n=n===2?2:1;
   const was=ov.classList.contains('on');
   ov.classList.add('on');
-  if(n===1)loadFrame();
+  if(n===1){loadFrame();if(!was)startWatch()}
   tab(n);
   document.documentElement.style.overflow='hidden';document.body.style.overflow='hidden';
   clearInterval(tickT);tickT=setInterval(()=>{render(true)},60000);
@@ -183,7 +226,8 @@ function open(n){
 function close(fromPop){
   ov.classList.remove('on');
   document.documentElement.style.overflow='';document.body.style.overflow='';
-  clearInterval(tickT);
+  clearInterval(tickT);stopWatch();cancelBack();
+  if(justUploaded){justUploaded=false;resetFrame()}   // lần sau mở lại là khung mới, upload file khác bình thường
   if(pushed){pushed=false;if(!fromPop){try{history.back()}catch(e){}}}
   // giữ nguyên khung đã tải: đang tải file lên thì việc tải vẫn tiếp tục khi đóng/mở lại
 }
