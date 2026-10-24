@@ -422,7 +422,7 @@
 <section class="tx-card" id="txGroup">
   <h3>👥 Chia nhóm</h3>
   <textarea id="kNames" style="min-height:130px" placeholder="Mỗi dòng một tên học sinh"></textarea>
-  <div class="tx-row"><span class="tx-note" id="kCnt">0 học sinh</span><button class="ghost sm" id="kPull" type="button">⬇ Lấy từ Bảng điểm</button><button class="ghost sm" id="kFromW" type="button">⬇ Lấy từ Vòng quay</button></div>
+  <div class="tx-row"><span class="tx-note" id="kCnt">0 học sinh</span><label class="ghost sm" id="kImpLab" style="cursor:pointer;display:inline-block;padding:8px 12px;border-radius:10px;position:relative;overflow:hidden">📂 Nhập Excel<input id="kFile" type="file" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0"></label></div>
   <div class="tx-row">
     <select id="kMode"><option value="count">Chia theo số nhóm</option><option value="size">Chia theo số em mỗi nhóm</option></select>
     <input type="number" id="kVal" value="4" min="1" max="40" aria-label="Giá trị">
@@ -596,16 +596,64 @@
     $('kSplit').onclick=split;
     $('kPick').onclick=pick;
     $('kCopy').onclick=()=>{ if(groups.length) copyText(textOut()); else if(res.innerText.trim()) copyText(res.innerText); };
-    $('kPull').onclick=()=>{
-      let ns=[]; try{ns=window.TG.names();}catch(e){}
-      if(!ns.length){note('Bảng điểm (tab Công cụ Word) chưa có tên học sinh nào.');return;}
-      $('kNames').value=ns.join('\n');count();
-    };
-    $('kFromW').onclick=()=>{
-      const v=($('wNames')&&$('wNames').value||'').trim();
-      if(!v){note('Vòng quay chưa có danh sách tên.');return;}
-      $('kNames').value=v;count();
-    };
+    // Nhập Excel/CSV: tự tìm cột tên; nếu bật "Ghép theo năng lực" thì lấy thêm cột điểm
+    (function(){
+      let imp=null;
+      const isNum=v=>{const t=String(v==null?'':v).trim().replace(',','.');return t!==''&&!isNaN(Number(t));};
+      const HEAD=/^(stt|họ|ho|tên|ten|name|danh sách|danh sach)/i;
+      const build=()=>{
+        if(!imp)return 0;
+        const rows=imp.rows,best=imp.best;let sc=-1;
+        if($('kMix').checked){
+          const cols=Math.max(1,...rows.map(r=>r.length));let cand=[];
+          for(let c=0;c<cols;c++){
+            if(c===best)continue;
+            const vals=rows.map(r=>r[c]).filter(v=>String(v==null?'':v).trim()!=='');
+            if(!vals.length||vals.filter(isNum).length<vals.length*.6)continue;
+            const nums=vals.map(v=>Number(String(v).replace(',','.')));
+            if(nums.every((x,i)=>x===i+1))continue; // cột STT
+            cand.push({c:c,h:/điểm|diem|tb|trung bình|tổng|tong|score/i.test(imp.head[c]||'')?0:1,r:c>best?0:1});
+          }
+          cand.sort((x,y)=>x.h-y.h||x.r-y.r||x.c-y.c);
+          if(cand.length)sc=cand[0].c;
+        }
+        const out=rows.map(r=>{
+          const n=String(r[best]==null?'':r[best]).trim();if(!n)return '';
+          if(sc<0)return n;
+          const v=String(r[sc]==null?'':r[sc]).trim().replace(',','.');
+          return isNum(v)?n+', '+v:n;
+        }).filter(Boolean);
+        imp.text=out.join('\n');$('kNames').value=imp.text;count();
+        return sc;
+      };
+      const fin=all=>{
+        let rows=all.filter(r=>r.some(x=>String(x==null?'':x).trim()!==''));
+        const cols=Math.max(1,...rows.map(r=>r.length));let best=0,bs=-1;
+        for(let c=0;c<cols;c++){const k=rows.filter(r=>{const v=String(r[c]==null?'':r[c]).trim();return v&&isNaN(Number(v.replace(',','.')));}).length;if(k>bs){bs=k;best=c;}}
+        let head=[];
+        if(rows.length&&HEAD.test(String(rows[0][best]==null?'':rows[0][best]).trim())){head=rows.shift().map(x=>String(x==null?'':x));}
+        else if(rows.length&&rows[0].some(x=>HEAD.test(String(x==null?'':x).trim()))&&!rows[0].some(isNum)){head=rows.shift().map(x=>String(x==null?'':x));}
+        if(!rows.length||bs<1){fail();return;}
+        imp={rows:rows,best:best,head:head,text:''};
+        const sc=build();
+        const n=names().length;
+        if(!n){fail();return;}
+        note('Đã nhập '+n+' học sinh từ file'+(sc>=0?' (kèm cột điểm).':($('kMix').checked?'. Không thấy cột điểm trong file.':'.')));
+      };
+      const fail=()=>note('Không đọc được file. Hãy thử dán tên trực tiếp vào ô nhập.');
+      $('kFile').addEventListener('change',e=>{
+        const f=e.target.files[0];if(!f)return;
+        if(/\.(txt|csv)$/i.test(f.name)){
+          f.text().then(t=>fin(t.replace(/^\uFEFF/,'').split(/\r?\n/).map(r=>r.split(/[,;\t]/).map(x=>x.trim().replace(/^"|"$/g,'')))),fail);
+        }else{
+          const go=()=>{const r=new FileReader();r.onload=()=>{try{const wb=XLSX.read(new Uint8Array(r.result),{type:'array'});fin(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''}));}catch(x){fail();}};r.onerror=fail;r.readAsArrayBuffer(f);};
+          if(window.XLSX)go();else{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';sc.onload=()=>window.XLSX?go():fail();sc.onerror=fail;document.head.appendChild(sc);}
+        }
+        e.target.value='';
+      });
+      // Bật/tắt "Ghép theo năng lực" sau khi nhập: tự thêm/bỏ cột điểm nếu danh sách chưa bị sửa tay
+      $('kMix').addEventListener('change',()=>{if(imp&&$('kNames').value===imp.text)build();});
+    })();
     $('kResFs').onclick=()=>{
       if(document.fullscreenElement||document.webkitFullscreenElement){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return;}
       const rq=res.requestFullscreen||res.webkitRequestFullscreen; if(rq) try{rq.call(res);}catch(e){}
