@@ -7,7 +7,7 @@
    - Chạy trong Shadow DOM nên không va chạm CSS & JS của trang.
    - Gọi tay:  LuuFileTam.open()  |  LuuFileTam.close()
    - Gắn vào nút có sẵn:  thêm thuộc tính  data-luu-file
-   - Nhúng vào index.html:  <script src="luu-file-tam.js?v=20261218"></script>
+   - Nhúng vào index.html:  <script src="luu-file-tam.js?v=20261220"></script>
    ===================================================================== */
 (function(){
 'use strict';
@@ -19,11 +19,12 @@ const LAUNCHER=false;                // true: thêm nút nổi "☁ file.kiwi"
 const LAUNCHER_POS={right:'14px',bottom:'92px'};
 const PEEK_H=230;                    // chiều cao (px) của khung nhỏ lúc chưa upload
 const EXPAND_H=620;                  // chiều cao tối đa (px) của khung sau khi chọn file
-const CROP_TOP=0;                    // vị trí mặc định: số px trên cùng của trang file.kiwi bị cắt bỏ (chỉnh bằng nút ▲▼ trên màn hình, máy sẽ nhớ)
+const CROP_TOP=330;                  // MẶC ĐỊNH: số px đầu trang file.kiwi (logo, tiêu đề) bị cắt để khu "Chọn Tệp" nằm sát đầu khung. Chỉnh thêm bằng nút ▲▼ trên màn hình
+const VIEW_H=800;                    // chiều cao cố định của trang file.kiwi trong khung nhỏ (giữ bố cục ổn định mọi máy)
 const LOCK_DEFAULT=true;             // true: khóa cuộn khung file.kiwi (không kéo lên/xuống)
 const RETURN_SECONDS=15;             // bấm SAO CHÉP link xong → tự quay về trang sau số giây này
 const LOAD_TIMEOUT=10000;
-const CROP_KEY='luuFileTam.crop.v1';
+const CROP_KEY='luuFileTam.crop.v2';
 const LINK_RE=/https?:\/\/(?:[\w-]+\.)*file\.kiwi\/[^\s"'<>]+/i;
 
 let crop=CROP_TOP;
@@ -113,9 +114,8 @@ function layout(){
   card.classList.toggle('mid',expanded);
   if(expanded){fr.style.top='0';fr.style.height='100%'}
   else{
-    const fh=Math.max(520,window.innerHeight-100);
-    crop=Math.max(0,Math.min(crop,fh-PEEK_H));
-    fr.style.top=(-crop)+'px';fr.style.height=fh+'px';
+    crop=Math.max(0,Math.min(crop,3000));
+    fr.style.top=(-crop)+'px';fr.style.height=Math.max(VIEW_H,crop+PEEK_H+20)+'px';
   }
   fr.setAttribute('scrolling',(!expanded||LOCK_DEFAULT)?'no':'auto');
 }
@@ -202,7 +202,7 @@ function close(fromPop){
   ov.classList.remove('on');
   document.documentElement.style.overflow='';document.body.style.overflow='';
   stopWatch();cancelBack();
-  if(justCopied){justCopied=false;resetFrame()}   // lần sau mở lại là khung mới, upload file khác bình thường
+  justCopied=false;resetFrame();   // mỗi lần đóng là bỏ khung cũ; lần mở sau luôn là khung mới sạch, upload file khác bình thường
   if(pushed){pushed=false;if(!fromPop){try{history.back()}catch(e){}}}
 }
 window.addEventListener('popstate',()=>{if(ov.classList.contains('on')&&pushed)close(true)});
