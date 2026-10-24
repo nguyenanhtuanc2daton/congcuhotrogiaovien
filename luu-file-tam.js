@@ -8,7 +8,7 @@
    - Gọi tay:  LuuFileTam.open()  |  LuuFileTam.open(2)  |  LuuFileTam.close()
    - Gắn vào nút có sẵn:  data-luu-file  (mở tab Tải lên)  |  data-luu-file="links"  (mở tab Link của tôi)
    - Chỗ hiển thị số link đã lưu:  <span data-luu-count></span>
-   - Nhúng vào index.html:  <script src="luu-file-tam.js?v=20261213"></script>
+   - Nhúng vào index.html:  <script src="luu-file-tam.js?v=20261214"></script>
    ===================================================================== */
 (function(){
 'use strict';
@@ -19,6 +19,8 @@ const SITE='https://file.kiwi/vi';   // trang được nhúng
 const KEEP_HOURS=90;                 // gói miễn phí của file.kiwi tự xóa sau 90 giờ
 const LAUNCHER=false;                // true: thêm nút nổi "☁ file.kiwi"; false: chỉ mở qua nút trong tab "Công cụ thường dùng"
 const LAUNCHER_POS={right:'14px',bottom:'92px'};
+const CROP_TOP=0;                    // px cắt bớt phía trên trang file.kiwi (logo/tiêu đề) để khu "Chọn Tệp" nằm sát đầu khung. Tăng dần (vd 80, 120) nếu muốn đẩy lên cao hơn
+const LOCK_DEFAULT=true;             // true: khóa cuộn khung file.kiwi (không kéo lên/xuống); bấm 🔒 để mở khóa khi cần
 const LOAD_TIMEOUT=10000;            // quá thời gian này chưa tải được khung → hiện hướng dẫn mở tab mới
 const STORE_KEY='luuFileTam.links.v1';
 const LINK_RE=/https?:\/\/(?:[\w-]+\.)*file\.kiwi\/[^\s"'<>]+/i;
@@ -38,7 +40,7 @@ root.innerHTML=`
 <style>
 *{box-sizing:border-box}
 .fab{position:fixed;height:48px;padding:0 16px;border-radius:99px;border:2px solid #f5c542;background:#0f3340;color:#fff;font:700 14px system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 14px #0006;display:flex;align-items:center;gap:6px}
-.ov{position:fixed;inset:0;background:#0b1f27;color:#e8f1f3;display:none;flex-direction:column;font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.ov{position:fixed;inset:0;overscroll-behavior:none;touch-action:manipulation;background:#0b1f27;color:#e8f1f3;display:none;flex-direction:column;font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .ov.on{display:flex}
 .top{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top,0px)) 10px 8px;background:#0f3340;border-bottom:1px solid #1d5666}
 .ttl{flex:1;min-width:0}
@@ -60,13 +62,12 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
 .note b{color:#f5c542}
 .pane{flex:1;min-height:0;display:none;flex-direction:column}
 .pane.on{display:flex}
-.frwrap{position:relative;flex:1;min-height:0;display:flex}
-iframe{flex:1;width:100%;border:0;background:#141210}
+.frwrap{position:relative;flex:1;min-height:0;overflow:hidden;overscroll-behavior:none}
+iframe{position:absolute;left:0;top:calc(-1px * var(--crop,0));width:100%;height:calc(100% + 1px * var(--crop,0));border:0;background:#141210}
+button.lock.on{background:#f5c542;border-color:#f5c542;color:#1b1500}
 .help{display:none;position:absolute;left:10px;right:10px;top:10px;padding:14px;border-radius:12px;background:#3d2c08;border:1px solid #f5c542;color:#ffe2a8;font-size:14px;box-shadow:0 6px 20px #0008}
 .help.on{display:block}
 .help p{margin:0 0 10px}
-.bar2{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#0f3340;border-top:1px solid #1d5666;font-size:12.5px;color:#b8cfd5}
-.bar2 span{flex:1;min-width:0}
 .list{flex:1;overflow:auto;padding:12px}
 .row{display:flex;gap:8px;margin-bottom:10px}
 .row input,.row select{flex:1;min-width:0;padding:10px;border-radius:10px;border:1px solid #1d5666;background:#071820;color:#e8f1f3;font:inherit}
@@ -87,6 +88,7 @@ iframe{flex:1;width:100%;border:0;background:#141210}
       <h2>☁ Lưu file tạm</h2>
       <span class="chip" title="Dịch vụ lưu file bên ngoài"><i class="dot wait" id="dot"></i><span id="stat">Đang kết nối file.kiwi…</span></span>
     </div>
+    <button class="sm lock on" id="lock" type="button" title="Khóa / mở khóa cuộn khung">🔒</button>
     <button class="sm" id="tabOpen" type="button" title="Mở file.kiwi trong tab mới">↗ Tab mới</button>
     <button class="sm" id="reload" type="button" title="Tải lại file.kiwi">↻</button>
     <button class="sm" id="x" type="button" aria-label="Đóng">✕</button>
@@ -96,9 +98,8 @@ iframe{flex:1;width:100%;border:0;background:#141210}
     <button id="t2" type="button">🔗 Link của tôi<span class="cnt" id="cnt">0</span></button>
   </div>
   <div class="pane on" id="p1">
-    <p class="note"><b>1.</b> Chọn tệp / thư mục → <b>2.</b> bấm <b>SAO CHÉP</b> lấy link (giữ nguyên phần sau dấu <b>#</b>) → <b>3.</b> sang “Link của tôi” bấm <b>📋 Dán</b> rồi <b>＋ Lưu</b>. File tự xóa sau khoảng <b>${KEEP_HOURS} giờ</b>.</p>
     <div class="frwrap">
-      <iframe id="fr" title="file.kiwi" allow="clipboard-write; clipboard-read; fullscreen" referrerpolicy="no-referrer"
+      <iframe id="fr" title="file.kiwi" scrolling="no" allow="clipboard-write; clipboard-read; fullscreen" referrerpolicy="no-referrer"
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals"></iframe>
       <div class="help" id="help">
         <p><b>Chưa thấy trang file.kiwi hiện ra?</b> Có thể file.kiwi không cho hiển thị bên trong ứng dụng khác (hoặc mạng đang chậm). Bạn vẫn dùng bình thường:</p>
@@ -106,7 +107,6 @@ iframe{flex:1;width:100%;border:0;background:#141210}
         <p style="margin:10px 0 0;font-size:12.5px">Gửi file xong, sao chép link rồi quay lại đây — ứng dụng sẽ tự chuyển sang “Link của tôi” để bạn dán và lưu.</p>
       </div>
     </div>
-    <div class="bar2"><span>Dịch vụ lưu file: <b style="color:#f5c542">file.kiwi</b> (bên thứ ba). Link nằm ở phần sao chép của họ.</span><button class="sm" id="toLinks" type="button">Đã có link →</button></div>
   </div>
   <div class="pane" id="p2">
     <div class="list">
@@ -125,7 +125,8 @@ iframe{flex:1;width:100%;border:0;background:#141210}
 
 const $=id=>root.getElementById(id);
 const ov=$('ov'),fr=$('fr'),fab=$('fab');
-let loaded=false,frameOK=false,tickT=null,loadT=null,wentOut=false,pushed=false;
+let loaded=false,frameOK=false,tickT=null,loadT=null,wentOut=false,pushed=false,locked=LOCK_DEFAULT;
+$('p1').style.setProperty('--crop',CROP_TOP);
 
 Object.assign(fab.style,LAUNCHER_POS);
 if(!LAUNCHER)fab.style.display='none';
@@ -151,6 +152,16 @@ fr.addEventListener('load',()=>{
   $('help').classList.remove('on');
 });
 
+/* ---------- Khóa cuộn khung file.kiwi ---------- */
+function applyLock(){
+  fr.setAttribute('scrolling',locked?'no':'auto');
+  const b=$('lock');b.classList.toggle('on',locked);
+  b.textContent=locked?'🔒':'🔓';
+  b.title=locked?'Đang khóa cuộn — bấm để mở khóa':'Đang cho cuộn — bấm để khóa';
+}
+$('lock').onclick=()=>{locked=!locked;applyLock()};
+applyLock();
+
 /* ---------- Điều khiển ---------- */
 function tab(n){
   $('t1').classList.toggle('on',n===1);$('t2').classList.toggle('on',n===2);
@@ -164,14 +175,14 @@ function open(n){
   ov.classList.add('on');
   if(n===1)loadFrame();
   tab(n);
-  document.documentElement.style.overflow='hidden';
+  document.documentElement.style.overflow='hidden';document.body.style.overflow='hidden';
   clearInterval(tickT);tickT=setInterval(()=>{render(true)},60000);
   // Nút Back của điện thoại chỉ đóng cửa sổ, không thoát khỏi trang
   if(!was&&!pushed){try{history.pushState({luuFileTam:1},'');pushed=true}catch(e){}}
 }
 function close(fromPop){
   ov.classList.remove('on');
-  document.documentElement.style.overflow='';
+  document.documentElement.style.overflow='';document.body.style.overflow='';
   clearInterval(tickT);
   if(pushed){pushed=false;if(!fromPop){try{history.back()}catch(e){}}}
   // giữ nguyên khung đã tải: đang tải file lên thì việc tải vẫn tiếp tục khi đóng/mở lại
@@ -242,7 +253,6 @@ fab.onclick=()=>open(1);
 $('x').onclick=()=>close();
 $('t1').onclick=()=>tab(1);
 $('t2').onclick=()=>tab(2);
-$('toLinks').onclick=()=>{tab(2);paste(true)};
 function goOut(){wentOut=true;window.open(SITE,'_blank','noopener')}
 $('tabOpen').onclick=goOut;
 $('helpOpen').onclick=goOut;
