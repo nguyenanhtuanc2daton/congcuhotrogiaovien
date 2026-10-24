@@ -1,8 +1,9 @@
-/* camera-chon.js — Chế độ Camera cho "Kéo co & Ôn tập kiến thức"
-   Học sinh đứng vào vùng A/B/C/D trước camera để chọn đáp án. Không sửa keo-co.js:
-   file này chỉ đọc giao diện đang hiển thị và "bấm hộ" các nút (đáp án, Hiện đáp án, Câu tiếp).
-   Nạp SAU keo-co.js:  <script src="camera-chon.js"></script>
-   Nhận dạng người: MediaPipe ObjectDetector (tải từ CDN khi bật, chạy trong trình duyệt, không gửi hình đi đâu). */
+/* camera-chon.js — Chế độ Camera (cử chỉ tay) cho "Kéo co & Ôn tập kiến thức"
+   Một học sinh lên trước camera, giơ số ngón tay tương ứng để chọn đáp án:
+     1 ngón = A · 2 ngón = B · 3 ngón = C · 4 ngón (xòe bàn tay) = D · nắm tay = chưa chọn
+   Giữ yên cử chỉ khoảng 1,5 giây thì được chốt. Không sửa keo-co.js: file này chỉ đọc giao diện
+   và "bấm hộ" các nút (đáp án, Hiện đáp án, Câu tiếp). Nạp SAU keo-co.js.
+   Nhận dạng bàn tay: MediaPipe HandLandmarker (tải từ CDN khi bật, chạy trong trình duyệt, không gửi hình đi đâu). */
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
@@ -10,16 +11,18 @@
   if (!rvEl || !kcSt || !modeBar) { console.warn('camera-chon.js: cần nạp sau keo-co.js'); return; }
 
   /* ---------- Cấu hình ---------- */
-  var LS = 'kc_cam_v1';
-  var C = { on: false, secs: 15, rev: 3, next: 5, mirror: true, hide: true, model: 'lite0' };
+  var LS = 'kc_cam_v2';
+  var C = { on: false, secs: 30, hold: 1.5, rev: 3, next: 5, mirror: true };
   try { var sv = JSON.parse(localStorage.getItem(LS) || 'null'); if (sv) for (var k in sv) C[k] = sv[k]; } catch (e) {}
   function save() { try { localStorage.setItem(LS, JSON.stringify(C)); } catch (e) {} }
   function num(v, lo, hi, d) { v = parseFloat(v); if (isNaN(v)) v = d; return Math.max(lo, Math.min(hi, v)); }
 
   var VER = '0.10.14', CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@' + VER;
-  var GS = 'https://storage.googleapis.com/mediapipe-models/object_detector/';
-  var MODELS = { lite0: GS + 'efficientdet_lite0/float16/1/efficientdet_lite0.tflite', lite2: GS + 'efficientdet_lite2/float16/1/efficientdet_lite2.tflite' };
-  var ZC = ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b'], LET = 'ABCD';
+  var HAND = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+  var CH = ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b'], LET = 'ABCD';
+  var TEAMC = ['#60a5fa', '#f87171'];
+  var LEG = '☝️ 1 ngón = A · ✌️ 2 ngón = B · 🤟 3 ngón = C · 🖐 4 ngón = D';
+  var BONES = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [5, 9], [9, 10], [10, 11], [11, 12], [9, 13], [13, 14], [14, 15], [15, 16], [13, 17], [17, 18], [18, 19], [19, 20], [0, 17]];
 
   /* ---------- CSS ---------- */
   var st = document.createElement('style');
@@ -30,17 +33,18 @@
     '.cc-panel.inline{margin:8px 0;max-width:460px;width:100%}',
     /* Màn hình ngang: dành hẳn một cột bên phải cho camera, nội dung câu hỏi co lại nhường chỗ */
     '@media(min-width:701px) and (min-aspect-ratio:1/1){.kc-stage.on.cc-dock{padding-right:calc(clamp(230px,22vw,380px) + 24px)!important}.kc-stage.cc-dock>.cc-panel{position:absolute;right:10px;top:10px;margin:0;width:clamp(230px,22vw,380px)}}',
-    '.cc-panel canvas{max-height:22vh;width:auto;max-width:100%;margin:0 auto}',
     '.cc-hd{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:4px}',
     '.cc-hd b{font-size:1em;line-height:1.25}',
     '.cc-b{background:#1b2347;color:#fff;border:1px solid #333f77;border-radius:8px;padding:2px 8px;font-size:15px;cursor:pointer;flex:none;min-height:0}',
-    '.cc-panel canvas{display:block;border-radius:8px;background:#000}',
+    '.cc-panel canvas{display:block;border-radius:8px;background:#000;max-height:24vh;width:auto;max-width:100%;margin:0 auto}',
     '.cc-ct{margin-top:4px;font-weight:700;text-align:center;line-height:1.35}',
-    '.cc-panel.min canvas,.cc-panel.min .cc-ct{display:none}',
+    '.cc-leg{margin-top:3px;font-size:.85em;opacity:.9;text-align:center;line-height:1.35}',
+    '.cc-bar{height:6px;border-radius:4px;background:#ffffff33;margin-top:4px;overflow:hidden}.cc-bar i{display:block;height:100%;width:0;background:#fbbf24}',
+    '.cc-panel.min canvas,.cc-panel.min .cc-ct,.cc-panel.min .cc-leg,.cc-panel.min .cc-bar{display:none}',
     '.cc-big{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:7;pointer-events:none;font-weight:900;color:#fff;font-size:clamp(90px,34vh,300px);text-shadow:0 6px 30px #000,0 0 40px #000}',
     '.cc-big.on{display:flex}.cc-big span{animation:ccPop .8s ease-out}',
     '@keyframes ccPop{from{transform:scale(2);opacity:0}to{transform:scale(1);opacity:1}}',
-    '.kc-opt .cc-n{position:absolute;right:.5em;top:50%;transform:translateY(-50%);background:#111;color:#fff;border-radius:999px;padding:.05em .6em;font-size:.6em;font-weight:800;pointer-events:none;line-height:1.4}',
+    '.kc-opt.cc-cand{outline:5px dashed #38bdf8;outline-offset:-3px}',
     '.kc-opt.cc-sel{outline:6px solid #fbbf24;outline-offset:-3px;box-shadow:0 0 22px #fbbf24}'
   ].join('\n');
   document.head.appendChild(st);
@@ -49,39 +53,38 @@
   var cfgBox = document.createElement('div');
   cfgBox.className = 'cc-cfg';
   cfgBox.innerHTML =
-    '<label><input type="checkbox" id="ccOn"> 📷 <b>Chế độ Camera</b> (học sinh vận động: đứng vào vùng A / B / C / D để chọn đáp án)</label>' +
+    '<label><input type="checkbox" id="ccOn"> 📷 <b>Chế độ Camera</b> (một học sinh lên bảng, giơ ngón tay để chọn đáp án)</label>' +
     '<div id="ccBox" style="display:none">' +
-    '<div class="bar"><label>⏱ Giây để học sinh di chuyển <input type="number" id="ccSecs" min="5" max="120" style="width:70px"></label>' +
-    '<label>Chốt xong, hiện đáp án đúng sau (giây) <input type="number" id="ccRev" min="1" max="15" style="width:60px"></label>' +
+    '<div class="note"><b>Cử chỉ:</b> ☝️ 1 ngón = <b>A</b> · ✌️ 2 ngón = <b>B</b> · 🤟 3 ngón = <b>C</b> · 🖐 4 ngón (xòe bàn tay) = <b>D</b> · ✊ nắm tay = chưa chọn. Ngón cái không tính.</div>' +
+    '<div class="bar"><label>⏱ Thời gian tối đa mỗi câu (giây) <input type="number" id="ccSecs" min="5" max="180" style="width:70px"></label>' +
+    '<label>Giữ yên cử chỉ (giây) <input type="number" id="ccHold" min="0.5" max="5" step="0.5" style="width:60px"></label></div>' +
+    '<div class="bar"><label>Chốt xong, hiện đáp án đúng sau (giây) <input type="number" id="ccRev" min="1" max="15" style="width:60px"></label>' +
     '<label>Rồi sang câu tiếp sau (giây) <input type="number" id="ccNext" min="2" max="30" style="width:60px"></label></div>' +
     '<div class="bar"><label><input type="checkbox" id="ccMirror"> Lật gương hình camera (khuyên bật)</label>' +
-    '<label><input type="checkbox" id="ccHide"> Ẩn số người ở mỗi đáp án cho đến khi chốt (tránh chạy theo đám đông)</label></div>' +
-    '<div class="bar"><label>Độ nhận dạng <select id="ccModel"><option value="lite0">Nhanh (lite0)</option><option value="lite2">Chính xác hơn, nặng hơn (lite2)</option></select></label>' +
     '<button class="sec sm" id="ccTest" type="button">🎥 Thử camera</button></div>' +
     '<div class="note" id="ccMsg"></div>' +
-    '<div class="note">Cách dùng: kẻ sàn thành 4 vùng A B C D từ trái sang phải đúng như hình camera trên màn hình (bấm “Thử camera” để căn). Đặt camera cao, nhìn bao quát lớp. ' +
-    'Hết giờ di chuyển, vùng đông nhất là đáp án của cả lớp; hai vùng bằng nhau thì được thêm giờ. ' +
-    'Chế độ <b>Ôn tập</b>: cả lớp chung một đáp án. Chế độ <b>Kéo co</b>: nửa trái camera là đội 1, nửa phải là đội 2, mỗi nửa chia 4 vùng A–D (nên đặt thời gian ván từ 300 giây). ' +
+    '<div class="note">Cách dùng: đặt camera ngang tầm ngực học sinh, cách khoảng 1–2 m, đủ sáng; học sinh giơ bàn tay <b>lòng bàn tay hướng về camera</b> và giữ yên. ' +
+    'Đáp án đang được nhận sẽ có viền xanh nét đứt; giữ đủ thời gian thì viền vàng đặc là đã chốt. ' +
+    'Chế độ <b>Ôn tập</b>: một em trả lời cho cả lớp. Chế độ <b>Kéo co</b>: em đội 1 đứng nửa trái, em đội 2 đứng nửa phải của khung hình (nên đặt thời gian ván từ 300 giây). ' +
     'Khi dùng camera, “Giây mỗi câu” của chế độ Ôn tập tự đặt về 0.</div>' +
     '</div>';
   modeBar.insertAdjacentElement('afterend', cfgBox);
 
-  $('ccOn').checked = !!C.on; $('ccSecs').value = C.secs; $('ccRev').value = C.rev; $('ccNext').value = C.next;
-  $('ccMirror').checked = !!C.mirror; $('ccHide').checked = !!C.hide; $('ccModel').value = C.model;
+  $('ccOn').checked = !!C.on; $('ccSecs').value = C.secs; $('ccHold').value = C.hold; $('ccRev').value = C.rev; $('ccNext').value = C.next; $('ccMirror').checked = !!C.mirror;
   function readCfg() {
-    C.on = $('ccOn').checked; C.secs = num($('ccSecs').value, 5, 120, 15); C.rev = num($('ccRev').value, 1, 15, 3); C.next = num($('ccNext').value, 2, 30, 5);
-    C.mirror = $('ccMirror').checked; C.hide = $('ccHide').checked; C.model = $('ccModel').value;
+    C.on = $('ccOn').checked; C.secs = num($('ccSecs').value, 5, 180, 30); C.hold = num($('ccHold').value, 0.5, 5, 1.5);
+    C.rev = num($('ccRev').value, 1, 15, 3); C.next = num($('ccNext').value, 2, 30, 5); C.mirror = $('ccMirror').checked;
     $('ccBox').style.display = C.on ? '' : 'none'; save();
     if (!C.on && testing) toggleTest(false);
   }
-  ['ccOn', 'ccSecs', 'ccRev', 'ccNext', 'ccMirror', 'ccHide', 'ccModel'].forEach(function (id) { $(id).addEventListener('change', readCfg); });
+  ['ccOn', 'ccSecs', 'ccHold', 'ccRev', 'ccNext', 'ccMirror'].forEach(function (id) { $(id).addEventListener('change', readCfg); });
   $('ccBox').style.display = C.on ? '' : 'none';
 
   /* ---------- Bảng camera (nằm trong màn hình chơi để vẫn thấy khi toàn màn hình) ---------- */
   var panel = document.createElement('div');
   panel.className = 'cc-panel inline'; panel.style.display = 'none';
-  panel.innerHTML = '<div class="cc-hd"><b id="ccSt">📷</b><span><button class="cc-b" id="ccSkip" type="button" title="Chốt ngay">⏭</button> <button class="cc-b" id="ccHold" type="button" title="Tạm dừng đếm giờ / giữ câu hiện tại">⏸</button> <button class="cc-b" id="ccMin" type="button" title="Thu nhỏ">▾</button></span></div>' +
-    '<canvas id="ccCv" width="480" height="270"></canvas><div class="cc-ct" id="ccCt"></div>';
+  panel.innerHTML = '<div class="cc-hd"><b id="ccSt">📷</b><span><button class="cc-b" id="ccSkip" type="button" title="Bỏ qua, hiện đáp án luôn">⏭</button> <button class="cc-b" id="ccHold2" type="button" title="Tạm dừng đếm giờ / giữ câu hiện tại">⏸</button> <button class="cc-b" id="ccMin" type="button" title="Thu nhỏ">▾</button></span></div>' +
+    '<canvas id="ccCv" width="480" height="270"></canvas><div class="cc-bar"><i id="ccPg"></i></div><div class="cc-ct" id="ccCt"></div><div class="cc-leg">' + LEG + '</div>';
   var big = document.createElement('div'); big.className = 'cc-big';
   var cv = panel.querySelector('#ccCv');
   $('ccBox').appendChild(panel);
@@ -90,12 +93,12 @@
   function placeInline() { undock(); $('ccBox').appendChild(panel); panel.classList.add('inline'); if (big.parentNode) big.parentNode.removeChild(big); }
   panel.querySelector('#ccMin').onclick = function () { panel.classList.toggle('min'); };
   var hold = false;
-  panel.querySelector('#ccHold').onclick = function () { hold = !hold; this.textContent = hold ? '▶' : '⏸'; };
-  panel.querySelector('#ccSkip').onclick = function () { if (S && S.p === 'select') S.dl = vt; };
+  panel.querySelector('#ccHold2').onclick = function () { hold = !hold; this.textContent = hold ? '▶' : '⏸'; };
+  panel.querySelector('#ccSkip').onclick = function () { if (S && S.p === 'select') S.skip = true; };
 
-  /* ---------- Camera + bộ nhận dạng người ---------- */
-  var stream = null, camP = null, vid = document.createElement('video'), det = null, detModel = '', detP = null;
-  var failed = '', raf = 0, lastDet = 0, people = [], hist = [], nZ = 4, testing = false;
+  /* ---------- Camera + nhận dạng bàn tay ---------- */
+  var stream = null, camP = null, vid = document.createElement('video'), det = null, detP = null;
+  var failed = '', raf = 0, lastDet = 0, hands = [], testing = false;
   vid.muted = true; vid.playsInline = true; vid.setAttribute('playsinline', '');
   vid.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
   document.body.appendChild(vid);
@@ -106,25 +109,21 @@
     if (n === 'NotFoundError' || n === 'OverconstrainedError') return 'Không tìm thấy camera.';
     return 'Không mở được camera' + (e && e.message ? ': ' + e.message : '.');
   }
-  function mkDet(m, fs, key, delegate) {
-    return m.ObjectDetector.createFromOptions(fs, {
-      baseOptions: { modelAssetPath: MODELS[key], delegate: delegate },
-      scoreThreshold: 0.35, maxResults: 50, categoryAllowlist: ['person'], runningMode: 'VIDEO'
+  function mkDet(m, fs, delegate) {
+    return m.HandLandmarker.createFromOptions(fs, {
+      baseOptions: { modelAssetPath: HAND, delegate: delegate }, runningMode: 'VIDEO', numHands: 2,
+      minHandDetectionConfidence: 0.5, minHandPresenceConfidence: 0.5, minTrackingConfidence: 0.5
     });
   }
   function loadDet() {
-    if (det && detModel === C.model) return Promise.resolve();
+    if (det) return Promise.resolve();
     if (detP) return detP;
     detP = import(CDN + '/vision_bundle.mjs').then(function (m) {
       return m.FilesetResolver.forVisionTasks(CDN + '/wasm').then(function (fs) {
-        var key = C.model;
-        return mkDet(m, fs, key, 'GPU')
-          .catch(function () { return mkDet(m, fs, key, 'CPU'); })
-          .catch(function (e) { if (key === 'lite0') throw e; key = 'lite0'; return mkDet(m, fs, key, 'CPU'); })
-          .then(function (d) { if (det && det.close) { try { det.close(); } catch (e) {} } det = d; detModel = key; });
+        return mkDet(m, fs, 'GPU').catch(function () { return mkDet(m, fs, 'CPU'); }).then(function (d) { det = d; });
       });
     }).catch(function (e) {
-      failed = 'Không tải được bộ nhận dạng người (máy cần có internet lần đầu). ' + (e && e.message ? e.message : '');
+      failed = 'Không tải được bộ nhận dạng bàn tay (máy cần có internet lần đầu). ' + (e && e.message ? e.message : '');
     }).then(function () { detP = null; });
     return detP;
   }
@@ -144,52 +143,59 @@
   function stopCam() {
     if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
     stream = null; camP = null; vid.srcObject = null;
-    if (raf) cancelAnimationFrame(raf); raf = 0; people = []; hist = [];
+    if (raf) cancelAnimationFrame(raf); raf = 0; hands = [];
     panel.style.display = 'none'; big.classList.remove('on');
   }
   function ready() { return !!(stream && det && vid.videoWidth && vid.readyState >= 2); }
 
-  function zoneOf(cx) { return Math.min(nZ - 1, Math.max(0, Math.floor(cx * nZ))); }
+  /* Đếm số ngón đang duỗi (không tính ngón cái): đầu ngón xa cổ tay hơn khớp giữa ngón → ngón duỗi. Không phụ thuộc hướng tay. */
+  function countFingers(lm, ar) {
+    function d(a, b) { var dx = (a.x - b.x) * ar, dy = a.y - b.y; return Math.sqrt(dx * dx + dy * dy); }
+    var tips = [8, 12, 16, 20], pips = [6, 10, 14, 18], n = 0;
+    for (var i = 0; i < 4; i++) if (d(lm[tips[i]], lm[0]) > d(lm[pips[i]], lm[0]) * 1.2) n++;
+    return n;
+  }
   function loop() {
     raf = requestAnimationFrame(loop);
     var now = performance.now();
-    if (ready() && now - lastDet >= 120) {
+    if (ready() && now - lastDet >= 80) {
       lastDet = now;
       try {
-        var r = det.detectForVideo(vid, now), W = vid.videoWidth, H = vid.videoHeight, ps = [], cnt = [], i;
-        (r.detections || []).forEach(function (d) {
-          var b = d.boundingBox; if (!b) return;
-          var x1 = b.originX / W, x2 = (b.originX + b.width) / W;
-          if (C.mirror) { var t = 1 - x1; x1 = 1 - x2; x2 = t; }
-          ps.push({ x1: x1, x2: x2, y1: b.originY / H, y2: (b.originY + b.height) / H, cx: (x1 + x2) / 2 });
+        var r = det.detectForVideo(vid, now), ar = vid.videoWidth / vid.videoHeight, hs = [];
+        (r.landmarks || []).forEach(function (lm) {
+          var pts = lm.map(function (p) { return { x: C.mirror ? 1 - p.x : p.x, y: p.y }; });
+          hs.push({ pts: pts, n: countFingers(lm, ar), cx: (pts[0].x + pts[9].x) / 2 });
         });
-        for (i = 0; i < nZ; i++) cnt.push(0);
-        ps.forEach(function (p) { cnt[zoneOf(p.cx)]++; });
-        people = ps; hist.push(cnt); if (hist.length > 10) hist.shift();
+        hands = hs;
       } catch (e) {}
     }
     draw();
   }
-  function avg() {      /* số người trung bình mỗi vùng trong ~1,2 giây gần nhất */
-    var a = [], i, j; for (i = 0; i < nZ; i++) a.push(0);
-    if (!hist.length) return a;
-    hist.forEach(function (c) { for (j = 0; j < nZ && j < c.length; j++) a[j] += c[j]; });
-    return a.map(function (v) { return v / hist.length; });
+  /* Đọc cử chỉ hiện tại của một "kênh": kênh 0 = nửa trái (hoặc cả khung nếu chỉ 1 kênh), kênh 1 = nửa phải. Trả về 0..3 (A..D) hoặc -1 */
+  function reading(ch, chans) {
+    var ns = [];
+    hands.forEach(function (h) { if (chans === 1 || (ch === 0 ? h.cx < 0.5 : h.cx >= 0.5)) ns.push(h.n); });
+    if (!ns.length) return -1;
+    for (var i = 1; i < ns.length; i++) if (ns[i] !== ns[0]) return -1;
+    return ns[0] >= 1 && ns[0] <= 4 ? ns[0] - 1 : -1;
   }
   function draw() {
     if (!panel.offsetWidth || panel.classList.contains('min')) return;
-    var w = cv.width, h = cv.height, g = cv.getContext('2d'), zw = w / nZ, i;
+    var w = cv.width, h = cv.height, g = cv.getContext('2d');
     g.fillStyle = '#111'; g.fillRect(0, 0, w, h);
     if (vid.videoWidth && vid.readyState >= 2) { g.save(); if (C.mirror) { g.translate(w, 0); g.scale(-1, 1); } g.drawImage(vid, 0, 0, w, h); g.restore(); }
-    g.globalAlpha = 0.2; for (i = 0; i < nZ; i++) { g.fillStyle = ZC[i % 4]; g.fillRect(i * zw, 0, zw, h); } g.globalAlpha = 1;
-    g.strokeStyle = '#ffffffaa'; g.lineWidth = 2;
-    for (i = 1; i < nZ; i++) { g.lineWidth = (nZ === 8 && i === 4) ? 6 : 2; g.beginPath(); g.moveTo(i * zw, 0); g.lineTo(i * zw, h); g.stroke(); }
-    g.font = 'bold ' + Math.round(h * 0.16) + 'px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.shadowColor = '#000'; g.shadowBlur = 5;
-    for (i = 0; i < nZ; i++) g.fillText(LET.charAt(i % 4), i * zw + zw / 2, h * 0.17);
-    g.shadowBlur = 0; g.lineWidth = 3;
-    people.forEach(function (p) {
-      g.strokeStyle = ZC[zoneOf(p.cx) % 4];
-      g.strokeRect(p.x1 * w, p.y1 * h, (p.x2 - p.x1) * w, (p.y2 - p.y1) * h);
+    if (chans() === 2) { g.strokeStyle = '#ffffffcc'; g.lineWidth = 4; g.beginPath(); g.moveTo(w / 2, 0); g.lineTo(w / 2, h); g.stroke();
+      g.font = 'bold ' + Math.round(h * 0.07) + 'px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.fillText('Đội 1', w * 0.25, h * 0.08); g.fillText('Đội 2', w * 0.75, h * 0.08); }
+    hands.forEach(function (hd) {
+      var v = hd.n >= 1 && hd.n <= 4 ? hd.n - 1 : -1, col = v >= 0 ? CH[v] : '#ffffff';
+      g.strokeStyle = col; g.lineWidth = 3; g.beginPath();
+      BONES.forEach(function (b) { g.moveTo(hd.pts[b[0]].x * w, hd.pts[b[0]].y * h); g.lineTo(hd.pts[b[1]].x * w, hd.pts[b[1]].y * h); });
+      g.stroke(); g.fillStyle = col;
+      hd.pts.forEach(function (p) { g.beginPath(); g.arc(p.x * w, p.y * h, 3, 0, 6.3); g.fill(); });
+      if (v >= 0) {
+        g.font = 'bold ' + Math.round(h * 0.22) + 'px sans-serif'; g.textAlign = 'center'; g.shadowColor = '#000'; g.shadowBlur = 6; g.fillStyle = '#fff';
+        g.fillText(LET.charAt(v), hd.pts[9].x * w, Math.max(h * 0.25, hd.pts[9].y * h - h * 0.1)); g.shadowBlur = 0;
+      }
     });
   }
 
@@ -207,22 +213,29 @@
 
   /* ---------- Điều khiển vòng chơi ---------- */
   var S = null, vt = 0, lastT = Date.now(), kind = null, lastBig = -1;
-  function reset() { S = { p: null, key: '', dl: 0, ties: 0, pick: null, snap: null, t: 0, revT: 0, msg: '', o: '' }; lastBig = -1; }
+  function chans() { return kind === 'keo' || (kind === null && testing && testMode() === 'keo') ? 2 : 1; }
+  function newCh() { return { cand: -1, since: 0, lock: -1, buf: [] }; }
+  function reset() { S = { p: null, key: '', dl: 0, pick: null, t: 0, revT: 0, msg: '', o: '', skip: false, ch: [newCh(), newCh()] }; lastBig = -1; }
   reset();
   function secs(ms) { return Math.max(0, Math.ceil(ms / 1000)); }
-  function begin(p) { S.p = p; S.dl = vt + C.secs * 1000; S.msg = ''; }
+  function begin(p) { S.p = p; S.dl = vt + C.secs * 1000; S.msg = ''; S.skip = false; S.pick = [-1, -1]; S.ch = [newCh(), newCh()]; }
 
+  /* Mỗi 200ms: lấy mẫu cử chỉ, làm mượt (3/4 mẫu giống nhau), đếm thời gian giữ yên */
+  function sample() {
+    var n = chans();
+    for (var i = 0; i < n; i++) {
+      var c = S.ch[i], b = c.buf, cur = -1, v, cnt;
+      b.push(reading(i, n)); if (b.length > 4) b.shift();
+      for (v = 0; v < 4; v++) { cnt = b.filter(function (x) { return x === v; }).length; if (cnt >= 3) cur = v; }
+      if (cur !== c.cand) { c.cand = cur; c.since = vt; }
+      if (c.lock < 0 && cur >= 0 && vt - c.since >= C.hold * 1000) { c.lock = cur; S.pick[i] = cur; }
+    }
+  }
   function activeKind() {
     if (!C.on) return null;
     if (rvEl.classList.contains('on') && !$('kcRvOv').classList.contains('on')) return 'rv';
     if (kcSt.classList.contains('on') && !$('kcOv').classList.contains('on')) return 'keo';
     return null;
-  }
-  function best(a, from, n) {       /* vùng đông nhất trong a[from .. from+n-1] */
-    var tot = 0, mx = -1, i, near = [];
-    for (i = 0; i < n; i++) { tot += a[from + i]; if (a[from + i] > mx) mx = a[from + i]; }
-    for (i = 0; i < n; i++) if (a[from + i] >= mx - 0.5) near.push(i);
-    return { total: tot, tie: near.length > 1, z: near[Math.floor(Math.random() * near.length)] };
   }
 
   function stepRv() {
@@ -230,22 +243,21 @@
     var rev = !!box.querySelector('.kc-opt.ok'), pk = rev || !!box.querySelector('.kc-opt.bad'), o = rev ? 'rev' : (pk ? 'pick' : 'open');
     S.o = o; if (!opts.length) return;
     if (key !== S.key) {                               /* sang câu mới */
-      S.key = key; S.ties = 0; S.pick = null; S.snap = null;
+      S.key = key;
       if (o === 'open') begin('select'); else { S.p = 'post'; S.t = vt; S.revT = rev ? vt : 0; }
     } else if (S.p === 'select' && o !== 'open') {     /* cô tự bấm đáp án */
       S.p = 'post'; S.t = vt; S.revT = rev ? vt : 0;
     } else if (S.p === 'post' && o === 'open') {       /* cô bấm “Chọn lại” */
-      S.ties = 0; S.pick = null; S.snap = null; begin('select');
+      begin('select');
     }
     if (S.p === 'select') {
-      if (vt >= S.dl) {
-        var a = avg(), b = best(a, 0, 4);
-        if (b.total < 0.5) { S.dl = vt + 5000; S.msg = 'Chưa thấy học sinh nào trong khung, thêm 5 giây'; }
-        else if (b.tie && S.ties < 2) { S.ties++; S.dl = vt + 4000; S.msg = 'Hai vùng đang hòa, thêm 4 giây'; }
-        else { S.pick = b.z; S.snap = a.slice(); S.p = 'locked'; S.t = vt; beep(988, 0.25); }
+      sample();
+      if (S.pick[0] >= 0) { S.p = 'locked'; S.t = vt; beep(988, 0.25); }
+      else if (S.skip || vt >= S.dl) {                 /* hết giờ / bỏ qua: hiện đáp án luôn */
+        S.p = 'post'; S.t = vt; S.revT = 0; $('kcRvShow').click();
       }
     } else if (S.p === 'locked') {
-      if (vt - S.t >= C.rev * 1000) { var ob = opts[S.pick]; S.p = 'post'; S.t = vt; S.revT = 0; if (ob) ob.click(); }
+      if (vt - S.t >= C.rev * 1000) { var ob = opts[S.pick[0]]; S.p = 'post'; S.t = vt; S.revT = 0; if (ob) ob.click(); }
     } else if (S.p === 'post') {
       if (o === 'rev') {
         if (!S.revT) S.revT = vt;
@@ -260,12 +272,10 @@
   function stepKeo() {
     if (S.p === null) begin('select');
     if (S.p === 'select') {
-      if (vt >= S.dl) {
-        var a = avg(), b0 = best(a, 0, 4), b1 = best(a, 4, 4);
-        if (b0.total + b1.total < 0.5) { S.dl = vt + 5000; S.msg = 'Chưa thấy học sinh nào trong khung, thêm 5 giây'; }
-        else if (((b0.total >= 0.5 && b0.tie) || (b1.total >= 0.5 && b1.tie)) && S.ties < 1) { S.ties++; S.dl = vt + 3000; S.msg = 'Có vùng đang hòa, thêm 3 giây'; }
-        else { S.pick = [b0.total < 0.5 ? -1 : b0.z, b1.total < 0.5 ? -1 : b1.z]; S.snap = a.slice(); S.p = 'locked'; S.t = vt; beep(988, 0.25); }
-      }
+      sample();
+      var any = S.pick[0] >= 0 || S.pick[1] >= 0, all = S.pick[0] >= 0 && S.pick[1] >= 0;
+      if (all || ((S.skip || vt >= S.dl) && any)) { S.p = 'locked'; S.t = vt; beep(988, 0.25); }
+      else if (S.skip || vt >= S.dl) { S.dl = vt + 5000; S.skip = false; S.msg = 'Chưa nhận được cử chỉ nào, thêm 5 giây'; }
     } else if (S.p === 'locked') {
       if (vt - S.t >= C.rev * 1000) {
         S.pick.forEach(function (j, t) {
@@ -276,75 +286,68 @@
         S.p = 'after'; S.t = vt;
       }
     } else if (S.p === 'after') {
-      if (vt - S.t >= 1600) { S.ties = 0; S.pick = null; S.snap = null; begin('select'); }
+      if (vt - S.t >= 1600) begin('select');
     }
   }
 
-  /* ---------- Hiển thị trạng thái, số người, vùng được chọn ---------- */
-  function countsHTML(a) {
-    var out = [], i;
-    for (i = 0; i < nZ; i++) {
-      if (nZ === 8 && i === 4) out.push('<br>');
-      out.push('<span style="color:' + ZC[i % 4] + '">' + LET.charAt(i % 4) + ' ' + Math.round(a[i]) + '</span>');
-    }
-    return out.join(' · ').replace(/ · <br> · /, '<br>');
-  }
+  /* ---------- Hiển thị trạng thái, đáp án đang nhận / đã chốt ---------- */
   function paintBadges() {
     var boxes = kind === 'rv' ? [$('kcRvBox')] : [$('kcTB'), $('kcTR')];
-    var shown = S.p === 'locked' || S.p === 'post' || S.p === 'after' || S.p === 'adv' || (!C.hide && S.p === 'select');
-    var a = S.snap || avg();
     boxes.forEach(function (bx, t) {
-      var opts = bx.querySelectorAll('.kc-opt');
-      Array.prototype.forEach.call(opts, function (op, j) {
-        var z = (kind === 'keo' ? t * 4 : 0) + j, nb = op.querySelector('.cc-n');
-        if (shown && z < a.length) {
-          if (!nb) { nb = document.createElement('b'); nb.className = 'cc-n'; op.appendChild(nb); }
-          nb.textContent = '👥 ' + Math.round(a[z]);
-        } else if (nb) nb.remove();
-        var sel = S.p === 'locked' && ((kind === 'rv' && S.pick === j) || (kind === 'keo' && S.pick && S.pick[t] === j));
-        op.classList.toggle('cc-sel', !!sel);
+      Array.prototype.forEach.call(bx.querySelectorAll('.kc-opt'), function (op, j) {
+        var sel = (S.p === 'locked' || S.p === 'select') && S.pick && S.pick[t] === j;
+        var cand = S.p === 'select' && S.ch[t] && S.ch[t].cand === j && S.ch[t].lock < 0;
+        op.classList.toggle('cc-sel', !!sel); op.classList.toggle('cc-cand', !!cand);
       });
     });
   }
+  function chText(i) {
+    var c = S.ch[i];
+    if (c.lock >= 0) return '🔒 ' + LET.charAt(c.lock);
+    if (c.cand >= 0) return '✋ ' + LET.charAt(c.cand) + ' (giữ ' + Math.max(0, (C.hold - (vt - c.since) / 1000)).toFixed(1) + 's)';
+    return '—';
+  }
   function paintStatus() {
-    var stx = $('ccSt'), ct = $('ccCt'), a = avg(), tot = 0, i, txt = '';
-    for (i = 0; i < a.length; i++) tot += a[i];
+    var stx = $('ccSt'), ct = $('ccCt'), pg = $('ccPg'), txt = '', n = chans(), pr = 0, i;
+    pg.style.width = '0';
     if (failed) { stx.textContent = '⚠ ' + failed; ct.innerHTML = ''; return; }
     if (!ready()) { stx.textContent = '⏳ Đang chuẩn bị camera và bộ nhận dạng…'; ct.innerHTML = ''; return; }
     if (hold) txt = '⏸ Đang giữ (bấm ▶ để tiếp tục)';
-    else if (S.p === 'select') txt = '🏃 Chọn đáp án: ' + secs(S.dl - vt) + ' giây' + (S.msg ? ' · ' + S.msg : '');
-    else if (S.p === 'locked') {
-      txt = '🔒 ' + (kind === 'rv' ? 'Cả lớp chọn ' + LET.charAt(S.pick) + ' (' + Math.round(S.snap[S.pick]) + ' bạn)'
-        : 'Đội 1: ' + (S.pick[0] < 0 ? '—' : LET.charAt(S.pick[0])) + ' · Đội 2: ' + (S.pick[1] < 0 ? '—' : LET.charAt(S.pick[1]))) + ' · đáp án sau ' + secs(C.rev * 1000 - (vt - S.t)) + 's';
-    } else if (S.p === 'post' && S.o === 'rev' && S.revT) txt = '✅ Sang câu tiếp sau ' + secs(C.next * 1000 - (vt - S.revT)) + ' giây';
+    else if (S.p === 'select') txt = '🙋 Giơ ngón tay để chọn · còn ' + secs(S.dl - vt) + 's' + (S.msg ? ' · ' + S.msg : '');
+    else if (S.p === 'locked') txt = '🔒 ' + (kind === 'rv' ? 'Đã chọn ' + LET.charAt(S.pick[0])
+      : 'Đội 1: ' + (S.pick[0] < 0 ? '—' : LET.charAt(S.pick[0])) + ' · Đội 2: ' + (S.pick[1] < 0 ? '—' : LET.charAt(S.pick[1]))) + ' · đáp án sau ' + secs(C.rev * 1000 - (vt - S.t)) + 's';
+    else if (S.p === 'post' && S.o === 'rev' && S.revT) txt = '✅ Sang câu tiếp sau ' + secs(C.next * 1000 - (vt - S.revT)) + ' giây';
     else if (S.p === 'post') txt = '⏳ Đang hiện đáp án…';
     else if (S.p === 'after') txt = '⏳ Chuẩn bị câu tiếp…';
     else txt = '📷 Camera sẵn sàng';
     stx.textContent = txt;
-    ct.innerHTML = (S.p === 'select' && C.hide) ? '👥 ' + Math.round(tot) + ' bạn trong khung' : countsHTML(S.snap && S.p !== 'select' ? S.snap : a);
-    var rem = S.p === 'select' && !hold ? secs(S.dl - vt) : 0;
+    if (S.p === 'select') {
+      ct.textContent = n === 1 ? chText(0) : 'Đội 1: ' + chText(0) + ' · Đội 2: ' + chText(1);
+      for (i = 0; i < n; i++) if (S.ch[i].cand >= 0 && S.ch[i].lock < 0) pr = Math.max(pr, Math.min(1, (vt - S.ch[i].since) / (C.hold * 1000)));
+      pg.style.width = Math.round(pr * 100) + '%';
+    } else ct.textContent = '';
+    var rem = S.p === 'locked' && !hold ? secs(C.rev * 1000 - (vt - S.t)) : 0;
     if (rem >= 1 && rem <= 3) {
       big.classList.add('on'); if (rem !== lastBig) { big.innerHTML = '<span>' + rem + '</span>'; beep(520, 0.1); }
     } else big.classList.remove('on');
     lastBig = rem;
   }
   function paintTest() {
-    var a = avg(), tot = 0, i; for (i = 0; i < a.length; i++) tot += a[i];
-    $('ccSt').textContent = failed ? '⚠ ' + failed : (ready() ? '🎥 Thử camera: thấy ' + Math.round(tot) + ' người' : '⏳ Đang chuẩn bị camera và bộ nhận dạng…');
-    $('ccCt').innerHTML = failed || !ready() ? '' : countsHTML(a);
-    $('ccMsg').textContent = failed ? '' : (ready() ? 'Camera hoạt động. Bước vào các vùng màu để kiểm tra; ô viền màu là người được nhận dạng.' : 'Lần đầu cần tải bộ nhận dạng (vài MB), vui lòng chờ…');
+    var n = chans(), parts = [], i, v;
+    for (i = 0; i < n; i++) { v = reading(i, n); parts.push((n === 2 ? 'Đội ' + (i + 1) + ': ' : '') + (v >= 0 ? '✋ ' + LET.charAt(v) : '—')); }
+    $('ccSt').textContent = failed ? '⚠ ' + failed : (ready() ? '🎥 Thử camera: thấy ' + hands.length + ' bàn tay' : '⏳ Đang chuẩn bị camera và bộ nhận dạng…');
+    $('ccCt').textContent = failed || !ready() ? '' : parts.join(' · ');
+    $('ccPg').style.width = '0';
+    $('ccMsg').textContent = failed ? '' : (ready() ? 'Camera hoạt động. Giơ 1–4 ngón tay, chữ cái hiện trên bàn tay là đáp án máy nhận được.' : 'Lần đầu cần tải bộ nhận dạng (vài MB), vui lòng chờ…');
   }
 
   function testMode() { var r = document.querySelector('input[name="kcMode"]:checked'); return r && r.value === 'on' ? 'rv' : 'keo'; }
   function toggleTest(v) {
     testing = v; $('ccTest').textContent = v ? '⏹ Tắt thử camera' : '🎥 Thử camera';
-    if (v) { placeInline(); hist = []; nZ = testMode() === 'rv' ? 4 : 8; startCam(); }
+    if (v) { placeInline(); hands = []; startCam(); }
     else { stopCam(); $('ccMsg').textContent = ''; }
   }
   $('ccTest').onclick = function () { toggleTest(!testing); };
-  Array.prototype.forEach.call(document.getElementsByName('kcMode'), function (r) {
-    r.addEventListener('change', function () { if (testing) { nZ = testMode() === 'rv' ? 4 : 8; hist = []; } });
-  });
 
   $('kcStart').addEventListener('click', function () {      /* bấm Bắt đầu: bật camera ngay trong thao tác của người dùng */
     if (!C.on) return;
@@ -356,14 +359,14 @@
     var now = Date.now(), dt = Math.min(1000, now - lastT); lastT = now;
     var k2 = activeKind();
     if (k2 !== kind) {
-      kind = k2; reset(); hist = []; vt = 0; hold = false; panel.querySelector('#ccHold').textContent = '⏸';
-      if (kind) { testing = false; $('ccTest').textContent = '🎥 Thử camera'; nZ = kind === 'rv' ? 4 : 8; place(kind === 'rv' ? rvEl : kcSt); startCam(); }
+      kind = k2; reset(); vt = 0; hold = false; panel.querySelector('#ccHold2').textContent = '⏸';
+      if (kind) { testing = false; $('ccTest').textContent = '🎥 Thử camera'; place(kind === 'rv' ? rvEl : kcSt); startCam(); }
       else { big.classList.remove('on'); if (!testing) { placeInline(); stopCam(); } }
     }
     if (!kind) { if (testing) paintTest(); return; }
     var blocked = !!failed || !ready() || (kind === 'keo' && keoBlocked());
     if (!hold && !blocked) vt += dt;
-    if (!failed && ready() && !(kind === 'keo' && keoBlocked())) { if (kind === 'rv') stepRv(); else stepKeo(); }
+    if (!failed && ready() && !(kind === 'keo' && keoBlocked()) && !hold) { if (kind === 'rv') stepRv(); else stepKeo(); }
     paintStatus(); paintBadges();
   }
   setInterval(tick, 200);
