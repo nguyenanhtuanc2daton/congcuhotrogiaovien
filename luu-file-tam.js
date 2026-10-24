@@ -7,7 +7,7 @@
    - Chạy trong Shadow DOM nên không va chạm CSS & JS của trang.
    - Gọi tay:  LuuFileTam.open()  |  LuuFileTam.close()
    - Gắn vào nút có sẵn:  thêm thuộc tính  data-luu-file
-   - Nhúng vào index.html:  <script src="luu-file-tam.js?v=20261221"></script>
+   - Nhúng vào index.html:  <script src="luu-file-tam.js?v=20261222"></script>
    ===================================================================== */
 (function(){
 'use strict';
@@ -20,15 +20,18 @@ const LAUNCHER_POS={right:'14px',bottom:'92px'};
 const PEEK_H=230;                    // chiều cao (px) của khung nhỏ lúc chưa upload
 const EXPAND_H=620;                  // chiều cao tối đa (px) của khung sau khi chọn file
 const CROP_TOP=330;                  // MẶC ĐỊNH: số px đầu trang file.kiwi (logo, tiêu đề) bị cắt để khu "Chọn Tệp" nằm sát đầu khung. Chỉnh thêm bằng nút ▲▼ trên màn hình
+const MID_TOP=90;                    // khi khung nhớ ra sau khi chọn file: số px đầu trang bị cắt (để bảng link/SAO CHÉP của file.kiwi nằm gọn trong khung). Chỉnh bằng ▲▼
 const VIEW_H=800;                    // chiều cao cố định của trang file.kiwi trong khung nhỏ (giữ bố cục ổn định mọi máy)
 const LOCK_DEFAULT=true;             // true: khóa cuộn khung file.kiwi (không kéo lên/xuống)
 const RETURN_SECONDS=15;             // bấm SAO CHÉP link xong → tự quay về trang sau số giây này
 const LOAD_TIMEOUT=10000;
 const CROP_KEY='luuFileTam.crop.v2';
+const CROP_MID_KEY='luuFileTam.cropmid.v1';
 const LINK_RE=/https?:\/\/(?:[\w-]+\.)*file\.kiwi\/[^\s"'<>]+/i;
 
-let crop=CROP_TOP;
+let crop=CROP_TOP,cropMid=MID_TOP;
 try{const v=parseInt(localStorage.getItem(CROP_KEY),10);if(!isNaN(v))crop=Math.max(0,v)}catch(e){}
+try{const v=parseInt(localStorage.getItem(CROP_MID_KEY),10);if(!isNaN(v))cropMid=Math.max(0,v)}catch(e){}
 
 /* ---------- Giao diện (Shadow DOM) ---------- */
 const host=document.createElement('div');
@@ -65,7 +68,6 @@ iframe{position:absolute;left:0;width:100%;border:0;background:#141210}
 .help p{margin:0 0 8px}
 .peekbar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#0f3340;border-top:1px solid #1d5666;font-size:12px;color:#b8cfd5}
 .peekbar .sp{flex:1;min-width:0}
-.card.mid .peekbar{display:none}
 .done{display:none;align-items:center;gap:8px;padding:8px 10px;background:#12404f;border-top:2px solid #f5c542;font-size:13.5px}
 .done.on{display:flex}.done span{flex:1;min-width:0}
 </style>
@@ -112,25 +114,33 @@ if(!LAUNCHER)fab.style.display='none';
 /* ---------- Bố cục: khung nhỏ cố định ↔ khung sau khi chọn file ---------- */
 function layout(){
   card.classList.toggle('mid',expanded);
-  if(expanded){fr.style.top='0';fr.style.height='100%'}
-  else{
-    crop=Math.max(0,Math.min(crop,3000));
-    fr.style.top=(-crop)+'px';fr.style.height=Math.max(VIEW_H,crop+PEEK_H+20)+'px';
-  }
-  fr.setAttribute('scrolling',(!expanded||LOCK_DEFAULT)?'no':'auto');
+  const c=expanded?cropMid:crop;
+  fr.style.top=(-c)+'px';
+  fr.style.height=Math.max(VIEW_H,c+(expanded?EXPAND_H:PEEK_H)+20)+'px';
+  fr.setAttribute('scrolling','no');
+  $('expand').textContent=expanded?'⤡':'⤢';
+  $('expand').title=expanded?'Thu nhỏ khung':'Mở rộng khung';
 }
 function expand(){if(expanded)return;expanded=true;layout()}
-$('expand').onclick=expand;
+$('expand').onclick=()=>{expanded=!expanded;layout()};
 $('peekbar').addEventListener('click',e=>{
   const b=e.target.closest('button[data-d]');if(!b)return;
-  crop=Math.max(0,crop+(+b.dataset.d));
-  try{localStorage.setItem(CROP_KEY,String(crop))}catch(err){}
+  const d=+b.dataset.d;
+  if(expanded){cropMid=Math.max(0,Math.min(cropMid+d,3000));try{localStorage.setItem(CROP_MID_KEY,String(cropMid))}catch(err){}}
+  else{crop=Math.max(0,Math.min(crop+d,3000));try{localStorage.setItem(CROP_KEY,String(crop))}catch(err){}}
   layout();
 });
 window.addEventListener('resize',()=>{if(ov.classList.contains('on'))layout()});
-// Chạm vào khung file.kiwi (focus chuyển vào iframe) hoặc mở bộ chọn file → mở rộng để thấy tiến trình
-window.addEventListener('blur',()=>{setTimeout(()=>{if(ov.classList.contains('on')&&!expanded&&root.activeElement===fr)expand()},350)});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&ov.classList.contains('on')&&!wentOut)expand()});
+/* Chạm "Chọn Tệp": khung GIỮ NGUYÊN nhỏ. Chỉ mở rộng khi bộ chọn file đã đóng lại (bạn quay về từ việc chọn file),
+   hoặc sau 12 giây kể từ lúc chạm — để thấy bảng link + nút SAO CHÉP. */
+let picking=false,pickT=null;
+function pickDone(){if(!picking)return;picking=false;clearTimeout(pickT);setTimeout(()=>{if(ov.classList.contains('on'))expand()},500)}
+window.addEventListener('blur',()=>{setTimeout(()=>{
+  if(!ov.classList.contains('on')||expanded||picking||root.activeElement!==fr)return;
+  picking=true;clearTimeout(pickT);pickT=setTimeout(pickDone,12000);
+},200)});
+window.addEventListener('focus',pickDone);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!wentOut)pickDone()});
 
 /* ---------- Trạng thái kết nối ---------- */
 function setStat(kind,text){const d=$('dot');d.className='dot '+(kind||'');$('stat').textContent=text}
@@ -201,7 +211,7 @@ function open(){
 function close(fromPop){
   ov.classList.remove('on');
   document.documentElement.style.overflow='';document.body.style.overflow='';
-  stopWatch();cancelBack();
+  stopWatch();cancelBack();picking=false;clearTimeout(pickT);
   justCopied=false;resetFrame();   // mỗi lần đóng là bỏ khung cũ; lần mở sau luôn là khung mới sạch, upload file khác bình thường
   if(pushed){pushed=false;if(!fromPop){try{history.back()}catch(e){}}}
 }
