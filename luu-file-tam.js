@@ -99,7 +99,7 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
  <div class="card" id="card" data-view="idle">
   <div class="top">
     <div class="ttl">
-      <h2>☁ Đã kết nối tới máy chủ của Nguyễn Tuấn</h2>
+      <h2>☁ Máy chủ Nguyễn Anh Tuấn</h2>
       <span class="chip"><i class="dot ok" id="dot"></i><span id="stat">Sẵn sàng</span></span>
     </div>
     <button class="xbtn" id="x" type="button" aria-label="Đóng" title="Đóng">✕</button>
