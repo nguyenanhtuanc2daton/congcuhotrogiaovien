@@ -1,38 +1,51 @@
 /* =====================================================================
-   luu-file-tam.js  —  "Lưu file tạm" (gửi file / thư mục lên file.kiwi, lấy link tải về)
-   - Bấm nút Upload → hiện khung nhỏ cố định chỉ lộ khu "Chọn Tệp" của https://file.kiwi/vi.
-     Chạm vào khung (chọn file) thì khung mở rộng vừa đủ để thấy link + nút SAO CHÉP.
-   - Bạn tự bấm SAO CHÉP trong file.kiwi; ngay sau đó đếm ngược rồi tự quay về trang.
-   - Việc lưu file, tạo link, tự xóa file do file.kiwi xử lý.
-   - Chạy trong Shadow DOM nên không va chạm CSS & JS của trang.
-   - Gọi tay:  LuuFileTam.open()  |  LuuFileTam.close()
-   - Gắn vào nút có sẵn:  thêm thuộc tính  data-luu-file
-   - Nhúng vào index.html:  <script src="luu-file-tam.js?v=20261222"></script>
+   luu-file-tam.js — "Lưu file tạm": khung riêng, gửi thẳng lên file.kiwi bằng API công khai (không dùng iframe)
+   - Chọn tệp (tối đa 10 tệp/lần) → mã hóa ngay trên máy → tải lên file.kiwi → hiện link + nút SAO CHÉP.
+   - Link dạng https://file.kiwi/xxxx#khoa — phần sau dấu # là khóa giải mã, không gửi lên máy chủ.
+   - Thời gian lưu và tự xóa do file.kiwi xử lý (khoảng 90 giờ, theo tài liệu API v1 của họ).
+   - Mã hóa dùng thư viện wormhole-crypto (RFC 8188), nạp từ jsDelivr.
+   - Nếu trình duyệt chặn gọi thẳng api.file.kiwi (CORS) → đặt địa chỉ Worker vào PROXY bên dưới
+     (xem filekiwi-proxy-worker.js).
+   - Gọi tay:  LuuFileTam.open()  |  LuuFileTam.close()      Gắn vào nút: thêm thuộc tính data-luu-file
+   - Nhúng:  <script src="luu-file-tam.js?v=20261223"></script>
    ===================================================================== */
 (function(){
 'use strict';
 if(window.LuuFileTam)return;
 
-/* ---------- Cấu hình (sửa ở đây) ---------- */
-const SITE='https://file.kiwi/vi';   // trang được nhúng
-const LAUNCHER=false;                // true: thêm nút nổi "☁ file.kiwi"
-const LAUNCHER_POS={right:'14px',bottom:'92px'};
-const PEEK_H=230;                    // chiều cao (px) của khung nhỏ lúc chưa upload
-const EXPAND_H=620;                  // chiều cao tối đa (px) của khung sau khi chọn file
-const CROP_TOP=330;                  // MẶC ĐỊNH: số px đầu trang file.kiwi (logo, tiêu đề) bị cắt để khu "Chọn Tệp" nằm sát đầu khung. Chỉnh thêm bằng nút ▲▼ trên màn hình
-const MID_TOP=90;                    // khi khung nhớ ra sau khi chọn file: số px đầu trang bị cắt (để bảng link/SAO CHÉP của file.kiwi nằm gọn trong khung). Chỉnh bằng ▲▼
-const BASE_W=390;                    // bề rộng "ảo" cố định của trang file.kiwi (giống điện thoại). Máy tính: khung đặt giữa; màn hẹp hơn: tự thu nhỏ vừa khít → bố cục file.kiwi giống nhau trên mọi thiết bị, nên vị trí cắt không bị lệch
-const VIEW_H=800;                    // chiều cao cố định của trang file.kiwi trong khung nhỏ (giữ bố cục ổn định mọi máy)
-const LOCK_DEFAULT=true;             // true: khóa cuộn khung file.kiwi (không kéo lên/xuống)
-const RETURN_SECONDS=15;             // bấm SAO CHÉP link xong → tự quay về trang sau số giây này
-const LOAD_TIMEOUT=10000;
-const CROP_KEY='luuFileTam.crop.v2';
-const CROP_MID_KEY='luuFileTam.cropmid.v1';
-const LINK_RE=/https?:\/\/(?:[\w-]+\.)*file\.kiwi\/[^\s"'<>]+/i;
+/* ---------- Cấu hình ---------- */
+const API='https://api.file.kiwi';
+const PROXY='';                       // vd: 'https://filekiwi-proxy.ten-ban.workers.dev' (để trống = gọi thẳng)
+const CRYPTO_URL='https://cdn.jsdelivr.net/npm/wormhole-crypto@0.2.2/+esm';
+const SITE='https://file.kiwi/vi';    // dùng cho nút "Mở file.kiwi" khi có lỗi
+const MAX_FILES=10;
+const RETRY=3;                        // số lần thử lại mỗi phần khi lỗi mạng
+const RETURN_SECONDS=15;              // sao chép link xong → tự đóng sau số giây này
+const RETENTION_TEXT='khoảng 90 giờ';
 
-let crop=CROP_TOP,cropMid=MID_TOP;
-try{const v=parseInt(localStorage.getItem(CROP_KEY),10);if(!isNaN(v))crop=Math.max(0,v)}catch(e){}
-try{const v=parseInt(localStorage.getItem(CROP_MID_KEY),10);if(!isNaN(v))cropMid=Math.max(0,v)}catch(e){}
+/* ---------- Hàm phụ ---------- */
+const enc=new TextEncoder();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const streamOf=b=>new ReadableStream({start(c){c.enqueue(b);c.close()}});
+function b64(u8){let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s)}
+async function seal(kc,text){            // mã hóa chuỗi (khóa bí mật, tên tệp) → base64
+  const out=await kc.encryptStream(streamOf(enc.encode(text)));
+  return b64(new Uint8Array(await new Response(out).arrayBuffer()));
+}
+async function* pieces(stream,size){     // cắt luồng đã mã hóa thành các phần đúng chunkSize
+  const rd=stream.getReader();let buf=new Uint8Array(size),len=0;
+  while(true){
+    const r=await rd.read();if(r.done)break;
+    const v=r.value;let off=0;
+    while(off<v.length){
+      const n=Math.min(size-len,v.length-off);
+      buf.set(v.subarray(off,off+n),len);len+=n;off+=n;
+      if(len===size){yield buf;buf=new Uint8Array(size);len=0}
+    }
+  }
+  if(len>0)yield buf.slice(0,len);
+}
+function fmtSize(n){const u=['B','KB','MB','GB'];let i=0;while(n>=1024&&i<3){n/=1024;i++}return (i?n.toFixed(n<10?1:0):n)+' '+u[i]}
 
 /* ---------- Giao diện (Shadow DOM) ---------- */
 const host=document.createElement('div');
@@ -42,15 +55,14 @@ const root=host.attachShadow({mode:'open'});
 root.innerHTML=`
 <style>
 *{box-sizing:border-box}
-.fab{position:fixed;height:48px;padding:0 16px;border-radius:99px;border:2px solid #f5c542;background:#0f3340;color:#fff;font:700 14px system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 14px #0006;display:flex;align-items:center;gap:6px}
-.ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:calc(8px + env(safe-area-inset-top,0px)) 8px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(4,14,19,.8);color:#e8f1f3;font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none;touch-action:manipulation}
+.ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:calc(8px + env(safe-area-inset-top,0px)) 8px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(4,14,19,.8);color:#e8f1f3;font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none}
 .ov.on{display:flex}
 .card{width:100%;max-width:440px;max-height:100%;display:flex;flex-direction:column;background:#0b1f27;border:1px solid #1d5666;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px #000a}
-.card.mid{height:min(100%,${EXPAND_H}px)}
 .top{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0f3340;border-bottom:1px solid #1d5666}
 .ttl{flex:1;min-width:0}
 .ttl h2{margin:0;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.chip{display:inline-flex;align-items:center;gap:6px;margin-top:3px;padding:2px 10px;border-radius:99px;border:1px solid #f5c542;background:rgba(245,197,66,.12);color:#f5c542;font-size:12.5px;font-weight:700}
+.chip{display:inline-flex;align-items:center;gap:6px;margin-top:3px;padding:2px 10px;border-radius:99px;border:1px solid #f5c542;background:rgba(245,197,66,.12);color:#f5c542;font-size:12.5px;font-weight:700;max-width:100%}
+.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dot{width:8px;height:8px;border-radius:50%;background:#e0a030;flex:none}
 .dot.ok{background:#3ecf5a}.dot.bad{background:#ef5350}
 .dot.wait{animation:bl 1s infinite}
@@ -59,179 +71,243 @@ button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid #1d5666;b
 button.sm{padding:6px 10px;font-size:13px}
 button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:700}
 .xbtn{width:38px;height:38px;padding:0;font-size:18px;line-height:1;border-radius:50%;flex:none}
-.pane{display:flex;flex-direction:column;min-height:0;flex:1}
-.frwrap{position:relative;overflow:hidden;background:#141210;overscroll-behavior:none}
-.card:not(.mid) .frwrap{flex:none;height:${PEEK_H}px}
-.card.mid .frwrap{flex:1;min-height:0}
-iframe{position:absolute;left:0;top:0;width:390px;border:0;background:#141210;transform-origin:0 0}
-.help{display:none;position:absolute;left:8px;right:8px;top:8px;max-height:calc(100% - 16px);overflow:auto;padding:12px;border-radius:12px;background:#3d2c08;border:1px solid #f5c542;color:#ffe2a8;font-size:13.5px;box-shadow:0 6px 20px #0008}
-.help.on{display:block}
-.help p{margin:0 0 8px}
-.peekbar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#0f3340;border-top:1px solid #1d5666;font-size:12px;color:#b8cfd5}
-.peekbar .sp{flex:1;min-width:0}
-.done{display:none;align-items:center;gap:8px;padding:8px 10px;background:#12404f;border-top:2px solid #f5c542;font-size:13.5px}
-.done.on{display:flex}.done span{flex:1;min-width:0}
+.body{padding:16px 14px;overflow:auto;background:#141210;min-height:0}
+.view{display:none}
+.card[data-view=idle] .v-idle,.card[data-view=busy] .v-busy,.card[data-view=done] .v-done,.card[data-view=err] .v-err{display:block}
+.note{margin:0 0 14px;text-align:center;color:#a9a39a;font-size:13.5px}
+.pick{display:block;width:100%;padding:16px;font-size:20px;font-weight:700;color:#fff;background:#5fa800;border:2px solid #4b8600;border-radius:12px}
+.drop{border:2px dashed #3b4a4f;border-radius:14px;padding:18px 12px;text-align:center}
+.drop.hot{border-color:#f5c542;background:rgba(245,197,66,.06)}
+.hint{margin:10px 0 0;text-align:center;color:#8f8a82;font-size:12.5px}
+.list{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:8px}
+.li{background:#1b1815;border:1px solid #2c2a26;border-radius:10px;padding:8px 10px}
+.li .nm{display:flex;gap:8px;justify-content:space-between;font-size:13.5px}
+.li .nm b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.li .nm i{font-style:normal;color:#a9a39a;flex:none}
+.bar{height:6px;margin-top:6px;border-radius:99px;background:#2c2a26;overflow:hidden}
+.bar>div{height:100%;width:0;background:#5fa800;transition:width .2s}
+.sum{text-align:center;color:#d8d2c8;font-size:14px;margin:0 0 6px}
+.linkbox{width:100%;padding:10px;border-radius:10px;border:1px solid #1d5666;background:#0b2630;color:#e8f1f3;font:13px/1.3 ui-monospace,Menlo,Consolas,monospace}
+.row{display:flex;gap:8px;margin-top:10px}
+.row button{flex:1}
+.ok{color:#7ee08f;text-align:center;font-weight:700;margin:0 0 10px}
+.err{background:#3a1616;border:1px solid #ef5350;color:#ffd0cf;border-radius:10px;padding:10px 12px;font-size:13.5px;margin:0 0 10px;word-break:break-word}
+.done-bar{display:none;align-items:center;gap:8px;margin-top:12px;padding:8px 10px;background:#12404f;border:1px solid #f5c542;border-radius:10px;font-size:13.5px}
+.done-bar.on{display:flex}.done-bar span{flex:1;min-width:0}
 </style>
-<button class="fab" id="fab" type="button" title="Lưu file tạm" aria-label="Lưu file tạm">☁ <span>file.kiwi</span></button>
-<div class="ov" id="ov" role="dialog" aria-label="Lưu file tạm - file.kiwi">
- <div class="card" id="card">
+<div class="ov" id="ov" role="dialog" aria-label="Lưu file tạm">
+ <div class="card" id="card" data-view="idle">
   <div class="top">
     <div class="ttl">
       <h2>☁ Lưu file tạm</h2>
-      <span class="chip" title="Dịch vụ lưu file bên ngoài"><i class="dot wait" id="dot"></i><span id="stat">Đang kết nối với máy chủ…</span></span>
+      <span class="chip"><i class="dot ok" id="dot"></i><span id="stat">Sẵn sàng</span></span>
     </div>
     <button class="xbtn" id="x" type="button" aria-label="Đóng" title="Đóng">✕</button>
   </div>
-  <div class="pane">
-    <div class="frwrap" id="frwrap">
-      <iframe id="fr" title="file.kiwi" scrolling="no" allow="clipboard-write; clipboard-read; fullscreen" referrerpolicy="no-referrer"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals"></iframe>
-      <div class="help" id="help">
-        <p><b>Chưa thấy file.kiwi?</b> Có thể file.kiwi không cho hiển thị trong ứng dụng khác, hoặc mạng đang chậm.</p>
-        <p style="margin:0"><button class="gold sm" id="helpOpen" type="button">↗ Mở trong tab mới</button> <button class="sm" id="helpWait" type="button">Chờ thêm</button></p>
+  <div class="body">
+    <div class="view v-idle">
+      <div class="drop" id="drop">
+        <p class="note">Tệp được mã hóa ngay trên máy bạn rồi mới gửi đi. Tối đa ${MAX_FILES} tệp mỗi lần.</p>
+        <button class="pick" id="pick" type="button">📦 Chọn Tệp</button>
+        <p class="hint">hoặc kéo thả tệp vào đây · lưu ${RETENTION_TEXT}</p>
       </div>
+      <input type="file" id="inp" multiple hidden>
     </div>
-    <div class="peekbar" id="peekbar">
-      <span>Căn khung:</span>
-      <button class="sm" data-d="200" type="button" title="Đẩy nội dung lên nhiều">▲▲</button>
-      <button class="sm" data-d="40" type="button" title="Đẩy nội dung lên">▲</button>
-      <button class="sm" data-d="-40" type="button" title="Đẩy nội dung xuống">▼</button>
-      <button class="sm" data-d="-200" type="button" title="Đẩy nội dung xuống nhiều">▼▼</button>
-      <span class="sp"></span>
-      <button class="sm gold" id="expand" type="button" title="Mở rộng khung">⤢</button>
+    <div class="view v-busy">
+      <p class="sum" id="sum"></p>
+      <ul class="list" id="list"></ul>
+      <button class="sm" id="cancel" type="button" style="width:100%">Hủy</button>
     </div>
-    <div class="done" id="done"><span id="doneTxt"></span><button class="sm gold" id="doneGo" type="button">Về ngay</button><button class="sm" id="doneStay" type="button">Ở lại</button></div>
+    <div class="view v-done">
+      <p class="ok">✓ Đã tải lên xong</p>
+      <input class="linkbox" id="link" type="text" readonly>
+      <div class="row"><button class="gold" id="copy" type="button">SAO CHÉP</button><button id="more" type="button">Gửi thêm tệp</button></div>
+      <p class="hint" id="keep"></p>
+      <div class="done-bar" id="doneBar"><span id="doneTxt"></span><button class="sm gold" id="doneGo" type="button">Về ngay</button><button class="sm" id="doneStay" type="button">Ở lại</button></div>
+    </div>
+    <div class="view v-err">
+      <div class="err" id="errTxt"></div>
+      <div class="row"><button class="gold" id="retry" type="button">Thử lại</button><button id="out" type="button">↗ Mở file.kiwi</button></div>
+    </div>
   </div>
  </div>
 </div>`;
 
 const $=id=>root.getElementById(id);
-const ov=$('ov'),card=$('card'),fr=$('fr'),fab=$('fab');
-let loaded=false,frameOK=false,loadT=null,wentOut=false,pushed=false,expanded=false;
+const ov=$('ov'),card=$('card');
+let busy=false,pushed=false,ac=null,lastFiles=null,viaProxy=false,backT=null,libP=null;
 
-Object.assign(fab.style,LAUNCHER_POS);
-if(!LAUNCHER)fab.style.display='none';
+function setView(v){card.dataset.view=v}
+function setStat(kind,text){$('dot').className='dot '+(kind||'');$('stat').textContent=text}
 
-/* ---------- Bố cục: khung nhỏ cố định ↔ khung sau khi chọn file ---------- */
-function layout(){
-  card.classList.toggle('mid',expanded);
-  const c=expanded?cropMid:crop;
-  const vis=expanded?EXPAND_H:PEEK_H;
-  const w=$('frwrap').clientWidth||BASE_W;
-  const sc=Math.min(1,w/BASE_W);                 // chỉ thu nhỏ khi màn hẹp, không phóng to
-  fr.style.width=BASE_W+'px';
-  fr.style.left=Math.max(0,(w-BASE_W*sc)/2)+'px'; // máy tính: căn giữa
-  fr.style.transform=sc<1?'scale('+sc+')':'none';
-  fr.style.top=(-c*sc)+'px';
-  fr.style.height=Math.max(VIEW_H,c+vis/sc+20)+'px';
-  fr.setAttribute('scrolling','no');
-  $('expand').textContent=expanded?'⤡':'⤢';
-  $('expand').title=expanded?'Thu nhỏ khung':'Mở rộng khung';
+/* ---------- Gọi API ---------- */
+function loadLib(){return libP||(libP=import(CRYPTO_URL).catch(e=>{libP=null;throw new Error('Không nạp được thư viện mã hóa (kiểm tra mạng). '+(e&&e.message||'')) }))}
+async function callApi(path,opt){
+  if(!viaProxy){
+    try{return await fetch(API+path,opt)}
+    catch(e){if(!PROXY||(opt.signal&&opt.signal.aborted))throw e;viaProxy=true}
+  }
+  return fetch(PROXY+'/api'+path,opt);
 }
-function expand(){if(expanded)return;expanded=true;layout()}
-$('expand').onclick=()=>{expanded=!expanded;layout()};
-$('peekbar').addEventListener('click',e=>{
-  const b=e.target.closest('button[data-d]');if(!b)return;
-  const d=+b.dataset.d;
-  if(expanded){cropMid=Math.max(0,Math.min(cropMid+d,3000));try{localStorage.setItem(CROP_MID_KEY,String(cropMid))}catch(err){}}
-  else{crop=Math.max(0,Math.min(crop+d,3000));try{localStorage.setItem(CROP_KEY,String(crop))}catch(err){}}
-  layout();
-});
-window.addEventListener('resize',()=>{if(ov.classList.contains('on'))layout()});
-if(window.ResizeObserver)new ResizeObserver(()=>{if(ov.classList.contains('on'))layout()}).observe($('frwrap'));
-/* Chạm "Chọn Tệp": khung GIỮ NGUYÊN nhỏ. Chỉ mở rộng khi bộ chọn file đã đóng lại (bạn quay về từ việc chọn file),
-   hoặc sau 12 giây kể từ lúc chạm — để thấy bảng link + nút SAO CHÉP. */
-let picking=false,pickT=null;
-function pickDone(){if(!picking)return;picking=false;clearTimeout(pickT);setTimeout(()=>{if(ov.classList.contains('on'))expand()},500)}
-window.addEventListener('blur',()=>{setTimeout(()=>{
-  if(!ov.classList.contains('on')||expanded||picking||root.activeElement!==fr)return;
-  picking=true;clearTimeout(pickT);pickT=setTimeout(pickDone,12000);
-},200)});
-window.addEventListener('focus',pickDone);
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!wentOut)pickDone()});
+async function putOnce(url,headers,body,signal){
+  let r;
+  if(!viaProxy){
+    try{r=await fetch(url,{method:'PUT',headers,body,signal})}
+    catch(e){if(!PROXY||(signal&&signal.aborted))throw e;viaProxy=true}
+  }
+  if(viaProxy)r=await fetch(PROXY+'/put?u='+encodeURIComponent(url),{method:'PUT',headers,body,signal});
+  if(!r.ok)throw new Error('Máy chủ lưu trữ trả lỗi '+r.status);
+}
+async function putChunk(url,headers,body,signal){
+  for(let t=1;;t++){
+    try{return await putOnce(url,headers,body,signal)}
+    catch(e){if((signal&&signal.aborted)||t>=RETRY)throw e;await sleep(1000*t)}
+  }
+}
+async function apiError(r){
+  let j={};try{j=await r.json()}catch(e){}
+  if(r.status===403&&j.error==='upload_file_type_not_allowed'){
+    const ex=Array.isArray(j.extensions)?' ('+j.extensions.join(', ')+')':'';
+    return new Error('file.kiwi không cho gửi loại tệp chạy/cài đặt'+ex+'. Hãy nén thành .zip rồi gửi lại.');
+  }
+  return new Error((j.error||j.message||'Lỗi máy chủ')+' (mã '+r.status+')');
+}
 
-/* ---------- Trạng thái kết nối ---------- */
-function setStat(kind,text){const d=$('dot');d.className='dot '+(kind||'');$('stat').textContent=text}
-function loadFrame(force){
-  if(loaded&&!force)return;
-  loaded=true;frameOK=false;
-  $('help').classList.remove('on');
-  setStat('wait','Đang kết nối với máy chủ…');
-  clearTimeout(loadT);
-  loadT=setTimeout(()=>{if(!frameOK){setStat('bad','Chưa kết nối được với máy chủ');$('help').classList.add('on')}},LOAD_TIMEOUT);
-  fr.src='about:blank';
-  setTimeout(()=>{fr.src=SITE},30);
+/* ---------- Tải lên ---------- */
+function buildList(files){
+  const ul=$('list');ul.textContent='';
+  return files.map(f=>{
+    const li=document.createElement('li');li.className='li';
+    const nm=document.createElement('div');nm.className='nm';
+    const b=document.createElement('b');b.textContent=f.name;
+    const i=document.createElement('i');i.textContent=fmtSize(f.size);
+    nm.append(b,i);
+    const bar=document.createElement('div');bar.className='bar';
+    const fill=document.createElement('div');bar.append(fill);
+    li.append(nm,bar);ul.append(li);
+    return fill;
+  });
 }
-fr.addEventListener('load',()=>{
-  const s=fr.getAttribute('src');
-  if(!s||s==='about:blank')return;
-  frameOK=true;clearTimeout(loadT);
-  setStat('ok','Đã kết nối với máy chủ của Nguyễn Tuấn');
-  $('help').classList.remove('on');
-});
+async function run(files){
+  if(busy)return;
+  files=Array.from(files);
+  if(!files.length)return;
+  if(files.length>MAX_FILES){fail(new Error('Chỉ gửi tối đa '+MAX_FILES+' tệp mỗi lần.'));return}
+  if(files.some(f=>!f.size)){fail(new Error('Có tệp rỗng (0 byte), không gửi được.'));return}
+  lastFiles=files;busy=true;ac=new AbortController();
+  const sig=ac.signal;
+  const fills=buildList(files);
+  $('sum').textContent='Đang chuẩn bị…';
+  setView('busy');setStat('wait','Đang mã hóa & kết nối…');
+  try{
+    const {Keychain}=await loadLib();
+    const kc=new Keychain();
+    const secret=kc.keyB64;
+    const ske=await seal(kc,secret);
+    const metas=[];
+    for(const f of files){
+      const m={filename:await seal(kc,f.name),filesize:f.size};
+      if(f.type)m.mimetype=f.type;
+      metas.push(m);
+    }
+    const r=await callApi('/v2/folders',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({title:'Lưu file tạm',mode:'send',encryption:{ske},files:metas}),signal:sig});
+    if(!r.ok)throw await apiError(r);
+    const j=await r.json();
+    if(!j.folderId||!Array.isArray(j.files)||j.files.length!==files.length)throw new Error('Máy chủ trả về dữ liệu không như mong đợi.');
+    for(let i=0;i<files.length;i++){
+      const f=files[i],info=j.files[i],u=info.uploadUrls;
+      $('sum').textContent='Đang tải tệp '+(i+1)+'/'+files.length+'…';
+      setStat('wait','Đang tải lên '+(i+1)+'/'+files.length);
+      const stream=await kc.encryptStream(f.stream());
+      const base=u.head.replace(/\/?$/,'/')+u.path+'/';
+      let n=0;
+      for await(const piece of pieces(stream,info.chunkSize)){
+        n++;
+        if(n>info.chunks)throw new Error('Số phần dữ liệu không khớp với máy chủ.');
+        const url=base+String(n).padStart(5,'0')+'?'+u.tail+'&X-Amz-Signature='+u.signatures[n-1];
+        await putChunk(url,u.headers,piece,sig);
+        fills[i].style.width=Math.round(n/info.chunks*100)+'%';
+      }
+      if(n!==info.chunks)throw new Error('Thiếu phần dữ liệu khi tải lên.');
+      let okFile=false;
+      for(let t=0;t<4&&!okFile;t++){
+        const s=await callApi('/v2/folders/'+j.folderId+'/files/'+info.fileId+'/upload-status?uploadAuth='+encodeURIComponent(j.uploadAuth||''),{signal:sig});
+        if(s.ok){const sj=await s.json();okFile=!!sj.complete}
+        if(!okFile)await sleep(1500);
+      }
+      if(!okFile)throw new Error('file.kiwi chưa xác nhận đã nhận đủ tệp "'+f.name+'". Hãy thử lại.');
+      fills[i].style.width='100%';
+    }
+    const base=j.folderUrlBase||String(j.folderUrl||'').split('#')[0];
+    $('link').value=base+'#'+secret;
+    $('keep').textContent='Tệp được lưu '+RETENTION_TEXT+' rồi tự xóa. Chỉ ai có đủ link (kể cả phần sau dấu #) mới mở được.';
+    setStat('ok','Đã tải lên xong');setView('done');
+  }catch(e){
+    if(sig.aborted)return;
+    fail(e);
+  }finally{busy=false}
+}
+function fail(e){
+  let m=(e&&e.message)||String(e);
+  if(e instanceof TypeError)m='Không kết nối được tới file.kiwi (có thể mạng lỗi hoặc trình duyệt chặn truy cập trực tiếp). '+(PROXY?'':'Cần cấu hình PROXY — xem filekiwi-proxy-worker.js. ')+'Chi tiết: '+m;
+  $('errTxt').textContent=m;
+  setStat('bad','Có lỗi');setView('err');
+}
 
-/* ---------- Bấm SAO CHÉP xong → tự quay về trang ----------
-   file.kiwi là trang của bên khác nên không đọc được nội dung khung. Cách nhận biết: khi bấm SAO CHÉP,
-   link mới (có dấu #) nằm trong bộ nhớ tạm → đếm ngược rồi đóng cửa sổ. (Cần cho phép đọc bộ nhớ tạm.) */
-let baseLink='',pollT=null,backT=null,polling=false,justCopied=false;
-function pickLink(text){
-  const m=String(text||'').match(LINK_RE);
-  return m?m[0].replace(/[)\].,;!?]+$/,''):'';
-}
-async function clipLink(){try{return pickLink(await navigator.clipboard.readText())}catch(e){return null}}
-async function clipDenied(){try{const p=await navigator.permissions.query({name:'clipboard-read'});return p.state==='denied'}catch(e){return false}}
-function stopWatch(){clearInterval(pollT);pollT=null}
-async function startWatch(){
-  stopWatch();
-  if(!navigator.clipboard||!navigator.clipboard.readText||await clipDenied())return;
-  const c=await clipLink();baseLink=c||'';
-  pollT=setInterval(poll,1500);
-}
-async function poll(){
-  if(polling||backT||!ov.classList.contains('on'))return;
-  polling=true;
-  try{if(await clipDenied()){stopWatch();return}
-    const c=await clipLink();if(c&&c!==baseLink&&c.indexOf('#')>0)copied(c)}
-  finally{polling=false}
-}
-function copied(u){
-  baseLink=u;justCopied=true;expand();
+/* ---------- Sao chép & tự quay về ---------- */
+function cancelBack(){clearInterval(backT);backT=null;$('doneBar').classList.remove('on')}
+async function copyLink(){
+  const t=$('link').value;let ok=false;
+  try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
+  if(!ok){try{const el=$('link');el.focus();el.select();ok=document.execCommand('copy')}catch(e){}}
+  if(!ok){$('link').select();$('doneTxt').textContent='Hãy nhấn giữ vào link để sao chép thủ công.';$('doneBar').classList.add('on');return}
   let n=RETURN_SECONDS;
   const upd=()=>{$('doneTxt').textContent='✓ Đã sao chép link. Tự quay về sau '+n+' giây…'};
-  setStat('ok','Đã sao chép link');$('done').classList.add('on');upd();
+  cancelBack();$('doneBar').classList.add('on');upd();
   backT=setInterval(()=>{n--;if(n<=0)close();else upd()},1000);
 }
-function cancelBack(){clearInterval(backT);backT=null;$('done').classList.remove('on')}
-function resetFrame(){loaded=false;frameOK=false;expanded=false;clearTimeout(loadT);$('help').classList.remove('on');fr.src='about:blank';setStat('wait','Sẵn sàng upload')}
+$('copy').onclick=copyLink;
 $('doneGo').onclick=()=>close();
 $('doneStay').onclick=cancelBack;
+$('more').onclick=()=>{cancelBack();resetUI()};
+$('retry').onclick=()=>{if(lastFiles)run(lastFiles);else resetUI()};
+$('out').onclick=()=>window.open(SITE,'_blank','noopener');
+$('cancel').onclick=()=>{if(ac)ac.abort();busy=false;resetUI()};
+
+/* ---------- Chọn tệp ---------- */
+const inp=$('inp'),drop=$('drop');
+$('pick').onclick=()=>{inp.value='';inp.click()};
+inp.onchange=()=>{if(inp.files&&inp.files.length)run(inp.files)};
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('hot')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('hot')}));
+drop.addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files.length)run(e.dataTransfer.files)});
 
 /* ---------- Điều khiển ---------- */
+function resetUI(){setView('idle');setStat('ok','Sẵn sàng');$('link').value='';lastFiles=null}
 function open(){
   if(!host.isConnected)document.body.appendChild(host);
   const was=ov.classList.contains('on');
   ov.classList.add('on');
-  layout();loadFrame();
-  if(!was)startWatch();
+  if(!was&&!busy)resetUI();
   document.documentElement.style.overflow='hidden';document.body.style.overflow='hidden';
   if(!was&&!pushed){try{history.pushState({luuFileTam:1},'');pushed=true}catch(e){}}
 }
 function close(fromPop){
+  if(busy&&!confirm('Đang tải lên. Đóng bây giờ sẽ hủy việc tải. Vẫn đóng?')){
+    if(fromPop&&pushed){try{history.pushState({luuFileTam:1},'')}catch(e){}}
+    return;
+  }
+  if(ac)ac.abort();
+  busy=false;cancelBack();
   ov.classList.remove('on');
   document.documentElement.style.overflow='';document.body.style.overflow='';
-  stopWatch();cancelBack();picking=false;clearTimeout(pickT);
-  justCopied=false;resetFrame();   // mỗi lần đóng là bỏ khung cũ; lần mở sau luôn là khung mới sạch, upload file khác bình thường
+  resetUI();
   if(pushed){pushed=false;if(!fromPop){try{history.back()}catch(e){}}}
   try{window.dispatchEvent(new CustomEvent('luufiletam:close'))}catch(e){}
 }
 window.addEventListener('popstate',()=>{if(ov.classList.contains('on')&&pushed)close(true)});
-
-/* ---------- Sự kiện ---------- */
-fab.onclick=open;
 $('x').onclick=()=>close();
-function goOut(){wentOut=true;window.open(SITE,'_blank','noopener')}
-$('helpOpen').onclick=goOut;
-$('helpWait').onclick=()=>$('help').classList.remove('on');
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ov.classList.contains('on'))close()});
 document.addEventListener('click',e=>{
   const t=e.target.closest&&e.target.closest('[data-luu-file]');
