@@ -4,7 +4,8 @@
    - Link dạng https://file.kiwi/xxxx#khoa — phần sau dấu # là khóa giải mã, không gửi lên máy chủ.
    - Thời gian lưu và tự xóa do file.kiwi xử lý (khoảng 90 giờ, theo tài liệu API v1 của họ).
    - Mã hóa dùng thư viện wormhole-crypto (RFC 8188), nạp từ jsDelivr.
-   - Nếu trình duyệt chặn gọi thẳng api.file.kiwi (CORS) → đặt địa chỉ Worker vào PROXY bên dưới
+   - file.kiwi lỗi + tệp dưới 900 MB → tự chuyển sang Litterbox (không mã hóa, lưu 72 giờ).
+   - Nếu trình duyệt chặn gọi thẳng api.file.kiwi hoặc Litterbox (CORS) → đặt địa chỉ Worker vào PROXY bên dưới
      (xem filekiwi-proxy-worker.js).
    - Gọi tay:  LuuFileTam.open()  |  LuuFileTam.close()      Gắn vào nút: thêm thuộc tính data-luu-file
    - Nhúng:  <script src="luu-file-tam.js?v=20261223"></script>
@@ -18,6 +19,10 @@ const API='https://api.file.kiwi';
 const PROXY='';                       // vd: 'https://filekiwi-proxy.ten-ban.workers.dev' (để trống = gọi thẳng)
 const CRYPTO_URL='https://cdn.jsdelivr.net/npm/wormhole-crypto@0.2.2/+esm';
 const SITE='https://file.kiwi/vi';    // dùng cho nút "Mở file.kiwi" khi có lỗi
+const LITTER_URL='https://litterbox.catbox.moe/resources/internals/api.php'; // đường dự phòng khi file.kiwi lỗi
+const LITTER_TIME='72h';              // 1h | 12h | 24h | 72h
+const LITTER_TEXT='72 giờ';
+const LITTER_MAX=900*1024*1024;       // chỉ dự phòng cho tệp dưới 900 MB (Litterbox ghi ~1 GB, chưa xác nhận chính thức)
 const MAX_FILES=10;
 const RETRY=3;                        // số lần thử lại mỗi phần khi lỗi mạng
 const RETURN_SECONDS=15;              // sao chép link xong → tự đóng sau số giây này
@@ -87,7 +92,7 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
 .bar{height:6px;margin-top:6px;border-radius:99px;background:#2c2a26;overflow:hidden}
 .bar>div{height:100%;width:0;background:#5fa800;transition:width .2s}
 .sum{text-align:center;color:#d8d2c8;font-size:14px;margin:0 0 6px}
-.linkbox{width:100%;padding:10px;border-radius:10px;border:1px solid #1d5666;background:#0b2630;color:#e8f1f3;font:13px/1.3 ui-monospace,Menlo,Consolas,monospace}
+.linkbox{resize:none;width:100%;padding:10px;border-radius:10px;border:1px solid #1d5666;background:#0b2630;color:#e8f1f3;font:13px/1.3 ui-monospace,Menlo,Consolas,monospace}
 .row{display:flex;gap:8px;margin-top:10px}
 .row button{flex:1}
 .ok{color:#7ee08f;text-align:center;font-weight:700;margin:0 0 10px}
@@ -120,7 +125,7 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
     </div>
     <div class="view v-done">
       <p class="ok">✓ Đã tải lên xong</p>
-      <input class="linkbox" id="link" type="text" readonly>
+      <textarea class="linkbox" id="link" rows="1" readonly></textarea>
       <div class="row"><button class="gold" id="copy" type="button">SAO CHÉP</button><button id="more" type="button">Gửi thêm tệp</button></div>
       <p class="hint" id="keep"></p>
       <div class="done-bar" id="doneBar"><span id="doneTxt"></span><button class="sm gold" id="doneGo" type="button">Về ngay</button><button class="sm" id="doneStay" type="button">Ở lại</button></div>
@@ -135,7 +140,7 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
 
 const $=id=>root.getElementById(id);
 const ov=$('ov'),card=$('card');
-let busy=false,pushed=false,ac=null,lastFiles=null,viaProxy=false,backT=null,libP=null;
+let busy=false,pushed=false,ac=null,lastFiles=null,viaProxy=false,litterProxy=false,backT=null,libP=null;
 
 function setView(v){card.dataset.view=v}
 function setStat(kind,text){$('dot').className='dot '+(kind||'');$('stat').textContent=text}
@@ -168,7 +173,7 @@ async function apiError(r){
   let j={};try{j=await r.json()}catch(e){}
   if(r.status===403&&j.error==='upload_file_type_not_allowed'){
     const ex=Array.isArray(j.extensions)?' ('+j.extensions.join(', ')+')':'';
-    return new Error('file.kiwi không cho gửi loại tệp chạy/cài đặt'+ex+'. Hãy nén thành .zip rồi gửi lại.');
+    const er=new Error('file.kiwi không cho gửi loại tệp chạy/cài đặt'+ex+'. Hãy nén thành .zip rồi gửi lại.');er.noFallback=true;return er;
   }
   return new Error((j.error||j.message||'Lỗi máy chủ')+' (mã '+r.status+')');
 }
@@ -188,6 +193,95 @@ function buildList(files){
     return fill;
   });
 }
+function xhrPost(url,fd,sig,onp){
+  return new Promise((res,rej)=>{
+    const x=new XMLHttpRequest();x.open('POST',url);
+    x.upload.onprogress=e=>{if(e.lengthComputable)onp(e.loaded/e.total)};
+    x.onload=()=>res({status:x.status,text:x.responseText});
+    x.onerror=()=>rej(new TypeError('Lỗi mạng hoặc bị trình duyệt chặn'));
+    x.onabort=()=>rej(new Error('Đã hủy'));
+    if(sig){if(sig.aborted){rej(new Error('Đã hủy'));return}sig.addEventListener('abort',()=>x.abort())}
+    x.send(fd);
+  });
+}
+async function litterUpload(file,sig,onp){
+  const mk=()=>{const fd=new FormData();fd.append('reqtype','fileupload');fd.append('time',LITTER_TIME);fd.append('fileToUpload',file,file.name);return fd};
+  let r;
+  if(!litterProxy){
+    try{r=await xhrPost(LITTER_URL,mk(),sig,onp)}
+    catch(e){if(!PROXY||(sig&&sig.aborted))throw e;litterProxy=true}
+  }
+  if(litterProxy)r=await xhrPost(PROXY+'/litter',mk(),sig,onp);
+  const t=String(r.text||'').trim();
+  if(r.status<200||r.status>=300||!/^https?:\/\//i.test(t))throw new Error('Litterbox trả lỗi '+r.status+(t?': '+t.slice(0,100):''));
+  return t;
+}
+async function viaLitter(files,fills,totalSize,sig){
+  const lines=[];let before=0;
+  for(let i=0;i<files.length;i++){
+    const f=files[i];
+    $('sum').textContent='Đường dự phòng: đang gửi tệp '+(i+1)+'/'+files.length+'…';
+    const url=await litterUpload(f,sig,fr=>{
+      fills[i].style.width=Math.round(fr*100)+'%';
+      const pct=Math.min(100,(before+f.size*fr)/totalSize*100);
+      setStat('wait','Dự phòng '+(i+1)+'/'+files.length+' · '+pct.toFixed(pct<10?1:0)+'%');
+    });
+    fills[i].style.width='100%';before+=f.size;
+    lines.push(files.length>1?f.name+': '+url:url);
+  }
+  return lines;
+}
+async function viaKiwi(files,fills,totalSize,sig){
+  const {Keychain}=await loadLib();
+  const kc=new Keychain();
+  const secret=kc.keyB64;
+  const ske=await seal(kc,secret);
+  const metas=[];
+  for(const f of files){
+    const m={filename:await seal(kc,f.name),filesize:f.size};
+    if(f.type)m.mimetype=f.type;
+    metas.push(m);
+  }
+  const r=await callApi('/v2/folders',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({title:'Lưu file tạm',mode:'send',encryption:{ske},files:metas}),signal:sig});
+  if(!r.ok)throw await apiError(r);
+  const j=await r.json();
+  if(!j.folderId||!Array.isArray(j.files)||j.files.length!==files.length)throw new Error('Máy chủ trả về dữ liệu không như mong đợi.');
+  for(let i=0;i<files.length;i++){
+    const f=files[i],info=j.files[i],u=info.uploadUrls;
+    $('sum').textContent='Đang tải tệp '+(i+1)+'/'+files.length+'…';
+    setStat('wait','Đang tải lên '+(i+1)+'/'+files.length+' · 0%');
+    const stream=await kc.encryptStream(f.stream());
+    const base=u.head.replace(/\/?$/,'/')+u.path+'/';
+    let n=0;
+    const before=files.slice(0,i).reduce((a,x)=>a+x.size,0);
+    for await(const piece of pieces(stream,info.chunkSize)){
+      n++;
+      if(n>info.chunks)throw new Error('Số phần dữ liệu không khớp với máy chủ.');
+      const url=base+String(n).padStart(5,'0')+'?'+u.tail+'&X-Amz-Signature='+u.signatures[n-1];
+      await putChunk(url,u.headers,piece,sig);
+      fills[i].style.width=Math.round(n/info.chunks*100)+'%';
+      const pct=Math.min(100,(before+f.size*n/info.chunks)/totalSize*100);
+      setStat('wait','Đang tải lên '+(i+1)+'/'+files.length+' · '+pct.toFixed(pct<10||totalSize>1073741824?1:0)+'%');
+    }
+    if(n!==info.chunks)throw new Error('Thiếu phần dữ liệu khi tải lên.');
+    let okFile=false;
+    for(let t=0;t<4&&!okFile;t++){
+      const s=await callApi('/v2/folders/'+j.folderId+'/files/'+info.fileId+'/upload-status?uploadAuth='+encodeURIComponent(j.uploadAuth||''),{signal:sig});
+      if(s.ok){const sj=await s.json();okFile=!!sj.complete}
+      if(!okFile)await sleep(1500);
+    }
+    if(!okFile)throw new Error('file.kiwi chưa xác nhận đã nhận đủ tệp "'+f.name+'". Hãy thử lại.');
+    fills[i].style.width='100%';
+  }
+  const base=j.folderUrlBase||String(j.folderUrl||'').split('#')[0];
+  return base+'#'+secret;
+}
+function showDone(lines,note){
+  const t=$('link');t.value=lines.join('\n');t.rows=Math.min(6,Math.max(1,lines.length));
+  $('keep').textContent=note;
+  setStat('ok','Đã tải lên xong');setView('done');
+}
 async function run(files){
   if(busy)return;
   files=Array.from(files);
@@ -201,52 +295,24 @@ async function run(files){
   $('sum').textContent='Đang chuẩn bị…';
   setView('busy');setStat('wait','Đang mã hóa & kết nối…');
   try{
-    const {Keychain}=await loadLib();
-    const kc=new Keychain();
-    const secret=kc.keyB64;
-    const ske=await seal(kc,secret);
-    const metas=[];
-    for(const f of files){
-      const m={filename:await seal(kc,f.name),filesize:f.size};
-      if(f.type)m.mimetype=f.type;
-      metas.push(m);
-    }
-    const r=await callApi('/v2/folders',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({title:'Lưu file tạm',mode:'send',encryption:{ske},files:metas}),signal:sig});
-    if(!r.ok)throw await apiError(r);
-    const j=await r.json();
-    if(!j.folderId||!Array.isArray(j.files)||j.files.length!==files.length)throw new Error('Máy chủ trả về dữ liệu không như mong đợi.');
-    for(let i=0;i<files.length;i++){
-      const f=files[i],info=j.files[i],u=info.uploadUrls;
-      $('sum').textContent='Đang tải tệp '+(i+1)+'/'+files.length+'…';
-      setStat('wait','Đang tải lên '+(i+1)+'/'+files.length+' · 0%');
-      const stream=await kc.encryptStream(f.stream());
-      const base=u.head.replace(/\/?$/,'/')+u.path+'/';
-      let n=0;
-      const before=files.slice(0,i).reduce((a,x)=>a+x.size,0);
-      for await(const piece of pieces(stream,info.chunkSize)){
-        n++;
-        if(n>info.chunks)throw new Error('Số phần dữ liệu không khớp với máy chủ.');
-        const url=base+String(n).padStart(5,'0')+'?'+u.tail+'&X-Amz-Signature='+u.signatures[n-1];
-        await putChunk(url,u.headers,piece,sig);
-        fills[i].style.width=Math.round(n/info.chunks*100)+'%';
-        const pct=Math.min(100,(before+f.size*n/info.chunks)/totalSize*100);
-        setStat('wait','Đang tải lên '+(i+1)+'/'+files.length+' · '+pct.toFixed(pct<10||totalSize>1073741824?1:0)+'%');
+    let lines,note;
+    try{
+      lines=[await viaKiwi(files,fills,totalSize,sig)];
+      note='Tệp được lưu '+RETENTION_TEXT+' rồi tự xóa. Chỉ ai có đủ link (kể cả phần sau dấu #) mới mở được.';
+    }catch(e){
+      if(sig.aborted)return;
+      if(e.noFallback||files.some(f=>f.size>LITTER_MAX))throw e;
+      fills.forEach(x=>{x.style.width='0'});
+      setStat('wait','file.kiwi lỗi, chuyển sang đường dự phòng…');
+      try{lines=await viaLitter(files,fills,totalSize,sig)}
+      catch(e2){
+        if(sig.aborted)return;
+        const hint=(e instanceof TypeError&&!PROXY)?' (nếu do trình duyệt chặn: cần cấu hình PROXY — xem filekiwi-proxy-worker.js)':'';
+        throw new Error('file.kiwi: '+((e&&e.message)||e)+' — Litterbox: '+((e2&&e2.message)||e2)+hint);
       }
-      if(n!==info.chunks)throw new Error('Thiếu phần dữ liệu khi tải lên.');
-      let okFile=false;
-      for(let t=0;t<4&&!okFile;t++){
-        const s=await callApi('/v2/folders/'+j.folderId+'/files/'+info.fileId+'/upload-status?uploadAuth='+encodeURIComponent(j.uploadAuth||''),{signal:sig});
-        if(s.ok){const sj=await s.json();okFile=!!sj.complete}
-        if(!okFile)await sleep(1500);
-      }
-      if(!okFile)throw new Error('file.kiwi chưa xác nhận đã nhận đủ tệp "'+f.name+'". Hãy thử lại.');
-      fills[i].style.width='100%';
+      note='⚠ Đã dùng đường dự phòng (Litterbox): tệp KHÔNG được mã hóa, lưu '+LITTER_TEXT+'. Ai có link đều tải được.';
     }
-    const base=j.folderUrlBase||String(j.folderUrl||'').split('#')[0];
-    $('link').value=base+'#'+secret;
-    $('keep').textContent='Tệp được lưu '+RETENTION_TEXT+' rồi tự xóa. Chỉ ai có đủ link (kể cả phần sau dấu #) mới mở được.';
-    setStat('ok','Đã tải lên xong');setView('done');
+    showDone(lines,note);
   }catch(e){
     if(sig.aborted)return;
     fail(e);

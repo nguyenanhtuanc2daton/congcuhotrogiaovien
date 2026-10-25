@@ -28,6 +28,8 @@ export default{
       try{h=new URL(target)}catch(e){return new Response('bad url',{status:400,headers:cors})}
       if(h.protocol!=='https:'||!h.hostname.endsWith('.r2.cloudflarestorage.com'))
         return new Response('forbidden target',{status:403,headers:cors});
+    }else if(url.pathname==='/litter'){
+      target='https://litterbox.catbox.moe/resources/internals/api.php';
     }else{
       return new Response('not found',{status:404,headers:cors});
     }
