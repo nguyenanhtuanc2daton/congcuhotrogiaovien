@@ -60,7 +60,7 @@ root.innerHTML=`
 .card{width:100%;max-width:440px;max-height:100%;display:flex;flex-direction:column;background:#0b1f27;border:1px solid #1d5666;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px #000a}
 .top{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0f3340;border-bottom:1px solid #1d5666}
 .ttl{flex:1;min-width:0}
-.ttl h2{margin:0;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ttl h2{margin:0;font-size:16px;line-height:1.3}
 .chip{display:inline-flex;align-items:center;gap:6px;margin-top:3px;padding:2px 10px;border-radius:99px;border:1px solid #f5c542;background:rgba(245,197,66,.12);color:#f5c542;font-size:12.5px;font-weight:700;max-width:100%}
 .chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dot{width:8px;height:8px;border-radius:50%;background:#e0a030;flex:none}
@@ -99,7 +99,7 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
  <div class="card" id="card" data-view="idle">
   <div class="top">
     <div class="ttl">
-      <h2>☁ Lưu file tạm</h2>
+      <h2>☁ Đã kết nối tới máy chủ của Nguyễn Tuấn</h2>
       <span class="chip"><i class="dot ok" id="dot"></i><span id="stat">Sẵn sàng</span></span>
     </div>
     <button class="xbtn" id="x" type="button" aria-label="Đóng" title="Đóng">✕</button>
@@ -197,6 +197,7 @@ async function run(files){
   lastFiles=files;busy=true;ac=new AbortController();
   const sig=ac.signal;
   const fills=buildList(files);
+  const totalSize=files.reduce((a,x)=>a+x.size,0);
   $('sum').textContent='Đang chuẩn bị…';
   setView('busy');setStat('wait','Đang mã hóa & kết nối…');
   try{
@@ -218,16 +219,19 @@ async function run(files){
     for(let i=0;i<files.length;i++){
       const f=files[i],info=j.files[i],u=info.uploadUrls;
       $('sum').textContent='Đang tải tệp '+(i+1)+'/'+files.length+'…';
-      setStat('wait','Đang tải lên '+(i+1)+'/'+files.length);
+      setStat('wait','Đang tải lên '+(i+1)+'/'+files.length+' · 0%');
       const stream=await kc.encryptStream(f.stream());
       const base=u.head.replace(/\/?$/,'/')+u.path+'/';
       let n=0;
+      const before=files.slice(0,i).reduce((a,x)=>a+x.size,0);
       for await(const piece of pieces(stream,info.chunkSize)){
         n++;
         if(n>info.chunks)throw new Error('Số phần dữ liệu không khớp với máy chủ.');
         const url=base+String(n).padStart(5,'0')+'?'+u.tail+'&X-Amz-Signature='+u.signatures[n-1];
         await putChunk(url,u.headers,piece,sig);
         fills[i].style.width=Math.round(n/info.chunks*100)+'%';
+        const pct=Math.min(100,(before+f.size*n/info.chunks)/totalSize*100);
+        setStat('wait','Đang tải lên '+(i+1)+'/'+files.length+' · '+pct.toFixed(pct<10||totalSize>1073741824?1:0)+'%');
       }
       if(n!==info.chunks)throw new Error('Thiếu phần dữ liệu khi tải lên.');
       let okFile=false;
