@@ -8,6 +8,10 @@
    - Mã hóa dùng thư viện wormhole-crypto (RFC 8188), nạp từ jsDelivr.
    - Nếu trình duyệt chặn gọi thẳng api.file.kiwi hoặc Litterbox (CORS) → đặt địa chỉ Worker vào PROXY bên dưới
      (xem filekiwi-proxy-worker.js).
+   - Tải nhiều phần song song (PARALLEL phần cùng lúc); nếu máy chủ không nhận → tự quay về từng phần.
+   - Giữ máy không ngủ (Wake Lock) khi đang tải + cảnh báo khi lỡ tắt/tải lại tab.
+   - Lịch sử link đã gửi: lưu trên máy (localStorage), kèm giờ hết hạn, nút sao chép / QR / xóa.
+   - Mã QR cho link (bộ tạo QR gọn nằm ngay trong file này, không cần file khác).
    - Gọi tay:  LuuFileTam.open()  |  LuuFileTam.close()      Gắn vào nút: thêm thuộc tính data-luu-file
    ===================================================================== */
 (function(){
@@ -30,6 +34,11 @@ const RETENTION_TEXT='khoảng 90 giờ';
 const RESUME_KEY='luuFileTam.resume.v1';
 const RESUME_MAX_MS=34*3600*1000;     // link tải lên của file.kiwi hết hạn sau 36 giờ
 const KEEPALIVE_MS=20*60*1000;        // báo "còn đang tải" để file.kiwi không xóa giữa chừng
+const PARALLEL=3;                     // số phần tải lên cùng lúc (tốn thêm ~30 MB RAM); máy chủ từ chối → tự về từng phần
+const HIST_KEY='luuFileTam.history.v1';
+const HIST_MAX=30;                    // số link nhớ tối đa
+const KIWI_MS=90*3600*1000;           // khớp RETENTION_TEXT
+const LITTER_MS=72*3600*1000;         // khớp LITTER_TIME
 
 /* ---------- Hàm phụ ---------- */
 const enc=new TextEncoder();
@@ -54,6 +63,27 @@ async function* pieces(stream,size){     // cắt luồng đã mã hóa thành c
     }
   }
   if(len>0)yield buf.slice(0,len);
+}
+/* Gửi nhiều phần cùng lúc (tối đa limit). Có phần lỗi (vd máy chủ không cho song song) → đợi xong việc đang chạy,
+   rồi gửi lại các phần lỗi từng phần một; lỗi tiếp thì báo lỗi. run() phải tự thử lại mạng bên trong. */
+function parSender(limit,sig){
+  const fly=new Set(),bad=[];let par=limit;
+  const drain=async()=>{
+    while(fly.size)await Promise.race(fly);
+    if(!bad.length)return;
+    if(par===1)throw bad[0].e;
+    par=1;
+    for(const b of bad.splice(0))await b.run();
+  };
+  return{
+    async add(run){
+      if(bad.length)await drain();
+      while(fly.size>=par)await Promise.race(fly);
+      const job=async()=>{try{await run()}catch(e){if(sig&&sig.aborted)throw e;bad.push({run,e})}};
+      let p;p=job().finally(()=>fly.delete(p));p.catch(()=>{});fly.add(p);
+    },
+    finish:drain
+  };
 }
 function fmtSize(n){const u=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<4){n/=1024;i++}return (i?n.toFixed(n<10?1:0):n)+' '+u[i]}
 function fmtTime(s){
@@ -175,6 +205,118 @@ async function eceRange(ctx,blob,s,e){          // trả về byte [s,e) của l
 /*==END-HELPERS==*/
 
 
+/*==QR==*/
+/* ----- Mã QR: chế độ byte, sửa lỗi mức M (L nếu link rất dài), chọn mặt nạ tốt nhất ----- */
+const QR_ECC={
+  M:{f:0,e:[0,10,16,26,18,24,16,18,22,22,26,30,22,22,24,24,28,28,26,26,26,26,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28],
+        b:[0,1,1,1,2,2,4,4,4,5,5,5,8,9,9,10,10,11,13,14,16,17,17,18,20,21,23,25,26,28,29,31,33,35,37,38,40,43,45,47,49]},
+  L:{f:1,e:[0,7,10,15,20,26,18,20,24,30,18,20,24,26,30,22,24,28,30,28,28,28,28,30,30,26,28,30,30,30,30,30,30,30,30,30,30,30,30,30,30],
+        b:[0,1,1,1,1,1,2,2,2,2,4,4,4,4,4,6,6,6,6,7,8,8,9,9,10,12,12,12,13,14,15,16,17,18,19,19,20,21,22,24,25]}
+};
+function qrMatrix(text){
+  const bytes=Array.from(enc.encode(text));
+  const rawMods=v=>{let r=(16*v+128)*v+64;if(v>=2){const a=Math.floor(v/7)+2;r-=(25*a-10)*a-55;if(v>=7)r-=36}return r};
+  let ec=null,ver=0;
+  for(const k of ['M','L']){
+    const E=QR_ECC[k];
+    for(let v=1;v<=40;v++){
+      const cap=Math.floor(rawMods(v)/8)-E.e[v]*E.b[v];
+      if(4+(v<=9?8:16)+bytes.length*8<=cap*8){ec=E;ver=v;break}
+    }
+    if(ec)break;
+  }
+  if(!ec)throw new Error('Link quá dài để tạo mã QR.');
+  const capBytes=Math.floor(rawMods(ver)/8)-ec.e[ver]*ec.b[ver];
+  const bits=[];const put=(val,n)=>{for(let i=n-1;i>=0;i--)bits.push((val>>>i)&1)};
+  put(4,4);put(bytes.length,ver<=9?8:16);bytes.forEach(b=>put(b,8));
+  put(0,Math.min(4,capBytes*8-bits.length));
+  while(bits.length%8)bits.push(0);
+  const data=[];
+  for(let i=0;i<bits.length;i+=8){let x=0;for(let j=0;j<8;j++)x=(x<<1)|bits[i+j];data.push(x)}
+  for(let pd=0xEC;data.length<capBytes;pd^=0xEC^0x11)data.push(pd);
+  /* Reed–Solomon */
+  const gmul=(x,y)=>{let z=0;for(let i=7;i>=0;i--){z=(z<<1)^((z>>>7)*0x11D);z^=((y>>>i)&1)*x}return z};
+  const nb=ec.b[ver],el=ec.e[ver],raw=Math.floor(rawMods(ver)/8),ns=nb-raw%nb,sl=Math.floor(raw/nb);
+  const div=Array(el).fill(0);div[el-1]=1;
+  for(let r=1,i=0;i<el;i++){for(let j=0;j<el;j++){div[j]=gmul(div[j],r);if(j+1<el)div[j]^=div[j+1]}r=gmul(r,2)}
+  const blocks=[];
+  for(let i=0,k=0;i<nb;i++){
+    const d=data.slice(k,k+sl-el+(i<ns?0:1));k+=d.length;
+    const rem=Array(el).fill(0);
+    for(const b of d){const f=b^rem.shift();rem.push(0);div.forEach((c,j)=>{rem[j]^=gmul(c,f)})}
+    if(i<ns)d.push(0);
+    blocks.push(d.concat(rem));
+  }
+  const all=[];
+  for(let i=0;i<blocks[0].length;i++)blocks.forEach((b,j)=>{if(i!==sl-el||j>=ns)all.push(b[i])});
+  /* Vẽ ma trận */
+  const n=ver*4+17;
+  const M=Array.from({length:n},()=>Array(n).fill(0)),F=Array.from({length:n},()=>Array(n).fill(false));
+  const setF=(x,y,v)=>{M[y][x]=v?1:0;F[y][x]=true};
+  for(let i=0;i<n;i++){setF(6,i,i%2===0);setF(i,6,i%2===0)}
+  const finder=(cx,cy)=>{for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const d=Math.max(Math.abs(dx),Math.abs(dy)),x=cx+dx,y=cy+dy;if(x>=0&&x<n&&y>=0&&y<n)setF(x,y,d!==2&&d!==4)}};
+  finder(3,3);finder(n-4,3);finder(3,n-4);
+  const na=ver===1?0:Math.floor(ver/7)+2,ap=[];
+  if(na){const step=ver===32?26:Math.ceil((ver*4+4)/(na*2-2))*2;ap.push(6);for(let q=n-7;ap.length<na;q-=step)ap.splice(1,0,q)}
+  for(let i=0;i<na;i++)for(let j=0;j<na;j++){
+    if((i===0&&j===0)||(i===0&&j===na-1)||(i===na-1&&j===0))continue;
+    for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)setF(ap[i]+dx,ap[j]+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1);
+  }
+  const fmt=mask=>{
+    const d=(ec.f<<3)|mask;let r=d;for(let i=0;i<10;i++)r=(r<<1)^((r>>>9)*0x537);
+    const b=((d<<10)|r)^0x5412,g=i=>((b>>>i)&1)!==0;
+    for(let i=0;i<=5;i++)setF(8,i,g(i));
+    setF(8,7,g(6));setF(8,8,g(7));setF(7,8,g(8));
+    for(let i=9;i<15;i++)setF(14-i,8,g(i));
+    for(let i=0;i<8;i++)setF(n-1-i,8,g(i));
+    for(let i=8;i<15;i++)setF(8,n-15+i,g(i));
+    setF(8,n-8,true);
+  };
+  fmt(0);
+  if(ver>=7){
+    let r=ver;for(let i=0;i<12;i++)r=(r<<1)^((r>>>11)*0x1F25);
+    const b=(ver<<12)|r;
+    for(let i=0;i<18;i++){const c=((b>>>i)&1)!==0,a=n-11+i%3,q=Math.floor(i/3);setF(a,q,c);setF(q,a,c)}
+  }
+  let bi=0;
+  for(let right=n-1;right>=1;right-=2){
+    if(right===6)right=5;
+    for(let vert=0;vert<n;vert++)for(let j=0;j<2;j++){
+      const x=right-j,up=((right+1)&2)===0,y=up?n-1-vert:vert;
+      if(!F[y][x]&&bi<all.length*8){M[y][x]=(all[bi>>>3]>>>(7-(bi&7)))&1;bi++}
+    }
+  }
+  const maskFn=[(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,
+    (x,y)=>(Math.floor(x/3)+Math.floor(y/2))%2===0,(x,y)=>x*y%2+x*y%3===0,
+    (x,y)=>(x*y%2+x*y%3)%2===0,(x,y)=>((x+y)%2+x*y%3)%2===0];
+  const apply=m=>{for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(!F[y][x]&&maskFn[m](x,y))M[y][x]^=1};
+  const penalty=()=>{
+    let p=0,dark=0;
+    const lineScore=str=>{
+      let q=0;
+      for(const m of str.matchAll(/0{5,}|1{5,}/g))q+=3+(m[0].length-5);
+      q+=(str.match(/(?=00001011101|10111010000)/g)||[]).length*40;
+      return q;
+    };
+    for(let y=0;y<n;y++){p+=lineScore(M[y].join(''));for(let x=0;x<n;x++)dark+=M[y][x]}
+    for(let x=0;x<n;x++){let c='';for(let y=0;y<n;y++)c+=M[y][x];p+=lineScore(c)}
+    for(let y=0;y<n-1;y++)for(let x=0;x<n-1;x++){const v=M[y][x];if(v===M[y][x+1]&&v===M[y+1][x]&&v===M[y+1][x+1])p+=3}
+    const tot=n*n;p+=(Math.ceil(Math.abs(dark*20-tot*10)/tot)-1)*10;
+    return p;
+  };
+  let best=0,bestP=Infinity;
+  for(let m=0;m<8;m++){apply(m);fmt(m);const sc=penalty();if(sc<bestP){bestP=sc;best=m}apply(m)}
+  apply(best);fmt(best);
+  return M;
+}
+function drawQr(cv,text,px){
+  const m=qrMatrix(text),n=m.length,q=4,sc=Math.max(2,Math.floor(px/(n+q*2))),d=(n+q*2)*sc;
+  cv.width=cv.height=d;
+  const c=cv.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,d,d);c.fillStyle='#000';
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(m[y][x])c.fillRect((x+q)*sc,(y+q)*sc,sc,sc);
+}
+/*==END-QR==*/
+
 /* ---------- Kiểm tra bộ mã hóa tự viết có cho ra đúng từng byte như thư viện không ---------- */
 let ownP=null;
 function ownConfig(lib){return ownP||(ownP=eceSelfTest(lib.Keychain).catch(()=>null))}
@@ -215,6 +357,18 @@ function readResume(){try{const r=JSON.parse(localStorage.getItem(RESUME_KEY)||'
 function loadResume(fp){const r=readResume();return(r&&JSON.stringify(r.fp)===JSON.stringify(fp))?r:null}
 function saveResume(r){try{localStorage.setItem(RESUME_KEY,JSON.stringify(r))}catch(e){}}
 function clearResume(){try{localStorage.removeItem(RESUME_KEY)}catch(e){}}
+
+/* ---------- Lịch sử link đã gửi (lưu trên máy này) ---------- */
+function readHist(){
+  try{const a=JSON.parse(localStorage.getItem(HIST_KEY)||'[]');return Array.isArray(a)?a.filter(h=>h&&Array.isArray(h.lines)&&h.lines.length&&h.exp):[]}
+  catch(e){return[]}
+}
+function writeHist(a){try{localStorage.setItem(HIST_KEY,JSON.stringify(a))}catch(e){}}
+function addHist(h){
+  const a=readHist().filter(x=>Date.now()-x.exp<7*86400000);   // dọn mục đã hết hạn quá 7 ngày
+  a.unshift(h);writeHist(a.slice(0,HIST_MAX));
+}
+function fmtDT(ms){const d=new Date(ms),p=n=>String(n).padStart(2,'0');return p(d.getHours())+':'+p(d.getMinutes())+' '+p(d.getDate())+'/'+p(d.getMonth()+1)}
 
 /* ---------- Giao diện (Shadow DOM) ---------- */
 const host=document.createElement('div');
@@ -269,6 +423,20 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
 .err{background:#3a1616;border:1px solid #ef5350;color:#ffd0cf;border-radius:10px;padding:10px 12px;font-size:13.5px;margin:0 0 10px;word-break:break-word}
 .done-bar{display:none;align-items:center;gap:8px;margin-top:12px;padding:8px 10px;background:#12404f;border:1px solid #f5c542;border-radius:10px;font-size:13.5px}
 .done-bar.on{display:flex}.done-bar span{flex:1;min-width:0}
+button:disabled{opacity:.5;cursor:default}
+.hist{margin-top:16px}
+.hh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;color:#d8d2c8;font-size:13.5px}
+.hl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;max-height:240px;overflow:auto}
+.hi.old{opacity:.55}
+.when{margin-top:2px;color:#a9a39a;font-size:12px}
+.acts{display:flex;gap:6px;margin-top:6px}
+.acts button{flex:1}.acts button:last-child{flex:0 0 auto}
+.qrm{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:12px;background:rgba(4,14,19,.9)}
+.qrm.on{display:flex}
+.qrc{width:100%;max-width:340px;max-height:100%;overflow:auto;background:#0b1f27;border:1px solid #1d5666;border-radius:14px;padding:14px;text-align:center}
+.qrc canvas{display:block;margin:0 auto;width:min(260px,100%);height:auto;background:#fff;border-radius:8px;image-rendering:pixelated}
+.qrt{margin:10px 0 4px;font:12px/1.3 ui-monospace,Menlo,Consolas,monospace;color:#a9a39a;word-break:break-all;max-height:3.9em;overflow:hidden}
+.wl{color:#a9a39a}
 </style>
 <div class="ov" id="ov" role="dialog" aria-label="Lưu file tạm">
  <div class="card" id="card" data-view="idle">
@@ -291,11 +459,17 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
       </div>
       <input type="file" id="inp" multiple hidden>
       <input type="file" id="dirInp" webkitdirectory hidden>
+      <div class="hist" id="hist" style="display:none">
+        <div class="hh"><b>🕘 Link đã gửi</b><button class="sm" id="histClear" type="button">Xóa hết</button></div>
+        <ul class="hl" id="histList"></ul>
+        <p class="hint">Lưu trên máy này (có cả khóa giải mã), đóng khung không mất. Máy dùng chung thì nhớ bấm Xóa.</p>
+      </div>
     </div>
     <div class="view v-busy">
       <p class="sum" id="sum"></p>
       <p class="spd" id="spd"></p>
       <ul class="list" id="list"></ul>
+      <p class="hint wl" id="wlNote"></p>
       <button class="sm" id="cancel" type="button" style="width:100%">Hủy</button>
     </div>
     <div class="view v-done">
@@ -307,6 +481,7 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
         <button class="sm" id="shZalo" type="button">Zalo</button>
         <button class="sm" id="shMsg" type="button">Messenger</button>
         <button class="sm" id="shMail" type="button">✉ Email</button>
+        <button class="sm" id="shQr" type="button">📱 Mã QR</button>
       </div>
       <p class="hint" id="keep"></p>
       <div class="done-bar" id="doneBar"><span id="doneTxt"></span><button class="sm gold" id="doneGo" type="button">Về ngay</button><button class="sm" id="doneStay" type="button">Ở lại</button></div>
@@ -317,12 +492,35 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
     </div>
   </div>
  </div>
+ <div class="qrm" id="qrm">
+  <div class="qrc">
+    <canvas id="qrCv" width="300" height="300"></canvas>
+    <p class="qrt" id="qrTxt"></p>
+    <p class="hint" id="qrNote"></p>
+    <div class="row"><button class="gold" id="qrDl" type="button">⬇ Tải ảnh PNG</button><button id="qrX" type="button">Đóng</button></div>
+  </div>
+ </div>
 </div>`;
 
 const $=id=>root.getElementById(id);
 const ov=$('ov'),card=$('card');
 let busy=false,pushed=false,ac=null,lastInput=null,viaProxy=false,litterProxy=false,backT=null,libP=null,meter=null;
 const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'');
+
+/* ---------- Giữ máy không ngủ & cảnh báo khi lỡ đóng tab ---------- */
+let wl=null,wlWant=false;
+async function wakeOn(){
+  wlWant=true;
+  try{
+    if(!navigator.wakeLock||wl)return;
+    const l=await navigator.wakeLock.request('screen');
+    if(!wlWant){try{l.release()}catch(e){}return}
+    wl=l;l.addEventListener('release',()=>{if(wl===l)wl=null});
+  }catch(e){wl=null}
+}
+function wakeOff(){wlWant=false;const l=wl;wl=null;try{if(l)l.release()}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(wlWant&&document.visibilityState==='visible')wakeOn()});   // trình duyệt tự nhả khi ẩn tab → xin lại
+window.addEventListener('beforeunload',e=>{if(busy){e.preventDefault();e.returnValue='';return ''}});
 
 function setView(v){card.dataset.view=v}
 function setStat(kind,text){$('dot').className='dot '+(kind||'');$('stat').textContent=text}
@@ -529,24 +727,34 @@ async function viaKiwi(items,fills,totalSize,sig){
         n=info.chunks-todo.length;
         fills[i].style.width=Math.round(n/info.chunks*100)+'%';
         report(label,before+it.size*n/info.chunks,totalSize);
+        const sender=parSender(PARALLEL,sig);
         for(const c of todo){
-          const data=await eceRange(ctx,it,(c-1)*cs,Math.min(c*cs,ctx.total));
-          await put(c,data);
-          n++;
-          fills[i].style.width=Math.round(n/info.chunks*100)+'%';
-          report(label,before+it.size*n/info.chunks,totalSize);
+          await sender.add(async()=>{
+            const data=await eceRange(ctx,it,(c-1)*cs,Math.min(c*cs,ctx.total));
+            await put(c,data);
+            n++;
+            fills[i].style.width=Math.round(n/info.chunks*100)+'%';
+            report(label,before+it.size*n/info.chunks,totalSize);
+          });
         }
+        await sender.finish();
       }else{
         report(label,before,totalSize);
         const stream=await kc.encryptStream(it.stream());
+        const sender=parSender(PARALLEL,sig);let fin=0;
         for await(const piece of pieces(stream,cs)){
           n++;
           if(n>info.chunks)throw new Error('Số phần dữ liệu không khớp với máy chủ.');
-          await put(n,piece);
-          fills[i].style.width=Math.round(n/info.chunks*100)+'%';
-          report(label,before+it.size*n/info.chunks,totalSize);
+          const k=n;
+          await sender.add(async()=>{
+            await put(k,piece);
+            fin++;
+            fills[i].style.width=Math.round(fin/info.chunks*100)+'%';
+            report(label,before+it.size*fin/info.chunks,totalSize);
+          });
         }
-        if(n!==info.chunks)throw new Error('Thiếu phần dữ liệu khi tải lên.');
+        await sender.finish();
+        if(n!==info.chunks||fin!==info.chunks)throw new Error('Thiếu phần dữ liệu khi tải lên.');
       }
 
       let okFile=false;
@@ -564,9 +772,11 @@ async function viaKiwi(items,fills,totalSize,sig){
   return baseUrl+'#'+secret;
 }
 
-function showDone(lines,note){
+function showDone(lines,note,meta){
   const t=$('link');t.value=lines.join('\n');t.rows=Math.min(6,Math.max(1,lines.length));
-  $('keep').textContent=note;
+  if(meta)addHist({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Date.now(),exp:Date.now()+(meta.litter?LITTER_MS:KIWI_MS),
+    lines,names:meta.names,size:meta.size,litter:!!meta.litter});
+  $('keep').textContent=note+' Link cũng được lưu ở mục “Link đã gửi” trên máy này.';
   const nat=!!navigator.share;
   $('shNative').style.display=nat?'':'none';
   $('shZalo').style.display=$('shMsg').style.display=(isMobile&&nat)?'none':'';
@@ -581,16 +791,19 @@ async function run(input){
   if(items.length>MAX_FILES){fail(new Error('Chọn quá '+MAX_FILES+' tệp riêng lẻ. Hãy bật ô "Gộp nhiều tệp thành 1 file .zip" rồi chọn lại.'));return}
   if(!plan.zip&&items.some(f=>!f.size)){fail(new Error('Có tệp rỗng (0 byte), không gửi được.'));return}
   busy=true;ac=new AbortController();
-  const sig=ac.signal;
+  const sig=ac.signal,myAc=ac;
+  wakeOn();
+  $('wlNote').textContent=navigator.wakeLock?'🔒 Đang giữ màn hình sáng. Đừng đóng tab hoặc tắt trình duyệt cho tới khi xong.':'⚠ Trình duyệt này không giữ được màn hình sáng: hãy tự giữ máy không ngủ và đừng chuyển sang ứng dụng khác.';
   const fills=buildList(items);
   const totalSize=items.reduce((a,x)=>a+x.size,0);
   newMeter(totalSize);
   $('sum').textContent='Đang chuẩn bị…';$('spd').textContent='';
   setView('busy');setStat('wait','Đang mã hóa & kết nối…');
   try{
-    let lines,note;
+    let lines,note,meta;
     try{
       lines=[await viaKiwi(items,fills,totalSize,sig)];
+      meta={names:items.map(x=>x.name),size:totalSize,litter:false};
       note='Tệp được lưu '+RETENTION_TEXT+' rồi tự xóa. Chỉ ai có đủ link (kể cả phần sau dấu #) mới mở được.';
     }catch(e){
       if(sig.aborted)return;
@@ -607,12 +820,13 @@ async function run(input){
       }
       clearResume();
       note='⚠ Đã dùng đường dự phòng (Litterbox): tệp KHÔNG được mã hóa, lưu '+LITTER_TEXT+'. Ai có link đều tải được.';
+      meta={names:srcs.map(f=>f.name),size:total2,litter:true};
     }
-    showDone(lines,note);
+    showDone(lines,note,meta);
   }catch(e){
     if(sig.aborted)return;
     fail(e);
-  }finally{busy=false}
+  }finally{if(ac===myAc){busy=false;wakeOff()}}
 }
 function fail(e){
   let m=(e&&e.message)||String(e);
@@ -695,12 +909,72 @@ drop.addEventListener('drop',e=>{
   })().catch(err=>fail(err));
 });
 
+/* ---------- Sao chép (dùng cho lịch sử) ---------- */
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);return true}catch(e){}
+  try{
+    const el=document.createElement('textarea');el.value=t;el.style.cssText='position:fixed;opacity:0;left:0;top:0';
+    root.appendChild(el);el.focus();el.select();const ok=document.execCommand('copy');el.remove();return ok;
+  }catch(e){return false}
+}
+
+/* ---------- Mã QR ---------- */
+const qrm=$('qrm');
+function hideQr(){qrm.classList.remove('on')}
+function showQr(text){
+  const urls=String(text).match(/https?:\/\/\S+/g)||[];
+  if(!urls.length)return;
+  cancelBack();                                   // đang cho người khác quét thì đừng tự đóng khung
+  const cv=$('qrCv');
+  $('qrTxt').textContent=urls[0];
+  $('qrNote').textContent=urls.length>1?'Có '+urls.length+' link — mã QR này là của link đầu tiên.':'Mở camera điện thoại và quét để mở link.';
+  try{drawQr(cv,urls[0],640);cv.style.display='';$('qrDl').disabled=false}
+  catch(e){cv.style.display='none';$('qrDl').disabled=true;$('qrNote').textContent=(e&&e.message)||'Không tạo được mã QR.'}
+  qrm.classList.add('on');
+}
+$('qrX').onclick=hideQr;
+qrm.addEventListener('click',e=>{if(e.target===qrm)hideQr()});
+$('qrDl').onclick=()=>$('qrCv').toBlob(b=>{
+  if(!b)return;
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='qr-'+stamp()+'.png';
+  root.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+},'image/png');
+$('shQr').onclick=()=>showQr($('link').value);
+
+/* ---------- Danh sách lịch sử ---------- */
+function renderHist(){
+  const a=readHist(),box=$('hist'),ul=$('histList'),now=Date.now();
+  ul.textContent='';box.style.display=a.length?'':'none';
+  const mk=(txt,fn)=>{const x=document.createElement('button');x.type='button';x.className='sm';x.textContent=txt;x.onclick=fn;return x};
+  for(const h of a){
+    const old=now>=h.exp;
+    const li=document.createElement('li');li.className='li hi'+(old?' old':'');
+    const nm=document.createElement('div');nm.className='nm';
+    const b=document.createElement('b');b.textContent=(h.names||[]).join(', ')||'Tệp';
+    const sz=document.createElement('i');sz.textContent=h.size?fmtSize(h.size):'';
+    nm.append(b,sz);
+    const w=document.createElement('div');w.className='when';
+    w.textContent='Gửi '+fmtDT(h.t)+' · '+(old?'đã hết hạn':'hết hạn '+(h.litter?'':'khoảng ')+fmtDT(h.exp))+(h.litter?' · không mã hóa':'');
+    const acts=document.createElement('div');acts.className='acts';
+    if(!old){
+      const cp=mk('📋 Sao chép',async()=>{
+        const ok=await copyText(h.lines.join('\n'));
+        cp.textContent=ok?'✓ Đã chép':'Không chép được';setTimeout(()=>{cp.textContent='📋 Sao chép'},1500);
+      });
+      acts.append(cp,mk('📱 QR',()=>showQr(h.lines.join('\n'))));
+    }
+    acts.append(mk('🗑',()=>{writeHist(readHist().filter(x=>x.id!==h.id));renderHist()}));
+    li.append(nm,w,acts);ul.append(li);
+  }
+}
+$('histClear').onclick=()=>{if(confirm('Xóa toàn bộ lịch sử link đã gửi trên máy này?')){writeHist([]);renderHist()}};
+
 /* ---------- Điều khiển ---------- */
 function resumeHint(){
   const r=readResume();
   $('resNote').textContent=r?('Có lần tải dở dang ('+String(r.fp[0]).split('|')[0]+(r.fp.length>1?' và '+(r.fp.length-1)+' tệp khác':'')+'). Chọn lại đúng tệp đó để tải tiếp.'):'';
 }
-function resetUI(){setView('idle');setStat('ok','Sẵn sàng');$('link').value='';lastInput=null;resumeHint()}
+function resetUI(){setView('idle');setStat('ok','Sẵn sàng');$('link').value='';lastInput=null;resumeHint();renderHist()}
 function open(){
   if(!host.isConnected)document.body.appendChild(host);
   const was=ov.classList.contains('on');
@@ -715,7 +989,7 @@ function close(fromPop){
     return;
   }
   if(ac)ac.abort();
-  busy=false;cancelBack();
+  busy=false;wakeOff();cancelBack();hideQr();
   ov.classList.remove('on');
   document.documentElement.style.overflow='';document.body.style.overflow='';
   resetUI();
@@ -724,7 +998,10 @@ function close(fromPop){
 }
 window.addEventListener('popstate',()=>{if(ov.classList.contains('on')&&pushed)close(true)});
 $('x').onclick=()=>close();
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ov.classList.contains('on'))close()});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape'||!ov.classList.contains('on'))return;
+  if(qrm.classList.contains('on'))hideQr();else close();
+});
 document.addEventListener('click',e=>{
   const t=e.target.closest&&e.target.closest('[data-luu-file]');
   if(t){e.preventDefault();open()}
