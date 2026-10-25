@@ -1048,16 +1048,13 @@ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(CM
 <div class="bar" style="justify-content:center"><button id="qrDl" type="button" disabled>⬇ Tải ảnh PNG</button><button class="sec" id="qrCopy" type="button" disabled>📄 Sao chép ảnh</button></div>
 <div class="note" style="text-align:center">Dán ảnh QR vào Word/PowerPoint/Zalo; nên quét thử bằng điện thoại trước khi in.</div>
 </div>
-<div class="ut" id="utFile">
-<h3 style="margin:4px 0 8px">☁ Chọn upload file để đưa file lên <span class="heart-blink">❤️</span></h3>
-<div class="bar" style="justify-content:center">
-<button id="ffOpen" type="button" data-luu-file style="font-size:17px;padding:12px 24px">⬆ Upload file</button>
-</div>
-</div>
+<div class="ut" id="utFile"></div>
 </section>
 
 <script>
-(function(){var s=document.getElementById('utSel');s.addEventListener('change',function(){document.querySelectorAll('.ut').forEach(function(m){m.classList.toggle('on',m.id===s.value)});if(s.value==='utWheel'){setTimeout(function(){window.dispatchEvent(new CustomEvent('tabshow',{detail:'t2'}))},0)}})})();
+(function(){var s=document.getElementById('utSel'),prev=s.value;s.addEventListener('change',function(){if(s.value!=='utFile')prev=s.value;document.querySelectorAll('.ut').forEach(function(m){m.classList.toggle('on',m.id===s.value)});if(s.value==='utWheel'){setTimeout(function(){window.dispatchEvent(new CustomEvent('tabshow',{detail:'t2'}))},0)}if(s.value==='utFile'&&window.LuuFileTam){window.LuuFileTam.open()}});
+/* Đóng bảng Lưu file tạm → quay lại công cụ trước đó (để chọn lại "Lưu file tạm" vẫn mở được) */
+window.addEventListener('luufiletam:close',function(){if(s.value==='utFile'){s.value=prev;s.dispatchEvent(new Event('change'))}});})();
 </script>
 
 <section class="panel" id="t5">

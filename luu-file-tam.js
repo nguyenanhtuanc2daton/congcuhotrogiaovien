@@ -214,6 +214,7 @@ function close(fromPop){
   stopWatch();cancelBack();picking=false;clearTimeout(pickT);
   justCopied=false;resetFrame();   // mỗi lần đóng là bỏ khung cũ; lần mở sau luôn là khung mới sạch, upload file khác bình thường
   if(pushed){pushed=false;if(!fromPop){try{history.back()}catch(e){}}}
+  try{window.dispatchEvent(new CustomEvent('luufiletam:close'))}catch(e){}
 }
 window.addEventListener('popstate',()=>{if(ov.classList.contains('on')&&pushed)close(true)});
 
