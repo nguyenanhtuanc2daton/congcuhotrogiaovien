@@ -505,7 +505,7 @@ button:disabled{opacity:.5;cursor:default}
 const $=id=>root.getElementById(id);
 const ov=$('ov'),card=$('card');
 let busy=false,pushed=false,ac=null,lastInput=null,viaProxy=false,litterProxy=false,backT=null,libP=null,meter=null;
-const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'');
+const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 
 /* ---------- Giữ máy không ngủ & cảnh báo khi lỡ đóng tab ---------- */
 let wl=null,wlWant=false;
@@ -520,6 +520,7 @@ async function wakeOn(){
 }
 function wakeOff(){wlWant=false;const l=wl;wl=null;try{if(l)l.release()}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(wlWant&&document.visibilityState==='visible')wakeOn()});   // trình duyệt tự nhả khi ẩn tab → xin lại
+window.addEventListener('resize',()=>{if(card.dataset.view==='done')fitLink()});
 window.addEventListener('beforeunload',e=>{if(busy){e.preventDefault();e.returnValue='';return ''}});
 
 function setView(v){card.dataset.view=v}
@@ -773,15 +774,16 @@ async function viaKiwi(items,fills,totalSize,sig){
 }
 
 function showDone(lines,note,meta){
-  const t=$('link');t.value=lines.join('\n');t.rows=Math.min(6,Math.max(1,lines.length));
+  const t=$('link');t.value=lines.join('\n');
   if(meta)addHist({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Date.now(),exp:Date.now()+(meta.litter?LITTER_MS:KIWI_MS),
     lines,names:meta.names,size:meta.size,litter:!!meta.litter});
   $('keep').textContent=note+' Link cũng được lưu ở mục “Link đã gửi” trên máy này.';
   const nat=!!navigator.share;
   $('shNative').style.display=nat?'':'none';
   $('shZalo').style.display=$('shMsg').style.display=(isMobile&&nat)?'none':'';
-  setStat('ok','Đã tải lên xong');setView('done');
+  setStat('ok','Đã tải lên xong');setView('done');fitLink();
 }
+function fitLink(){const t=$('link');t.style.height='auto';t.style.height=Math.min(t.scrollHeight+4,160)+'px'}
 async function run(input){
   if(busy)return;
   const files=Array.from(input);
@@ -853,13 +855,21 @@ async function copyLink(){
   cancelBack();$('doneBar').classList.add('on');upd();
   backT=setInterval(()=>{n--;if(n<=0)close();else upd()},1000);
 }
-const firstUrl=()=>(($('link').value.match(/https?:\/\/\S+/)||[''])[0]);
 $('copy').onclick=copyLink;
-$('shNative').onclick=()=>{try{navigator.share({title:'Tệp gửi bạn',text:$('link').value}).catch(()=>{})}catch(e){}};
+$('shNative').onclick=async()=>{
+  /* Gọi share() và sao chép ngay trong cùng lượt bấm (iOS yêu cầu). Chỉ gửi 1 chuỗi text thuần, không title/url riêng,
+     để Zalo/Messenger không cắt mất phần sau dấu # (khóa giải mã). Đồng thời đã sao chép sẵn để dán tay nếu app vẫn cắt. */
+  const cp=copyQuiet();
+  const msg='Tệp gửi bạn — hãy mở link ĐẦY ĐỦ (kể cả phần sau dấu #):\n'+$('link').value.trim();
+  try{await navigator.share({text:msg})}
+  catch(e){if(e&&e.name==='AbortError')return}
+  const ok=await cp;
+  noteBar(ok?'Link đã được sao chép sẵn. Nếu người nhận không mở được, hãy dán link vào khung chat.':'Nếu người nhận không mở được, hãy sao chép link rồi dán vào khung chat.');
+};
 $('shZalo').onclick=async()=>{const p=copyQuiet();window.open('https://chat.zalo.me/','_blank','noopener');noteBar(await p?'Đã sao chép link — dán vào cuộc trò chuyện Zalo.':'Hãy sao chép link rồi dán vào Zalo.')};
 $('shMsg').onclick=async()=>{
   const p=copyQuiet();
-  if(isMobile)location.href='fb-messenger://share/?link='+encodeURIComponent(firstUrl());
+  if(isMobile)location.href='fb-messenger://';
   else window.open('https://www.messenger.com/','_blank','noopener');
   noteBar(await p?'Đã sao chép link — dán vào cuộc trò chuyện Messenger.':'Hãy sao chép link rồi dán vào Messenger.');
 };
@@ -877,6 +887,7 @@ $('pick').onclick=()=>{inp.value='';inp.click()};
 $('pickDir').onclick=()=>{dirInp.value='';dirInp.click()};
 inp.onchange=()=>{if(inp.files&&inp.files.length)run(inp.files)};
 dirInp.onchange=()=>{if(dirInp.files&&dirInp.files.length)run(dirInp.files)};
+['dragover','drop'].forEach(ev=>ov.addEventListener(ev,e=>e.preventDefault()));
 ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('hot')}));
 ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('hot')}));
 const entFile=en=>new Promise((res,rej)=>en.file(res,rej));
