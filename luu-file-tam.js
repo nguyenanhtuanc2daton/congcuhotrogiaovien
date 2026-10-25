@@ -21,6 +21,7 @@ const PEEK_H=230;                    // chiều cao (px) của khung nhỏ lúc 
 const EXPAND_H=620;                  // chiều cao tối đa (px) của khung sau khi chọn file
 const CROP_TOP=330;                  // MẶC ĐỊNH: số px đầu trang file.kiwi (logo, tiêu đề) bị cắt để khu "Chọn Tệp" nằm sát đầu khung. Chỉnh thêm bằng nút ▲▼ trên màn hình
 const MID_TOP=90;                    // khi khung nhớ ra sau khi chọn file: số px đầu trang bị cắt (để bảng link/SAO CHÉP của file.kiwi nằm gọn trong khung). Chỉnh bằng ▲▼
+const BASE_W=390;                    // bề rộng "ảo" cố định của trang file.kiwi (giống điện thoại). Máy tính: khung đặt giữa; màn hẹp hơn: tự thu nhỏ vừa khít → bố cục file.kiwi giống nhau trên mọi thiết bị, nên vị trí cắt không bị lệch
 const VIEW_H=800;                    // chiều cao cố định của trang file.kiwi trong khung nhỏ (giữ bố cục ổn định mọi máy)
 const LOCK_DEFAULT=true;             // true: khóa cuộn khung file.kiwi (không kéo lên/xuống)
 const RETURN_SECONDS=15;             // bấm SAO CHÉP link xong → tự quay về trang sau số giây này
@@ -44,7 +45,7 @@ root.innerHTML=`
 .fab{position:fixed;height:48px;padding:0 16px;border-radius:99px;border:2px solid #f5c542;background:#0f3340;color:#fff;font:700 14px system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 14px #0006;display:flex;align-items:center;gap:6px}
 .ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:calc(8px + env(safe-area-inset-top,0px)) 8px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(4,14,19,.8);color:#e8f1f3;font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none;touch-action:manipulation}
 .ov.on{display:flex}
-.card{width:100%;max-width:560px;max-height:100%;display:flex;flex-direction:column;background:#0b1f27;border:1px solid #1d5666;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px #000a}
+.card{width:100%;max-width:440px;max-height:100%;display:flex;flex-direction:column;background:#0b1f27;border:1px solid #1d5666;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px #000a}
 .card.mid{height:min(100%,${EXPAND_H}px)}
 .top{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0f3340;border-bottom:1px solid #1d5666}
 .ttl{flex:1;min-width:0}
@@ -62,7 +63,7 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
 .frwrap{position:relative;overflow:hidden;background:#141210;overscroll-behavior:none}
 .card:not(.mid) .frwrap{flex:none;height:${PEEK_H}px}
 .card.mid .frwrap{flex:1;min-height:0}
-iframe{position:absolute;left:0;width:100%;border:0;background:#141210}
+iframe{position:absolute;left:0;top:0;width:390px;border:0;background:#141210;transform-origin:0 0}
 .help{display:none;position:absolute;left:8px;right:8px;top:8px;max-height:calc(100% - 16px);overflow:auto;padding:12px;border-radius:12px;background:#3d2c08;border:1px solid #f5c542;color:#ffe2a8;font-size:13.5px;box-shadow:0 6px 20px #0008}
 .help.on{display:block}
 .help p{margin:0 0 8px}
@@ -115,8 +116,14 @@ if(!LAUNCHER)fab.style.display='none';
 function layout(){
   card.classList.toggle('mid',expanded);
   const c=expanded?cropMid:crop;
-  fr.style.top=(-c)+'px';
-  fr.style.height=Math.max(VIEW_H,c+(expanded?EXPAND_H:PEEK_H)+20)+'px';
+  const vis=expanded?EXPAND_H:PEEK_H;
+  const w=$('frwrap').clientWidth||BASE_W;
+  const sc=Math.min(1,w/BASE_W);                 // chỉ thu nhỏ khi màn hẹp, không phóng to
+  fr.style.width=BASE_W+'px';
+  fr.style.left=Math.max(0,(w-BASE_W*sc)/2)+'px'; // máy tính: căn giữa
+  fr.style.transform=sc<1?'scale('+sc+')':'none';
+  fr.style.top=(-c*sc)+'px';
+  fr.style.height=Math.max(VIEW_H,c+vis/sc+20)+'px';
   fr.setAttribute('scrolling','no');
   $('expand').textContent=expanded?'⤡':'⤢';
   $('expand').title=expanded?'Thu nhỏ khung':'Mở rộng khung';
@@ -131,6 +138,7 @@ $('peekbar').addEventListener('click',e=>{
   layout();
 });
 window.addEventListener('resize',()=>{if(ov.classList.contains('on'))layout()});
+if(window.ResizeObserver)new ResizeObserver(()=>{if(ov.classList.contains('on'))layout()}).observe($('frwrap'));
 /* Chạm "Chọn Tệp": khung GIỮ NGUYÊN nhỏ. Chỉ mở rộng khi bộ chọn file đã đóng lại (bạn quay về từ việc chọn file),
    hoặc sau 12 giây kể từ lúc chạm — để thấy bảng link + nút SAO CHÉP. */
 let picking=false,pickT=null;
