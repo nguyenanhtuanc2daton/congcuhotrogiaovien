@@ -51,6 +51,12 @@
     '.ar-vc .l{text-align:center;color:#fff;font-weight:800;padding:2px 0;border-radius:0 0 6px 6px}',
     '.ar-join{display:none;text-align:center;padding:6px 0 2px}.ar-join small{display:block;opacity:.9;font-weight:600}.ar-join b{display:block;color:#38bdf8;font:800 clamp(20px,2.2vw,36px)/1.2 ui-monospace,Menlo,monospace;letter-spacing:.05em}',
     '.ar-panel.ph canvas{display:none}',
+    '.ar-pod{margin:10px auto;width:min(100%,440px)}.ar-pt{font-weight:800;margin-bottom:6px}',
+    '.ar-pr{display:flex;align-items:center;gap:10px;border:2px solid;border-radius:12px;padding:6px 12px;margin:6px 0;text-align:left;animation:arPop .6s ease-out both}',
+    '.ar-pr .m{font-size:2em;line-height:1}.ar-pr b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:1.15em}.ar-pr em{font-style:normal;font-weight:700;white-space:nowrap}',
+    '.ar-pr.g{background:#fef3c7;border-color:#f59e0b}.ar-pr.s{background:#f1f5f9;border-color:#94a3b8}.ar-pr.b{background:#ffedd5;border-color:#c2410c}',
+    '@keyframes arPop{from{transform:scale(.4);opacity:0}70%{transform:scale(1.06)}to{transform:scale(1);opacity:1}}',
+    '.ar-fw{position:absolute;inset:0;width:100%;height:100%;z-index:9;pointer-events:none}',
     '@media(min-width:701px) and (min-aspect-ratio:1/1){.kc-stage.ar-dock>.ar-panel .ar-tl{flex:1 1 0;min-height:0;display:flex;flex-direction:column}.kc-stage.ar-dock>.ar-panel .ar-g{flex:1 1 0;min-height:0;display:flex;flex-direction:column}.kc-stage.ar-dock>.ar-panel .ar-vb{flex:1 1 0;height:auto;min-height:60px}}',
     '.ar-miss{margin-top:3px;font-size:.78em;opacity:.8;line-height:1.3}',
     '.ar-panel.min canvas,.ar-panel.min .ar-bar,.ar-panel.min .ar-tl,.ar-panel.min .ar-miss,.ar-panel.min .ar-join{display:none!important}',
@@ -611,6 +617,62 @@
     startCam();
   }, true);
 
+  /* ---------- Tổng kết cuối lượt Ôn tập: Top 3 + pháo hoa ---------- */
+  var FW = { cv: null, on: false }, wasOv = false;
+  function podium() {
+    var L = curLog(); if (!L.length) return '';
+    var rows = results().filter(function (r) { return r.right > 0; });
+    rows.sort(function (a, b) { return b.right - a.right || (a.got - a.right) - (b.got - b.right) || a.id - b.id; });
+    rows = rows.slice(0, 3); if (!rows.length) return '';
+    var med = ['🥇', '🥈', '🥉'], cls = ['g', 's', 'b'];
+    return '<div class="ar-pod"><div class="ar-pt">🏆 Top ' + rows.length + ' trả lời đúng nhiều nhất</div>' + rows.map(function (r, k) {
+      return '<div class="ar-pr ' + cls[k] + '" style="animation-delay:' + ((2 - k) * 0.35 + 0.1).toFixed(2) + 's"><span class="m">' + med[k] + '</span><b>' + esc(r.name) + '</b><em>' + r.right + '/' + L.length + ' câu đúng</em></div>';
+    }).join('') + '</div>';
+  }
+  function fwStop() {
+    FW.on = false;
+    if (FW.cv && FW.cv.parentNode) FW.cv.parentNode.removeChild(FW.cv);
+    FW.cv = null;
+  }
+  function fireworks(ms) {
+    fwStop();
+    var cvf = document.createElement('canvas'); cvf.className = 'ar-fw'; rvEl.appendChild(cvf);
+    FW.cv = cvf; FW.on = true;
+    var W = cvf.width = rvEl.clientWidth || window.innerWidth || 800, H = cvf.height = rvEl.clientHeight || window.innerHeight || 600;
+    var g = cvf.getContext('2d'), P = [], t0 = Date.now(), nextB = 0, cols = ['#ef4444', '#f59e0b', '#22c55e', '#38bdf8', '#a78bfa', '#f472b6', '#fde047'];
+    function burst() {
+      var x = W * (0.12 + Math.random() * 0.76), y = H * (0.12 + Math.random() * 0.42), c = cols[(Math.random() * cols.length) | 0], c2 = cols[(Math.random() * cols.length) | 0], n = 48 + ((Math.random() * 20) | 0), i, a, v;
+      for (i = 0; i < n; i++) { a = Math.PI * 2 * i / n + Math.random() * 0.2; v = 2 + Math.random() * 4.4; P.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, d: 0.011 + Math.random() * 0.012, c: i % 3 ? c : c2, r: 2 + Math.random() * 2.2 }); }
+      beep(150 + Math.random() * 130, 0.12);
+    }
+    (function frame() {
+      if (!FW.on || FW.cv !== cvf) return;
+      var now = Date.now() - t0;
+      if (now < ms - 1200 && now >= nextB) { burst(); nextB = now + 240 + Math.random() * 260; }
+      g.globalCompositeOperation = 'destination-out'; g.fillStyle = 'rgba(0,0,0,0.22)'; g.fillRect(0, 0, W, H);
+      g.globalCompositeOperation = 'lighter';
+      P = P.filter(function (p) {
+        p.x += p.vx; p.y += p.vy; p.vy += 0.045; p.vx *= 0.985; p.vy *= 0.985; p.life -= p.d;
+        if (p.life <= 0) return false;
+        g.globalAlpha = Math.max(0, p.life); g.fillStyle = p.c; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 6.2832); g.fill(); return true;
+      });
+      g.globalAlpha = 1;
+      if (now < ms + 1500 && (now < ms || P.length)) requestAnimationFrame(frame); else fwStop();
+    })();
+  }
+  function ovWatch() {
+    var on = !!C.on && rvEl.classList.contains('on') && $('kcRvOv').classList.contains('on');
+    if (on && !wasOv) {
+      var box = $('kcRvOvBox'), h = box && !box.querySelector('.ar-pod') ? podium() : '';
+      if (h) {
+        var bar = box.querySelector('.bar');
+        if (bar) bar.insertAdjacentHTML('beforebegin', h); else box.insertAdjacentHTML('beforeend', h);
+        fireworks(5000);
+      }
+    }
+    if (!on && FW.on) fwStop();
+    wasOv = on;
+  }
   function paintJoin() {
     var j = $('arJoin'), show = C.src === 'phone' && !RM.conns.length;
     panel.classList.toggle('ph', C.src === 'phone');
@@ -618,7 +680,7 @@
     if (show) { var h = '<small>Mã đăng nhập</small><b>' + (RM.code ? RM.code.slice(0, 3) + ' ' + RM.code.slice(3) : '· · ·') + '</b>'; if (j._h !== h) { j._h = h; j.innerHTML = h; } }
   }
   function tick() {
-    paintJoin();
+    paintJoin(); ovWatch();
     var now = Date.now(), dt = Math.min(1000, now - lastT); lastT = now;
     if (RM.conns.length && ++bc % 3 === 0) broadcast();
     var k2 = activeKind();
