@@ -1,6 +1,6 @@
 /* aruco-chon.js — Chế độ "Thẻ ArUco" (kiểu Plickers) cho "Kéo co & Ôn tập kiến thức"
    Mỗi học sinh có một thẻ in sẵn (mã ArUco riêng). Giơ thẻ sao cho chữ đáp án mình chọn nằm ở phía TRÊN.
-   Camera của giáo viên quét cả lớp:
+   Điện thoại vào phòng bằng mã 6 số (hoặc camera của máy) quét thẻ cả lớp:
      · Chế độ Ôn tập: cả lớp trả lời, đáp án nhiều phiếu nhất được "bấm hộ" cho cả lớp; lưu bảng điểm từng em.
      · Chế độ Kéo co: danh sách chia hai đội, mỗi đội lấy đáp án nhiều phiếu nhất trong đội.
    Không sửa keo-co.js: file này chỉ đọc giao diện và "bấm hộ" các nút. Nạp SAU keo-co.js (và camera-chon.js nếu có).
@@ -17,8 +17,10 @@
   var LS = 'ar_cfg_v1', LSR = 'ar_log_v1';
 
   /* ---------- Cấu hình ---------- */
-  var C = { on: false, roster: '', split: 'half', secs: 30, rev: 3, next: 5, off: 0, cam: 'environment', res: 960, auto: true };
+  var C = { on: false, roster: '', split: 'half', secs: 30, rev: 3, next: 5, off: 0, cam: 'environment', res: 640, auto: true, src: 'phone' };
   try { var sv = JSON.parse(localStorage.getItem(LS) || 'null'); if (sv) for (var k in sv) C[k] = sv[k]; } catch (e) {}
+  if (C.res === 960) C.res = 640;                 /* 960 từng bỏ sót thẻ to trong ảnh thật */
+  if (C.src !== 'local') C.src = 'phone';
   function save() { try { localStorage.setItem(LS, JSON.stringify(C)); } catch (e) {} }
   function num(v, lo, hi, d) { v = parseFloat(v); if (isNaN(v)) v = d; return Math.max(lo, Math.min(hi, v)); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -69,17 +71,19 @@
     '<div class="note">Mỗi em giữ một thẻ riêng và <b>giơ thẻ sao cho chữ đáp án mình chọn nằm ở phía trên</b>. ' +
     'Chế độ <b>Ôn tập</b>: đáp án nhiều phiếu nhất của cả lớp được chọn, có bảng điểm từng em. Chế độ <b>Kéo co</b>: danh sách được chia hai đội, mỗi đội lấy đáp án nhiều phiếu nhất trong đội (hòa phiếu = đội đó không trả lời). ' +
     'Không dùng cùng lúc với Chế độ Camera (cử chỉ tay).</div>' +
-    '<div class="bar"><b>Danh sách học sinh</b> <span class="note">mỗi dòng một em; dòng 1 = thẻ số 0, dòng 2 = thẻ số 1…</span></div>' +
+    '<div class="bar"><b>Danh sách học sinh</b> <span class="note">mỗi dòng một em; dòng 1 = thẻ số 0, dòng 2 = thẻ số 1… Có thể nhập file Excel/CSV hoặc dán cột tên vào ô.</span></div>' +
     '<textarea id="arRoster" placeholder="Nguyễn Văn An&#10;Trần Thị Bình&#10;..."></textarea>' +
-    '<div class="bar"><span class="note" id="arCount"></span> <button class="sec sm" id="arPull" type="button">📥 Lấy từ ô Vòng quay</button> ' +
+    '<div class="bar"><span class="note" id="arCount"></span> <button class="sec sm" id="arXls" type="button">📥 Nhập từ Excel</button><input type="file" id="arFile" accept=".xlsx,.xls,.csv,.tsv,.txt" style="display:none"> ' +
     '<button class="sec sm" id="arPrint" type="button">🖨 Xem / in thẻ</button> <button class="sec sm" id="arRes" type="button">📊 Kết quả</button></div>' +
     '<div class="bar"><label>Chia đội (Kéo co) <select id="arSplit"><option value="half">Nửa đầu danh sách = Đội 1, nửa sau = Đội 2</option><option value="alt">Xen kẽ: thẻ chẵn = Đội 1, thẻ lẻ = Đội 2</option></select></label></div>' +
     '<div class="bar"><label>⏱ Thời gian quét tối đa mỗi câu (giây) <input type="number" id="arSecs" min="5" max="300" style="width:70px"></label>' +
     '<label><input type="checkbox" id="arAuto"> Chốt sớm khi cả lớp đã trả lời</label></div>' +
     '<div class="bar"><label>Chốt xong, hiện đáp án sau (giây) <input type="number" id="arRev" min="1" max="15" style="width:60px"></label>' +
     '<label>Tự sang câu tiếp sau (giây, 0 = tự bấm) <input type="number" id="arNext" min="0" max="30" style="width:60px"></label></div>' +
-    '<div class="bar"><label>Camera <select id="arCam"><option value="environment">Camera sau (điện thoại)</option><option value="user">Camera trước / webcam</option></select></label>' +
-    '<label>Độ phân giải quét <select id="arRes2"><option value="640">640 (nhanh, lớp nhỏ)</option><option value="960">960 (khuyên dùng)</option><option value="1280">1280 (lớp đông, máy mạnh)</option></select></label>' +
+    '<div class="bar"><label>Nguồn quét <select id="arSrc"><option value="phone">📱 Điện thoại vào phòng bằng mã 6 số (khuyên dùng)</option><option value="local">💻 Camera của máy này</option></select></label></div>' +
+    '<div class="note" id="arRoom"></div>' +
+    '<div class="bar" id="arLocalBar"><label>Camera <select id="arCam"><option value="environment">Camera sau (điện thoại)</option><option value="user">Camera trước / webcam</option></select></label>' +
+    '<label>Độ phân giải quét <select id="arRes2"><option value="640">640 (khuyên dùng)</option><option value="960">960</option><option value="1280">1280 (lớp đông, máy mạnh)</option></select></label>' +
     '<label>Hiệu chỉnh xoay <select id="arOff"><option value="0">0°</option><option value="1">90°</option><option value="2">180°</option><option value="3">270°</option></select></label></div>' +
     '<div class="bar"><button class="sec sm" id="arTest" type="button">🎥 Thử camera</button></div>' +
     '<div class="note" id="arMsg"></div>' +
@@ -92,7 +96,7 @@
   function fillUi() {
     $('arOn').checked = !!C.on; $('arRoster').value = C.roster; $('arSplit').value = C.split; $('arSecs').value = C.secs;
     $('arAuto').checked = !!C.auto; $('arRev').value = C.rev; $('arNext').value = C.next; $('arCam').value = C.cam;
-    $('arRes2').value = String(C.res); $('arOff').value = String(C.off);
+    $('arRes2').value = String(C.res); $('arOff').value = String(C.off); $('arSrc').value = C.src;
     $('arBox').style.display = C.on ? '' : 'none'; count();
   }
   function count() {
@@ -102,11 +106,12 @@
   function readCfg() {
     C.on = $('arOn').checked; C.roster = $('arRoster').value; C.split = $('arSplit').value; C.secs = num($('arSecs').value, 5, 300, 30);
     C.auto = $('arAuto').checked; C.rev = num($('arRev').value, 1, 15, 3); C.next = num($('arNext').value, 0, 30, 5);
-    C.cam = $('arCam').value; C.res = num($('arRes2').value, 320, 1920, 960); C.off = num($('arOff').value, 0, 3, 0);
+    C.cam = $('arCam').value; C.res = num($('arRes2').value, 320, 1920, 640); C.src = $('arSrc').value === 'local' ? 'local' : 'phone'; C.off = num($('arOff').value, 0, 3, 0);
     $('arBox').style.display = C.on ? '' : 'none'; count(); save();
     if (!C.on && testing) toggleTest(false);
+    srcUi(); broadcastInfo();
   }
-  ['arOn', 'arRoster', 'arSplit', 'arSecs', 'arAuto', 'arRev', 'arNext', 'arCam', 'arRes2', 'arOff'].forEach(function (id) {
+  ['arOn', 'arRoster', 'arSplit', 'arSecs', 'arAuto', 'arRev', 'arNext', 'arCam', 'arRes2', 'arOff', 'arSrc'].forEach(function (id) {
     $(id).addEventListener('change', readCfg);
   });
   $('arRoster').addEventListener('input', function () { C.roster = $('arRoster').value; count(); save(); });
@@ -119,10 +124,100 @@
   if ($('ccOn')) $('ccOn').addEventListener('change', function () {
     if ($('ccOn').checked && $('arOn').checked) { $('arOn').checked = false; readCfg(); }
   });
-  $('arPull').onclick = function () {
-    var w = $('wNames'); if (!w || !w.value.trim()) { $('arMsg').textContent = 'Ô danh sách ở Vòng quay đang trống.'; return; }
-    $('arRoster').value = w.value.trim(); readCfg(); $('arMsg').textContent = 'Đã lấy danh sách từ Vòng quay gọi tên.';
-  };
+  /* ---------- Nhập danh sách học sinh từ Excel / CSV ---------- */
+  var XLS_SRC = ['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'];
+  var xlsP = null;
+  function loadXls() {
+    if (window.XLSX) return Promise.resolve();
+    if (xlsP) return xlsP;
+    xlsP = new Promise(function (ok, bad) {
+      var i = 0;
+      (function next() {
+        if (i >= XLS_SRC.length) { bad(new Error('Không tải được bộ đọc Excel (cần Internet). Bạn có thể lưu file dạng CSV rồi nhập lại, hoặc dán cột tên vào ô danh sách.')); return; }
+        var sc = document.createElement('script'); sc.src = XLS_SRC[i++]; sc.onload = ok; sc.onerror = next; document.head.appendChild(sc);
+      })();
+    }).then(function () { xlsP = null; }, function (e) { xlsP = null; throw e; });
+    return xlsP;
+  }
+  function parseCsv(t) {
+    t = t.replace(/^\uFEFF/, '');
+    var first = t.split(/\r?\n/, 1)[0] || '', d = ',', best = -1;
+    [',', ';', '\t'].forEach(function (c) { var n = first.split(c).length; if (n > best) { best = n; d = c; } });
+    var rows = [], row = [], cur = '', q = false, i, ch;
+    for (i = 0; i < t.length; i++) {
+      ch = t.charAt(i);
+      if (q) { if (ch === '"') { if (t.charAt(i + 1) === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === d) { row.push(cur); cur = ''; }
+      else if (ch === '\n' || ch === '\r') { if (ch === '\r' && t.charAt(i + 1) === '\n') i++; row.push(cur); rows.push(row); row = []; cur = ''; }
+      else cur += ch;
+    }
+    if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+    return rows;
+  }
+  /* Tự tìm cột họ tên: ưu tiên dòng tiêu đề ("Họ và tên", "Họ tên"…, hoặc hai cột "Họ" + "Tên"); nếu không có thì lấy cột có nhiều ô chữ nhiều từ nhất (bỏ qua cột STT, lớp, ngày sinh…) */
+  function pickNames(rows) {
+    rows = rows.map(function (r) { return (r || []).map(function (c) { return String(c == null ? '' : c).replace(/\s+/g, ' ').trim(); }); });
+    var isNum = function (v) { return /^[\d\s.,\-\/]+$/.test(v); };
+    var hi = -1, hc = -1, h1 = -1, h2 = -1, r, c, v, out = [];
+    for (r = 0; r < Math.min(rows.length, 15) && hi < 0; r++) {
+      for (c = 0; c < rows[r].length; c++) {
+        v = rows[r][c].toLowerCase();
+        if (/^(họ\s*(và|&)?\s*tên|tên học sinh|tên hs|full ?name|student|name$)/.test(v)) { hi = r; hc = c; break; }
+      }
+      if (hi < 0) {
+        var a = -1, b = -1;
+        rows[r].forEach(function (x, k) { x = x.toLowerCase(); if (/^họ( đệm| lót)?$/.test(x)) a = k; else if (/^tên$/.test(x)) b = k; });
+        if (a >= 0 && b >= 0) { hi = r; h1 = a; h2 = b; }
+      }
+    }
+    if (hi >= 0 && h1 >= 0) {
+      for (r = hi + 1; r < rows.length; r++) { v = ((rows[r][h1] || '') + ' ' + (rows[r][h2] || '')).replace(/\s+/g, ' ').trim(); if (v && !isNum(v)) out.push(v); }
+      return { names: out, how: 'cột Họ + Tên' };
+    }
+    var col = hc, start = hi + 1, w = 0, sc = [];
+    if (hi < 0) {
+      rows.forEach(function (rw) { w = Math.max(w, rw.length); });
+      for (c = 0; c < w; c++) {
+        sc[c] = 0;
+        rows.forEach(function (rw) { var x = rw[c] || ''; if (x && !isNum(x)) sc[c] += x.indexOf(' ') > 0 ? 2 : 1; });
+      }
+      col = 0; for (c = 1; c < w; c++) if (sc[c] > sc[col]) col = c;
+      start = rows.length && /^(stt|tt|họ|tên|name|danh sách)/i.test((rows[0][col] || '')) ? 1 : 0;
+    }
+    for (r = start; r < rows.length; r++) { v = rows[r][col] || ''; if (v && !isNum(v)) out.push(v); }
+    return { names: out, how: hi >= 0 ? 'cột "' + rows[hi][hc] + '"' : 'cột ' + (col + 1) };
+  }
+  function applyRows(rows, fname) {
+    var r = pickNames(rows), n = r.names.slice(0, MAXID);
+    if (!n.length) { $('arMsg').textContent = '⚠ Không tìm thấy tên học sinh trong file. Cần một cột họ tên, mỗi dòng một em.'; return; }
+    if (roster().length && !window.confirm('Thay danh sách hiện tại (' + roster().length + ' em) bằng ' + n.length + ' em từ file?')) { $('arMsg').textContent = 'Đã hủy, giữ nguyên danh sách cũ.'; return; }
+    $('arRoster').value = n.join('\n'); readCfg();
+    $('arMsg').textContent = '✅ Đã nhập ' + n.length + ' học sinh từ ' + fname + ' (' + r.how + ')' + (r.names.length > MAXID ? ' — chỉ lấy ' + MAXID + ' em đầu' : '') + '. Nếu thứ tự đổi, hãy in lại thẻ.';
+  }
+  function readFile(f) {
+    var ext = (f.name.split('.').pop() || '').toLowerCase(), rd = new FileReader();
+    $('arMsg').textContent = 'Đang đọc ' + f.name + '…';
+    rd.onerror = function () { $('arMsg').textContent = '⚠ Không đọc được file.'; };
+    if (ext === 'csv' || ext === 'txt' || ext === 'tsv') {
+      rd.onload = function () {
+        var t;
+        try { t = new TextDecoder('utf-8', { fatal: true }).decode(rd.result); }
+        catch (e) { try { t = new TextDecoder('windows-1258').decode(rd.result); } catch (e2) { t = new TextDecoder().decode(rd.result); } }
+        applyRows(ext === 'txt' ? t.split(/\r?\n/).map(function (l) { return [l]; }) : parseCsv(t), f.name);
+      };
+    } else {
+      rd.onload = function () {
+        loadXls().then(function () {
+          var wb = window.XLSX.read(rd.result, { type: 'array' }), ws = wb.Sheets[wb.SheetNames[0]];
+          applyRows(window.XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' }), f.name + (wb.SheetNames.length > 1 ? ' (trang “' + wb.SheetNames[0] + '”)' : ''));
+        }).catch(function (e) { $('arMsg').textContent = '⚠ ' + (e && e.message ? e.message : 'Không đọc được file Excel.'); });
+      };
+    }
+    rd.readAsArrayBuffer(f);
+  }
+  $('arXls').onclick = function () { $('arFile').value = ''; $('arFile').click(); };
+  $('arFile').addEventListener('change', function () { var f = this.files && this.files[0]; if (f) readFile(f); });
 
   /* ---------- Bảng camera trong màn hình chơi ---------- */
   var panel = document.createElement('div');
@@ -145,6 +240,91 @@
   }
   panel.querySelector('#arExit').onclick = exitGame;
   panel.querySelector('#arSkip').onclick = function () { if (S && S.p === 'select') S.skip = true; };
+
+
+  /* ---------- Phòng điện thoại: điện thoại quét thẻ, gửi kết quả về máy chiếu (WebRTC qua PeerJS, không cần máy chủ riêng) ---------- */
+  var PEER_SRC = ['https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js', 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'];
+  var RM = { code: '', peer: null, conns: [], state: 'idle', err: '', p: null }, remote = [], remoteT = 0, bc = 0;
+  function loadPeer() {
+    if (window.Peer) return Promise.resolve();
+    if (RM.p) return RM.p;
+    RM.p = new Promise(function (ok, bad) {
+      var i = 0;
+      (function next() {
+        if (i >= PEER_SRC.length) { bad(new Error('Không tải được thư viện phòng (cần Internet).')); return; }
+        var sc = document.createElement('script'); sc.src = PEER_SRC[i++]; sc.onload = ok; sc.onerror = next; document.head.appendChild(sc);
+      })();
+    }).catch(function (e) { RM.err = e.message || String(e); }).then(function () { RM.p = null; });
+    return RM.p;
+  }
+  function newCode() { return String(Math.floor(100000 + Math.random() * 900000)); }
+  function roomLink() { return (SELF ? SELF.replace(/[^\/]*$/, '') : String(location.href).replace(/[^\/]*$/, '')) + 'quet.html?ma=' + RM.code; }
+  function closeRoom() {
+    try { if (RM.peer) RM.peer.destroy(); } catch (e) {}
+    RM.peer = null; RM.conns = []; RM.state = 'idle';
+  }
+  function drop(c) {
+    RM.conns = RM.conns.filter(function (x) { return x !== c; });
+    if (!RM.conns.length) { seen = []; remote = []; }
+    srcUi();
+  }
+  function infoMsg() { return { t: 'info', names: roster().map(function (x) { return x.slice(0, 40); }), o: +C.off || 0 }; }
+  function broadcastInfo() { RM.conns.forEach(function (c) { try { c.send(infoMsg()); } catch (e) {} }); }
+  function openRoom() {
+    if (RM.peer || RM.state === 'loading') return;
+    RM.state = 'loading'; RM.err = '';
+    loadPeer().then(function () {
+      if (!window.Peer) { RM.state = 'idle'; srcUi(); return; }
+      if (!RM.code) { try { RM.code = sessionStorage.getItem('ar_room') || ''; } catch (e) {} if (!RM.code) RM.code = newCode(); }
+      var pr = new window.Peer('kcaruco-' + RM.code);
+      RM.peer = pr; RM.state = 'opening';
+      pr.on('open', function () { RM.state = 'open'; RM.err = ''; try { sessionStorage.setItem('ar_room', RM.code); } catch (e) {} srcUi(); });
+      pr.on('connection', function (c) {
+        c.on('open', function () { RM.conns.push(c); try { c.send(infoMsg()); } catch (e) {} srcUi(); beep(660, 0.08); });
+        c.on('data', onRemote);
+        c.on('close', function () { drop(c); });
+        c.on('error', function () { drop(c); });
+      });
+      pr.on('disconnected', function () { RM.state = 'lost'; try { pr.reconnect(); } catch (e) {} srcUi(); });
+      pr.on('error', function (e) {
+        if (e && e.type === 'unavailable-id') { closeRoom(); RM.code = newCode(); try { sessionStorage.removeItem('ar_room'); } catch (x) {} openRoom(); return; }
+        RM.err = 'Lỗi phòng: ' + ((e && e.type) || e); srcUi();
+      });
+    });
+  }
+  function onRemote(m) {
+    if (!m || typeof m !== 'object' || m.t !== 'd' || !Array.isArray(m.d)) return;
+    var n = roster().length, out = [];
+    m.d.slice(0, 120).forEach(function (x) {
+      if (!Array.isArray(x)) return;
+      var id = +x[0], q = +x[1];
+      if (!(id >= 0 && id < n) || !(q >= 0 && q < 4)) return;
+      out.push({ id: id, a: ['A', 'D', 'C', 'B'][((q + (+C.off)) % 4 + 4) % 4], c: null });
+    });
+    remote = out; remoteT = Date.now(); seen = out; feed(out);
+  }
+  function broadcast() {
+    var tx = (kind || testing) ? $('arSt').textContent : 'Chờ bắt đầu câu hỏi';
+    RM.conns.forEach(function (c) { try { c.send({ t: 'st', s: tx }); } catch (e) {} });
+  }
+  function srcUi() {
+    var ph = C.src === 'phone', r = $('arRoom');
+    $('arLocalBar').style.display = ph ? 'none' : '';
+    r.style.display = ph && C.on ? '' : 'none';
+    if (ph && C.on) openRoom(); else if (RM.peer) closeRoom();
+    if (!(ph && C.on)) return;
+    r.innerHTML = '📱 <b>Phòng điện thoại</b>: ' + (RM.err ? '⚠ ' + esc(RM.err) : (RM.state === 'open'
+      ? 'mã phòng <b style="font-size:1.5em;letter-spacing:.12em">' + RM.code + '</b> · ' + RM.conns.length + ' điện thoại đã vào<br>Trên điện thoại mở: <b>' + esc(roomLink()) + '</b> rồi cho phép camera. <button class="sec sm" id="arNewRoom" type="button">🔄 Đổi mã</button>'
+      : 'đang mở phòng…'));
+  }
+  $('arRoom').onclick = function (e) { if (e.target && e.target.id === 'arNewRoom') { closeRoom(); RM.code = newCode(); RM.err = ''; try { sessionStorage.setItem('ar_room', RM.code); } catch (x) {} srcUi(); } };
+  function fail() { return C.src === 'phone' ? RM.err : failed; }
+  function waitMsg() {
+    if (C.src !== 'phone') return '⏳ Đang chuẩn bị camera và bộ nhận dạng…';
+    if (RM.state !== 'open') return '⏳ Đang mở phòng…';
+    if (!RM.conns.length) return '📱 Chờ điện thoại vào phòng · mã ' + RM.code;
+    return '📱 Chờ tín hiệu từ điện thoại…';
+  }
 
   /* ---------- Camera + nhận dạng thẻ ---------- */
   var stream = null, camP = null, vid = document.createElement('video'), det = null, libP = null, failed = '';
@@ -173,6 +353,7 @@
   }
   function startCam() {
     failed = ''; panel.style.display = '';
+    if (C.src === 'phone') { openRoom(); if (!timer) timer = setTimeout(loop, 100); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { failed = 'Trình duyệt không cho dùng camera (cần mở trang bằng https hoặc localhost).'; return; }
     if (!stream && !camP) {
       camP = navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: C.cam }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false })
@@ -189,12 +370,15 @@
     clearTimeout(timer); timer = 0; seen = [];
     panel.style.display = 'none'; big.classList.remove('on');
   }
-  function ready() { return !!(stream && det && vid.videoWidth && vid.readyState >= 2); }
+  function ready() {
+    if (C.src === 'phone') return RM.state === 'open' && RM.conns.length > 0 && Date.now() - remoteT < 5000;
+    return !!(stream && det && vid.videoWidth && vid.readyState >= 2);
+  }
 
   /* Quét một khung hình. Chữ đáp án = hướng của thẻ: cạnh trên thẻ quay về hướng nào thì ra chữ đó (A thẳng, B quay trái 90°, C ngược, D quay phải 90°) */
-  var pend = {}, W = 0, H = 0;
+  var pend = {}, W = 0, H = 0, fr = 0;
   function scan() {
-    var n = roster().length, w = Math.min(C.res, vid.videoWidth), h = Math.round(vid.videoHeight * w / vid.videoWidth);
+    var n = roster().length, w = Math.min((fr++ % 2) ? Math.max(C.res, 640) : 640, vid.videoWidth), h = Math.round(vid.videoHeight * w / vid.videoWidth);
     if (off.width !== w || off.height !== h) { off.width = w; off.height = h; }
     var g = off.getContext('2d', { willReadFrequently: true });
     g.drawImage(vid, 0, 0, w, h); W = w; H = h;
@@ -209,6 +393,7 @@
   }
   function loop() {
     timer = 0;
+    if (C.src === 'phone') { if (Date.now() - remoteT > 1500) seen = []; draw(); timer = setTimeout(loop, 200); return; }
     if (!stream && !camP) return;
     try { if (ready()) { seen = scan(); feed(seen); } } catch (e) {}
     draw();
@@ -225,6 +410,26 @@
       }
     });
   }
+  function drawRoom(g, w, h) {
+    var fs = Math.max(11, Math.round(h * 0.07)), y = fs * 1.4, names = roster(), link = roomLink().replace(/^https?:\/\//, '').replace(/\?ma=.*/, '');
+    g.textAlign = 'center'; g.fillStyle = '#fff';
+    var f1 = Math.round(fs * 0.8); g.font = '600 ' + f1 + 'px system-ui';
+    while (g.measureText('📱 ' + link).width > w - 8 && f1 > 8) { f1--; g.font = '600 ' + f1 + 'px system-ui'; }
+    g.fillText('📱 ' + link, w / 2, y);
+    y += fs * 1.7; g.fillStyle = '#38bdf8'; g.font = '800 ' + Math.round(fs * 2.1) + 'px ui-monospace,monospace';
+    g.fillText(RM.code ? RM.code.slice(0, 3) + ' ' + RM.code.slice(3) : '· · ·', w / 2, y);
+    y += fs * 1.15; g.fillStyle = RM.err ? '#f87171' : (RM.conns.length ? '#4ade80' : '#fbbf24'); g.font = '600 ' + Math.round(fs * 0.8) + 'px system-ui';
+    g.fillText(RM.err || (RM.state !== 'open' ? 'Đang mở phòng…' : (RM.conns.length ? RM.conns.length + ' điện thoại đã kết nối' : 'Nhập mã này trên điện thoại')), w / 2, y);
+    y += fs * 0.7; g.textAlign = 'left'; g.font = 'bold ' + Math.round(fs * 0.8) + 'px system-ui';
+    var x = 6, ch = fs * 1.15;
+    seen.slice(0, 60).forEach(function (m) {
+      var t = m.a + ' ' + (names[m.id] ? names[m.id].split(' ').slice(-1)[0] : m.id), tw = g.measureText(t).width + 12;
+      if (x + tw > w - 4) { x = 6; y += ch + 4; }
+      if (y + ch > h) return;
+      g.fillStyle = CH[LET.indexOf(m.a)]; g.fillRect(x, y, tw, ch);
+      g.fillStyle = '#fff'; g.fillText(t, x + 6, y + ch * 0.78); x += tw + 4;
+    });
+  }
   function draw() {
     if (!panel.offsetWidth || panel.classList.contains('min')) return;
     var tw = 480, th = 270;
@@ -234,6 +439,7 @@
     if (cv.width !== tw || cv.height !== th) { cv.width = tw; cv.height = th; }
     var w = cv.width, h = cv.height, g = cv.getContext('2d'), has = vid.videoWidth && vid.readyState >= 2;
     g.fillStyle = '#111'; g.fillRect(0, 0, w, h);
+    if (C.src === 'phone') { drawRoom(g, w, h); return; }
     if (!has) return;
     var sc = Math.max(w / vid.videoWidth, h / vid.videoHeight), dw = vid.videoWidth * sc, dh = vid.videoHeight * sc, ox = (w - dw) / 2, oy = (h - dh) / 2;
     g.drawImage(vid, ox, oy, dw, dh);
@@ -378,8 +584,8 @@
   function paintStatus() {
     var stx = $('arSt'), pg = $('arPg'), txt = '';
     pg.style.width = '0';
-    if (failed) { stx.textContent = '⚠ ' + failed; return; }
-    if (!ready()) { stx.textContent = '⏳ Đang chuẩn bị camera và bộ nhận dạng…'; return; }
+    if (fail()) { stx.textContent = '⚠ ' + fail(); return; }
+    if (!ready()) { stx.textContent = waitMsg(); return; }
     if (!roster().length) { stx.textContent = '⚠ Chưa nhập danh sách học sinh'; return; }
     if (hold) txt = '⏸ Đang giữ (bấm ▶ để tiếp tục)';
     else if (S.p === 'select') { txt = '🎫 Giơ thẻ để trả lời · còn ' + secs(S.dl - vt) + 's' + (S.msg ? ' · ' + S.msg : ''); pg.style.width = Math.max(0, Math.min(100, Math.round((S.dl - vt) / (C.secs * 10)))) + '%'; }
@@ -395,12 +601,12 @@
     lastBig = rem;
   }
   function paintTest() {
-    $('arSt').textContent = failed ? '⚠ ' + failed : (ready() ? '🎥 Thử camera: thấy ' + seen.length + ' thẻ' : '⏳ Đang chuẩn bị camera và bộ nhận dạng…');
+    $('arSt').textContent = fail() ? '⚠ ' + fail() : (ready() ? '🎥 Thử quét: thấy ' + seen.length + ' thẻ' : waitMsg());
     $('arPg').style.width = '0';
     var names = roster();
     $('arTl').innerHTML = seen.length ? seen.map(function (m) { return '<div><b style="color:' + CH[LET.indexOf(m.a)] + '">' + m.a + '</b> · ' + esc(names[m.id] || ('Thẻ ' + m.id)) + '</div>'; }).join('') : '';
     $('arMiss').textContent = '';
-    $('arMsg').textContent = failed ? '' : (ready() ? 'Camera hoạt động. Giơ thẻ: chữ hiện trên thẻ là đáp án máy đọc được.' : 'Lần đầu cần tải bộ nhận dạng, vui lòng chờ…');
+    $('arMsg').textContent = fail() ? '' : (ready() ? (C.src === 'phone' ? 'Điện thoại đã kết nối.' : 'Camera hoạt động.') + ' Giơ thẻ: chữ hiện trên thẻ là đáp án máy đọc được.' : (C.src === 'phone' ? 'Mở quet.html trên điện thoại và nhập mã phòng.' : 'Lần đầu cần tải bộ nhận dạng, vui lòng chờ…'));
   }
   function testMode() { var r = document.querySelector('input[name="kcMode"]:checked'); return r && r.value === 'on' ? 'rv' : 'keo'; }
   function toggleTest(v) {
@@ -418,6 +624,7 @@
 
   function tick() {
     var now = Date.now(), dt = Math.min(1000, now - lastT); lastT = now;
+    if (RM.conns.length && ++bc % 3 === 0) broadcast();
     var k2 = activeKind();
     if (k2 !== kind) {
       if (k2 === 'rv') { sess = Date.now(); qn = 0; }   /* mỗi lượt Ôn tập mới = một đợt kết quả riêng */
@@ -426,7 +633,7 @@
       else { big.classList.remove('on'); if (!testing) { placeInline(); stopCam(); } }
     }
     if (!kind) { if (testing) { paintTest(); } return; }
-    var blocked = !!failed || !ready() || !roster().length || (kind === 'keo' && keoBlocked());
+    var blocked = !!fail() || !ready() || !roster().length || (kind === 'keo' && keoBlocked());
     if (!hold && !blocked) vt += dt;
     if (!blocked && !hold) { if (kind === 'rv') stepRv(); else stepKeo(); }
     paintStatus(); paintTally(); paintBadges();
@@ -494,5 +701,6 @@
     $('arClr').onclick = function () { if (window.confirm('Xóa toàn bộ kết quả đã ghi?')) { LOG = []; qn = 0; saveLog(); openRes(); } };
   }
   $('arRes').onclick = openRes;
+  srcUi();
   window.addEventListener('afterprint', function () { /* giữ lớp phủ để in lại được; đóng bằng nút ✕ */ });
 })();

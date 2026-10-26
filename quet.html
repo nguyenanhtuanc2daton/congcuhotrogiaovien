@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>Quét thẻ trả lời</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#0b1020;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#join{margin:auto;width:min(100%,360px);padding:20px;text-align:center}
+#join h1{font-size:1.4rem;margin:0 0 6px}
+#join p{opacity:.8;margin:0 0 16px;line-height:1.4}
+#code{width:100%;font-size:2.2rem;letter-spacing:.3em;text-align:center;padding:12px;border-radius:12px;border:2px solid #38bdf8;background:#111a33;color:#fff;font-family:ui-monospace,Menlo,monospace}
+button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px 16px;background:#38bdf8;color:#04121f;cursor:pointer}
+button.sec{background:#243056;color:#fff}
+#go{width:100%;margin-top:12px;font-size:1.1rem}
+#err{color:#f87171;min-height:1.4em;margin-top:10px;font-size:.95rem}
+#scan{display:none;flex:1;flex-direction:column;min-height:0}
+#top{padding:8px 12px;display:flex;gap:8px;align-items:center;justify-content:space-between;background:#111a33}
+#conn{font-weight:700;font-size:.95rem}
+#conn.ok{color:#4ade80}#conn.bad{color:#fbbf24}
+#hs{padding:6px 12px;background:#0f2a4a;font-size:.95rem;min-height:2.2em}
+#stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:#000}
+canvas{max-width:100%;max-height:100%}
+#list{padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px;min-height:46px;background:#111a33}
+.chip{padding:4px 10px;border-radius:8px;font-weight:700;font-size:.95rem}
+#bot{padding:8px 12px;display:flex;gap:8px;background:#111a33}
+#bot button{flex:1;padding:10px}
+</style>
+</head>
+<body>
+<div id="join">
+  <h1>📱 Quét thẻ trả lời</h1>
+  <p>Nhập mã 6 số đang hiện trên màn hình lớp học, rồi hướng camera về phía các em giơ thẻ.</p>
+  <input id="code" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" autocomplete="off">
+  <button id="go" type="button">Vào phòng</button>
+  <div id="err"></div>
+</div>
+
+<div id="scan">
+  <div id="top"><span id="conn" class="bad">Đang kết nối…</span><span id="room"></span></div>
+  <div id="hs"></div>
+  <div id="stage"><canvas id="cv" width="640" height="360"></canvas></div>
+  <div id="list"></div>
+  <div id="bot"><button class="sec" id="flip" type="button">🔄 Đổi camera</button><button class="sec" id="leave" type="button">Thoát</button></div>
+</div>
+
+<video id="v" playsinline muted style="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none"></video>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var LET = ['A', 'D', 'C', 'B'], CH = ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b'], ALL = 'ABCD';
+  var PEER_SRC = ['https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js', 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'];
+  var vid = $('v'), cv = $('cv'), off = document.createElement('canvas');
+  var code = '', want = false, peer = null, conn = null, retryT = 0, stream = null, det = null, facing = 'environment';
+  var names = [], hostOff = 0, hostSt = '', seen = [], fr = 0, running = false, wl = null;
+
+  var qs = new URLSearchParams(location.search).get('ma');
+  if (qs) $('code').value = qs.replace(/\D/g, '').slice(0, 6);
+  $('code').addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 6); });
+  $('code').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('go').click(); });
+
+  function err(t) { $('err').textContent = t || ''; }
+  function loadScript(urls) {
+    return new Promise(function (ok, bad) {
+      var i = 0;
+      (function next() {
+        if (i >= urls.length) { bad(new Error('Không tải được thư viện (cần Internet).')); return; }
+        var s = document.createElement('script'); s.src = urls[i++]; s.onload = ok; s.onerror = next; document.head.appendChild(s);
+      })();
+    });
+  }
+  function libs() {
+    var a = window.AR && window.AR.Detector ? Promise.resolve() : loadScript(['aruco-lib.js?v=1']);
+    var b = window.Peer ? Promise.resolve() : loadScript(PEER_SRC);
+    return Promise.all([a, b]).then(function () {
+      det = det || new window.AR.Detector({ dictionaryName: 'ARUCO_MIP_36h12', maxHammingDistance: 3 });
+    });
+  }
+  function camErr(e) {
+    var n = e && e.name;
+    if (n === 'NotAllowedError' || n === 'SecurityError') return 'Chưa được cấp quyền camera. Hãy cho phép camera cho trang này rồi thử lại.';
+    if (n === 'NotFoundError' || n === 'OverconstrainedError') return 'Không tìm thấy camera.';
+    return 'Không mở được camera' + (e && e.message ? ': ' + e.message : '.');
+  }
+  function startCam() {
+    if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+    stream = null;
+    return navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false })
+      .then(function (s) { stream = s; vid.srcObject = s; return vid.play(); });
+  }
+
+  /* ---- kết nối phòng ---- */
+  function setConn(ok, t) { var c = $('conn'); c.className = ok ? 'ok' : 'bad'; c.textContent = t; }
+  function connect() {
+    if (!want) return;
+    clearTimeout(retryT);
+    if (peer) { try { peer.destroy(); } catch (e) {} peer = null; conn = null; }
+    setConn(false, 'Đang kết nối…');
+    var pr = new window.Peer();
+    peer = pr;
+    pr.on('open', function () {
+      var c = pr.connect('kcaruco-' + code, { reliable: true });
+      conn = c;
+      c.on('open', function () { setConn(true, '● Đã kết nối'); err(''); });
+      c.on('data', onData);
+      c.on('close', function () { setConn(false, 'Mất kết nối, đang thử lại…'); again(); });
+      c.on('error', function () { setConn(false, 'Lỗi kết nối, đang thử lại…'); again(); });
+    });
+    pr.on('error', function (e) {
+      if (e && e.type === 'peer-unavailable') { setConn(false, 'Không thấy phòng ' + code + ' — kiểm tra lại mã'); }
+      else setConn(false, 'Lỗi mạng: ' + ((e && e.type) || e));
+      again();
+    });
+  }
+  function again() { if (want) { clearTimeout(retryT); retryT = setTimeout(connect, 2500); } }
+  function onData(m) {
+    if (!m || typeof m !== 'object') return;
+    if (m.t === 'info') { names = Array.isArray(m.names) ? m.names : []; hostOff = +m.o || 0; }
+    else if (m.t === 'st') { hostSt = String(m.s || ''); $('hs').textContent = hostSt; }
+  }
+
+  /* ---- quét ---- */
+  function letter(q) { return LET[((q + hostOff) % 4 + 4) % 4]; }
+  function scanOnce() {
+    var vw = vid.videoWidth, vh = vid.videoHeight;
+    if (!vw || vid.readyState < 2) return;
+    var w = Math.min((fr++ % 2) ? 1024 : 640, vw), h = Math.round(vh * w / vw);
+    if (off.width !== w || off.height !== h) { off.width = w; off.height = h; }
+    var g = off.getContext('2d', { willReadFrequently: true });
+    g.drawImage(vid, 0, 0, w, h);
+    var ms = det.detectImage(w, h, g.getImageData(0, 0, w, h).data), d = [];
+    seen = ms.map(function (m) {
+      var c = m.corners, ang = Math.atan2(c[1].y - c[0].y, c[1].x - c[0].x) * 180 / Math.PI;
+      var q = ((Math.round(ang / 90)) % 4 + 4) % 4;
+      d.push([m.id, q]);
+      return { id: m.id, q: q, c: c, w: w, h: h };
+    });
+    if (conn && conn.open) { try { conn.send({ t: 'd', d: d }); } catch (e) {} }
+  }
+  function draw() {
+    var vw = vid.videoWidth, vh = vid.videoHeight;
+    if (!vw) return;
+    var w = 640, h = Math.round(vh * w / vw);
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    var g = cv.getContext('2d');
+    g.drawImage(vid, 0, 0, w, h);
+    g.lineWidth = 3; g.font = 'bold 18px system-ui';
+    var chips = [];
+    seen.forEach(function (m) {
+      var a = letter(m.q), col = CH[ALL.indexOf(a)], k = w / m.w, nm = names[m.id] || ('Thẻ ' + m.id);
+      g.strokeStyle = col; g.beginPath();
+      m.c.forEach(function (p, i) { if (i) g.lineTo(p.x * k, p.y * k); else g.moveTo(p.x * k, p.y * k); });
+      g.closePath(); g.stroke();
+      g.fillStyle = col; g.fillText(a, m.c[0].x * k, Math.max(18, m.c[0].y * k - 6));
+      chips.push('<span class="chip" style="background:' + col + '">' + a + ' · ' + nm.replace(/[<>&"]/g, '') + '</span>');
+    });
+    $('list').innerHTML = chips.join('') || '<span style="opacity:.6">Chưa thấy thẻ nào — hướng camera về phía các em giơ thẻ</span>';
+  }
+  function loop() {
+    if (!running) return;
+    try { scanOnce(); draw(); } catch (e) {}
+    setTimeout(loop, 40);
+  }
+
+  /* ---- nút ---- */
+  $('go').onclick = function () {
+    code = $('code').value.replace(/\D/g, '');
+    if (code.length !== 6) { err('Hãy nhập đủ 6 số.'); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { err('Trình duyệt không cho dùng camera (cần mở trang bằng https).'); return; }
+    err(''); $('go').disabled = true; $('go').textContent = 'Đang mở camera…';
+    var cam = startCam();   // gọi ngay trong thao tác bấm để được cấp quyền
+    Promise.all([cam, libs()]).then(function () {
+      want = true; running = true;
+      $('join').style.display = 'none'; $('scan').style.display = 'flex'; $('room').textContent = 'Phòng ' + code;
+      try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (l) { wl = l; }, function () {}); } catch (e) {}
+      connect(); loop();
+    }).catch(function (e) {
+      $('go').disabled = false; $('go').textContent = 'Vào phòng';
+      err(e && e.name ? camErr(e) : ((e && e.message) || 'Có lỗi xảy ra.'));
+    });
+  };
+  $('flip').onclick = function () {
+    facing = facing === 'environment' ? 'user' : 'environment';
+    startCam().catch(function (e) { $('hs').textContent = camErr(e); });
+  };
+  $('leave').onclick = function () {
+    want = false; running = false; clearTimeout(retryT);
+    try { if (peer) peer.destroy(); } catch (e) {}
+    if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+    try { if (wl) wl.release(); } catch (e) {}
+    location.href = location.pathname;
+  };
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && want) {
+      try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (l) { wl = l; }, function () {}); } catch (e) {}
+      if (!conn || !conn.open) connect();
+    }
+  });
+})();
+</script>
+</body>
+</html>
