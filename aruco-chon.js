@@ -39,15 +39,21 @@
     '.ar-cfg textarea{width:100%;box-sizing:border-box;min-height:110px;font:inherit}',
     '.ar-panel{position:relative;margin:8px auto 0;z-index:8;width:min(100%,380px);flex:0 0 auto;background:#0b1020ee;color:#fff;border:2px solid #38bdf8;border-radius:12px;padding:6px;box-sizing:border-box;font-size:14px}',
     '.ar-panel.inline{margin:8px 0;max-width:460px;width:100%}',
-    '@media(min-width:701px) and (min-aspect-ratio:1/1){.kc-stage.on.ar-dock{padding-right:calc(clamp(230px,22vw,380px) + 24px)!important;min-height:420px}.kc-stage.ar-dock>.ar-panel{position:absolute;right:10px;top:10px;bottom:10px;margin:0;width:clamp(230px,22vw,380px);display:flex;flex-direction:column;overflow:auto}.kc-stage.ar-dock>.ar-panel canvas{flex:1 1 0;min-height:80px;width:100%;max-height:none;margin:0}}',
-    '.ar-hd{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:4px}.ar-hd b{line-height:1.25}',
+    '@media(min-width:701px) and (min-aspect-ratio:1/1){.kc-stage.on.ar-dock{padding-right:calc(clamp(150px,13vw,210px) + 24px)!important;min-height:420px}.kc-stage.ar-dock>.ar-panel{position:absolute;right:10px;top:10px;bottom:10px;margin:0;width:clamp(150px,13vw,210px);display:flex;flex-direction:column;overflow:auto}.kc-stage.ar-dock>.ar-panel canvas{flex:1 1 0;min-height:80px;width:100%;max-height:none;margin:0}}',
+    '.ar-hd{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 6px;margin-bottom:4px}.ar-hd>span{margin-left:auto}.ar-hd b{line-height:1.25}',
     '.ar-b{background:#1b2347;color:#fff;border:1px solid #333f77;border-radius:8px;padding:2px 8px;font-size:15px;cursor:pointer;flex:none;min-height:0}',
     '.ar-panel canvas{display:block;border-radius:8px;background:#000;max-height:24vh;width:auto;max-width:100%;margin:0 auto}',
     '.ar-bar{height:6px;border-radius:4px;background:#ffffff33;margin-top:4px;overflow:hidden}.ar-bar i{display:block;height:100%;width:0;background:#38bdf8}',
-    '.ar-tl{margin-top:4px;font-size:.92em;line-height:1.5}.ar-tl .r{display:flex;align-items:center;gap:6px;margin:2px 0}.ar-tl .r b{width:1.3em}',
-    '.ar-tl .t{flex:1;height:14px;background:#ffffff22;border-radius:6px;overflow:hidden}.ar-tl .t i{display:block;height:100%}.ar-tl .r span{width:2.4em;text-align:right}',
+    '.ar-tl{margin-top:4px;font-size:.92em;line-height:1.4}.ar-g{margin-top:4px}.ar-gt{font-weight:700;font-size:.92em;margin:2px 0 3px}',
+    '.ar-vb{display:flex;justify-content:center;gap:4px;height:130px}',
+    '.ar-vc{flex:1;max-width:56px;min-width:0;display:flex;flex-direction:column}.ar-vc .n{text-align:center;font-weight:800;font-size:1.05em;line-height:1.35}',
+    '.ar-vc .col{flex:1;min-height:20px;display:flex;align-items:flex-end;background:#ffffff14;border-radius:6px 6px 0 0;overflow:hidden}.ar-vc .col i{display:block;width:100%;transition:height .25s}',
+    '.ar-vc .l{text-align:center;color:#fff;font-weight:800;padding:2px 0;border-radius:0 0 6px 6px}',
+    '.ar-join{display:none;text-align:center;padding:6px 0 2px}.ar-join small{display:block;opacity:.9;font-weight:600}.ar-join b{display:block;color:#38bdf8;font:800 clamp(20px,2.2vw,36px)/1.2 ui-monospace,Menlo,monospace;letter-spacing:.05em}',
+    '.ar-panel.ph canvas{display:none}',
+    '@media(min-width:701px) and (min-aspect-ratio:1/1){.kc-stage.ar-dock>.ar-panel .ar-tl{flex:1 1 0;min-height:0;display:flex;flex-direction:column}.kc-stage.ar-dock>.ar-panel .ar-g{flex:1 1 0;min-height:0;display:flex;flex-direction:column}.kc-stage.ar-dock>.ar-panel .ar-vb{flex:1 1 0;height:auto;min-height:60px}}',
     '.ar-miss{margin-top:3px;font-size:.78em;opacity:.8;line-height:1.3}',
-    '.ar-panel.min canvas,.ar-panel.min .ar-bar,.ar-panel.min .ar-tl,.ar-panel.min .ar-miss{display:none}',
+    '.ar-panel.min canvas,.ar-panel.min .ar-bar,.ar-panel.min .ar-tl,.ar-panel.min .ar-miss,.ar-panel.min .ar-join{display:none!important}',
     '.ar-big{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:7;pointer-events:none;font-weight:900;color:#fff;font-size:clamp(90px,34vh,300px);text-shadow:0 6px 30px #000,0 0 40px #000}.ar-big.on{display:flex}',
     '.kc-opt.ar-sel{outline:6px solid #38bdf8;outline-offset:-3px;box-shadow:0 0 22px #38bdf8}',
     '#arOv{position:fixed;inset:0;z-index:99999;background:#fff;color:#000;overflow:auto;padding:12px;display:none}#arOv.on{display:block}',
@@ -223,7 +229,7 @@
   var panel = document.createElement('div');
   panel.className = 'ar-panel inline'; panel.style.display = 'none';
   panel.innerHTML = '<div class="ar-hd"><b id="arSt">🎫</b><span><button class="ar-b" id="arSkip" type="button" title="Chốt ngay">⏭</button> <button class="ar-b" id="arHold" type="button" title="Tạm dừng đếm giờ">⏸</button> <button class="ar-b" id="arMin" type="button" title="Thu nhỏ">▾</button> <button class="ar-b" id="arExit" type="button" title="Dừng chơi và thoát">✕</button></span></div>' +
-    '<canvas id="arCv" width="480" height="270"></canvas><div class="ar-bar"><i id="arPg"></i></div><div class="ar-tl" id="arTl"></div><div class="ar-miss" id="arMiss"></div>';
+    '<div class="ar-join" id="arJoin"></div><canvas id="arCv" width="480" height="270"></canvas><div class="ar-bar"><i id="arPg"></i></div><div class="ar-tl" id="arTl"></div><div class="ar-miss" id="arMiss"></div>';
   var big = document.createElement('div'); big.className = 'ar-big';
   var cv = panel.querySelector('#arCv');
   $('arBox').appendChild(panel);
@@ -314,15 +320,18 @@
     if (ph && C.on) openRoom(); else if (RM.peer) closeRoom();
     if (!(ph && C.on)) return;
     r.innerHTML = '📱 <b>Phòng điện thoại</b>: ' + (RM.err ? '⚠ ' + esc(RM.err) : (RM.state === 'open'
-      ? 'mã phòng <b style="font-size:1.5em;letter-spacing:.12em">' + RM.code + '</b> · ' + RM.conns.length + ' điện thoại đã vào<br>Trên điện thoại mở: <b>' + esc(roomLink()) + '</b> rồi cho phép camera. <button class="sec sm" id="arNewRoom" type="button">🔄 Đổi mã</button>'
+      ? 'mã <b style="font-size:1.5em;letter-spacing:.12em">' + RM.code + '</b> · ' + RM.conns.length + ' điện thoại đã vào<br><button class="sec sm" id="arGo" type="button">📲 Vào phòng</button> <button class="sec sm" id="arNewRoom" type="button">🔄 Đổi mã</button>'
       : 'đang mở phòng…'));
   }
-  $('arRoom').onclick = function (e) { if (e.target && e.target.id === 'arNewRoom') { closeRoom(); RM.code = newCode(); RM.err = ''; try { sessionStorage.setItem('ar_room', RM.code); } catch (x) {} srcUi(); } };
+  $('arRoom').onclick = function (e) {
+    var id = e.target && (e.target.id || (e.target.closest && e.target.closest('button') ? e.target.closest('button').id : ''));
+    if (id === 'arGo') { window.open(roomLink().replace(/\?ma=.*/, ''), '_blank'); return; }
+    if (id === 'arNewRoom') { closeRoom(); RM.code = newCode(); RM.err = ''; try { sessionStorage.setItem('ar_room', RM.code); } catch (x) {} srcUi(); } };
   function fail() { return C.src === 'phone' ? RM.err : failed; }
   function waitMsg() {
     if (C.src !== 'phone') return '⏳ Đang chuẩn bị camera và bộ nhận dạng…';
     if (RM.state !== 'open') return '⏳ Đang mở phòng…';
-    if (!RM.conns.length) return '📱 Chờ điện thoại vào phòng · mã ' + RM.code;
+    if (!RM.conns.length) return '📱 Chờ điện thoại vào phòng…';
     return '📱 Chờ tín hiệu từ điện thoại…';
   }
 
@@ -410,27 +419,8 @@
       }
     });
   }
-  function drawRoom(g, w, h) {
-    var fs = Math.max(11, Math.round(h * 0.07)), y = fs * 1.4, names = roster(), link = roomLink().replace(/^https?:\/\//, '').replace(/\?ma=.*/, '');
-    g.textAlign = 'center'; g.fillStyle = '#fff';
-    var f1 = Math.round(fs * 0.8); g.font = '600 ' + f1 + 'px system-ui';
-    while (g.measureText('📱 ' + link).width > w - 8 && f1 > 8) { f1--; g.font = '600 ' + f1 + 'px system-ui'; }
-    g.fillText('📱 ' + link, w / 2, y);
-    y += fs * 1.7; g.fillStyle = '#38bdf8'; g.font = '800 ' + Math.round(fs * 2.1) + 'px ui-monospace,monospace';
-    g.fillText(RM.code ? RM.code.slice(0, 3) + ' ' + RM.code.slice(3) : '· · ·', w / 2, y);
-    y += fs * 1.15; g.fillStyle = RM.err ? '#f87171' : (RM.conns.length ? '#4ade80' : '#fbbf24'); g.font = '600 ' + Math.round(fs * 0.8) + 'px system-ui';
-    g.fillText(RM.err || (RM.state !== 'open' ? 'Đang mở phòng…' : (RM.conns.length ? RM.conns.length + ' điện thoại đã kết nối' : 'Nhập mã này trên điện thoại')), w / 2, y);
-    y += fs * 0.7; g.textAlign = 'left'; g.font = 'bold ' + Math.round(fs * 0.8) + 'px system-ui';
-    var x = 6, ch = fs * 1.15;
-    seen.slice(0, 60).forEach(function (m) {
-      var t = m.a + ' ' + (names[m.id] ? names[m.id].split(' ').slice(-1)[0] : m.id), tw = g.measureText(t).width + 12;
-      if (x + tw > w - 4) { x = 6; y += ch + 4; }
-      if (y + ch > h) return;
-      g.fillStyle = CH[LET.indexOf(m.a)]; g.fillRect(x, y, tw, ch);
-      g.fillStyle = '#fff'; g.fillText(t, x + 6, y + ch * 0.78); x += tw + 4;
-    });
-  }
   function draw() {
+    if (C.src === 'phone') return;
     if (!panel.offsetWidth || panel.classList.contains('min')) return;
     var tw = 480, th = 270;
     if (!panel.classList.contains('inline') && cv.clientWidth > 20 && cv.clientHeight > 20 && window.matchMedia && window.matchMedia('(min-width:701px) and (min-aspect-ratio:1/1)').matches) {
@@ -439,7 +429,6 @@
     if (cv.width !== tw || cv.height !== th) { cv.width = tw; cv.height = th; }
     var w = cv.width, h = cv.height, g = cv.getContext('2d'), has = vid.videoWidth && vid.readyState >= 2;
     g.fillStyle = '#111'; g.fillRect(0, 0, w, h);
-    if (C.src === 'phone') { drawRoom(g, w, h); return; }
     if (!has) return;
     var sc = Math.max(w / vid.videoWidth, h / vid.videoHeight), dw = vid.videoWidth * sc, dh = vid.videoHeight * sc, ox = (w - dw) / 2, oy = (h - dh) / 2;
     g.drawImage(vid, ox, oy, dw, dh);
@@ -570,12 +559,12 @@
     });
   }
   function paintTally() {
-    var tl = tally(), h = '', names = roster(), g, j, miss = [];
+    var tl = tally(), h = '', names = roster(), g, j, miss = [], two = tl.cnt.length === 2;
     for (g = 0; g < tl.cnt.length; g++) {
-      if (tl.cnt.length === 2) h += '<div style="font-weight:700;margin-top:3px">Đội ' + (g + 1) + ' · ' + tl.tot[g] + '/' + tl.need[g] + (tl.win[g] >= 0 ? ' → ' + LET.charAt(tl.win[g]) : '') + '</div>';
-      else h += '<div style="font-weight:700">Đã trả lời ' + tl.tot[0] + '/' + tl.need[0] + '</div>';
       var mx = Math.max(1, Math.max.apply(null, tl.cnt[g]));
-      for (j = 0; j < 4; j++) h += '<div class="r"><b>' + LET.charAt(j) + '</b><div class="t"><i style="width:' + Math.round(tl.cnt[g][j] / mx * 100) + '%;background:' + CH[j] + '"></i></div><span>' + tl.cnt[g][j] + '</span></div>';
+      h += '<div class="ar-g"><div class="ar-gt">' + (two ? 'Đội ' + (g + 1) + ' · ' + tl.tot[g] + '/' + tl.need[g] + (tl.win[g] >= 0 ? ' → ' + LET.charAt(tl.win[g]) : '') : 'Đã trả lời ' + tl.tot[0] + '/' + tl.need[0]) + '</div><div class="ar-vb">';
+      for (j = 0; j < 4; j++) h += '<div class="ar-vc"><span class="n">' + tl.cnt[g][j] + '</span><div class="col"><i style="height:' + Math.round(tl.cnt[g][j] / mx * 100) + '%;background:' + CH[j] + '"></i></div><b class="l" style="background:' + CH[j] + '">' + LET.charAt(j) + '</b></div>';
+      h += '</div></div>';
     }
     $('arTl').innerHTML = h;
     names.forEach(function (nm, i) { if (!S.cur[i]) miss.push(nm); });
@@ -622,7 +611,14 @@
     startCam();
   }, true);
 
+  function paintJoin() {
+    var j = $('arJoin'), show = C.src === 'phone' && !RM.conns.length;
+    panel.classList.toggle('ph', C.src === 'phone');
+    j.style.display = show ? 'block' : 'none';
+    if (show) { var h = '<small>Mã đăng nhập</small><b>' + (RM.code ? RM.code.slice(0, 3) + ' ' + RM.code.slice(3) : '· · ·') + '</b>'; if (j._h !== h) { j._h = h; j.innerHTML = h; } }
+  }
   function tick() {
+    paintJoin();
     var now = Date.now(), dt = Math.min(1000, now - lastT); lastT = now;
     if (RM.conns.length && ++bc % 3 === 0) broadcast();
     var k2 = activeKind();
