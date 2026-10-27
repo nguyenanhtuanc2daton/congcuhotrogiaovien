@@ -732,9 +732,9 @@
   function openCards() {
     var names = roster(); if (!names.length) { $('arMsg').textContent = 'Hãy nhập danh sách học sinh trước.'; return; }
     if (!SIZES[C.card]) C.card = '1';
-    ov.innerHTML = '<div class="ar-top"><button id="arDoPrint" type="button">🖨 In</button><button id="arClose" type="button">✕ Đóng</button>' +
+    ov.innerHTML = '<div class="ar-top"><button id="arDoPrint" type="button">🖨 In</button><button id="arPdf" type="button">⬇ PDF</button><button id="arDocx" type="button">⬇ Word</button><button id="arClose" type="button">✕ Đóng</button>' +
       '<label style="align-self:center;font-size:14px;font-weight:700">Cỡ thẻ <select id="arSz">' + Object.keys(SIZES).map(function (k) { return '<option value="' + k + '"' + (k === C.card ? ' selected' : '') + '>' + SIZES[k].n + '</option>'; }).join('') + '</select></label>' +
-      '<div style="flex-basis:100%;font-size:13px"><span id="arSzInfo"></span><br>In đúng kích thước (chọn “Tỉ lệ 100%/Kích thước thực”, không “Vừa trang”). Thẻ càng lớn càng quét được từ xa; lớp đông nên chọn cỡ lớn, cắt rời rồi ép dẻo.</div></div><div class="cards" id="arCards"></div>';
+      '<div style="flex-basis:100%;font-size:13px"><span id="arSzInfo"></span><br>In đúng kích thước (chọn “Tỉ lệ 100%/Kích thước thực”, không “Vừa trang”). Thẻ càng lớn càng quét được từ xa; lớp đông nên chọn cỡ lớn, cắt rời rồi ép dẻo.<br><b>Mang ra quán in:</b> bấm “⬇ PDF” (khuyên dùng) hoặc “⬇ Word” để tải toàn bộ thẻ về máy; file đã đúng khổ A4, in 100%.<span id="arExMsg" style="display:block;font-weight:700;color:#047857;margin-top:4px"></span></div></div><div class="cards" id="arCards"></div>';
     ov.classList.add('on'); document.body.classList.add('ar-open');
     var pg = document.getElementById('arPg');
     if (!pg) { pg = document.createElement('style'); pg.id = 'arPg'; document.head.appendChild(pg); }
@@ -746,9 +746,163 @@
     });
     $('arSz').onchange = function () { C.card = this.value; save(); if (cardD) renderCards(); };
     $('arClose').onclick = closeOv;
+    $('arPdf').onclick = function () { exportCards('pdf'); };
+    $('arDocx').onclick = function () { exportCards('docx'); };
     $('arDoPrint').onclick = function () { try { window.print(); } catch (e) {} };
   }
   $('arPrint').onclick = openCards;
+
+  /* ---------- Tải toàn bộ thẻ về máy: PDF hoặc Word (để mang ra quán in) ----------
+     Không cần thư viện ngoài, chạy được cả khi mất mạng. Mỗi trang A4 được vẽ thành ảnh 300 dpi (lớp > 60 trang: 200 dpi)
+     rồi đóng gói vào PDF / DOCX đúng kích thước thật (mm). */
+  var FONT = 'Arial, "Helvetica Neue", Roboto, system-ui, sans-serif', exBusy = false, CRCT = null;
+  function utf8(s) { return new TextEncoder().encode(s); }
+  function crc32(b) {
+    if (!CRCT) { CRCT = []; for (var n = 0; n < 256; n++) { var c0 = n; for (var k = 0; k < 8; k++) c0 = c0 & 1 ? 0xEDB88320 ^ (c0 >>> 1) : c0 >>> 1; CRCT[n] = c0 >>> 0; } }
+    var c = 0xFFFFFFFF; for (var i = 0; i < b.length; i++) c = CRCT[(c ^ b[i]) & 255] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function u16(v) { return [v & 255, (v >>> 8) & 255]; }
+  function u32(v) { return [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255]; }
+  function zipStore(files, type) {   /* ZIP không nén (ảnh JPEG đã nén sẵn) */
+    var parts = [], cen = [], off = 0, size = 0;
+    files.forEach(function (f) {
+      var nm = utf8(f.name), crc = crc32(f.data), sz = f.data.length;
+      var lh = new Uint8Array([0x50, 0x4b, 3, 4].concat(u16(20), u16(0x0800), u16(0), u16(0), u16(0x21), u32(crc), u32(sz), u32(sz), u16(nm.length), u16(0)));
+      parts.push(lh, nm, f.data);
+      cen.push(new Uint8Array([0x50, 0x4b, 1, 2].concat(u16(20), u16(20), u16(0x0800), u16(0), u16(0), u16(0x21), u32(crc), u32(sz), u32(sz), u16(nm.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(off))), nm);
+      off += lh.length + nm.length + sz;
+    });
+    cen.forEach(function (c) { size += c.length; parts.push(c); });
+    parts.push(new Uint8Array([0x50, 0x4b, 5, 6].concat(u16(0), u16(0), u16(files.length), u16(files.length), u32(size), u32(off), u16(0))));
+    return new Blob(parts, { type: type || 'application/zip' });
+  }
+  function jpgComps(d) {   /* số kênh màu của JPEG (đọc từ đoạn SOF) */
+    for (var i = 2; i + 9 < d.length;) {
+      if (d[i] !== 0xFF) { i++; continue; }
+      var m = d[i + 1];
+      if (m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC) return d[i + 9];
+      i += 2 + (d[i + 2] << 8 | d[i + 3]);
+    }
+    return 3;
+  }
+  function buildPdf(pages) {   /* pages: [{d: Uint8Array JPEG, w, h}] → Blob PDF, mỗi trang A4 */
+    var parts = [], off = 0, xr = [], N = pages.length, PW = '595.28', PH = '841.89';
+    function push(x) { if (typeof x === 'string') { var b = new Uint8Array(x.length); for (var i = 0; i < x.length; i++) b[i] = x.charCodeAt(i) & 255; x = b; } parts.push(x); off += x.length; }
+    function obj(n, body, stream) { xr[n] = off; push(n + ' 0 obj\n' + body); if (stream) { push('\nstream\n'); push(stream); push('\nendstream'); } push('\nendobj\n'); }
+    push('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+    obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+    var kids = []; for (var i = 0; i < N; i++) kids.push((3 + 3 * i) + ' 0 R');
+    obj(2, '<< /Type /Pages /Count ' + N + ' /Kids [' + kids.join(' ') + '] >>');
+    pages.forEach(function (p, i) {
+      var pg = 3 + 3 * i, ct = pg + 1, im = pg + 2, c = 'q ' + PW + ' 0 0 ' + PH + ' 0 0 cm /Im0 Do Q';
+      obj(pg, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + PW + ' ' + PH + '] /Resources << /XObject << /Im0 ' + im + ' 0 R >> >> /Contents ' + ct + ' 0 R >>');
+      obj(ct, '<< /Length ' + c.length + ' >>', utf8(c));
+      obj(im, '<< /Type /XObject /Subtype /Image /Width ' + p.w + ' /Height ' + p.h + ' /ColorSpace /' + (jpgComps(p.d) === 1 ? 'DeviceGray' : 'DeviceRGB') + ' /BitsPerComponent 8 /Filter /DCTDecode /Length ' + p.d.length + ' >>', p.d);
+    });
+    var xo = off, total = 3 + 3 * N, t = 'xref\n0 ' + total + '\n0000000000 65535 f \n';
+    for (var n = 1; n < total; n++) t += ('0000000000' + xr[n]).slice(-10) + ' 00000 n \n';
+    push(t + 'trailer\n<< /Size ' + total + ' /Root 1 0 R >>\nstartxref\n' + xo + '\n%%EOF');
+    return new Blob(parts, { type: 'application/pdf' });
+  }
+  function buildDocx(pages) {   /* mỗi trang = 1 ảnh 190×277 mm, lề 10 mm → thẻ đúng kích thước thật */
+    var CX = 190 * 36000, CY = 277 * 36000, body = '', rels = '', files = [];
+    pages.forEach(function (p, i) {
+      var n = i + 1;
+      files.push({ name: 'word/media/p' + n + '.jpg', data: p.d });
+      rels += '<Relationship Id="rId' + (n + 10) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/p' + n + '.jpg"/>';
+      body += '<w:p><w:pPr>' + (i ? '<w:pageBreakBefore/>' : '') + '<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/><w:rPr><w:sz w:val="2"/></w:rPr></w:pPr><w:r><w:rPr><w:noProof/></w:rPr><w:drawing>' +
+        '<wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="' + CX + '" cy="' + CY + '"/><wp:docPr id="' + n + '" name="Trang ' + n + '"/>' +
+        '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
+        '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="' + n + '" name="p' + n + '.jpg"/><pic:cNvPicPr/></pic:nvPicPr>' +
+        '<pic:blipFill><a:blip r:embed="rId' + (n + 10) + '"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>' +
+        '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + CX + '" cy="' + CY + '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic>' +
+        '</a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
+    });
+    var doc = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"><w:body>' + body +
+      '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="454" w:right="567" w:bottom="454" w:left="567" w:header="0" w:footer="0" w:gutter="0"/></w:sectPr></w:body></w:document>';
+    var head = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    return zipStore([
+      { name: '[Content_Types].xml', data: utf8(head + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpg" ContentType="image/jpeg"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>') },
+      { name: '_rels/.rels', data: utf8(head + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>') },
+      { name: 'word/document.xml', data: utf8(doc) },
+      { name: 'word/_rels/document.xml.rels', data: utf8(head + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + rels + '</Relationships>') }
+    ].concat(files), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  }
+  function svgImg(id, px) {   /* SVG của thẻ → ảnh đúng px điểm ảnh */
+    var s = cardD.generateSVG(id);
+    try {
+      var d = new DOMParser().parseFromString(s, 'image/svg+xml'), el = d.documentElement;
+      if (el.nodeName !== 'svg' || d.querySelector('parsererror')) throw 0;
+      if (!el.getAttribute('viewBox')) { var w0 = parseFloat(el.getAttribute('width')), h0 = parseFloat(el.getAttribute('height')); if (w0 && h0) el.setAttribute('viewBox', '0 0 ' + w0 + ' ' + h0); }
+      el.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); el.setAttribute('width', px); el.setAttribute('height', px); el.setAttribute('shape-rendering', 'crispEdges');
+      s = new XMLSerializer().serializeToString(el);
+    } catch (e) {}
+    return new Promise(function (ok, bad) {
+      var u = URL.createObjectURL(new Blob([s], { type: 'image/svg+xml' })), im = new Image();
+      im.onload = function () { URL.revokeObjectURL(u); ok(im); };
+      im.onerror = function () { URL.revokeObjectURL(u); bad(new Error('Không dựng được mã thẻ #' + id)); };
+      im.src = u;
+    });
+  }
+  function drawCard(g, S, k, x, y, id, name, im) {   /* vẽ 1 thẻ giống hệt bản xem trước */
+    var w = S.w * k, h = S.h * k, tw, t, L;
+    g.save(); g.translate(x * k, y * k);
+    g.strokeStyle = '#888'; g.lineWidth = 0.3 * k; g.setLineDash([0.9 * k, 0.6 * k]); g.strokeRect(0.15 * k, 0.15 * k, w - 0.3 * k, h - 0.3 * k); g.setLineDash([]);
+    var sp = im.width || Math.round(S.svg * k); g.drawImage(im, Math.round((w - sp) / 2), Math.round((h - sp) / 2), sp, sp);
+    g.fillStyle = '#000'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold ' + (S.f * k) + 'px ' + FONT;
+    tw = g.measureText('B').width;
+    L = function (ch, cx, cy, rot) { g.save(); g.translate(cx, cy); g.rotate(rot); g.fillText(ch, 0, 0); g.restore(); };
+    L('A', w / 2, (S.nf + 2.2) * k + S.f * k / 2, 0);
+    L('B', w * 0.97 - tw / 2, h / 2, Math.PI / 2);
+    L('C', w / 2, h * 0.97 - S.f * k / 2, Math.PI);
+    L('D', w * 0.03 + tw / 2, h / 2, -Math.PI / 2);
+    g.font = (S.nf * k) + 'px ' + FONT; g.textAlign = 'left'; g.textBaseline = 'top';
+    t = '#' + id + ' ' + name;
+    if (g.measureText(t).width > w - 3 * k) { while (t.length > 1 && g.measureText(t + '…').width > w - 3 * k) t = t.slice(0, -1); t += '…'; }
+    g.fillText(t, 1.5 * k, 1 * k);
+    g.restore();
+  }
+  function renderPage(S, names, p, full, k) {   /* full: cả trang A4 (PDF) / false: chỉ vùng 190×277 mm trong lề (Word) */
+    var per = S.c * S.r, list = names.slice(p * per, (p + 1) * per), W = full ? 210 : 190, H = full ? 297 : 277, m = full ? 10 : 0;
+    var cv = document.createElement('canvas'); cv.width = Math.round(W * k); cv.height = Math.round(H * k);
+    var g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
+    return Promise.all(list.map(function (n, i) { return svgImg(p * per + i, Math.round(S.svg * k / 10) * 10); })).then(function (ims) {
+      var x0 = m + (190 - S.c * S.w) / 2;
+      list.forEach(function (n, i) { drawCard(g, S, k, x0 + (i % S.c) * S.w, m + Math.floor(i / S.c) * S.h, p * per + i, n, ims[i]); });
+      return cv;
+    });
+  }
+  function saveBlob(blob, name) {
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.style.display = 'none';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { try { document.body.removeChild(a); URL.revokeObjectURL(a.href); } catch (e) {} }, 8000);
+  }
+  function exportCards(kind) {
+    if (exBusy) return;
+    var msg = $('arExMsg');
+    if (!cardD) { msg.textContent = 'Thẻ chưa sẵn sàng, đợi một chút rồi thử lại.'; return; }
+    var S = SIZES[C.card], names = roster(), per = S.c * S.r, pages = Math.ceil(names.length / per), k = (pages > 60 ? 200 : 300) / 25.4, out = [], p = 0, btns = ov.querySelectorAll('.ar-top button');
+    function lock(on) { exBusy = on; Array.prototype.forEach.call(btns, function (b) { if (b.id !== 'arClose') b.disabled = on; }); }
+    function tick2() { return new Promise(function (r) { setTimeout(r, 0); }); }
+    function step() {
+      if (p >= pages) return;
+      msg.textContent = '⏳ Đang tạo trang ' + (p + 1) + '/' + pages + '…';
+      return renderPage(S, names, p, kind === 'pdf', k).then(function (cv) {
+        var w = cv.width, h = cv.height;
+        return new Promise(function (ok, bad) { cv.toBlob(function (b) { b ? ok(b) : bad(new Error('Trình duyệt không xuất được ảnh.')); }, 'image/jpeg', 0.92); })
+          .then(function (b) { return b.arrayBuffer(); })
+          .then(function (ab) { cv.width = cv.height = 0; out.push({ d: new Uint8Array(ab), w: w, h: h }); p++; return tick2(); })
+          .then(step);
+      });
+    }
+    lock(true);
+    step().then(function () {
+      var blob = kind === 'pdf' ? buildPdf(out) : buildDocx(out), ext = kind === 'pdf' ? '.pdf' : '.docx';
+      saveBlob(blob, 'the-hoc-sinh-' + names.length + 'em' + ext);
+      msg.textContent = '✅ Đã tạo file ' + ext.slice(1).toUpperCase() + ' (' + pages + ' trang, ' + (blob.size / 1048576).toFixed(1).replace('.', ',') + ' MB). Kiểm tra mục Tải xuống của máy.';
+    }).catch(function (e) { msg.textContent = '⚠ ' + (e && e.message ? e.message : 'Không tạo được file.'); }).then(function () { lock(false); });
+  }
 
   /* ---------- Kết quả & xuất CSV ---------- */
   function curLog() {   /* chỉ lấy đợt ôn gần nhất, xếp theo số câu */
@@ -787,6 +941,8 @@
       rows.map(function (s, i) { return '<tr><td>' + (i + 1) + '</td><td>' + esc(s.name) + '</td><td>' + s.right + '</td><td>' + s.got + '/' + curLog().length + '</td></tr>'; }).join('') + '</table>';
     ov.classList.add('on'); document.body.classList.add('ar-open');
     $('arClose').onclick = closeOv;
+    $('arPdf').onclick = function () { exportCards('pdf'); };
+    $('arDocx').onclick = function () { exportCards('docx'); };
     $('arCsv').onclick = function () { dl(csv(), 'ket-qua-the-aruco.csv'); };
     $('arClr').onclick = function () { if (window.confirm('Xóa toàn bộ kết quả đã ghi?')) { LOG = []; qn = 0; saveLog(); openRes(); } };
   }
