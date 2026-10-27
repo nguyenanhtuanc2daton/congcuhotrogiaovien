@@ -28,7 +28,10 @@ canvas{max-width:100%;max-height:100%}
 #list{padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px;min-height:46px;background:#111a33}
 .chip{padding:4px 10px;border-radius:8px;font-weight:700;font-size:.95rem}
 #bot{padding:8px 12px;display:flex;gap:8px;background:#111a33}
-#bot button{flex:1;padding:10px}
+#bot button,#bot select{flex:1;padding:10px;min-width:0}
+select{font:inherit;font-weight:700;border:0;border-radius:12px;background:#243056;color:#fff}
+#zrow{display:none;align-items:center;gap:8px;padding:6px 12px;background:#0f2a4a}
+#zrow input{flex:1}#zv{min-width:3.2em;text-align:right;font-weight:700}
 </style>
 </head>
 <body>
@@ -44,8 +47,9 @@ canvas{max-width:100%;max-height:100%}
   <div id="top"><span id="conn" class="bad">Đang kết nối…</span><span id="room"></span></div>
   <div id="hs"></div>
   <div id="stage"><canvas id="cv" width="640" height="360"></canvas></div>
+  <div id="zrow"><span>🔍 Zoom</span><input type="range" id="zoom" min="1" max="1" step="0.1" value="1"><span id="zv">1×</span></div>
   <div id="list"></div>
-  <div id="bot"><button class="sec" id="flip" type="button">🔄 Đổi camera</button><button class="sec" id="leave" type="button">Thoát</button></div>
+  <div id="bot"><select id="qual" aria-label="Độ nét quét"><option value="std">Nét: Chuẩn</option><option value="hi">Nét: Cao</option><option value="max">Nét: Tối đa</option></select><button class="sec" id="flip" type="button">🔄 Đổi camera</button><button class="sec" id="leave" type="button">Thoát</button></div>
 </div>
 
 <video id="v" playsinline muted style="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none"></video>
@@ -58,7 +62,11 @@ canvas{max-width:100%;max-height:100%}
   var PEER_SRC = ['https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js', 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'];
   var vid = $('v'), cv = $('cv'), off = document.createElement('canvas');
   var code = '', want = false, peer = null, conn = null, retryT = 0, stream = null, det = null, facing = 'environment';
-  var names = [], hostOff = 0, hostSt = '', seen = [], fr = 0, running = false, wl = null;
+  var names = [], hostOff = 0, hostSt = '', seen = [], fr = 0, running = false, wl = null, track = null;
+  var BIG = { std: 1024, hi: 1600, max: 1920 }, qual = 'hi';
+  try { qual = localStorage.getItem('q_qual') || 'hi'; } catch (e) {}
+  if (!BIG[qual]) qual = 'hi';
+  $('qual').value = qual;
 
   var qs = new URLSearchParams(location.search).get('ma');
   if (qs) $('code').value = qs.replace(/\D/g, '').slice(0, 6);
@@ -91,9 +99,29 @@ canvas{max-width:100%;max-height:100%}
   function startCam() {
     if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
     stream = null;
-    return navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false })
-      .then(function (s) { stream = s; vid.srcObject = s; return vid.play(); });
+    return navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing }, width: { ideal: qual === 'std' ? 1280 : 1920 }, height: { ideal: qual === 'std' ? 720 : 1080 } }, audio: false })
+      .then(function (s) { stream = s; vid.srcObject = s; setupZoom(); return vid.play(); });
   }
+
+  function setupZoom() {
+    var z = $('zoom'), row = $('zrow'); row.style.display = 'none'; track = null;
+    try {
+      track = stream.getVideoTracks()[0];
+      var cap = track.getCapabilities ? track.getCapabilities() : null;
+      if (cap && cap.zoom && cap.zoom.max > cap.zoom.min) {
+        z.min = cap.zoom.min; z.max = cap.zoom.max; z.step = cap.zoom.step || 0.1; z.value = cap.zoom.min; $('zv').textContent = (+z.value).toFixed(1) + '×';
+        row.style.display = 'flex';
+      }
+    } catch (e) {}
+  }
+  $('zoom').addEventListener('input', function () {
+    var v = +this.value; $('zv').textContent = v.toFixed(1) + '×';
+    try { if (track) track.applyConstraints({ advanced: [{ zoom: v }] }); } catch (e) {}
+  });
+  $('qual').addEventListener('change', function () {
+    qual = this.value; try { localStorage.setItem('q_qual', qual); } catch (e) {}
+    if (running) startCam().catch(function (e) { $('hs').textContent = camErr(e); });
+  });
 
   /* ---- kết nối phòng ---- */
   function setConn(ok, t) { var c = $('conn'); c.className = ok ? 'ok' : 'bad'; c.textContent = t; }
@@ -130,7 +158,7 @@ canvas{max-width:100%;max-height:100%}
   function scanOnce() {
     var vw = vid.videoWidth, vh = vid.videoHeight;
     if (!vw || vid.readyState < 2) return;
-    var w = Math.min((fr++ % 2) ? 1024 : 640, vw), h = Math.round(vh * w / vw);
+    var w = Math.min((fr++ % 2) ? BIG[qual] : 640, vw), h = Math.round(vh * w / vw);
     if (off.width !== w || off.height !== h) { off.width = w; off.height = h; }
     var g = off.getContext('2d', { willReadFrequently: true });
     g.drawImage(vid, 0, 0, w, h);

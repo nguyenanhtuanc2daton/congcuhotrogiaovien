@@ -17,10 +17,11 @@
   var LS = 'ar_cfg_v1', LSR = 'ar_log_v1';
 
   /* ---------- Cấu hình ---------- */
-  var C = { on: false, roster: '', split: 'half', secs: 30, rev: 3, next: 5, off: 0, cam: 'environment', res: 640, auto: true, src: 'phone' };
+  var C = { on: false, roster: '', split: 'half', secs: 30, rev: 3, next: 5, off: 0, cam: 'environment', res: 640, auto: true, src: 'phone', card: '1', cardV: 2 };
   try { var sv = JSON.parse(localStorage.getItem(LS) || 'null'); if (sv) for (var k in sv) C[k] = sv[k]; } catch (e) {}
   if (C.res === 960) C.res = 640;                 /* 960 từng bỏ sót thẻ to trong ảnh thật */
   if (C.src !== 'local') C.src = 'phone';
+  if (C.cardV !== 2) { C.card = '1'; C.cardV = 2; }   /* mặc định cỡ lớn nhất (cả trang A4) để quét được xa nhất */
   function save() { try { localStorage.setItem(LS, JSON.stringify(C)); } catch (e) {} }
   function num(v, lo, hi, d) { v = parseFloat(v); if (isNaN(v)) v = d; return Math.max(lo, Math.min(hi, v)); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -65,12 +66,13 @@
     '#arOv{position:fixed;inset:0;z-index:99999;background:#fff;color:#000;overflow:auto;padding:12px;display:none}#arOv.on{display:block}',
     '#arOv .ar-top{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}',
     '#arOv table{border-collapse:collapse;font-size:14px;width:100%}#arOv td,#arOv th{border-bottom:1px solid #ccc;padding:4px 6px;text-align:left}',
-    '#arOv .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}',
-    '#arOv .pc{position:relative;aspect-ratio:1;border:1px dashed #888;background:#fff;color:#000;break-inside:avoid}',
-    '#arOv .pc svg{position:absolute;inset:22%;width:56%;height:56%}#arOv .pc i{position:absolute;font:700 22px/1 system-ui;font-style:normal}',
-    '#arOv .pc .a{top:5%;left:47%}#arOv .pc .b{right:7%;top:46%;transform:rotate(90deg)}#arOv .pc .c{bottom:5%;left:47%;transform:rotate(180deg)}#arOv .pc .d{left:7%;top:46%;transform:rotate(-90deg)}',
-    '#arOv .pc small{position:absolute;left:6px;top:4px;font-size:10px}',
-    '@media print{body.ar-open>*:not(#arOv){display:none!important}#arOv{position:static!important;padding:0}#arOv .ar-top{display:none!important}}'
+    '#arOv .cards{width:190mm;margin:0 auto}#arOv .pg{display:grid;grid-template-columns:repeat(var(--c),var(--w));grid-auto-rows:var(--h);justify-content:center;width:190mm;margin:0 auto 4mm;outline:1px solid #ccc}',
+    '#arOv .pc{position:relative;width:var(--w);height:var(--h);box-sizing:border-box;border:.3mm dashed #888;background:#fff;color:#000;overflow:hidden}',
+    '#arOv .pc svg{position:absolute;left:50%;top:50%;width:var(--svg);height:var(--svg);transform:translate(-50%,-50%)}',
+    '#arOv .pc i{position:absolute;font:700 var(--f)/1 system-ui;font-style:normal}',
+    '#arOv .pc .a{top:calc(var(--nf) + 2.2mm);left:50%;transform:translateX(-50%)}#arOv .pc .b{right:3%;top:50%;transform:translateY(-50%) rotate(90deg)}#arOv .pc .c{bottom:3%;left:50%;transform:translateX(-50%) rotate(180deg)}#arOv .pc .d{left:3%;top:50%;transform:translateY(-50%) rotate(-90deg)}',
+    '#arOv .pc small{position:absolute;left:1.5mm;top:1mm;font-size:var(--nf);line-height:1.1;max-width:calc(100% - 3mm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '@media print{body.ar-open>*:not(#arOv){display:none!important}#arOv{position:static!important;padding:0}#arOv .ar-top{display:none!important}#arOv .cards{zoom:1!important}#arOv .pg{margin:0!important;outline:none!important;break-after:page;page-break-after:always}#arOv .pg:last-child{break-after:auto;page-break-after:auto}}'
   ].join('\n');
   document.head.appendChild(st);
 
@@ -698,21 +700,51 @@
   }
   setInterval(tick, 200);
 
-  /* ---------- In thẻ ---------- */
+  /* ---------- In thẻ (chọn cỡ, đúng kích thước mm trên giấy A4) ---------- */
   var ov = document.createElement('div'); ov.id = 'arOv'; document.body.appendChild(ov);
-  function closeOv() { ov.classList.remove('on'); document.body.classList.remove('ar-open'); ov.innerHTML = ''; }
+  var SIZES = {   /* c×r thẻ/trang; w,h = kích thước thẻ (mm); svg = mã kèm viền trắng (mm, phần đen = 80%); f = cỡ chữ A-B-C-D; nf = cỡ chữ tên */
+    '12': { c: 3, r: 4, w: 63, h: 69, svg: 38, f: 6, nf: 3, n: 'Nhỏ · 12 thẻ/trang' },
+    '6': { c: 2, r: 3, w: 95, h: 92, svg: 62, f: 9, nf: 4, n: 'Vừa · 6 thẻ/trang' },
+    '4': { c: 2, r: 2, w: 95, h: 138, svg: 77, f: 8.5, nf: 4.5, n: 'Lớn · 4 thẻ/trang' },
+    '2': { c: 1, r: 2, w: 190, h: 138, svg: 100, f: 13, nf: 6, n: 'Rất lớn · 2 thẻ/trang' },
+    '1': { c: 1, r: 1, w: 190, h: 277, svg: 150, f: 18, nf: 8, n: 'Cả trang A4 · 1 thẻ/trang (khuyên dùng)' }
+  }, cardD = null;
+  function closeOv() {
+    ov.classList.remove('on'); document.body.classList.remove('ar-open'); ov.innerHTML = '';
+    var pg = document.getElementById('arPg'); if (pg && pg.parentNode) pg.parentNode.removeChild(pg);
+  }
+  function cardInfo() {
+    var S = SIZES[C.card], n = roster().length, black = S.svg * 0.8 / 10, d = black / 3.19;   /* ước tính: cần ~6 điểm ảnh/ô ở khung 1920, camera điện thoại ~65° */
+    return 'Mã đen ' + String(black.toFixed(1)).replace('.', ',') + ' cm · quét tin cậy tới khoảng ' + String(d.toFixed(1)).replace('.', ',') + ' m (zoom 2× thì gấp đôi) · ' + n + ' em = ' + Math.ceil(n / (S.c * S.r)) + ' trang A4.';
+  }
+  function renderCards() {
+    var S = SIZES[C.card], names = roster(), per = S.c * S.r, pages = Math.ceil(names.length / per), box = $('arCards'), h = '', p;
+    box.style.cssText = '--c:' + S.c + ';--w:' + S.w + 'mm;--h:' + S.h + 'mm;--svg:' + S.svg + 'mm;--f:' + S.f + 'mm;--nf:' + S.nf + 'mm;zoom:' + Math.min(1, (window.innerWidth - 24) / 718).toFixed(3);
+    for (p = 0; p < pages; p++) {
+      h += '<div class="pg">' + names.slice(p * per, (p + 1) * per).map(function (n, k) {
+        var id = p * per + k;
+        return '<div class="pc"><small>#' + id + ' ' + esc(n) + '</small>' + cardD.generateSVG(id) + '<i class="a">A</i><i class="b">B</i><i class="c">C</i><i class="d">D</i></div>';
+      }).join('') + '</div>';
+    }
+    box.innerHTML = h;
+    $('arSzInfo').textContent = cardInfo();
+  }
   function openCards() {
     var names = roster(); if (!names.length) { $('arMsg').textContent = 'Hãy nhập danh sách học sinh trước.'; return; }
+    if (!SIZES[C.card]) C.card = '1';
     ov.innerHTML = '<div class="ar-top"><button id="arDoPrint" type="button">🖨 In</button><button id="arClose" type="button">✕ Đóng</button>' +
-      '<span style="align-self:center;font-size:13px">In đúng kích thước (không phóng to/thu nhỏ). Mỗi trang 9 thẻ; cắt rời, có thể ép dẻo cho bền.</span></div><div class="cards" id="arCards"></div>';
+      '<label style="align-self:center;font-size:14px;font-weight:700">Cỡ thẻ <select id="arSz">' + Object.keys(SIZES).map(function (k) { return '<option value="' + k + '"' + (k === C.card ? ' selected' : '') + '>' + SIZES[k].n + '</option>'; }).join('') + '</select></label>' +
+      '<div style="flex-basis:100%;font-size:13px"><span id="arSzInfo"></span><br>In đúng kích thước (chọn “Tỉ lệ 100%/Kích thước thực”, không “Vừa trang”). Thẻ càng lớn càng quét được từ xa; lớp đông nên chọn cỡ lớn, cắt rời rồi ép dẻo.</div></div><div class="cards" id="arCards"></div>';
     ov.classList.add('on'); document.body.classList.add('ar-open');
+    var pg = document.getElementById('arPg');
+    if (!pg) { pg = document.createElement('style'); pg.id = 'arPg'; document.head.appendChild(pg); }
+    pg.textContent = '@page{size:A4 portrait;margin:10mm}';
     loadLib().then(function () {
       if (failed) { $('arCards').textContent = failed; return; }
-      var D = new window.AR.Dictionary(DICT);
-      $('arCards').innerHTML = names.map(function (n, id) {
-        return '<div class="pc"><small>#' + id + ' ' + esc(n) + '</small>' + D.generateSVG(id) + '<i class="a">A</i><i class="b">B</i><i class="c">C</i><i class="d">D</i></div>';
-      }).join('');
+      cardD = new window.AR.Dictionary(DICT);
+      renderCards();
     });
+    $('arSz').onchange = function () { C.card = this.value; save(); if (cardD) renderCards(); };
     $('arClose').onclick = closeOv;
     $('arDoPrint').onclick = function () { try { window.print(); } catch (e) {} };
   }
