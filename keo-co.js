@@ -423,13 +423,13 @@
     '<div class="bar"><button class="ghost sm" id="kcAiDocBtn" type="button">📄 Chọn giáo án / tài liệu (.docx, .pdf, .pptx, .txt, ảnh)</button>' +
     '<span class="note" id="kcAiDocName"></span><button class="sec sm" id="kcAiDocClear" type="button" style="display:none">✕ Bỏ tài liệu</button>' +
     '<input type="file" id="kcAiDoc" accept=".docx,.pdf,.pptx,.txt,.md,image/*" hidden></div>' +
-    '<div class="bar"><input id="kcAiTopic" placeholder="Yêu cầu thêm / chủ đề (không bắt buộc nếu đã chọn tài liệu)" style="flex:1;min-width:180px">' +
+    '<div class="bar">' +
     '<label>Số câu <input type="number" id="kcAiN" value="10" min="3" max="100" style="width:72px"></label></div>' +
     '<div class="bar"><label>Model <select id="kcAiModel"><option value="gemini-flash-lite-latest">Gemini Flash-Lite (mới nhất)</option><option value="gemini-flash-latest">Gemini Flash (mới nhất)</option><option value="gemini-pro-latest">Gemini Pro (mới nhất)</option></select></label>' +
     '<button class="sm" id="kcAiBtn" type="button">✨ Tạo câu hỏi</button>' +
     '<label class="note"><input type="checkbox" id="kcAiAdd"> Nối thêm vào bộ hiện tại</label></div>' +
     '<div id="kcAiMsg" class="note"></div>' +
-    '<div class="note">Có tài liệu: AI ra câu hỏi đúng trọng tâm bài, mỗi câu tự đủ dữ kiện để học sinh không cần xem tài liệu. Không có tài liệu: AI ra câu hỏi theo chủ đề đã nhập. Công thức Toán được hiển thị đúng khi chiếu; chữ tự co để câu hỏi luôn hiện trọn vẹn (có nút A− / A+ chỉnh cỡ chữ khi chơi).</div>' +
+    '<div class="note">AI ra câu hỏi đúng trọng tâm bài, mỗi câu tự đủ dữ kiện để học sinh không cần xem tài liệu. Công thức Toán được hiển thị đúng khi chiếu; chữ tự co để câu hỏi luôn hiện trọn vẹn (có nút A− / A+ chỉnh cỡ chữ khi chơi).</div>' +
     '<div class="note">Mỗi dòng một câu: <code>Câu hỏi | A | B | C | D | B</code>. Cột cuối là đáp án đúng (chữ A–D, số 1–4 hoặc chính nội dung đáp án). Excel: cột A câu hỏi, các cột kế tiếp là đáp án, cột cuối là đáp án đúng.</div>' +
     '<div class="note">Giải thích (không bắt buộc, dùng cho chế độ Ôn tập): thêm cột thứ 7 sau đáp án đúng, ví dụ <code>Câu hỏi | A | B | C | D | B | Giải thích ngắn</code>. Bộ câu cũ không có cột này vẫn chạy bình thường.</div>' +
     '</div><div>' +
@@ -1137,8 +1137,8 @@
 
   $('kcAiBtn').onclick = function () {
     var m = $('kcAiMsg'), btn = $('kcAiBtn');
-    var topic = $('kcAiTopic').value.trim(), n = Math.max(3, Math.min(100, +$('kcAiN').value || 10));
-    if (!aiDoc && !topic) { m.textContent = 'Hãy chọn giáo án / tài liệu, hoặc nhập môn / chủ đề / lớp.'; return; }
+    var topic = '', n = Math.max(3, Math.min(100, +$('kcAiN').value || 10));
+    if (!aiDoc && !topic) { m.textContent = 'Hãy chọn giáo án / tài liệu trước khi tạo câu hỏi.'; return; }
     if (!window.GKEY || !GKEY.has()) {
       m.textContent = 'Chưa có API key Gemini. Hãy nhập key ở thanh phía trên trang.';
       if (window.GKEY) GKEY.open('Nhập key Gemini để tạo câu hỏi bằng AI.');
