@@ -893,7 +893,7 @@ function pageGeom(secs){return{aw:Math.min.apply(null,secs.map(s=>s.aw)),ah:Math
 
 
 /* ===== Bảng nền tối → nền sáng, chữ đen (để in ra dễ đọc) ===== */
-const LT_LIGHT='F2F2F2',LT_THR=150;
+const LT_LIGHT='FFFFFF',LT_THR=150;
 const LT_DARKTHEME=/^(text1|dark1|tx1|text2|dark2|tx2|accent\d)$/i,LT_LIGHTTHEME=/^(background1|light1|bg1|background2|light2|bg2)$/i;
 const LT_DARKHL=/^(black|darkBlue|darkCyan|darkGreen|darkMagenta|darkRed|darkYellow|darkGray)$/i;
 function ltLum(h){if(!/^[0-9a-f]{6}$/i.test(h||''))return null;const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return .299*r+.587*g+.114*b}
@@ -902,6 +902,11 @@ function ltShdDark(e){if(!e)return false;const val=ga(e,'val'),fill=ga(e,'fill')
   let eff=val==='solid'?col:fill;
   if(!/^[0-9a-f]{6}$/i.test(eff||'')){return !!th&&LT_DARKTHEME.test(th)&&!ga(e,'themeFillTint')}
   const l=ltLum(eff);return l!==null&&l<LT_THR}
+function ltShdVisible(e){if(!e)return false;const val=ga(e,'val'),fill=ga(e,'fill'),col=ga(e,'color'),th=ga(e,'themeFill');
+  if(val==='nil'||val==='')return false;
+  const eff=val==='solid'?col:fill;
+  if(/^[0-9a-f]{6}$/i.test(eff||''))return !/^ffffff$/i.test(eff);
+  return !!th&&!LT_LIGHTTHEME.test(th)||(!!th&&!!ga(e,'themeFillTint'))}
 function ltLighten(e){['val','color','fill'].forEach(a=>e.removeAttributeNS(W,a));
   ['themeFill','themeFillTint','themeFillShade','themeColor','themeTint','themeShade'].forEach(a=>e.removeAttributeNS(W,a));
   sa(e,'val','clear');sa(e,'color','auto');sa(e,'fill',LT_LIGHT)}
@@ -916,23 +921,23 @@ function lightTables(doc,root,rep,perCell){
   let cells=0,runs=0;
   all(root,'tbl').forEach(tbl=>{
     const tp=one(tbl,'tblPr'),tblShd=tp&&one(tp,'shd'),tblDark=tblShd&&ltShdDark(tblShd);
-    if(tblDark){ltLighten(tblShd);cells++}
+    if(tblShd&&ltShdVisible(tblShd)){ltLighten(tblShd);cells++}
     all(tbl,'tr').forEach(tr=>{
       const trp=one(tr,'trPr');
       wk(tr,'tc').forEach(tc=>{
         const cp=one(tc,'tcPr'),sh=cp&&one(cp,'shd');let dark=!!tblDark;
-        if(sh&&ltShdDark(sh)){ltLighten(sh);dark=true;cells++}
+        if(sh&&ltShdVisible(sh)){const dk=ltShdDark(sh);ltLighten(sh);if(dk)dark=true;cells++}
         /* đoạn & chữ trong ô */
         all(tc,'p').forEach(p=>{
           const pp=one(p,'pPr'),psh=pp&&one(pp,'shd');let pd=dark;
-          if(psh&&ltShdDark(psh)){ltLighten(psh);pd=true;cells++}
+          if(psh&&ltShdVisible(psh)){const dk=ltShdDark(psh);ltLighten(psh);if(dk)pd=true;cells++}
           if(pd&&pp)runs+=ltFixRPr(one(pp,'rPr'),false);
           all(p,'r').forEach(r=>{
             const rp=one(r,'rPr');if(!rp)return;let rd=pd;
             const hl=one(rp,'highlight');if(hl&&LT_DARKHL.test(ga(hl,'val'))){rm(hl);rd=true;cells++}
-            const rs=one(rp,'shd');if(rs&&ltShdDark(rs)){rm(rs);rd=true;cells++}
+            const rs=one(rp,'shd');if(rs&&ltShdVisible(rs)){const dk=ltShdDark(rs);rm(rs);if(dk)rd=true;cells++}
             if(rd)runs+=ltFixRPr(rp,false)})})})})});
-  if(rep){rep.fix('Bảng: đổi ô/chữ nền tối sang nền sáng (F2F2F2), chữ màu tự động (đen) để in dễ đọc',cells);rep.fix('Bảng: bỏ màu chữ sáng/trắng trong ô nền tối',runs)}}
+  if(rep){rep.fix('Bảng: đổi ô có nền xám/màu sang nền trắng (chữ đen) để in dễ đọc',cells);rep.fix('Bảng: bỏ màu chữ sáng/trắng trong ô nền tối',runs)}}
 /* kiểu bảng (styles.xml) có nền tối + chữ trắng */
 function lightTableStyles(sd,rep){let n=0,m=0;
   all(sd.documentElement,'style').forEach(st=>{
@@ -940,7 +945,7 @@ function lightTableStyles(sd,rep){let n=0,m=0;
     chk.forEach(scope=>{
       const tcp=scope===st?one(st,'tcPr'):one(scope,'tcPr'),tpp=scope===st?one(st,'tblPr'):one(scope,'tblPr');
       let dark=false;
-      [tcp,tpp].forEach(x=>{const sh=x&&one(x,'shd');if(sh&&ltShdDark(sh)){ltLighten(sh);dark=true;n++}});
+      [tcp,tpp].forEach(x=>{const sh=x&&one(x,'shd');if(sh&&ltShdVisible(sh)){const dk=ltShdDark(sh);ltLighten(sh);if(dk)dark=true;n++}});
       const rp=scope===st?one(st,'rPr'):one(scope,'rPr');
       if(rp&&dark){const c=one(rp,'color');if(c&&ltLightText(c)){rm(c);m++}}})});
   if(rep){rep.fix('Kiểu bảng có sẵn: bỏ nền tối',n);rep.fix('Kiểu bảng có sẵn: bỏ chữ trắng',m)}}
