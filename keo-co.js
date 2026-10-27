@@ -424,7 +424,7 @@
     '<span class="note" id="kcAiDocName"></span><button class="sec sm" id="kcAiDocClear" type="button" style="display:none">✕ Bỏ tài liệu</button>' +
     '<input type="file" id="kcAiDoc" accept=".docx,.pdf,.pptx,.txt,.md,image/*" hidden></div>' +
     '<div class="bar"><input id="kcAiTopic" placeholder="Yêu cầu thêm / chủ đề (không bắt buộc nếu đã chọn tài liệu)" style="flex:1;min-width:180px">' +
-    '<label>Số câu <input type="number" id="kcAiN" value="10" min="3" max="30" style="width:64px"></label></div>' +
+    '<label>Số câu <input type="number" id="kcAiN" value="10" min="3" max="100" style="width:72px"></label></div>' +
     '<div class="bar"><label>Model <select id="kcAiModel"><option value="gemini-flash-lite-latest">Gemini Flash-Lite (mới nhất)</option><option value="gemini-flash-latest">Gemini Flash (mới nhất)</option><option value="gemini-pro-latest">Gemini Pro (mới nhất)</option></select></label>' +
     '<button class="sm" id="kcAiBtn" type="button">✨ Tạo câu hỏi</button>' +
     '<label class="note"><input type="checkbox" id="kcAiAdd"> Nối thêm vào bộ hiện tại</label></div>' +
@@ -1112,7 +1112,7 @@
     return fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GKEY.get() },
-      body: JSON.stringify({ contents: [{ parts: parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.6 } })
+      body: JSON.stringify({ contents: [{ parts: parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.6, maxOutputTokens: 65536 } })
     }).then(function (r) {
       if (r.ok) return r.json();
       if ((r.status === 429 || r.status === 404 || r.status >= 500) && i + 1 < models.length) {
@@ -1137,7 +1137,7 @@
 
   $('kcAiBtn').onclick = function () {
     var m = $('kcAiMsg'), btn = $('kcAiBtn');
-    var topic = $('kcAiTopic').value.trim(), n = Math.max(3, Math.min(30, +$('kcAiN').value || 10));
+    var topic = $('kcAiTopic').value.trim(), n = Math.max(3, Math.min(100, +$('kcAiN').value || 10));
     if (!aiDoc && !topic) { m.textContent = 'Hãy chọn giáo án / tài liệu, hoặc nhập môn / chủ đề / lớp.'; return; }
     if (!window.GKEY || !GKEY.has()) {
       m.textContent = 'Chưa có API key Gemini. Hãy nhập key ở thanh phía trên trang.';
