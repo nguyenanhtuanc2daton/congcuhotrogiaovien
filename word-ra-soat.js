@@ -891,6 +891,60 @@ function sections(doc,body,o,rep){
 
 function pageGeom(secs){return{aw:Math.min.apply(null,secs.map(s=>s.aw)),ah:Math.min.apply(null,secs.map(s=>s.ah))}}
 
+
+/* ===== Bảng nền tối → nền sáng, chữ đen (để in ra dễ đọc) ===== */
+const LT_LIGHT='F2F2F2',LT_THR=150;
+const LT_DARKTHEME=/^(text1|dark1|tx1|text2|dark2|tx2|accent\d)$/i,LT_LIGHTTHEME=/^(background1|light1|bg1|background2|light2|bg2)$/i;
+const LT_DARKHL=/^(black|darkBlue|darkCyan|darkGreen|darkMagenta|darkRed|darkYellow|darkGray)$/i;
+function ltLum(h){if(!/^[0-9a-f]{6}$/i.test(h||''))return null;const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return .299*r+.587*g+.114*b}
+function ltShdDark(e){if(!e)return false;const val=ga(e,'val'),fill=ga(e,'fill'),col=ga(e,'color'),th=ga(e,'themeFill');
+  if(val==='nil'||val==='')return false;
+  let eff=val==='solid'?col:fill;
+  if(!/^[0-9a-f]{6}$/i.test(eff||'')){return !!th&&LT_DARKTHEME.test(th)&&!ga(e,'themeFillTint')}
+  const l=ltLum(eff);return l!==null&&l<LT_THR}
+function ltLighten(e){['val','color','fill'].forEach(a=>e.removeAttributeNS(W,a));
+  ['themeFill','themeFillTint','themeFillShade','themeColor','themeTint','themeShade'].forEach(a=>e.removeAttributeNS(W,a));
+  sa(e,'val','clear');sa(e,'color','auto');sa(e,'fill',LT_LIGHT)}
+function ltLightText(c){if(!c)return false;const v=ga(c,'val'),th=ga(c,'themeColor');
+  if(v&&v!=='auto'){const l=ltLum(v);if(l!==null)return l>=170}
+  return !!th&&LT_LIGHTTHEME.test(th)}
+/* bỏ màu chữ sáng (trắng/xám nhạt) trong rPr → về màu tự động (đen) */
+function ltFixRPr(r,force){if(!r)return 0;let n=0;
+  const c=one(r,'color');if(c&&(ltLightText(c)||(force&&ga(c,'val')!=='auto'&&ltLum(ga(c,'val'))!==null&&ltLum(ga(c,'val'))>=LT_THR))){rm(c);n++}
+  return n}
+function lightTables(doc,root,rep,perCell){
+  let cells=0,runs=0;
+  all(root,'tbl').forEach(tbl=>{
+    const tp=one(tbl,'tblPr'),tblShd=tp&&one(tp,'shd'),tblDark=tblShd&&ltShdDark(tblShd);
+    if(tblDark){ltLighten(tblShd);cells++}
+    all(tbl,'tr').forEach(tr=>{
+      const trp=one(tr,'trPr');
+      wk(tr,'tc').forEach(tc=>{
+        const cp=one(tc,'tcPr'),sh=cp&&one(cp,'shd');let dark=!!tblDark;
+        if(sh&&ltShdDark(sh)){ltLighten(sh);dark=true;cells++}
+        /* đoạn & chữ trong ô */
+        all(tc,'p').forEach(p=>{
+          const pp=one(p,'pPr'),psh=pp&&one(pp,'shd');let pd=dark;
+          if(psh&&ltShdDark(psh)){ltLighten(psh);pd=true;cells++}
+          if(pd&&pp)runs+=ltFixRPr(one(pp,'rPr'),false);
+          all(p,'r').forEach(r=>{
+            const rp=one(r,'rPr');if(!rp)return;let rd=pd;
+            const hl=one(rp,'highlight');if(hl&&LT_DARKHL.test(ga(hl,'val'))){rm(hl);rd=true;cells++}
+            const rs=one(rp,'shd');if(rs&&ltShdDark(rs)){rm(rs);rd=true;cells++}
+            if(rd)runs+=ltFixRPr(rp,false)})})})})});
+  if(rep){rep.fix('Bảng: đổi ô/chữ nền tối sang nền sáng (F2F2F2), chữ màu tự động (đen) để in dễ đọc',cells);rep.fix('Bảng: bỏ màu chữ sáng/trắng trong ô nền tối',runs)}}
+/* kiểu bảng (styles.xml) có nền tối + chữ trắng */
+function lightTableStyles(sd,rep){let n=0,m=0;
+  all(sd.documentElement,'style').forEach(st=>{
+    const chk=[st].concat(all(st,'tblStylePr'));
+    chk.forEach(scope=>{
+      const tcp=scope===st?one(st,'tcPr'):one(scope,'tcPr'),tpp=scope===st?one(st,'tblPr'):one(scope,'tblPr');
+      let dark=false;
+      [tcp,tpp].forEach(x=>{const sh=x&&one(x,'shd');if(sh&&ltShdDark(sh)){ltLighten(sh);dark=true;n++}});
+      const rp=scope===st?one(st,'rPr'):one(scope,'rPr');
+      if(rp&&dark){const c=one(rp,'color');if(c&&ltLightText(c)){rm(c);m++}}})});
+  if(rep){rep.fix('Kiểu bảng có sẵn: bỏ nền tối',n);rep.fix('Kiểu bảng có sẵn: bỏ chữ trắng',m)}}
+
 function tablePass(doc,body,secs,o,rep,ctx){
   const bk=secs.bk;let fit=0,cs=0,hd=0,al=0,fl=0,bd=0,nb=0,kt=0;
   all(body,'tbl').forEach(tbl=>{
@@ -1577,6 +1631,7 @@ async function auditOnce(buf,o,hooks){
   if(o.mcq)step('căn đáp án trắc nghiệm',()=>mcqPass(doc,body,secs,o,rep,ctx));
   if(o.mcq||o.blank)step('đều khoảng cách giữa các câu',()=>questionGaps(doc,body,rep));
   if(o.tbl)step('bảng',()=>tablePass(doc,body,secs,o,rep,ctx));
+  step('bảng nền tối → sáng',()=>lightTables(doc,body,rep));
   if(o.img||o.imgInline||o.imgFix)step('hình ảnh',()=>imgPass(doc,secs,o,rep,ctx));
   step('danh sách',()=>numberingCheck(doc,numd,rep));
   ctx.sz=o.size==='auto'?dominantSize(body,defSz):(+o.size)*2;
@@ -1594,11 +1649,13 @@ async function auditOnce(buf,o,hooks){
   for(const n of hf){const d=await rd(n);hfDocs[n]=d;
     if(all(d,'instrText').some(t=>/\bPAGE\b/.test(t.textContent))||all(d,'fldSimple').some(f=>/\bPAGE\b/.test(ga(f,'instr'))))hasPage=true;
     step('header/footer',()=>{const c={font:0,sz:0,odd:0,shd:0,col:0,m:0};all(d,'rPr').forEach(r=>mathAndRunFmt(d,r,o,ctx,rep,c,true))});
+    step('bảng header/footer',()=>lightTables(d,d.documentElement,rep));
     if(o.text)step('dọn văn bản header/footer/chú thích',()=>textPass(d.documentElement,Object.assign({},o,{indent:false}),rep,'đầu/chân trang, chú thích'))}
   if(!hasPage)rep.warn('Chưa thấy số trang (trường PAGE) trong header/footer — thêm bằng Insert → Page Number nếu cần.');
   if(ctx.hasToc){const heads=all(body,'p').filter(p=>pInfo(p).head).length;
     if(!heads)rep.warn('Có mục lục nhưng không đoạn nào dùng kiểu Heading — mục lục sẽ trống. Hãy gán Heading 1/2/3 cho tiêu đề.')}
   if(sd)step('kiểu mặc định',()=>stylesPass(sd,o,ctx));
+  if(sd)step('kiểu bảng',()=>lightTableStyles(sd,rep));
   if(setd)step('cài đặt tài liệu',()=>settingsPass(setd,o,ctx,rep));
   let cmt=await rd('word/comments.xml'),cmtTouched=false,cmtNew=false,ctd=null,rl=relsd;
   if(cmt&&o.nocmt&&!dry){Array.from(cmt.documentElement.children).forEach(rm);cmtTouched=true}
