@@ -315,6 +315,15 @@
   .tx-clock.tx-fs{position:fixed;inset:0;z-index:60;overflow:auto}
   .tx-clock:fullscreen .tx-face,.tx-clock.tx-fs .tx-face{width:min(94vw,80vh)}
   .tx-clock:-webkit-full-screen{background:#0b1220;justify-content:center}
+  /* Đang đếm (class tx-run): ẩn mọi nút phía dưới + tiêu đề, phóng to đồng hồ. Chạm vào đồng hồ hoặc nhấn Space để tạm dừng */
+  .tx-clock.tx-run .tx-face{cursor:pointer}
+  .tx-clock.tx-run h3,.tx-clock.tx-run .tx-ctl{display:none}
+  .tx-clock.tx-run:fullscreen{padding:0}
+  .tx-clock.tx-run:fullscreen .tx-face{width:min(98vw,89vh)}
+  .tx-clock.tx-run:-webkit-full-screen{padding:0}
+  .tx-clock.tx-run:-webkit-full-screen .tx-face{width:min(98vw,89vh)}
+  .tx-clock.tx-run.tx-fs{padding:0}
+  .tx-clock.tx-run.tx-fs .tx-face{width:min(98vw,89vh)}
   .tx-res{margin-top:12px}
   .tx-res:fullscreen{background:#0b1220;padding:24px;overflow:auto}
   .tx-gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
@@ -466,15 +475,16 @@
       lbl.setAttribute('fill',ms<=0?'#fca5a5':'#93a0ba'); lbl.setAttribute('font-size',ms<=0?34:24);
     }
     function setBtn(){ $('txGo').textContent=tid?'⏸ Tạm dừng':(done?'▶ Bắt đầu lại':(left<tot?'▶ Tiếp tục':'▶ Bắt đầu')); }
+    function setRun(on){card.classList.toggle('tx-run',!!on);}
     function silence(){Snd.stop();$('txStop').classList.remove('on');clearTimeout(hideT);}
     function setT(ms){
-      clearInterval(tid);tid=null;silence();clearTimeout(fsExitT);done=false;card.classList.remove('tx-done');
+      clearInterval(tid);tid=null;setRun(false);silence();clearTimeout(fsExitT);done=false;card.classList.remove('tx-done');
       tot=left=ms;lastSec=-1;
       const s=Math.round(ms/1000);minI.value=Math.floor(s/60);secI.value=s%60;
       render(left);setBtn();
     }
     function finish(){
-      clearInterval(tid);tid=null;left=0;done=true;render(0);setBtn();card.classList.add('tx-done');
+      clearInterval(tid);tid=null;setRun(false);left=0;done=true;render(0);setBtn();card.classList.add('tx-done');
       const dur=Snd.finish();
       if(dur){$('txStop').classList.add('on');hideT=setTimeout(()=>$('txStop').classList.remove('on'),dur*1000+800);}
       try{navigator.vibrate&&navigator.vibrate([400,150,400,150,400]);}catch(e){}
@@ -486,13 +496,14 @@
       if(s!==lastSec){lastSec=s;if(s<=10)Snd.tick(s<=3);}
     }
     function go(){
-      if(tid){clearInterval(tid);tid=null;left=Math.max(0,end-Date.now());render(left);setBtn();return;}
+      if(tid){clearInterval(tid);tid=null;setRun(false);left=Math.max(0,end-Date.now());render(left);setBtn();return;}
       Snd.init(); silence(); clearTimeout(fsExitT);
       enterFs();
       if(done||left<=0) setT(readInput());
-      end=Date.now()+left; tid=setInterval(tick,100); tick(); setBtn();
+      end=Date.now()+left; tid=setInterval(tick,100); tick(); setRun(tid); setBtn();
     }
     $('txGo').onclick=go;
+    $('txFace').addEventListener('click',()=>{if(tid) go();}); // chạm vào đồng hồ đang chạy = tạm dừng
     $('txReset').onclick=()=>setT(readInput());
     $('txAdd').onclick=()=>{
       if(done){setT(60000);return;}
