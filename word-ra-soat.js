@@ -2362,6 +2362,7 @@ async function auditExcel(buf,xo,hooks){
   if(C.recalc)xlRecalc(wbDoc,wbRoot);
   if(stDoc&&(stDirty||(X&&X.dirty)))zip.file('xl/styles.xml',ser(stDoc));
   zip.file('xl/workbook.xml',ser(wbDoc));
+  if(window.XlsxChuan){try{const fx=await XlsxChuan.fixZip(zip);rep.fix('Đặt toàn bộ ô sang Times New Roman cỡ '+XlsxChuan.SIZE+' (font gốc: '+fx.from+'), tự co giãn cột/dòng',fx.fonts)}catch(e){rep.warn('Chưa đổi được font Times New Roman cỡ 14: '+e.message)}}else rep.warn('Chưa nạp được excel-chuan.js nên chưa đổi font Times New Roman cỡ 14.');
   const data=await zip.generateAsync({type:'uint8array',compression:'DEFLATE'});
   if(C.recalc)rep.notes.push('Đã đặt “tính lại toàn bộ công thức khi mở”: Excel sẽ tự cập nhật ĐTB/tổng sau khi sửa số liệu (có thể hỏi lưu khi đóng — chọn Save).');
   rep.notes.push('Số liệu, công thức (trừ chỗ bọc IFERROR), cột/dòng ẩn được giữ nguyên. Thu phóng thực tế do Excel tính khi in (đã đặt “vừa 1 trang theo chiều rộng”), nên kiểm tra lại ở File → Print.');
