@@ -180,6 +180,8 @@ function cleanupMarks(doc){
 /* ---------- Tách ---------- */
 function extract(info,a,b){
   const {doc,body,units}=info,keep=units.map(u=>u.atomic?(u.startPage>=a&&u.startPage<=b):(u.endPage>=a&&u.startPage<=b));
+  /* trang nằm trọn trong phần đuôi của một hàng bảng cao (hàng vắt qua nhiều trang, không cắt đôi được): giữ nguyên cả hàng đó thay vì báo rỗng */
+  if(!keep.some(Boolean))units.forEach((u,i)=>{if(u.atomic&&u.endPage>=a&&u.startPage<=b)keep[i]=true});
   if(!keep.some(Boolean))throw new Error('Không tìm thấy nội dung nào trong các trang '+a+'–'+b+'.');
   const firstU=units.find((u,i)=>keep[i]),lastU=units.slice().reverse().find(u=>keep[u.i]);
   /* 1) cắt đoạn nằm vắt ngang ranh giới */
@@ -243,6 +245,9 @@ async function split(buf,a,b){
   const L=await load(buf),info=fixBlank(analyze(pX(L.docStr,'document.xml'),L.sd),L.wp);
   if(a<1||b<a||b>info.N)throw new Error('Khoảng trang không hợp lệ (file có '+info.N+' trang).');
   extract(info,a,b);
+  /* chặn file rỗng: khoảng trang chỉ có dòng trống/ngắt trang (vd. trang trắng) thì báo lỗi thay vì xuất file không có gì */
+  const hasContent=Array.from(info.doc.getElementsByTagNameNS(W,'t')).some(t=>t.textContent.trim().length)||info.doc.getElementsByTagNameNS(W,'drawing').length||info.doc.getElementsByTagNameNS(W,'pict').length||info.doc.getElementsByTagNameNS(W,'object').length;
+  if(!hasContent)throw new Error('Trang '+a+(b>a?'–'+b:'')+' không có chữ hay hình nào (chỉ là trang trống hoặc dòng trống). Không xuất file. Hãy kiểm tra lại số trang.');
   const removed=await prune(L.zip,info.doc);
   L.zip.file('word/document.xml',ser(info.doc));
   const err=[];try{pX(ser(info.doc),'document.xml')}catch(e){err.push(e.message)}
