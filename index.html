@@ -834,6 +834,9 @@ html #tod-greet .g-hl{text-wrap:balance;font-size:clamp(11px,3vw,12.5px)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
 })();
 </script>
+<style>/* tên tab luôn nằm trên 1 dòng (máy tính/máy tính bảng); điện thoại giữ lưới riêng */
+@media (min-width:640px){.tabs{overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs .tab{white-space:nowrap;flex:1 1 auto;min-width:max-content}}</style>
 </head>
 <body>
 <div class="curtain-wrap" aria-hidden="true">
