@@ -1863,7 +1863,7 @@ const XL_BI={1:'0',2:'0.00',3:'#,##0',4:'#,##0.00',9:'0%',10:'0.00%',37:'#,##0 ;
 const XL_HID=/[\u200B-\u200D\u2060\uFEFF\u00AD]/g,XL_SP=/[\u00A0\u2007\u202F\u3000]/g;
 const xlClean=x=>x.normalize('NFC').replace(XL_SP,' ').replace(XL_HID,'');
 function xlTs(si){const o=[];Array.from(si.children).forEach(c=>{if(c.localName==='t')o.push(c);else if(c.localName==='r')sk(c,'t').forEach(t=>o.push(t))});return o}
-function xlCleanTs(ts){let ch=false;ts.forEach((t,i)=>{const b=t.textContent;let a=xlClean(b).replace(/[ \t]{2,}/g,' ').replace(/ ?\r?\n ?/g,'\n');
+function xlCleanTs(ts,keep){let ch=false;ts.forEach((t,i)=>{const b=t.textContent;let a=xlClean(b);if(!keep)a=a.replace(/[ \t]{2,}/g,' ');a=a.replace(/ ?\r?\n ?/g,'\n');
   if(i===0)a=a.replace(/^\s+/,'');if(i===ts.length-1)a=a.replace(/\s+$/,'');
   if(a!==b){t.textContent=a;if(/^\s|\s$/.test(a))t.setAttributeNS(XMLNS,'xml:space','preserve');ch=true}});return ch}
 function xlParseNum(x){let s=String(x).trim();if(!s)return null;
@@ -1904,7 +1904,7 @@ function xlDateFmt(X){if(X.dfmt!=null)return X.dfmt;const d=X.root.ownerDocument
   if(nf){const e=sk(nf,'numFmt').find(e=>/^dd\/mm\/yyyy$/i.test(e.getAttribute('formatCode')||''));if(e)return(X.dfmt=+e.getAttribute('numFmtId'))}
   if(!nf){nf=mkS(d,'numFmts');X.root.insertBefore(nf,X.root.firstChild)}
   let id=163;sk(nf,'numFmt').forEach(e=>{id=Math.max(id,+e.getAttribute('numFmtId')||0)});id++;
-  const e=mkS(d,'numFmt');e.setAttribute('numFmtId',String(id));e.setAttribute('formatCode','dd/mm/yyyy');nf.appendChild(e);nf.setAttribute('count',String(sk(nf,'numFmt').length));X.dirty=true;return(X.dfmt=id)}
+  const e=mkS(d,'numFmt');e.setAttribute('numFmtId',String(id));e.setAttribute('formatCode','dd/mm/yyyy');nf.appendChild(e);nf.setAttribute('count',String(sk(nf,'numFmt').length));X.nf.set(id,'dd/mm/yyyy');X.dirty=true;return(X.dfmt=id)}
 function xlNumLen(v,code){const n=Number(v);if(!isFinite(n))return String(v).length;
   const base=code.replace(/"[^"]*"/g,'');
   if(xlIsDate(code)){const t=/[hs]/i.test(base),d=/[dy]/i.test(base);return t&&d?16:t?8:/mmmm/i.test(base)?18:10}
@@ -1977,7 +1977,7 @@ function xlFit(doc,X,SS,rep,nm){
   const cells=xlCollect(doc,SS),mAt=new Map(),inM=new Set(),occ=new Set();
   S.merges.forEach(m=>{mAt.set(m.r1+','+m.c1,m);if((m.r2-m.r1+1)*(m.c2-m.c1+1)<=20000)for(let r=m.r1;r<=m.r2;r++)for(let c=m.c1;c<=m.c2;c++)if(r!==m.r1||c!==m.c1)inM.add(r+','+c)});
   cells.forEach(k=>{if(k.has)occ.add(k.r+','+k.c)});
-  const cur=c=>S.colW(c),numNeed=new Map(),txtNeed=new Map(),wr=[],clip=[];let nMg=0;const bump=(m,c,v)=>{if(v>(m.get(c)||0))m.set(c,v)};
+  const cur=c=>S.colW(c),numNeed=new Map(),txtNeed=new Map(),wordNeed=new Map(),wr=[],clip=[];let nMg=0;const bump=(m,c,v)=>{if(v>(m.get(c)||0))m.set(c,v)};
   cells.forEach(k=>{
     if(!k.has||k.t==='e'||k.r<S.minR||k.r>S.maxR||k.c<S.minC||k.c>S.maxC||inM.has(k.r+','+k.c))return;
     const m=mAt.get(k.r+','+k.c),span=!!m&&m.c2>m.c1;let avail=0;
@@ -1987,7 +1987,7 @@ function xlFit(doc,X,SS,rep,nm){
     if(k.t==='b'){if(!span)bump(numNeed,k.c,6);return}
     const tx=k.text;if(tx==null||tx==='')return;
     const lines=tx.split('\n'),mx=Math.max.apply(null,lines.map(x=>x.length))*fi.k,rec={k,m,fi,lines,force:false};
-    if(fi.wrap){wr.push(rec);return}
+    if(fi.wrap){wr.push(rec);if(!span&&!k.f){const lw=Math.max.apply(null,tx.split(/\s+/).map(xlWordW));bump(wordNeed,k.c,lw*fi.k+1.6)}return}
     if(mx+1.2<=avail&&lines.length===1)return;
     if(lines.length>1){rec.force=true;wr.push(rec);return}
     const h=fi.h,c2=m?m.c2:k.c,rE=!occ.has(k.r+','+(c2+1)),lE=k.c===1||!occ.has(k.r+','+(k.c-1));
@@ -2000,9 +2000,23 @@ function xlFit(doc,X,SS,rep,nm){
         else clip.push(xlAddr(k))}}return}
     if(span||mx+1.2>60){rec.force=true;wr.push(rec);if(!span)bump(txtNeed,k.c,40);return}
     bump(txtNeed,k.c,mx+1.2)});
-  const widths=new Map();
+  /* Cột kiểu STT (chỉ số/chữ ngắn) đang rộng vô lý (vd 43 ký tự cho số 1–12) → thu về vừa đủ */
+  const shrink=new Map();
+  if(hd0){for(let c=S.minC;c<=S.maxC;c++){const w0=cur(c);if(!(w0>0))continue;
+    let hNeed=0,hasH=false,run=0,dMax=0,ok=true;
+    cells.forEach(k=>{if(k.c!==c||!k.has||inM.has(k.r+','+k.c))return;const m=mAt.get(k.r+','+k.c);if(m&&m.c2>m.c1)return;
+      if(k.r>=hd0.a&&k.r<=hd0.b){const tx=k.text!=null?String(k.text):String(k.v);hasH=true;const fi=xlFont(X,k.s);hNeed=Math.max(hNeed,Math.max.apply(null,tx.split(/\s+/).map(xlWordW))*fi.k+1.6)}});
+    for(let r=hd0.b+1;r<=S.maxR;r++){const k=cells.find(q=>q.r===r&&q.c===c&&q.has);if(!k)break;const tx=k.text!=null?String(k.text):String(k.v);
+      if(tx.length>4||k.f){ok=false;break}run++;dMax=Math.max(dMax,tx.length*1+1.2)}
+    if(!ok||!hasH||run<3)continue;
+    const base=Math.max(5,dMax,hNeed),target=Math.ceil((base*1.25+1)*10)/10;
+    if(w0>Math.max(target*2,target+8))shrink.set(c,target)}}
+  const widths=new Map();let nShr=0;
   for(let c=S.minC;c<=S.maxC;c++){const w0=cur(c);if(!(w0>0))continue;
-    const w=Math.ceil(Math.max(w0,Math.min(txtNeed.get(c)||0,60),Math.min(numNeed.get(c)||0,120))*10)/10;if(w>w0+.05)widths.set(c,w)}
+    const need=Math.max(Math.min(txtNeed.get(c)||0,60),Math.min(numNeed.get(c)||0,120),Math.min(wordNeed.get(c)||0,40));
+    let w=Math.ceil(Math.max(w0,need)*10)/10;
+    if(shrink.has(c)){w=Math.ceil(Math.max(shrink.get(c),need)*10)/10;if(w<w0-.05){widths.set(c,w);nShr++}continue}
+    if(w>w0+.05)widths.set(c,w)}
   const fw=c=>widths.get(c)||cur(c),rowNeed=new Map();let nWrap=0;
   wr.forEach(o=>{const k=o.k,m=o.m;let av=0;if(m){for(let c=m.c1;c<=m.c2;c++)av+=fw(c)}else av=fw(k.c);
     const n=o.lines.reduce((a,l)=>a+Math.max(1,Math.ceil(l.length*o.fi.k*1.08/Math.max(1,av-1.2))),0),need=n*o.fi.sz*1.36;
@@ -2012,16 +2026,51 @@ function xlFit(doc,X,SS,rep,nm){
   rowNeed.forEach((need,r)=>{const ro=S.rows.get(r);if(!ro||ro.hid)return;const h0=ro.ht!=null?ro.ht:S.defH;
     if(need>h0+.5){ro.el.setAttribute('ht',Math.min(need,409).toFixed(2));ro.el.setAttribute('customHeight','1');nRow++}});
   if(widths.size)xlSetCols(doc,widths,S.maxC);
-  rep.fix('Nới rộng cột bị ##### hoặc cắt chữ (cột)',widths.size);rep.fix('Bật tự xuống dòng cho ô chữ dài (ô)',nWrap);rep.fix('Tăng độ cao dòng để không cắt chữ (dòng)',nRow);rep.fix('Gộp ngang ô tiêu đề/ghi chú dài để không bị cắt khi in (ô)',nMg);
-  if(widths.size)rep.notes.push(nm+'nới cột '+Array.from(widths.keys()).map(colName).join(', ')+'.');
+  rep.fix('Nới rộng cột bị ##### hoặc cắt chữ (cột)',widths.size-nShr);rep.fix('Thu hẹp cột STT/số thứ tự đang rộng quá mức (cột)',nShr);rep.fix('Bật tự xuống dòng cho ô chữ dài (ô)',nWrap);rep.fix('Tăng độ cao dòng để không cắt chữ (dòng)',nRow);rep.fix('Gộp ngang ô tiêu đề/ghi chú dài để không bị cắt khi in (ô)',nMg);
+  if(widths.size-nShr)rep.notes.push(nm+'nới cột '+Array.from(widths.keys()).filter(c=>!shrink.has(c)).map(colName).join(', ')+'.');
+  if(nShr)rep.notes.push(nm+'thu hẹp cột '+Array.from(shrink.keys()).filter(c=>widths.has(c)).map(colName).join(', ')+' (cột số thứ tự quá rộng).');
   if(clip.length)rep.warn(nm+'chữ ở ô '+xlList(clip)+' dài hơn vùng in nên sẽ bị cắt khi in — hãy gộp ô hoặc cho xuống dòng.')}
+
+/* Dòng có hình/mũi tên: lấy danh sách dòng bị hình đè lên (để không dồn khoảng trắng đã chừa chỗ cho mũi tên) */
+async function xlDrawRows(zip,shPath){
+  const dir=shPath.replace(/[^\/]*$/,''),nm=shPath.slice(dir.length),rf=zip.file(dir+'_rels/'+nm+'.rels');
+  if(!rf)return null;
+  const rd=pX(await rf.async('string'),'rels');let dp=null;
+  Array.from(rd.getElementsByTagName('Relationship')).forEach(r=>{if(/\/drawing$/i.test(r.getAttribute('Type')||''))dp=rs(dir,r.getAttribute('Target')||'')});
+  const df=dp&&zip.file(dp);if(!df)return null;
+  const dd=pX(await df.async('string'),dp),rows=new Set(),kid=(a,n)=>Array.from(a.children).find(c=>c.localName===n)||null,
+    num=(a,n)=>{const e=kid(a,n);return e?parseInt(e.textContent,10):NaN};
+  Array.from(dd.documentElement.children).forEach(an=>{const f=kid(an,'from'),t=kid(an,'to')||f;if(!f)return;
+    const r1=num(f,'row'),r2=num(t,'row');if(isFinite(r1)&&isFinite(r2))for(let r=Math.min(r1,r2);r<=Math.max(r1,r2)&&r<=r1+60;r++)rows.add(r+1)});
+  return{rows,path:dp,doc:dd}}
+/* Khi đổi độ rộng cột, giữ hình/mũi tên ở đúng vị trí tuyệt đối trên trang (không bị trôi sang chỗ khác) */
+function xlRemapAnchors(dd,oldW,newW){
+  const E=9525,px=w=>Math.max(0,Math.round(w*7)),kid=(a,n)=>Array.from(a.children).find(c=>c.localName===n)||null;
+  let diff=false;for(let c=1;c<=60;c++)if(px(oldW(c))!==px(newW(c))){diff=true;break}
+  if(!diff)return{n:0,mv:0};
+  const absX=(col,off)=>{let x=0;for(let c=1;c<=col;c++)x+=px(oldW(c));return x+off/E};
+  const place=x=>{let c=1;while(c<400){const w=px(newW(c));if(x<w)break;x-=w;c++}return{col:c-1,off:Math.max(0,Math.round(x*E))}};
+  const get=(pt)=>{const c=kid(pt,'col'),o=kid(pt,'colOff');return c&&o?{c:parseInt(c.textContent,10),o:parseInt(o.textContent,10),ce:c,oe:o}:null};
+  let n=0,mv=0;
+  Array.from(dd.documentElement.children).forEach(an=>{const f=kid(an,'from'),t=kid(an,'to'),a=f&&get(f);if(!a||!isFinite(a.c)||!isFinite(a.o))return;
+    let x1=absX(a.c,a.o),b=t&&get(t),x2=b&&isFinite(b.c)&&isFinite(b.o)?absX(b.c,b.o):null;
+    /* Vị trí đã vẽ (a:xfrm) lệch hẳn so với neo ô (thường do cột bị kéo rộng sau khi vẽ) → trả hình về đúng chỗ đã vẽ */
+    const xf=an.getElementsByTagNameNS('*','xfrm')[0],xo=xf&&Array.from(xf.children).find(c=>c.localName==='off'),xe=xf&&Array.from(xf.children).find(c=>c.localName==='ext'),
+      fx=xo?parseInt(xo.getAttribute('x'),10)/E:NaN,fw=xe?parseInt(xe.getAttribute('cx'),10)/E:NaN;
+    if(isFinite(fx)&&isFinite(fw)&&fx>=0&&Math.abs(fx-x1)>25){x2=fx+fw;x1=fx;mv++}
+    const np=place(x1);
+    a.ce.textContent=String(np.col);a.oe.textContent=String(np.off);
+    if(b){const q=place(x1+Math.max(0,x2-x1));b.ce.textContent=String(q.col);b.oe.textContent=String(q.off)}n++});
+  return{n,mv}}
+/* Ước lượng độ rộng chữ (đơn vị “ký tự số” của Excel): chữ HOA rộng hơn chữ thường, i/l/dấu câu hẹp hơn */
+function xlWordW(s){let w=0;for(const ch of String(s))w+=(ch!==ch.toLowerCase())?1.2:/[iljtfr.,:;'!|()\/\-]/.test(ch)?.55:/\d/.test(ch)?1:.95;return w}
 /* Làm sạch dữ liệu + kiểm tra một sheet */
 function xlFixSheet(doc,sh,C){
   const xo=C.xo,rep=C.rep,X=C.X,SS=C.SS,nm='Sheet “'+sh.name+'”: ';
   if(xo.fmerge){const n=xlFixMerges(doc);if(n)rep.fix('Gỡ vùng gộp ô trùng/chồng nhau (nguyên nhân báo “file bị hỏng” khi mở Excel)',n)}
   if(xo.links&&C.ext){const n=xlBreakSheet(doc);if(n)rep.fix('Ngắt liên kết ngoài: đổi công thức trỏ sang file khác thành giá trị (ô)',n)}
   let cells=xlCollect(doc,SS);if(!cells.length)return;
-  if(xo.clean){let n=0;cells.forEach(k=>{if(k.t==='inlineStr'){const is=s1(k.ce,'is');if(is&&xlCleanTs(xlTs(is))){n++;k.text=xlTs(is).map(x=>x.textContent).join('')}}});
+  if(xo.clean){let n=0;cells.forEach(k=>{if(k.t==='inlineStr'){const is=s1(k.ce,'is');if(is&&xlCleanTs(xlTs(is),sh.dRows&&sh.dRows.has(k.r))){n++;k.text=xlTs(is).map(x=>x.textContent).join('')}}});
     if(n)rep.fix(C.cleanLbl,n)}
   const S0=xlScan(doc),hdr=xlHeader(S0),start=hdr?hdr.b+1:S0.minR+1,anch=new Map();
   S0.merges.forEach(m=>anch.set(m.r1+','+m.c1,m));
@@ -2114,11 +2163,17 @@ async function auditExcel(buf,xo,hooks){
   const fixOn=!!(xo.clean||xo.num||xo.date||xo.err!=='off'||xo.fit||xo.border||xo.fmerge||xo.links||xo.check);
   const C={xo,rep,X,SS:[],recalc:false,ext:!!s1(wbRoot,'externalReferences'),cleanLbl:'Dọn khoảng trắng thừa, ký tự ẩn, chuẩn hóa dấu tiếng Việt (chuỗi văn bản)'};
   /* chuỗi dùng chung */
+  const keepSS=new Set(),dInfo=new Map();
+  for(const sh of shs){if(!/^xl\/worksheets\//.test(sh.path)||!zip.file(sh.path))continue;
+    try{const di=await xlDrawRows(zip,sh.path);if(di&&di.rows.size){dInfo.set(sh.i,di);sh.dRows=di.rows;
+      const d0=pX(await zip.file(sh.path).async('string'),sh.path);
+      sk(s1(d0.documentElement,'sheetData'),'row').forEach(re=>{if(di.rows.has(+re.getAttribute('r')))sk(re,'c').forEach(ce=>{if(ce.getAttribute('t')==='s'){const v=s1(ce,'v');if(v)keepSS.add(+v.textContent)}})})}}catch(e){}}
   let ssDoc=null;const ssF=zip.file('xl/sharedStrings.xml');
   if(ssF){ssDoc=pX(await ssF.async('string'),'sharedStrings.xml');const sis=sk(ssDoc.documentElement,'si');let n=0;
-    if(xo.clean)sis.forEach(si=>{if(xlCleanTs(xlTs(si)))n++});
+    if(xo.clean)sis.forEach((si,ix)=>{if(xlCleanTs(xlTs(si),keepSS.has(ix)))n++});
     if(n)rep.fix(C.cleanLbl,n);C.ssDirty=n>0}
   if(X)xlFonts(X,stDoc,ssDoc,xo.font,rep);
+  if(keepSS.size&&xo.clean)rep.notes.push('Dòng có mũi tên/hình vẽ: giữ nguyên khoảng cách giữa các từ (chỗ chừa cho hình), chỉ dọn khoảng trắng đầu/cuối ô.');
   if(C.ssDirty||(ssDoc&&xo.font))zip.file('xl/sharedStrings.xml',ser(ssDoc));
   if(ssDoc)C.SS=sk(ssDoc.documentElement,'si').map(si=>xlTs(si).map(t=>t.textContent).join(''));
   if(C.ext&&!xo.links)rep.warn('File có liên kết tới file Excel khác (Excel sẽ hỏi “Cập nhật liên kết” khi mở). Bật mục “Ngắt liên kết ngoài” để loại bỏ.');
@@ -2130,7 +2185,7 @@ async function auditExcel(buf,xo,hooks){
     if(fixOn){try{xlFixSheet(doc,sh,C)}catch(e){doc=pX(orig,sh.path);rep.warn('Sheet “'+sh.name+'”: không làm sạch được dữ liệu ('+e.message+') — giữ nguyên nội dung, chỉ căn trang in.')}}
     zip.file(sh.path,ser(doc));
     if(sh.hidden){rep.notes.push('Sheet “'+sh.name+'”: đang ẩn — đã làm sạch dữ liệu, không căn trang in.');continue}
-    const S=xlScan(doc);
+    let S=xlScan(doc);
     if(S.empty){rep.notes.push('Sheet “'+sh.name+'”: không có dữ liệu — bỏ qua.');continue}
     /* vùng in: tự xác định theo vùng có dữ liệu, hoặc giữ vùng in cũ */
     let area={r1:S.minR,c1:S.minC,r2:S.maxR,c2:S.maxC};
@@ -2138,8 +2193,16 @@ async function auditExcel(buf,xo,hooks){
       const m=dn&&/!\$?([A-Z]+)\$?(\d+):\$?([A-Z]+)\$?(\d+)$/.exec(dn.textContent.trim());
       if(m)area={c1:colNum(m[1]),r1:+m[2],c2:colNum(m[3]),r2:+m[4]}}
     S.minR=area.r1;S.maxR=area.r2;S.minC=area.c1;S.maxC=area.c2;
-    const sz=xlSize(S);if(!(sz.cw>0&&sz.ch>0)){rep.notes.push('Sheet “'+sh.name+'”: toàn bộ cột/dòng bị ẩn — bỏ qua.');continue}
-    const hdr=xlHeader(S),plan=xlPlan(sz.cw,sz.ch,xo);
+    let sz=xlSize(S);if(!(sz.cw>0&&sz.ch>0)){rep.notes.push('Sheet “'+sh.name+'”: toàn bộ cột/dòng bị ẩn — bỏ qua.');continue}
+    let hdr=xlHeader(S),plan=xlPlan(sz.cw,sz.ch,xo),spreadN=0;
+    /* Bảng bị giới hạn bởi chiều CAO trang (còn thừa bề ngang): giãn đều các cột để bảng lấp đầy chiều ngang, lề trái/phải bằng lề đã chọn */
+    if(xo.spread&&plan.one&&plan.sa<plan.sw-0.02){
+      const target=plan.aw/plan.sa,el=[];let cwEl=0,cwFix=0;
+      for(let c=area.c1;c<=area.c2;c++){const w=S.colW(c);if(!(w>0))continue;if(w>=9){el.push(c);cwEl+=w*7*0.75}else cwFix+=w*7*0.75}
+      const g=el.length?(target*0.99-cwFix)/cwEl:1;
+      if(g>1.04){const k=Math.min(g,1.6),nw=new Map();el.forEach(c=>{nw.set(c,Math.min(255,Math.round(S.colW(c)*k*10)/10))});
+        xlSetCols(doc,nw,area.c2);S=xlScan(doc);S.minR=area.r1;S.maxR=area.r2;S.minC=area.c1;S.maxC=area.c2;
+        sz=xlSize(S);hdr=xlHeader(S);plan=xlPlan(sz.cw,sz.ch,xo);spreadN=nw.size}}
     /* kéo giãn độ cao dòng để bảng lấp đầy trang (chỉ khi bảng vừa 1 trang và còn chỗ trống) */
     let stretched=0,addPt=0;
     if(xo.stretch&&plan.one&&stDoc){
@@ -2155,12 +2218,15 @@ async function auditExcel(buf,xo,hooks){
     if(xo.stretch&&stDoc){for(let r=hdr?hdr.b+1:S.minR;r<=S.maxR;r++){const ro=S.rows.get(r);   /* dòng cao (ô xuống dòng): căn giữa theo chiều dọc cho đồng đều */
       if(ro&&!ro.hid&&ro.cnt>0&&ro.ht!=null&&ro.ht>40)sk(ro.el,'c').forEach(ce=>{const s=parseInt(ce.getAttribute('s')||'0',10)||0,n=xlVC(stDoc,vcCache,s);if(n!==s){ce.setAttribute('s',String(n));stDirty=true}})}}
     xlSetPrint(doc,plan,xo,plan.one);
+    if(dInfo.has(sh.i)){try{const di=dInfo.get(sh.i),oS=xlScan(pX(orig,sh.path)),nS=xlScan(doc);
+      const rr=xlRemapAnchors(di.doc,oS.colW,nS.colW);if(rr.n){zip.file(di.path,ser(di.doc));rep.notes.push('Sheet “'+sh.name+'”: đã căn lại '+rr.n+' hình/mũi tên theo độ rộng cột mới'+(rr.mv?' (trả '+rr.mv+' hình về đúng chỗ đã vẽ ban đầu, vì neo ô bị lệch do cột từng bị kéo rộng)':'')+'.')}}catch(e){}}
     const a1='$'+colName(area.c1)+'$'+area.r1+':$'+colName(area.c2)+'$'+area.r2;
     xlDefName(wbRoot,wbDoc,sh.i,'Print_Area',qName(sh.name)+'!'+a1);
     const useT=xo.titles&&!plan.one&&hdr;
     xlDefName(wbRoot,wbDoc,sh.i,'Print_Titles',useT?qName(sh.name)+'!$'+hdr.a+':$'+hdr.b:null);
     zip.file(sh.path,ser(doc));done++;
     rep.fix('Đặt khổ A4, hướng in, lề, căn giữa trang');rep.fix('Đặt vùng in = vùng có dữ liệu');rep.fix('Co vừa 1 trang theo chiều rộng');
+    if(spreadN)rep.fix('Giãn đều cột để bảng lấp đầy chiều ngang trang, lề trái/phải cân đối (cột)',spreadN);
     if(stretched)rep.fix('Tăng độ cao dòng bảng để lấp đầy trang (dòng)',stretched);
     if(useT)rep.fix('Lặp dòng tiêu đề bảng ở mỗi trang');
     if(xo.footer&&!plan.one)rep.fix('Thêm số trang “Trang x/y” ở chân trang');
@@ -2224,9 +2290,10 @@ function buildUI(){
   +cb('xfooter','Bảng in nhiều trang: thêm số trang “Trang x/y” ở chân trang',1)
   +'<div class="raR"><b>③ Trang in</b></div>'
   +'<div class="raR">Hướng giấy (A4): <select id="ra_xorient"><option value="auto">Tự chọn (ngang/dọc cho chữ lớn nhất)</option><option value="landscape">Luôn ngang</option><option value="portrait">Luôn dọc</option></select></div>'
-  +'<div class="raR">Lề (mm): Trên '+num('xmt',13)+' Dưới '+num('xmb',13)+' Trái '+num('xml',10)+' Phải '+num('xmr',10)+'</div>'
+  +'<div class="raR">Lề (mm): Trên '+num('xmt',15)+' Dưới '+num('xmb',15)+' Trái '+num('xml',15)+' Phải '+num('xmr',15)+'</div>'
   +cb('xarea','Tự đặt vùng in = vùng có dữ liệu (bỏ cột/dòng trống thừa; bỏ tick để giữ vùng in cũ nếu có)',1)
   +cb('xcenter','Căn giữa trang (ngang; bảng 1 trang thì căn giữa cả dọc)',1)
+  +cb('xspread','Bảng vừa 1 trang nhưng còn thừa bề ngang: giãn đều các cột để bảng lấp đầy chiều ngang, bốn lề cân đối (cột STT/cột hẹp giữ nguyên)',1)
   +cb('xstretch','Bảng vừa 1 trang mà còn trống phía dưới: tăng nhẹ độ cao dòng dữ liệu để bảng lấp đầy trang và căn chữ giữa ô',1)
   +cb('xtitles','Bảng dài nhiều trang: lặp dòng tiêu đề bảng ở đầu mỗi trang',1)
   +'<div class="raR">Ép vừa 1 trang nếu chữ sau khi thu nhỏ còn từ: <select id="ra_xmin"><option value="0.6">60% trở lên</option><option value="0.7" selected>70% trở lên</option><option value="0.8">80% trở lên</option></select> (nhỏ hơn thì chia nhiều trang, mỗi trang vẫn đủ cột)</div></details>'
@@ -2274,7 +2341,7 @@ function readOpts(){
   return o}
 function readXlOpts(){
   const c=id=>g('ra_'+id).checked,n=id=>parseFloat(String(g('ra_'+id).value).replace(',','.'));
-  const o={orient:g('ra_xorient').value,mt:n('xmt'),mb:n('xmb'),ml:n('xml'),mr:n('xmr'),area:c('xarea'),center:c('xcenter'),stretch:c('xstretch'),titles:c('xtitles'),minScale:n('xmin'),
+  const o={orient:g('ra_xorient').value,mt:n('xmt'),mb:n('xmb'),ml:n('xml'),mr:n('xmr'),area:c('xarea'),center:c('xcenter'),stretch:c('xstretch'),spread:c('xspread'),titles:c('xtitles'),minScale:n('xmin'),
     clean:c('xclean'),num:c('xnum'),date:c('xdate'),err:g('ra_xerr').value,fmerge:c('xmerge'),links:c('xlinks'),font:g('ra_xfont').value,check:c('xcheck'),fit:c('xfit'),border:c('xborder'),footer:c('xfooter')};
   if([o.mt,o.mb,o.ml,o.mr].some(x=>!isFinite(x)||x<0||x>100)||o.ml+o.mr>=150||o.mt+o.mb>=150)throw new Error('Lề Excel không hợp lệ (0–100 mm; trái+phải < 150, trên+dưới < 150).');
   return o}
