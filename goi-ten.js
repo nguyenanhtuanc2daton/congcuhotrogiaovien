@@ -312,18 +312,18 @@
   @keyframes txShake{0%,100%{transform:rotate(0)}20%{transform:rotate(-4deg)}40%{transform:rotate(4deg)}60%{transform:rotate(-3deg)}80%{transform:rotate(3deg)}}
   .tx-done svg{animation:txShake .5s 6}
   .tx-clock:fullscreen,.tx-clock.tx-fs{background:#0b1220;justify-content:center;border-radius:0;margin:0}
-  .tx-clock.tx-fs{position:fixed;inset:0;z-index:60;overflow:auto}
+  .tx-clock.tx-fs{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;max-width:none;box-sizing:border-box;z-index:99999;overflow:hidden}
   .tx-clock:fullscreen .tx-face,.tx-clock.tx-fs .tx-face{width:min(94vw,80vh)}
   .tx-clock:-webkit-full-screen{background:#0b1220;justify-content:center}
   /* Đang đếm (class tx-run): ẩn mọi nút phía dưới + tiêu đề, phóng to đồng hồ. Chạm vào đồng hồ hoặc nhấn Space để tạm dừng */
   .tx-clock.tx-run .tx-face{cursor:pointer}
   .tx-clock.tx-run h3,.tx-clock.tx-run .tx-ctl{display:none}
   .tx-clock.tx-run:fullscreen{padding:0}
-  .tx-clock.tx-run:fullscreen .tx-face{width:min(98vw,89vh)}
+  .tx-clock.tx-run:fullscreen .tx-face{width:min(98vw,90vh,90dvh)}
   .tx-clock.tx-run:-webkit-full-screen{padding:0}
-  .tx-clock.tx-run:-webkit-full-screen .tx-face{width:min(98vw,89vh)}
+  .tx-clock.tx-run:-webkit-full-screen .tx-face{width:min(98vw,90vh,90dvh)}
   .tx-clock.tx-run.tx-fs{padding:0}
-  .tx-clock.tx-run.tx-fs .tx-face{width:min(98vw,89vh)}
+  .tx-clock.tx-run.tx-fs .tx-face{width:min(98vw,90vh,90dvh)}
   .tx-res{margin-top:12px}
   .tx-res:fullscreen{background:#0b1220;padding:24px;overflow:auto}
   .tx-gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
@@ -520,9 +520,9 @@
     const isFs=()=>card.classList.contains('tx-fs')||fsEl()===card;
     function enterFs(){
       if(isFs()) return;
+      card.classList.add('tx-fs'); // luôn phủ kín bằng CSS, không phụ thuộc trình duyệt
       const rq=card.requestFullscreen||card.webkitRequestFullscreen;
-      if(rq){try{const p=rq.call(card);if(p&&p.catch)p.catch(()=>card.classList.add('tx-fs'));}catch(e){card.classList.add('tx-fs');}}
-      else card.classList.add('tx-fs');
+      if(rq){try{const p=rq.call(card);if(p&&p.catch)p.catch(()=>{});}catch(e){}}
     }
     function exitFs(){
       card.classList.remove('tx-fs');
@@ -530,6 +530,9 @@
     }
     function fsToggle(){ if(isFs()) exitFs(); else enterFs(); }
     $('txFs').onclick=fsToggle;
+    const onFsChange=()=>{ if(fsEl()!==card) card.classList.remove('tx-fs'); };
+    document.addEventListener('fullscreenchange',onFsChange);
+    document.addEventListener('webkitfullscreenchange',onFsChange);
     card.addEventListener('keydown',e=>{
       if(e.code==='Space'&&!/^(INPUT|TEXTAREA|BUTTON|SELECT)$/.test(e.target.tagName)){e.preventDefault();go();}
     });
