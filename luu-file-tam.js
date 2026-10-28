@@ -34,8 +34,8 @@ const PARALLEL=3;                     // số phần tải lên cùng lúc (tố
 const HIST_KEY='luuFileTam.history.v1';
 const HIST_MAX=30;                    // số link nhớ tối đa
 const KIWI_MS=90*3600*1000;           // khớp RETENTION_TEXT
-const CONFIRM_TRIES=40;               // số lần hỏi file.kiwi "đã nhận đủ chưa" sau khi gửi xong
-const CONFIRM_GAP_MS=3000;            // cách nhau 3 giây → chờ tối đa ~2 phút
+const CONFIRM_TRIES=15;               // số lần hỏi file.kiwi "đã nhận đủ chưa" sau khi gửi xong
+const CONFIRM_GAP_MS=3000;            // cách nhau 3 giây → chờ tối đa ~45 giây
 
 /* ---------- Hàm phụ ---------- */
 const enc=new TextEncoder();
@@ -417,7 +417,7 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
 .row button{flex:1}
 .row.sh{flex-wrap:wrap}.row.sh button{flex:1 1 45%}
 .ok{color:#7ee08f;text-align:center;font-weight:700;margin:0 0 10px}
-.err{background:#3a1616;border:1px solid #ef5350;color:#ffd0cf;border-radius:10px;padding:10px 12px;font-size:13.5px;margin:0 0 10px;word-break:break-word}
+.err{background:#3a1616;border:1px solid #ef5350;color:#ffd0cf;border-radius:10px;padding:10px 12px;font-size:13.5px;margin:0 0 10px;word-break:break-word;white-space:pre-wrap}
 .done-bar{display:none;align-items:center;gap:8px;margin-top:12px;padding:8px 10px;background:#12404f;border:1px solid #f5c542;border-radius:10px;font-size:13.5px}
 .done-bar.on{display:flex}.done-bar span{flex:1;min-width:0}
 button:disabled{opacity:.5;cursor:default}
@@ -540,7 +540,7 @@ function tick(done){
   if(sp>0){s=fmtSize(sp)+'/giây';const rem=(meter.total-done)/sp;if(rem>=1&&done<meter.total)s+=' · còn khoảng '+fmtTime(rem)}
   $('spd').textContent=s;
 }
-function report(label,done,total){setStat('wait',label+' · '+pctText(done,total));tick(done)}
+function report(label,done,total){setStat('wait','Đang Upload... ('+pctText(done,total)+')');tick(done)}
 
 /* ---------- Gọi API ---------- */
 function loadLib(){return libP||(libP=import(CRYPTO_URL).catch(e=>{libP=null;throw new Error('Không nạp được thư viện mã hóa (kiểm tra mạng). '+(e&&e.message||'')) }))}
@@ -717,13 +717,15 @@ async function viaKiwi(items,fills,totalSize,sig){
       }
 
       /* Chờ file.kiwi ghép xong tệp; nếu còn thiếu phần nào thì gửi bù (chỉ với tệp gửi nguyên bản) */
-      let okFile=false,lastErr='',resent=0;
-      for(let t=0;t<CONFIRM_TRIES&&!okFile;t++){
-        setStat('wait','Đã gửi xong, đang chờ file.kiwi xác nhận… ('+(t+1)+'/'+CONFIRM_TRIES+')');
+      let okFile=false,lastErr='',lastRaw='',resent=0;
+      const tries=resumed?10:CONFIRM_TRIES;      // phiên cũ mà quá 10 lần vẫn chưa xong → coi như hỏng, gửi mới
+      for(let t=0;t<tries&&!okFile;t++){
+        setStat('wait','Đang Upload... (100%)');
+        $('sum').textContent='Đã gửi xong, đang chờ file.kiwi xác nhận… ('+(t+1)+'/'+tries+')';
         let sj=null;
         try{
           const s=await callApi(statusPath(j,i),{signal:sig});
-          if(s.ok)sj=await s.json();else lastErr='HTTP '+s.status;
+          if(s.ok){sj=await s.json();lastRaw=JSON.stringify(sj).slice(0,220)}else lastErr='HTTP '+s.status;
         }catch(e){if(sig.aborted)throw e;lastErr=(e&&e.message)||String(e)}
         if(sj&&sj.complete){okFile=true;break}
         if(own&&sj&&Array.isArray(sj.missing)&&sj.missing.length&&resent<3){
@@ -742,7 +744,11 @@ async function viaKiwi(items,fills,totalSize,sig){
         }
         await sleep(CONFIRM_GAP_MS);
       }
-      if(!okFile)throw new Error('file.kiwi chưa xác nhận đã nhận đủ tệp "'+it.name+'"'+(lastErr?' ('+lastErr+')':'')+'. Hãy bấm "Thử lại" (sẽ tải tiếp phần còn thiếu).');
+      if(!okFile&&resumed){const er=new Error('stale');er.stale=true;throw er}
+      if(!okFile){
+        const testLink=(j.folderUrlBase||String(j.folderUrl||'').split('#')[0])+'#'+secret;
+        throw new Error('file.kiwi chưa xác nhận đã nhận đủ tệp "'+it.name+'"'+(lastErr?' ('+lastErr+')':'')+'.\nPhản hồi của máy chủ: '+(lastRaw||'(không có)')+'\nLink thử (tệp có thể đã lên, hãy mở thử): '+testLink+'\nHoặc bấm "Thử lại" để tải tiếp phần còn thiếu.');
+      }
       fills[i].style.width='100%';
     }
   }finally{clearInterval(ka)}
@@ -780,7 +786,15 @@ async function run(input){
   $('sum').textContent='Đang chuẩn bị…';$('spd').textContent='';
   setView('busy');setStat('wait','Đang mã hóa & kết nối…');
   try{
-    const lines=[await viaKiwi(items,fills,totalSize,sig)];
+    let r1;
+    try{r1=await viaKiwi(items,fills,totalSize,sig)}
+    catch(e){
+      if(!(e&&e.stale)||sig.aborted)throw e;
+      clearResume();                       // bỏ phiên cũ bị kẹt, gửi lại từ đầu
+      setStat('wait','Phiên cũ bị kẹt, đang gửi lại từ đầu…');
+      r1=await viaKiwi(items,fills,totalSize,sig);
+    }
+    const lines=[r1];
     const meta={names:items.map(x=>x.name),size:totalSize,litter:false};
     const note='Tệp được lưu '+RETENTION_TEXT+' rồi tự xóa. Chỉ ai có đủ link (kể cả phần sau dấu #) mới mở được.';
     showDone(lines,note,meta);
