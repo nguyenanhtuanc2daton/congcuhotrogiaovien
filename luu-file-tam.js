@@ -8,7 +8,7 @@
    - Mã hóa dùng thư viện wormhole-crypto (RFC 8188), nạp từ jsDelivr.
    - Nếu trình duyệt chặn gọi thẳng api.file.kiwi (CORS) → đặt địa chỉ Worker vào PROXY bên dưới
      (xem filekiwi-proxy-worker.js).
-   - Tải nhiều phần song song (PARALLEL phần cùng lúc); nếu máy chủ không nhận → tự quay về từng phần.
+   - Gửi từng phần một (PARALLEL=1) theo đúng giới hạn của file.kiwi; thứ tự: phần đầu, phần cuối, rồi các phần giữa (để xem trước video).
    - Giữ máy không ngủ (Wake Lock) khi đang tải + cảnh báo khi lỡ tắt/tải lại tab.
    - Lịch sử link đã gửi: lưu trên máy (localStorage), kèm giờ hết hạn, nút sao chép / QR / xóa.
    - Mã QR cho link (bộ tạo QR gọn nằm ngay trong file này, không cần file khác).
@@ -30,7 +30,7 @@ const RETENTION_TEXT='khoảng 90 giờ';
 const RESUME_KEY='luuFileTam.resume.v1';
 const RESUME_MAX_MS=34*3600*1000;     // link tải lên của file.kiwi hết hạn sau 36 giờ
 const KEEPALIVE_MS=20*60*1000;        // báo "còn đang tải" để file.kiwi không xóa giữa chừng
-const PARALLEL=3;                     // số phần tải lên cùng lúc (tốn thêm ~30 MB RAM); máy chủ từ chối → tự về từng phần
+const PARALLEL=1;                     // file.kiwi chỉ cho gửi 1 phần mỗi lúc (theo tài liệu API v2); gửi song song làm máy chủ không ghi nhận phần nào
 const HIST_KEY='luuFileTam.history.v1';
 const HIST_MAX=30;                    // số link nhớ tối đa
 const KIWI_MS=90*3600*1000;           // khớp RETENTION_TEXT
@@ -540,7 +540,7 @@ function tick(done){
   if(sp>0){s=fmtSize(sp)+'/giây';const rem=(meter.total-done)/sp;if(rem>=1&&done<meter.total)s+=' · còn khoảng '+fmtTime(rem)}
   $('spd').textContent=s;
 }
-function report(label,done,total){setStat('wait','Đang Upload... ('+pctText(done,total)+')');tick(done)}
+function report(label,done,total){setStat('wait','Đang Upload '+pctText(done,total));tick(done)}
 
 /* ---------- Gọi API ---------- */
 function loadLib(){return libP||(libP=import(CRYPTO_URL).catch(e=>{libP=null;throw new Error('Không nạp được thư viện mã hóa (kiểm tra mạng). '+(e&&e.message||'')) }))}
@@ -683,6 +683,7 @@ async function viaKiwi(items,fills,totalSize,sig){
           const sr=await callApi(statusPath(j,i),{signal:sig});
           if(sr.ok){const sj=await sr.json();todo=sj.complete?[]:normMissing(sj.missing,info.chunks)}
         }
+        if(todo.length>2){const f=todo[0],l=todo[todo.length-1];todo=[f,l].concat(todo.slice(1,-1))}
         n=info.chunks-todo.length;
         fills[i].style.width=Math.round(n/info.chunks*100)+'%';
         report(label,before+it.size*n/info.chunks,totalSize);
@@ -720,8 +721,9 @@ async function viaKiwi(items,fills,totalSize,sig){
       let okFile=false,lastErr='',lastRaw='',resent=0;
       const tries=resumed?10:CONFIRM_TRIES;      // phiên cũ mà quá 10 lần vẫn chưa xong → coi như hỏng, gửi mới
       for(let t=0;t<tries&&!okFile;t++){
-        setStat('wait','Đang Upload... (100%)');
-        $('sum').textContent='Đã gửi xong, đang chờ file.kiwi xác nhận… ('+(t+1)+'/'+tries+')';
+        setStat('wait','Đang Upload 100%');
+        $('sum').style.whiteSpace='pre-line';
+        $('sum').textContent='Đã gửi xong, đang chờ file.kiwi xác nhận… ('+(t+1)+'/'+tries+')\nCác bạn hãy đợi chút xíu !';
         let sj=null;
         try{
           const s=await callApi(statusPath(j,i),{signal:sig});
