@@ -4,9 +4,9 @@
    - Link dạng https://file.kiwi/xxxx#khoa — phần sau dấu # là khóa giải mã, không gửi lên máy chủ.
    - Tải tiếp được khi bị đứt giữa chừng (chọn lại đúng tệp đó trong vòng ~34 giờ, trên cùng trình duyệt).
    - Hiện phần trăm, tốc độ và thời gian còn lại. Nhiều tệp/thư mục có thể gộp thành 1 file .zip.
-   - file.kiwi lỗi + tệp dưới 900 MB → tự chuyển sang Litterbox (không mã hóa, lưu 72 giờ).
+   - Chỉ dùng file.kiwi (đã bỏ đường dự phòng Litterbox). Sau khi gửi xong sẽ chờ file.kiwi xác nhận tối đa ~2 phút và tự gửi bù phần còn thiếu.
    - Mã hóa dùng thư viện wormhole-crypto (RFC 8188), nạp từ jsDelivr.
-   - Nếu trình duyệt chặn gọi thẳng api.file.kiwi hoặc Litterbox (CORS) → đặt địa chỉ Worker vào PROXY bên dưới
+   - Nếu trình duyệt chặn gọi thẳng api.file.kiwi (CORS) → đặt địa chỉ Worker vào PROXY bên dưới
      (xem filekiwi-proxy-worker.js).
    - Tải nhiều phần song song (PARALLEL phần cùng lúc); nếu máy chủ không nhận → tự quay về từng phần.
    - Giữ máy không ngủ (Wake Lock) khi đang tải + cảnh báo khi lỡ tắt/tải lại tab.
@@ -23,10 +23,6 @@ const API='https://api.file.kiwi';
 const PROXY='';                       // vd: 'https://filekiwi-proxy.ten-ban.workers.dev' (để trống = gọi thẳng)
 const CRYPTO_URL='https://cdn.jsdelivr.net/npm/wormhole-crypto@0.2.2/+esm';
 const SITE='https://file.kiwi/vi';    // dùng cho nút "Mở file.kiwi" khi có lỗi
-const LITTER_URL='https://litterbox.catbox.moe/resources/internals/api.php'; // đường dự phòng khi file.kiwi lỗi
-const LITTER_TIME='72h';              // 1h | 12h | 24h | 72h
-const LITTER_TEXT='72 giờ';
-const LITTER_MAX=900*1024*1024;       // chỉ dự phòng cho tệp dưới 900 MB (Litterbox ghi ~1 GB, chưa xác nhận chính thức)
 const MAX_FILES=10;                   // số tệp riêng lẻ tối đa mỗi lần (gộp .zip thì không giới hạn)
 const RETRY=3;                        // số lần thử lại mỗi phần khi lỗi mạng
 const RETURN_SECONDS=15;              // sao chép link xong → tự đóng sau số giây này
@@ -38,7 +34,8 @@ const PARALLEL=3;                     // số phần tải lên cùng lúc (tố
 const HIST_KEY='luuFileTam.history.v1';
 const HIST_MAX=30;                    // số link nhớ tối đa
 const KIWI_MS=90*3600*1000;           // khớp RETENTION_TEXT
-const LITTER_MS=72*3600*1000;         // khớp LITTER_TIME
+const CONFIRM_TRIES=40;               // số lần hỏi file.kiwi "đã nhận đủ chưa" sau khi gửi xong
+const CONFIRM_GAP_MS=3000;            // cách nhau 3 giây → chờ tối đa ~2 phút
 
 /* ---------- Hàm phụ ---------- */
 const enc=new TextEncoder();
@@ -504,7 +501,7 @@ button:disabled{opacity:.5;cursor:default}
 
 const $=id=>root.getElementById(id);
 const ov=$('ov'),card=$('card');
-let busy=false,pushed=false,ac=null,lastInput=null,viaProxy=false,litterProxy=false,backT=null,libP=null,meter=null;
+let busy=false,pushed=false,ac=null,lastInput=null,viaProxy=false,backT=null,libP=null,meter=null;
 const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 
 /* ---------- Giữ máy không ngủ & cảnh báo khi lỡ đóng tab ---------- */
@@ -610,45 +607,6 @@ function planItems(files){
   const root=hasDir?(files[0].webkitRelativePath.split('/')[0]||'thu-muc'):'tep-gop-'+stamp();
   return{zip:true,items:[{name:root+'.zip',size:plan.total,type:'application/zip',lastModified:0,isZip:true,
     stream:()=>genStream(zipGen(entries,plan.z64))}]};
-}
-
-/* ---------- Litterbox (đường dự phòng) ---------- */
-function xhrPost(url,fd,sig,onp){
-  return new Promise((res,rej)=>{
-    const x=new XMLHttpRequest();x.open('POST',url);
-    x.upload.onprogress=e=>{if(e.lengthComputable)onp(e.loaded/e.total)};
-    x.onload=()=>res({status:x.status,text:x.responseText});
-    x.onerror=()=>rej(new TypeError('Lỗi mạng hoặc bị trình duyệt chặn'));
-    x.onabort=()=>rej(new Error('Đã hủy'));
-    if(sig){if(sig.aborted){rej(new Error('Đã hủy'));return}sig.addEventListener('abort',()=>x.abort())}
-    x.send(fd);
-  });
-}
-async function litterUpload(file,sig,onp){
-  const mk=()=>{const fd=new FormData();fd.append('reqtype','fileupload');fd.append('time',LITTER_TIME);fd.append('fileToUpload',file,file.name);return fd};
-  let r;
-  if(!litterProxy){
-    try{r=await xhrPost(LITTER_URL,mk(),sig,onp)}
-    catch(e){if(!PROXY||(sig&&sig.aborted))throw e;litterProxy=true}
-  }
-  if(litterProxy)r=await xhrPost(PROXY+'/litter',mk(),sig,onp);
-  const t=String(r.text||'').trim();
-  if(r.status<200||r.status>=300||!/^https?:\/\//i.test(t))throw new Error('Litterbox trả lỗi '+r.status+(t?': '+t.slice(0,100):''));
-  return t;
-}
-async function viaLitter(files,fills,totalSize,sig){
-  const lines=[];let before=0;
-  for(let i=0;i<files.length;i++){
-    const f=files[i];
-    $('sum').textContent='Đường dự phòng: đang gửi tệp '+(i+1)+'/'+files.length+'…';
-    const url=await litterUpload(f,sig,fr=>{
-      fills[i].style.width=Math.round(fr*100)+'%';
-      report('Dự phòng '+(i+1)+'/'+files.length,before+f.size*fr,totalSize);
-    });
-    fills[i].style.width='100%';before+=f.size;
-    lines.push(files.length>1?f.name+': '+url:url);
-  }
-  return lines;
 }
 
 /* ---------- file.kiwi ---------- */
@@ -758,13 +716,33 @@ async function viaKiwi(items,fills,totalSize,sig){
         if(n!==info.chunks||fin!==info.chunks)throw new Error('Thiếu phần dữ liệu khi tải lên.');
       }
 
-      let okFile=false;
-      for(let t=0;t<4&&!okFile;t++){
-        const s=await callApi(statusPath(j,i),{signal:sig});
-        if(s.ok){const sj=await s.json();okFile=!!sj.complete}
-        if(!okFile)await sleep(1500);
+      /* Chờ file.kiwi ghép xong tệp; nếu còn thiếu phần nào thì gửi bù (chỉ với tệp gửi nguyên bản) */
+      let okFile=false,lastErr='',resent=0;
+      for(let t=0;t<CONFIRM_TRIES&&!okFile;t++){
+        setStat('wait','Đã gửi xong, đang chờ file.kiwi xác nhận… ('+(t+1)+'/'+CONFIRM_TRIES+')');
+        let sj=null;
+        try{
+          const s=await callApi(statusPath(j,i),{signal:sig});
+          if(s.ok)sj=await s.json();else lastErr='HTTP '+s.status;
+        }catch(e){if(sig.aborted)throw e;lastErr=(e&&e.message)||String(e)}
+        if(sj&&sj.complete){okFile=true;break}
+        if(own&&sj&&Array.isArray(sj.missing)&&sj.missing.length&&resent<3){
+          resent++;
+          const miss=normMissing(sj.missing,info.chunks);
+          const ctx2=await eceCtx(ikm,salts[i],it.size,own.extra);
+          const sender2=parSender(PARALLEL,sig);
+          for(const c of miss){
+            await sender2.add(async()=>{
+              const data=await eceRange(ctx2,it,(c-1)*cs,Math.min(c*cs,ctx2.total));
+              await put(c,data);
+            });
+          }
+          await sender2.finish();
+          continue;
+        }
+        await sleep(CONFIRM_GAP_MS);
       }
-      if(!okFile)throw new Error('file.kiwi chưa xác nhận đã nhận đủ tệp "'+it.name+'". Hãy thử lại.');
+      if(!okFile)throw new Error('file.kiwi chưa xác nhận đã nhận đủ tệp "'+it.name+'"'+(lastErr?' ('+lastErr+')':'')+'. Hãy bấm "Thử lại" (sẽ tải tiếp phần còn thiếu).');
       fills[i].style.width='100%';
     }
   }finally{clearInterval(ka)}
@@ -775,8 +753,8 @@ async function viaKiwi(items,fills,totalSize,sig){
 
 function showDone(lines,note,meta){
   const t=$('link');t.value=lines.join('\n');
-  if(meta)addHist({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Date.now(),exp:Date.now()+(meta.litter?LITTER_MS:KIWI_MS),
-    lines,names:meta.names,size:meta.size,litter:!!meta.litter});
+  if(meta)addHist({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Date.now(),exp:Date.now()+KIWI_MS,
+    lines,names:meta.names,size:meta.size,litter:false});
   $('keep').textContent=note+' Link cũng được lưu ở mục “Link đã gửi” trên máy này.';
   const nat=!!navigator.share;
   $('shNative').style.display=nat?'':'none';
@@ -802,28 +780,9 @@ async function run(input){
   $('sum').textContent='Đang chuẩn bị…';$('spd').textContent='';
   setView('busy');setStat('wait','Đang mã hóa & kết nối…');
   try{
-    let lines,note,meta;
-    try{
-      lines=[await viaKiwi(items,fills,totalSize,sig)];
-      meta={names:items.map(x=>x.name),size:totalSize,litter:false};
-      note='Tệp được lưu '+RETENTION_TEXT+' rồi tự xóa. Chỉ ai có đủ link (kể cả phần sau dấu #) mới mở được.';
-    }catch(e){
-      if(sig.aborted)return;
-      const srcs=files.filter(f=>f.size>0);
-      if(e.noFallback||!srcs.length||srcs.some(f=>f.size>LITTER_MAX))throw e;
-      const fills2=buildList(srcs),total2=srcs.reduce((a,x)=>a+x.size,0);
-      newMeter(total2);$('spd').textContent='';
-      setStat('wait','file.kiwi lỗi, chuyển sang đường dự phòng…');
-      try{lines=await viaLitter(srcs,fills2,total2,sig)}
-      catch(e2){
-        if(sig.aborted)return;
-        const hint=(e instanceof TypeError&&!PROXY)?' (nếu do trình duyệt chặn: cần cấu hình PROXY — xem filekiwi-proxy-worker.js)':'';
-        throw new Error('file.kiwi: '+((e&&e.message)||e)+' — Litterbox: '+((e2&&e2.message)||e2)+hint);
-      }
-      clearResume();
-      note='⚠ Đã dùng đường dự phòng (Litterbox): tệp KHÔNG được mã hóa, lưu '+LITTER_TEXT+'. Ai có link đều tải được.';
-      meta={names:srcs.map(f=>f.name),size:total2,litter:true};
-    }
+    const lines=[await viaKiwi(items,fills,totalSize,sig)];
+    const meta={names:items.map(x=>x.name),size:totalSize,litter:false};
+    const note='Tệp được lưu '+RETENTION_TEXT+' rồi tự xóa. Chỉ ai có đủ link (kể cả phần sau dấu #) mới mở được.';
     showDone(lines,note,meta);
   }catch(e){
     if(sig.aborted)return;
