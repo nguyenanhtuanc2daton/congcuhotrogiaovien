@@ -875,13 +875,13 @@ function sections(doc,body,o,rep){
       const land=ga(z,'orient')==='landscape'||(+ga(z,'w')>+ga(z,'h')&&+ga(z,'h')>0),w=land?16838:11906,h=land?11906:16838;
       const mm=v=>Math.round(v*56.6929);let want=[mm(o.mt),mm(o.mb),mm(o.ml),mm(o.mr)];
       /* khổ ngang (sổ/biểu mẫu nhiều cột): lề hẹp hơn để bảng có đủ chỗ */
-      if(land)want=[mm(Math.min(o.mt,12)),mm(Math.min(o.mb,12)),mm(Math.min(o.ml,15)),mm(Math.min(o.mr,15))];
+      if(land)want=[mm(Math.min(o.mt,8)),mm(Math.min(o.mb,8)),mm(Math.min(o.ml,10)),mm(Math.min(o.mr,10))];
       const was=[+ga(z,'w'),+ga(z,'h'),+ga(m,'top'),+ga(m,'bottom'),+ga(m,'left'),+ga(m,'right')].join();
       sa(z,'w',w);sa(z,'h',h);if(land)sa(z,'orient','landscape');else z.removeAttributeNS(W,'orient');
       sa(m,'top',want[0]);sa(m,'bottom',want[1]);sa(m,'left',want[2]);sa(m,'right',want[3]);
       if(!ga(m,'header'))sa(m,'header',709);if(!ga(m,'footer'))sa(m,'footer',709);if(!ga(m,'gutter'))sa(m,'gutter',0);
       /* khoảng cách header/footer không được lớn hơn nửa lề (nếu không Word sẽ tự đẩy nội dung xuống, lề thực tế lại rộng ra) */
-      sa(m,'header',Math.min(+ga(m,'header')||709,Math.max(200,Math.floor(want[0]*0.5))));sa(m,'footer',Math.min(+ga(m,'footer')||709,Math.max(200,Math.floor(want[1]*0.5))));
+      sa(m,'header',Math.min(+ga(m,'header')||709,Math.max(170,Math.floor(want[0]*0.5))));sa(m,'footer',Math.min(+ga(m,'footer')||709,Math.max(170,Math.floor(want[1]*0.5))));
       if(was!==[w,h].concat(want).join())pg++}
     s.aw=(+ga(z,'w')||11906)-(m?(+ga(m,'left')||1701):1701)-(m?(+ga(m,'right')||850):850);
     s.ah=(+ga(z,'h')||16838)-(m?(+ga(m,'top')||1134):1134)-(m?(+ga(m,'bottom')||1134):1134);
@@ -1632,6 +1632,69 @@ async function aiExamReview(buf,o,hooks,rep){
 
 /* ====================== HÀM CHÍNH ====================== */
 const PKG=()=>typeof window!=='undefined'&&typeof window.WordPkgCheck==='function'?window.WordPkgCheck:null;
+/* ===== Giữ biểu mẫu/sổ trong 1 trang: ước lượng chiều cao nội dung rồi chọn mức thu gọn nhẹ nhất vẫn vừa 1 trang ===== */
+function chR(ch){if(ch===' ')return .25;if(/\d/.test(ch))return .5;if(/\p{Lu}/u.test(ch))return /[MWĐ]/.test(ch)?.9:.7;if(/[iíìỉĩịltfjr.,;:!\/()\-'"]/.test(ch))return .3;if(/[mw]/.test(ch))return .76;return .46}
+function estP(p,cfg,aw,cell,defSz){
+  const pp=one(p,'pPr'),sp=pp&&one(pp,'spacing'),ind=pp&&one(pp,'ind');
+  let so=0,bold=false;
+  all(p,'r').forEach(r=>{if(anc(r,'p')!==p||!all(r,'t').some(t=>t.textContent.length))return;const rp=one(r,'rPr'),se=rp&&one(rp,'sz');so=Math.max(so,se?+ga(se,'val'):defSz);if(rp&&one(rp,'b'))bold=true});
+  if(!so){const mr=pp&&one(pp,'rPr'),me=mr&&one(mr,'sz');so=me?+ga(me,'val'):defSz}
+  const head=!cell&&pInfo(p).head;
+  const sz=cfg.orig?so:(cell&&cfg.cellSz?cfg.cellSz:(cfg.force?Math.max(so,cfg.size):so));
+  const txt=ptext(p);let e=0;for(const ch of txt)e+=chR(ch);
+  let w=e*sz*10*(bold?1.07:1)+all(p,'tab').length*sz*10*2;
+  const l=ind?(+ga(ind,'left')||+ga(ind,'start')||0):0,r=ind?(+ga(ind,'right')||0):0,fl=ind?(+ga(ind,'firstLine')||0):0;
+  const avail=Math.max(300,aw-l-r);
+  let lines=txt.length?Math.max(1,Math.ceil((w+fl)/avail*1.03)):1;
+  lines+=all(p,'br').filter(b=>!ga(b,'type')||ga(b,'type')==='textWrapping').length;
+  let lf=1,exact=0;if(sp&&ga(sp,'line')){if(ga(sp,'lineRule')==='exact')exact=+ga(sp,'line');else lf=(+ga(sp,'line'))/240||1}
+  if(!cfg.orig&&!head&&cfg.line)lf=cfg.line;
+  const lh=exact&&cfg.orig?exact:sz*10*1.15*lf;
+  let before=sp?(+ga(sp,'before')||0):0,after=sp?(+ga(sp,'after')||0):0;
+  if(!cfg.orig&&!head&&cfg.after!=null){before=0;after=cell?0:cfg.after*20}
+  let img=0;all(p,'drawing').forEach(d=>{const ex=d.getElementsByTagNameNS(WP,'extent')[0];img+=ex?(+ex.getAttribute('cy')||0)/635:0});
+  return lines*lh+before+after+img}
+function estBox(box,cfg,aw,cell,defSz){
+  let H=0;
+  Array.from(box.children).forEach(c=>{
+    if(c.namespaceURI!==W)return;
+    if(c.localName==='p')H+=estP(c,cfg,aw,cell,defSz);
+    else if(c.localName==='sdt'){const sc=one(c,'sdtContent');if(sc)H+=estBox(sc,cfg,aw,cell,defSz)}
+    else if(c.localName==='tbl')H+=estTbl(c,cfg,aw,defSz)});
+  return H}
+function estTbl(tbl,cfg,aw,defSz){
+  const grid=one(tbl,'tblGrid'),ws=grid?wk(grid,'gridCol').map(c=>parseInt(ga(c,'w'),10)||0):[],rows=wk(tbl,'tr');
+  if(!ws.length)return rows.length*400;
+  let nw=ws,tot=ws.reduce((a,b)=>a+b,0),pad=216,cellSz=0;
+  if(!cfg.orig&&cfg.tblfit&&ws.length>=4&&rows.length>=2){const fr=fitCols(tbl,ws,Math.floor(aw),cfg.size);nw=fr.nw;cellSz=fr.sz;pad=140}
+  else if(tot>aw){nw=ws.map(x=>x*aw/tot)}
+  const c2=Object.assign({},cfg,{cellSz});let H=0;
+  rows.forEach(tr=>{
+    let col=0,rh=0;const tp=one(tr,'trPr'),th=tp&&one(tp,'trHeight'),minH=th?(+ga(th,'val')||0):0;
+    wk(tr,'tc').forEach(tc=>{
+      const cp=one(tc,'tcPr'),gs=cp&&one(cp,'gridSpan'),n=gs?(parseInt(ga(gs,'val'),10)||1):1,vm=cp&&one(cp,'vMerge');
+      let w=0;for(let k=col;k<col+n;k++)w+=nw[k]||0;col+=n;
+      if(vm&&(ga(vm,'val')!=='restart'))return;
+      if(vm)return; /* ô gộp dọc: chiều cao do các hàng gộp quyết định */
+      rh=Math.max(rh,estBox(tc,c2,Math.max(300,w-pad),true,defSz))});
+    H+=Math.max(rh,minH)+15});
+  return H}
+function planOnePage(body,o,defSz,pages){
+  const sp=one(body,'sectPr');if(!sp||wk(body,'p').some(p=>{const pp=one(p,'pPr');return pp&&one(pp,'sectPr')}))return null;
+  const z=one(sp,'pgSz'),land=z&&(ga(z,'orient')==='landscape'||(+ga(z,'w')>+ga(z,'h')&&+ga(z,'h')>0));
+  const mm=v=>Math.round(v*56.6929),PH=land?11906:16838,PW=land?16838:11906;
+  const mt=land?Math.min(o.mt,8):o.mt,mb=land?Math.min(o.mb,8):o.mb,ml=land?Math.min(o.ml,10):o.ml,mr=land?Math.min(o.mr,10):o.mr;
+  const S0=(+o.size)*2;if(!isFinite(S0)||S0<=0)return null;
+  const tiers=[{size:S0,line:o.line,after:o.after,t:0},{size:S0,line:1,after:3,t:1},{size:S0,line:1,after:0,t:2},{size:S0-2,line:1,after:0,t:3},{size:S0-4,line:1,after:0,t:4}].filter(t=>t.size>=24||t.t<=2);
+  let pick=null,last=null;
+  for(const t of tiers){
+    const mt2=(t.t>=2&&!land)?Math.min(mt,10):mt,mb2=(t.t>=2&&!land)?Math.min(mb,10):mb;
+    const aw=PW-mm(ml)-mm(mr),ah=PH-mm(mt2)-mm(mb2);
+    const cfg={orig:false,size:t.size,force:o.forcesz!==false,line:t.line,after:t.after,tblfit:!!o.tblfit},H=estBox(body,cfg,aw,false,defSz);
+    t.H=H;t.ah=ah;t.mt=mt2;t.mb=mb2;last=t;
+    if(H<=ah*0.93){pick=t;break}}
+  return{pick:pick||last,fit:!!pick,last}}
+
 async function auditOnce(buf,o,hooks){
   hooks=hooks||{progress(){}};
   const zip=await JSZip.loadAsync(buf);
@@ -1668,6 +1731,17 @@ async function auditOnce(buf,o,hooks){
   ctx.hasToc=all(doc,'instrText').some(t=>/^\s*TOC\b/.test(t.textContent))||all(doc,'fldSimple').some(f=>/^\s*TOC\b/.test(ga(f,'instr')));
   let defSz=20;if(sd){const dr=one(one(sd.documentElement,'docDefaults'),'rPrDefault'),dz=dr&&one(one(dr,'rPr'),'sz');if(dz)defSz=+ga(dz,'val')||defSz;
     const nm=wk(sd.documentElement,'style').find(s=>ga(s,'type')==='paragraph'&&ga(s,'default')==='1'),nz=nm&&one(one(nm,'rPr'),'sz');if(nz)defSz=+ga(nz,'val')||defSz}
+  {/* Sổ/biểu mẫu vốn chỉ 1 trang: giữ nguyên 1 trang sau khi chuẩn hóa */
+    let onePg=false;
+    if(o.onepage&&!o.dry&&o.size!=='auto'){
+      const ap=zip.file('docProps/app.xml');let pg=0;
+      if(ap){const m=/<Pages>\s*(\d+)\s*<\/Pages>/.exec(await ap.async('string'));if(m)pg=+m[1]}
+      onePg=pg?pg===1:!/lastRenderedPageBreak|w:br\b[^>]*w:type="page"|pageBreakBefore/.test(docXml);
+      if(onePg){const pl=planOnePage(body,o,defSz);
+        if(pl&&pl.pick){const t=pl.pick;
+          o=Object.assign({},o,{size:String(t.size/2),line:t.line,after:t.after});
+          if(t.t>0)rep.notes.push('Giữ trong 1 trang: để vừa 1 trang, đã thu gọn '+(t.t>=3?'cỡ chữ còn '+t.size/2+' pt, ':'')+'giãn dòng '+t.line+', khoảng cách sau đoạn '+t.after+' pt.');
+          if(!pl.fit)rep.warn('Ước tính nội dung vẫn có thể hơi tràn 1 trang dù đã thu gọn tối đa (chữ '+t.size/2+' pt) — hãy mở file kiểm tra, nếu tràn thì bớt dòng ghi chú hoặc giảm cỡ chữ.')}}}}
   hooks.progress('Đang rà soát...');await tick();
   step('dọn nhiễu XML',()=>stripNoise(doc));
   step('Track Changes/Comment',()=>reviewMarks(doc,o,rep));
@@ -2319,7 +2393,7 @@ function buildUI(){
   +cb('page','Đưa khổ giấy về A4 và lề chuẩn:',1)+'<div class="raR">Lề (mm): Trên '+num('mt',15)+' Dưới '+num('mb',15)+' Trái '+num('ml',30)+' Phải '+num('mr',15)+'</div>'
   +cb('pgnum','Giữ số trang liên tục (bỏ “bắt đầu lại số trang” ở section sau)',1)+cb('fields','Tự cập nhật mục lục khi mở file (nếu có mục lục)',1)+cb('compat','Tắt Compatibility Mode (file .doc cũ)',1)+'</details>'
   +'<details class="raG"><summary>📊 Bảng &amp; 🖼 Hình &amp; ∑ Công thức</summary>'
-  +cb('tbl','Bảng: vừa lề, không cắt đôi hàng, lặp hàng tiêu đề, căn giữa ô ngắn, gỡ bảng trôi',1)+cb('tblkeep','Bảng nhỏ (dưới 1/5 trang): giữ nguyên cả bảng trên một trang. Bảng lớn vẫn được tách theo hàng để không chừa khoảng trống',1)+cb('tblborder','Thêm viền cho bảng nhiều hàng chưa có viền',0)+cb('forcesz','Ép mọi chữ nhỏ hơn cỡ đã chọn (vd 8–10 pt trong biểu mẫu/sổ) về đúng cỡ chữ đã chọn ở trên (không áp dụng khi chọn “Tự nhận diện”; không đụng chỉ số trên/dưới, tiêu đề)',1)+cb('tblfit','Bảng nhiều cột (sổ, biểu mẫu): dùng đúng cỡ chữ văn bản trong bảng và dàn độ rộng cột theo nội dung cho đủ chỗ ghi, vừa khổ giấy',1)
+  +cb('tbl','Bảng: vừa lề, không cắt đôi hàng, lặp hàng tiêu đề, căn giữa ô ngắn, gỡ bảng trôi',1)+cb('tblkeep','Bảng nhỏ (dưới 1/5 trang): giữ nguyên cả bảng trên một trang. Bảng lớn vẫn được tách theo hàng để không chừa khoảng trống',1)+cb('tblborder','Thêm viền cho bảng nhiều hàng chưa có viền',0)+cb('onepage','Biểu mẫu/sổ vốn chỉ 1 trang: giữ nguyên trong 1 trang (nếu cần sẽ tự thu gọn giãn dòng, khoảng cách đoạn, cuối cùng là cỡ chữ, tối thiểu 12 pt)',1)+cb('forcesz','Ép mọi chữ nhỏ hơn cỡ đã chọn (vd 8–10 pt trong biểu mẫu/sổ) về đúng cỡ chữ đã chọn ở trên (không áp dụng khi chọn “Tự nhận diện”; không đụng chỉ số trên/dưới, tiêu đề)',1)+cb('tblfit','Bảng nhiều cột (sổ, biểu mẫu): dùng đúng cỡ chữ văn bản trong bảng và dàn độ rộng cột theo nội dung cho đủ chỗ ghi, vừa khổ giấy',1)
   +'<div class="raR">Chiều cao tối đa của hình/bản vẽ: <select id="ra_imgmax"><option value="0.4">40% trang (ít khoảng trống nhất)</option><option value="0.5" selected>50% trang</option><option value="0.65">65% trang</option><option value="0.95">Gần cả trang (kiểu cũ)</option></select></div>'+cb('imgInline','Hình: chuyển hình “trôi” thành hình cùng dòng (hết nhảy vị trí/che chữ)',1)+cb('imgFix','Hình: sửa méo, thu nhỏ hình tràn lề/ô bảng, căn giữa hình đứng riêng',1)
   +cb('latex','Công thức: chuyển LaTeX ($...$, \\(...\\), \\[...\\]) thành Equation của Word',1)+cb('mathsz','Công thức: đồng bộ font/cỡ chữ với văn bản',1)+'</details>'
   +'<details class="raG" open><summary>📗 Excel (.xlsx): sửa lỗi &amp; căn trang in</summary>'
@@ -2384,7 +2458,7 @@ function readOpts(){
   const c=id=>g('ra_'+id).checked,v=id=>g('ra_'+id).value,n=id=>parseFloat(String(v(id)).replace(',','.'));
   const o={text:c('text'),indent:c('indent'),num:c('num'),font:v('font'),size:v('size'),line:+v('line'),after:+v('after'),spacing:c('spacing'),justify:c('justify'),firstLine:c('firstLine'),shd:c('shd'),color:c('color'),
     blank:c('blank'),keep:c('keep'),page:c('page'),mt:n('mt'),mb:n('mb'),ml:n('ml'),mr:n('mr'),pgnum:c('pgnum'),fields:c('fields'),compat:c('compat'),
-    tbl:c('tbl'),tblfit:c('tblfit'),forcesz:c('forcesz'),tblborder:c('tblborder'),tblkeep:c('tblkeep'),softbreak:c('softbreak'),imgMaxH:+v('imgmax'),mcq:c('mcq'),mcqMode:v('mcqmode'),mcqStem:c('mcqstem'),mcqDot:c('mcqdot'),imgInline:c('imgInline'),imgFix:c('imgFix'),latex:c('latex'),mathsz:c('mathsz'),ai:c('ai'),aiExam:c('aiexam'),aiVerify:c('aiverify'),aiInfo:v('aiinfo'),aiModel:v('model'),aiModelV:v('modelv'),aiComment:c('aicmt'),aiGrade:v('aigrade'),aiKind:v('aikind'),accept:c('accept'),nocmt:c('nocmt'),quotes:c('quotes'),phead:c('phead'),mark:c('mark'),verify:c('verify'),track:c('track'),aiMode:v('aimode'),spell:c('spell'),unify:c('unify'),decimal:c('decimal')?'comma':'',cap:c('cap'),dry:c('dry'),
+    tbl:c('tbl'),tblfit:c('tblfit'),forcesz:c('forcesz'),onepage:c('onepage'),tblborder:c('tblborder'),tblkeep:c('tblkeep'),softbreak:c('softbreak'),imgMaxH:+v('imgmax'),mcq:c('mcq'),mcqMode:v('mcqmode'),mcqStem:c('mcqstem'),mcqDot:c('mcqdot'),imgInline:c('imgInline'),imgFix:c('imgFix'),latex:c('latex'),mathsz:c('mathsz'),ai:c('ai'),aiExam:c('aiexam'),aiVerify:c('aiverify'),aiInfo:v('aiinfo'),aiModel:v('model'),aiModelV:v('modelv'),aiComment:c('aicmt'),aiGrade:v('aigrade'),aiKind:v('aikind'),accept:c('accept'),nocmt:c('nocmt'),quotes:c('quotes'),phead:c('phead'),mark:c('mark'),verify:c('verify'),track:c('track'),aiMode:v('aimode'),spell:c('spell'),unify:c('unify'),decimal:c('decimal')?'comma':'',cap:c('cap'),dry:c('dry'),
     lintOff:{typo:!c('l_typo'),dup:!c('l_dup'),bracket:!c('l_bracket'),quote:!c('l_quote'),dollar:!c('l_dollar'),punct:!c('l_punct'),lower:!c('l_lower'),mid:!c('l_mid'),noend:!c('l_noend'),struct:!c('l_struct')}};
   if([o.mt,o.mb,o.ml,o.mr].some(x=>!isFinite(x)||x<0||x>100)||o.ml+o.mr>=150||o.mt+o.mb>=200)throw new Error('Lề không hợp lệ (0–100 mm; trái+phải < 150, trên+dưới < 200).');
   return o}
@@ -2460,10 +2534,10 @@ function wire(){
   ['dragover','drop'].forEach(ev=>g('wtAudit').addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'&&e.dataTransfer)addFiles(e.dataTransfer.files)}));
   g('ra_preset').onclick=()=>{
     g('ra_font').value='Times New Roman';g('ra_size').value='14';g('ra_line').value='1.15';g('ra_after').value='6';
-    ['justify','firstLine','page','text','indent','num','tbl','tblfit','forcesz','tblkeep','softbreak','mcq','mcqdot','mcqstem','imgFix','quotes','phead','mark','verify','spell','unify'].forEach(k=>g('ra_'+k).checked=true);
+    ['justify','firstLine','page','text','indent','num','tbl','tblfit','forcesz','onepage','tblkeep','softbreak','mcq','mcqdot','mcqstem','imgFix','quotes','phead','mark','verify','spell','unify'].forEach(k=>g('ra_'+k).checked=true);
     g('ra_dry').checked=false;
     g('ra_mt').value=15;g('ra_mb').value=15;g('ra_ml').value=30;g('ra_mr').value=15;
-    setSt('Đã đặt: Times New Roman 14pt, giãn dòng 1,15, căn đều, thụt đầu dòng 1 cm, A4, lề 15/15/30/15 mm (khổ ngang: 12/12/15/15 mm), bảng dùng cỡ chữ chuẩn. Bấm “Rà soát & Xuất file” để chạy.','o')};
+    setSt('Đã đặt: Times New Roman 14pt, giãn dòng 1,15, căn đều, thụt đầu dòng 1 cm, A4, lề 15/15/30/15 mm (khổ ngang: 8/8/10/10 mm), bảng dùng cỡ chữ chuẩn. Bấm “Rà soát & Xuất file” để chạy.','o')};
   g('ra_run').onclick=run}
 window.RaSoatWord={audit,auditExcel,reportText,readOpts,version:VERSION,_t:{docxToParas,structHints,evHit,ommlTex,aiExamReview,geminiJSON,answerKeyText}};
 buildUI();
