@@ -2,7 +2,7 @@
    Đưa file .docx lên → tự rà soát & sửa lỗi bố cục/định dạng/bảng/hình/công thức → xuất .docx mới + báo cáo.
    Cần: JSZip (index.html đã nạp) · word-latex.js (convertDocumentXML) · gkey.js (tùy chọn, cho AI soát chính tả).
    Mới: cũng nhận file .xlsx → tự căn chỉnh trang in Excel (A4, hướng, lề, vùng in, vừa trang, lặp dòng tiêu đề).
-   Tự chèn mục "🔍 Rà soát Word toàn diện" vào ô chọn công cụ #wtSel — không cần sửa HTML, chỉ thêm 1 thẻ <script>. */
+   Tự chèn mục "🔍 Rà soát & Chuẩn hóa toàn diện" vào ô chọn công cụ #wtSel — không cần sửa HTML, chỉ thêm 1 thẻ <script>. */
 (function(){
 'use strict';
 const sel=document.getElementById('wtSel'),t3=document.getElementById('t3');
@@ -1966,7 +1966,7 @@ function buildUI(){
   +'<div id="ra_st" class="status"></div><div id="ra_out"></div>';
   const tools=Array.from(t3.querySelectorAll('.wtool')),last=tools[tools.length-1];
   if(last)last.insertAdjacentElement('afterend',d);else t3.appendChild(d);
-  const op=document.createElement('option');op.value='wtAudit';op.textContent='🔍 Rà soát & Chuẩn hóa Word toàn diện';sel.insertBefore(op,sel.options[1]||null);
+  const op=document.createElement('option');op.value='wtAudit';op.textContent='🔍 Rà soát & Chuẩn hóa toàn diện';sel.insertBefore(op,sel.options[1]||null);
   wire()}
 
 const q=[];
