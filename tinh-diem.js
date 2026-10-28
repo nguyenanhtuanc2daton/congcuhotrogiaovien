@@ -386,6 +386,36 @@
       m.className='status ok';m.textContent='Đã nhập '+P.students.length+' học sinh vào Học kỳ '+s+(add<P.students.length?' (ghép '+(P.students.length-add)+' học sinh đã có)':'')+'. ĐTB được tính tự động.'+(P.sem&&P.sem!==s?' Lưu ý: file ghi Học kỳ '+P.sem+' nhưng đã nhập vào Học kỳ '+s+' theo tab bạn đang chọn.':'');
     }catch(err){m.className='status err';m.textContent='Không nhập được file Excel: '+err.message;}
   });
+  /* ---------- Rà soát dữ liệu trước khi xuất (kiểm tra tự động; AI Gemini là tùy chọn) ---------- */
+  const SLN={a:'ĐĐGtx1',a2:'ĐĐGtx2',a3:'ĐĐGtx3',a4:'ĐĐGtx4',a5:'ĐĐGtx5',b:'ĐĐGgk',c:'ĐĐGck'};
+  function localCheck(list){
+    const out=[],ids={},nd={};
+    const cap=s=>{const w=s.split(/\s+/).filter(Boolean);return w.length>0&&w.every(x=>x[0]===x[0].toLocaleUpperCase('vi'));};
+    list.forEach((r,i)=>{const L='dòng '+(i+1),n=String(r.n||'');
+      if(!n.trim())out.push({k:'thieu_ho_ten',t:L+': chưa có họ tên.'});
+      else{
+        if(n!==n.trim()||/\s{2,}/.test(n))out.push({k:'thua_khoang_trang',t:L+': họ tên thừa khoảng trắng.'});
+        if(!cap(n.trim()))out.push({k:'chua_viet_hoa',t:L+': họ tên chưa viết hoa chữ cái đầu mỗi từ.'});
+        const kd=n.trim().toLowerCase()+'|'+String(r.dob||'').trim();(nd[kd]=nd[kd]||[]).push(i+1);}
+      const id=String(r.id||'').trim();if(id)(ids[id]=ids[id]||[]).push(i+1);
+      const dob=String(r.dob||'').trim();
+      if(dob&&!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dob))out.push({k:'ngay_sinh_khac_dang',t:L+': ngày sinh chưa theo dạng dd/mm/yyyy.'});
+      FL.forEach(f=>{if(num(r[fld(f,mode)]).bad)out.push({k:'diem_khong_hop_le',t:L+': ô '+SLN[f]+' không phải số từ 0 đến 10.'});});});
+    Object.keys(ids).forEach(k=>{if(ids[k].length>1)out.push({k:'trung_ma_dinh_danh',t:'các dòng '+ids[k].join(', ')+': trùng mã định danh.'});});
+    Object.keys(nd).forEach(k=>{if(nd[k].length>1)out.push({k:'trung_ho_ten_ngay_sinh',t:'các dòng '+nd[k].join(', ')+': trùng họ tên và ngày sinh.'});});
+    return out;}
+  /* AI chỉ nhận số liệu thống kê và vị trí dòng/ô lỗi – KHÔNG gửi họ tên, mã định danh hay ngày sinh của học sinh */
+  async function aiReview(issues,list){
+    const st={};FL.forEach(f=>{const v=list.map(r=>num(r[fld(f,mode)])).filter(x=>x.v!=null).map(x=>x.v);
+      st[SLN[f]]=v.length?{so_hs_co_diem:v.length,thap_nhat:Math.min(...v),cao_nhat:Math.max(...v),trung_binh:Math.round(v.reduce((a,b)=>a+b,0)*10/v.length)/10}:{so_hs_co_diem:0};});
+    const by={};issues.forEach(x=>by[x.k]=(by[x.k]||0)+1);
+    const p='Một bảng điểm lớp học (học kỳ '+mode+', '+list.length+' học sinh) sắp được xuất ra Excel. Hệ thống đã kiểm tra tự động.\n'
+      +'Thống kê từng cột điểm: '+JSON.stringify(st)+'\nSố lỗi theo loại: '+JSON.stringify(by)+'\nChi tiết lỗi (đã bỏ họ tên): '+JSON.stringify(issues.slice(0,60).map(x=>x.t))
+      +'\nHãy nhận định ngắn gọn: dữ liệu có điểm nào bất thường (ví dụ cột có trung bình quá thấp/cao, nhiều ô trống) và giáo viên cần sửa gì trước khi xuất. Không bịa số liệu. '
+      +'Trả về JSON: {"ket_luan":"1-2 câu","viec_can_lam":["tối đa 5 việc cụ thể"]}';
+    const j=await XlsxChuan.askGemini(p,'Bạn là trợ lý kiểm tra bảng điểm cho giáo viên phổ thông Việt Nam. Trả lời tiếng Việt, ngắn gọn, chỉ trả về một đối tượng JSON hợp lệ.');
+    const S=v=>typeof v==='string'?v.trim():'';
+    return{kl:S(j.ket_luan)||S(j.text),vc:Array.isArray(j.viec_can_lam)?j.viec_can_lam.map(S).filter(Boolean):[]};}
   $('gExpImp').addEventListener('click',async()=>{
     const m=$('gMsg');
     try{
@@ -393,6 +423,12 @@
       if(mode===3)throw new Error('hãy chọn Học kỳ 1 hoặc Học kỳ 2 (học kỳ của file đã nhập) trước khi xuất.');
       const S=src[mode];
       if(!S)throw new Error('chưa nhập file Excel cho Học kỳ '+mode+' (sau khi tải lại trang cần nhập lại file gốc).');
+      m.style.whiteSpace='pre-line';
+      const chk=localCheck(rows.filter(anyv));let aiTxt='';
+      if($('gAiRv')&&$('gAiRv').checked){
+        m.className='status';m.textContent='🤖 AI đang rà soát dữ liệu trước khi xuất…';
+        try{const a=await aiReview(chk,rows.filter(anyv));aiTxt='\n🤖 AI rà soát: '+a.kl+(a.vc.length?'\n'+a.vc.map(x=>'• '+x).join('\n'):'');}
+        catch(e){aiTxt='\n🤖 AI chưa rà soát được: '+e.message;}}
       const zip=await JSZip.loadAsync(S.buf),d=xp(await zip.file(S.path).async('string')),C=cfg(),list=rows.filter(anyv),{col,first,last}=S.P;
       const sd=tags(d,'sheetData')[0],pre=sd.prefix,mk=n=>d.createElementNS(NS,(pre?pre+':':'')+n);
       const rn=r=>+r.getAttribute('r')-1,all=tags(d,'row');
@@ -432,10 +468,17 @@
       });
       let xml=new XMLSerializer().serializeToString(d);if(!/^<\?xml/.test(xml))xml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+xml;
       zip.file(S.path,xml);
+      let fxTxt='';
+      if(window.XlsxChuan){
+        try{const fx=await XlsxChuan.fixZip(zip);fxTxt='\n✔ Đã đặt toàn bộ ô sang Times New Roman cỡ '+XlsxChuan.SIZE+' (font gốc: '+fx.from+').';
+          const au=await XlsxChuan.audit(zip);if(au.length)fxTxt+='\n⚠ Kiểm tra cấu trúc file: '+au.join(' ');}
+        catch(e){fxTxt='\n⚠ Chưa đổi được font Times New Roman 14: '+e.message;}}
+      else fxTxt='\n⚠ Chưa nạp được excel-chuan.js nên chưa đổi font.';
       const out=await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',compression:'DEFLATE'});
       const nm=S.name.replace(/\.xlsx$/i,'')+'_co-dtb.xlsx';
       await saveBlob(out,nm);
-      m.className='status ok';m.textContent='Đã xuất '+nm+' ('+list.length+' học sinh, đã điền ĐTBmhk1/ĐTBmhk2/ĐTBmcn).'+(lost?' Lưu ý: file gốc có ít cột ĐĐGtx hơn bảng, điểm ĐĐGtx thừa không được ghi.':'');
+      m.className='status ok';m.textContent='Đã xuất '+nm+' ('+list.length+' học sinh, đã điền ĐTBmhk1/ĐTBmhk2/ĐTBmcn).'+(lost?' Lưu ý: file gốc có ít cột ĐĐGtx hơn bảng, điểm ĐĐGtx thừa không được ghi.':'')+fxTxt
+        +(chk.length?'\n⚠ Kiểm tra dữ liệu: phát hiện '+chk.length+' điểm cần xem lại:\n'+chk.slice(0,8).map(x=>'• '+x.t).join('\n')+(chk.length>8?'\n• … và '+(chk.length-8)+' mục khác.':''):'\n✔ Kiểm tra dữ liệu: không phát hiện lỗi.')+aiTxt;
     }catch(err){m.className='status err';m.textContent='Không xuất được file Excel: '+err.message;}
   });
   window.TG.names=()=>rows.map(r=>r.n.trim()).filter(Boolean);
