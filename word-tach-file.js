@@ -46,22 +46,26 @@ function analyze(doc,sd){
   const S={page:1,started:false,pend:null,bnd:{},events:0};
   units.forEach((u,i)=>{u.i=i;u.atoms=0;u.cuts=[];u.startPage=null;u.endPage=null;u.split=false});
 
-  function consume(u){
+  function consume(u,ctx){
     const pd=S.pend;S.pend=null;
     if(!S.started)return;
     S.page++;
     if(u.atomic){
-      if(u.atoms===0)S.bnd[S.page]={u:u.i};
-      else if(!u.split){u.split=true;S.bnd[S.page]={u:u.i+1}}
-      else S.page--}
+      if(u.atoms===0){S.bnd[S.page]={u:u.i}}
+      else{ /* hàng bảng vắt qua nhiều trang: mỗi ô tự đếm số trang của nó, trang của hàng = trang lớn nhất */
+        S.page--;
+        const cp=((ctx&&ctx.pg!=null)?ctx.pg:u.rowStart)+1;
+        if(ctx)ctx.pg=cp;
+        if(cp>u.maxPg){u.maxPg=cp;S.page=cp;S.bnd[cp]={u:u.i+1}}
+        else S.page=u.maxPg}}
     else{
       const mine=pd.evs.filter(e=>e.u===u&&e.el);
       if(mine.length&&mine[0].before>0){u.cuts.push({page:S.page,first:mine[0].el,last:mine[mine.length-1].el});S.bnd[S.page]={u:u.i,inpara:true}}
       else S.bnd[S.page]={u:u.i}}}
   function ev(u,el){S.events++;if(!S.pend)S.pend={evs:[]};S.pend.evs.push({u,el,before:u?u.atoms:0})}
   function atom(u,ctx){
-    if(S.pend)consume(u);
-    S.started=true;u.atoms++;if(ctx)ctx.n++;
+    if(S.pend)consume(u,ctx);
+    S.started=true;if(u.atomic&&u.atoms===0){u.rowStart=u.maxPg=S.page;if(ctx)ctx.pg=S.page}u.atoms++;if(ctx)ctx.n++;
     if(u.startPage===null)u.startPage=S.page;
     u.endPage=S.page}
   function evt(u,ctx,el){if(u.atomic&&u.atoms>0&&ctx&&ctx.n===0)return;ev(u,el)}
@@ -206,11 +210,13 @@ async function load(buf){
   const zip=await JSZip.loadAsync(buf),df=zip.file('word/document.xml');
   if(!df)throw new Error('Không phải file .docx hợp lệ (thiếu word/document.xml).');
   const sf=zip.file('word/styles.xml'),sd=sf?pX(await sf.async('string'),'styles.xml'):null;
-  return{zip,sd,docStr:await df.async('string')}}
+  let wp=0;const af=zip.file('docProps/app.xml');
+  if(af){const m=/<(?:\w+:)?Pages>\s*(\d+)\s*<\//.exec(await af.async('string'));if(m)wp=parseInt(m[1],10)}
+  return{zip,sd,wp,docStr:await df.async('string')}}
 
 async function inspect(buf){
   const L=await load(buf),info=analyze(pX(L.docStr,'document.xml'),L.sd);
-  return{N:info.N,events:info.events}}
+  return{N:info.N,events:info.events,wordPages:L.wp}}
 async function split(buf,a,b){
   const L=await load(buf),info=analyze(pX(L.docStr,'document.xml'),L.sd);
   if(a<1||b<a||b>info.N)throw new Error('Khoảng trang không hợp lệ (file có '+info.N+' trang).');
@@ -236,7 +242,7 @@ async function pick(f){
   setSt('Đang đọc file...');g('ts_out').innerHTML='';
   try{
     const buf=await f.arrayBuffer(),r=await inspect(buf);
-    cur={name:f.name,size:f.size,buf,N:r.N};renderFile();
+    cur={name:f.name,size:f.size,buf,N:r.N,wp:r.wordPages};renderFile();
     g('ts_from').value=1;g('ts_to').value=r.N;g('ts_from').max=g('ts_to').max=r.N;
     const base=f.name.replace(/\.docx$/i,'');g('ts_name').value=base+'_tach.docx';
     if(r.N<=1&&!r.events){
@@ -244,7 +250,9 @@ async function pick(f){
       setSt('Hãy mở file bằng Word, bấm Ctrl+S rồi đưa lên lại để công cụ biết chính xác mỗi trang bắt đầu từ đâu.','e')}
     else{
       g('ts_info').textContent='Phát hiện '+r.N+' trang (theo ngắt trang Word đã lưu trong file).';
-      setSt('Nhập khoảng trang cần tách rồi bấm “Tách & Xuất file”.','')}}
+      if(r.wordPages&&r.wordPages!==r.N)
+        setSt('⚠ Word ghi nhận file này có '+r.wordPages+' trang nhưng công cụ chỉ nhận ra '+r.N+' trang nên số trang có thể lệch. Hãy mở file bằng Word, bấm Ctrl+S rồi đưa lên lại; nếu vẫn lệch, gửi file cho người hỗ trợ để kiểm tra.','e');
+      else setSt('Nhập khoảng trang cần tách rồi bấm “Tách & Xuất file”.','')}}
   catch(e){cur=null;renderFile();setSt('Lỗi: '+e.message,'e')}}
 async function run(){
   if(!cur){setSt('Chưa chọn file .docx.','e');return}
