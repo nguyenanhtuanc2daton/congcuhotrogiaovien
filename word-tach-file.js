@@ -64,11 +64,11 @@ function analyze(doc,sd){
       else S.bnd[S.page]={u:u.i}}}
   function ev(u,el){S.events++;if(!S.pend)S.pend={evs:[]};S.pend.evs.push({u,el,before:u?u.atoms:0})}
   function atom(u,ctx){
-    if(S.pend)consume(u,ctx);
-    S.started=true;if(u.atomic&&u.atoms===0){u.rowStart=u.maxPg=S.page;if(ctx)ctx.pg=S.page}u.atoms++;if(ctx)ctx.n++;
+    const hp=!!S.pend;if(hp)consume(u,ctx);
+    S.started=true;if(u.atomic&&u.atoms===0){u.rowStart=u.maxPg=S.page;u.rowNew=hp;if(ctx)ctx.pg=S.page}u.atoms++;if(ctx)ctx.n++;
     if(u.startPage===null)u.startPage=S.page;
     u.endPage=S.page}
-  function evt(u,ctx,el){if(u.atomic&&u.atoms>0&&ctx&&ctx.n===0)return;ev(u,el)}
+  function evt(u,ctx,el){if(u.atomic&&u.atoms>0&&ctx&&ctx.n===0&&u.rowNew)return;ev(u,el)}
 
   function walkP(p,u,ctx){
     (function w(n){
@@ -107,6 +107,28 @@ function analyze(doc,sd){
       kids(u.node,'tc').forEach(tc=>{const ctx={n:0};walkBox(tc,u,ctx)});
       if(u.startPage===null){u.startPage=S.page;u.endPage=S.page}}});
   return{doc,body,units,N:S.page,events:S.events,bnd:S.bnd}}
+
+/* Trang chỉ có dòng trống (thường là đoạn trống + ngắt section nằm sau một bảng dài bị đẩy sang trang mới) không có chữ/hình
+   nên Word không ghi dấu ngắt trang. Đối chiếu với tổng số trang Word ghi trong docProps/app.xml: nếu thiếu đúng bằng số vị trí
+   nghi vấn thì thêm các trang trống đó vào; không khớp thì giữ nguyên và để giao diện cảnh báo. */
+function fixBlank(info,wp){
+  info.guessed=0;
+  const units=info.units,def=wp-info.N;
+  if(!wp||def<=0)return info;
+  const emptyP=u=>u.kind==='p'&&u.atoms===0&&!u.node.getElementsByTagNameNS(W,'lastRenderedPageBreak').length&&pageBreaks(u.node).length===0;
+  const cands=[];
+  for(let i=1;i<units.length;i++){
+    if(!emptyP(units[i])||units[i-1].kind!=='tr')continue;
+    let j=i;while(j+1<units.length&&emptyP(units[j+1])&&!units[j].sect)j++;
+    if(units[j].sect&&emptyP(units[j])){cands.push([i,j]);i=j}}
+  if(cands.length!==def)return info;
+  let k=0;
+  cands.forEach(([i,j])=>{
+    const prevEnd=units[i-1].endPage+k;
+    units.forEach(u=>{if(u.i>j){u.startPage+=1;u.endPage+=1;u.cuts.forEach(c=>c.page+=1)}});
+    for(let x=i;x<=j;x++){units[x].startPage=units[x].endPage=prevEnd+1}
+    k++});
+  info.N+=def;info.guessed=def;return info}
 
 /* ---------- Cắt đoạn tại vị trí ngắt trang ---------- */
 const KEEPN=new Set(['pPr','rPr','sdtPr','sdtEndPr']);
@@ -215,10 +237,10 @@ async function load(buf){
   return{zip,sd,wp,docStr:await df.async('string')}}
 
 async function inspect(buf){
-  const L=await load(buf),info=analyze(pX(L.docStr,'document.xml'),L.sd);
-  return{N:info.N,events:info.events,wordPages:L.wp}}
+  const L=await load(buf),info=fixBlank(analyze(pX(L.docStr,'document.xml'),L.sd),L.wp);
+  return{N:info.N,events:info.events,wordPages:L.wp,guessed:info.guessed}}
 async function split(buf,a,b){
-  const L=await load(buf),info=analyze(pX(L.docStr,'document.xml'),L.sd);
+  const L=await load(buf),info=fixBlank(analyze(pX(L.docStr,'document.xml'),L.sd),L.wp);
   if(a<1||b<a||b>info.N)throw new Error('Khoảng trang không hợp lệ (file có '+info.N+' trang).');
   extract(info,a,b);
   const removed=await prune(L.zip,info.doc);
@@ -242,14 +264,14 @@ async function pick(f){
   setSt('Đang đọc file...');g('ts_out').innerHTML='';
   try{
     const buf=await f.arrayBuffer(),r=await inspect(buf);
-    cur={name:f.name,size:f.size,buf,N:r.N,wp:r.wordPages};renderFile();
+    cur={name:f.name,size:f.size,buf,N:r.N,wp:r.wordPages,guessed:r.guessed};renderFile();
     g('ts_from').value=1;g('ts_to').value=r.N;g('ts_from').max=g('ts_to').max=r.N;
     const base=f.name.replace(/\.docx$/i,'');g('ts_name').value=base+'_tach.docx';
     if(r.N<=1&&!r.events){
       g('ts_info').textContent='⚠ Không thấy thông tin ngắt trang trong file (file chưa được lưu bằng Word hoặc chỉ có 1 trang).';
       setSt('Hãy mở file bằng Word, bấm Ctrl+S rồi đưa lên lại để công cụ biết chính xác mỗi trang bắt đầu từ đâu.','e')}
     else{
-      g('ts_info').textContent='Phát hiện '+r.N+' trang (theo ngắt trang Word đã lưu trong file).';
+      g('ts_info').textContent='Phát hiện '+r.N+' trang (theo ngắt trang Word đã lưu trong file'+(r.guessed?'; trong đó '+r.guessed+' trang chỉ có dòng trống, suy ra từ tổng số trang Word ghi nhận':'')+').';
       if(r.wordPages&&r.wordPages!==r.N)
         setSt('⚠ Word ghi nhận file này có '+r.wordPages+' trang nhưng công cụ chỉ nhận ra '+r.N+' trang nên số trang có thể lệch. Hãy mở file bằng Word, bấm Ctrl+S rồi đưa lên lại; nếu vẫn lệch, gửi file cho người hỗ trợ để kiểm tra.','e');
       else setSt('Nhập khoảng trang cần tách rồi bấm “Tách & Xuất file”.','')}}
