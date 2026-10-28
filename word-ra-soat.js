@@ -1,7 +1,7 @@
 /* Công cụ Word · "Rà soát Word toàn diện"
    Đưa file .docx lên → tự rà soát & sửa lỗi bố cục/định dạng/bảng/hình/công thức → xuất .docx mới + báo cáo.
    Cần: JSZip (index.html đã nạp) · word-latex.js (convertDocumentXML) · gkey.js (tùy chọn, cho AI soát chính tả).
-   Mới: cũng nhận file .xlsx → tự căn chỉnh trang in Excel (A4, hướng, lề, vùng in, vừa trang, lặp dòng tiêu đề).
+   Mới: cũng nhận file .xlsx → tự RÀ SOÁT & SỬA LỖI (khoảng trắng/dấu tiếng Việt, số & ngày lưu dạng chữ, công thức lỗi, cột hẹp #####, chữ bị cắt, thiếu viền, ô gộp chồng nhau, liên kết ngoài) rồi căn trang in Excel (A4, hướng, lề, vùng in, vừa trang, lặp dòng tiêu đề, số trang).
    Tự chèn mục "🔍 Rà soát & Chuẩn hóa toàn diện" vào ô chọn công cụ #wtSel — không cần sửa HTML, chỉ thêm 1 thẻ <script>. */
 (function(){
 'use strict';
@@ -1744,7 +1744,7 @@ function txtTable(head,rows,wd,boldCol){
   emit(head.map(x=>[x.toUpperCase()]));L.push(sep);
   rows.forEach((r,ri)=>{emit(cell(r,ri));L.push(sep)});return L.join('\n')}
 function reportText(name,rep){
-  const L=['BÁO CÁO RÀ SOÁT '+(/\.xlsx$/i.test(name)?'EXCEL (CĂN TRANG IN)':'WORD')+' — '+name,'Phiên bản công cụ: '+VERSION,''];
+  const L=['BÁO CÁO RÀ SOÁT '+(/\.xlsx$/i.test(name)?'EXCEL (SỬA LỖI & CĂN TRANG IN)':'WORD')+' — '+name,'Phiên bản công cụ: '+VERSION,''];
   const tot=Array.from(rep.f.values()).reduce((a,b)=>a+b,0);
   /* 1. Đã sửa */
   L.push('I. NỘI DUNG CÔNG CỤ ĐÃ RÀ SOÁT VÀ TỰ SỬA ('+tot+' chỗ)');if(!rep.f.size)L.push('  (không có thay đổi nào)');rep.f.forEach((n,k)=>L.push('  • '+k+': '+n));
@@ -1841,7 +1841,12 @@ function xlSetPrint(doc,plan,xo,single){
   const pg=old||mkS(doc,'pageSetup');
   ['scale','useFirstPageNumber','firstPageNumber'].forEach(a=>pg.removeAttribute(a));
   pg.setAttribute('paperSize','9');pg.setAttribute('orientation',plan.o);pg.setAttribute('fitToWidth','1');pg.setAttribute('fitToHeight',plan.one?'1':'0');
-  root.insertBefore(pg,ref)}
+  root.insertBefore(pg,ref);
+  if(xo.footer&&!single){   /* số trang “Trang x/y” ở chân trang (chỉ khi in nhiều trang, và chưa có chân trang) */
+    let hf=s1(root,'headerFooter');
+    if(!hf){hf=mkS(doc,'headerFooter');const r2=Array.from(root.children).find(c=>XL_AFTER_PS.indexOf(c.localName)>0)||null;root.insertBefore(hf,r2)}
+    if(!sk(hf,'oddFooter').some(e=>e.textContent.trim())){sk(hf,'oddFooter').forEach(e=>hf.removeChild(e));const f=mkS(doc,'oddFooter');f.textContent='&CTrang &P/&N';
+      const nxt=Array.from(hf.children).find(c=>['evenHeader','evenFooter','firstHeader','firstFooter'].indexOf(c.localName)>=0)||null;hf.insertBefore(f,nxt)}}}
 const XL_AFTER_DN=['calcPr','oleSize','customWorkbookViews','pivotCaches','smartTagPr','smartTagTypes','webPublishing','fileRecoveryPr','webPublishObjects','extLst'];
 function xlDefName(wbRoot,wbDoc,idx,kind,val){
   let dn=s1(wbRoot,'definedNames');
@@ -1849,6 +1854,253 @@ function xlDefName(wbRoot,wbDoc,idx,kind,val){
   sk(dn,'definedName').forEach(e=>{if(e.getAttribute('name')==='_xlnm.'+kind&&e.getAttribute('localSheetId')===String(idx))dn.removeChild(e)});
   if(val===null)return;
   const e=wbDoc.createElementNS(SN,'definedName');e.setAttribute('name','_xlnm.'+kind);e.setAttribute('localSheetId',String(idx));e.textContent=val;dn.appendChild(e)}
+/* ---------- EXCEL: RÀ SOÁT & SỬA LỖI DỮ LIỆU (chạy trước bước căn trang in) ----------
+   Sửa: khoảng trắng/ký tự ẩn/dấu tiếng Việt dạng tổ hợp · số & ngày lưu dạng văn bản · công thức lỗi (#DIV/0!, #N/A…)
+   · cột hẹp (#####) và chữ bị cắt · bảng chưa có viền · vùng gộp ô chồng nhau (gây báo “file bị hỏng”) · liên kết ngoài.
+   Cảnh báo (không tự sửa): điểm ngoài 0–10, dòng trùng, dòng/cột ẩn, font Việt cũ, ô lỗi còn lại. */
+const XL_ERRS=['#DIV/0!','#N/A','#REF!','#NAME?','#VALUE!','#NUM!','#NULL!','#SPILL!','#CALC!'];
+const XL_BI={1:'0',2:'0.00',3:'#,##0',4:'#,##0.00',9:'0%',10:'0.00%',37:'#,##0 ;(#,##0)',38:'#,##0 ;[Red](#,##0)',39:'#,##0.00;(#,##0.00)',40:'#,##0.00;[Red](#,##0.00)',41:'#,##0',42:'#,##0',43:'#,##0.00',44:'#,##0.00',48:'##0.0E+0',49:'@'};
+const XL_HID=/[\u200B-\u200D\u2060\uFEFF\u00AD]/g,XL_SP=/[\u00A0\u2007\u202F\u3000]/g;
+const xlClean=x=>x.normalize('NFC').replace(XL_SP,' ').replace(XL_HID,'');
+function xlTs(si){const o=[];Array.from(si.children).forEach(c=>{if(c.localName==='t')o.push(c);else if(c.localName==='r')sk(c,'t').forEach(t=>o.push(t))});return o}
+function xlCleanTs(ts){let ch=false;ts.forEach((t,i)=>{const b=t.textContent;let a=xlClean(b).replace(/[ \t]{2,}/g,' ').replace(/ ?\r?\n ?/g,'\n');
+  if(i===0)a=a.replace(/^\s+/,'');if(i===ts.length-1)a=a.replace(/\s+$/,'');
+  if(a!==b){t.textContent=a;if(/^\s|\s$/.test(a))t.setAttributeNS(XMLNS,'xml:space','preserve');ch=true}});return ch}
+function xlParseNum(x){let s=String(x).trim();if(!s)return null;
+  if(/^[-+]?0\d/.test(s))return null;                                   /* 007, 0912… là mã/SĐT, giữ dạng chữ */
+  if(/^[-+]?\d{1,3}(\.\d{3}){2,}(,\d+)?$/.test(s))s=s.replace(/\./g,'').replace(',','.');
+  else if(/^[-+]?\d{1,3}(,\d{3}){2,}(\.\d+)?$/.test(s))s=s.replace(/,/g,'');
+  else if(/^[-+]?\d+([.,]\d+)?$/.test(s))s=s.replace(',','.');
+  else return null;
+  const dg=s.replace(/[^0-9]/g,'');
+  if(s.indexOf('.')<0&&dg.length>8)return null;                         /* dãy số dài: mã định danh, CCCD, SĐT */
+  if(dg.length>15)return null;
+  const v=Number(s);return isFinite(v)?v:null}
+function xlParseDate(x){const m=/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/.exec(String(x).trim());if(!m)return null;
+  const d=+m[1],mo=+m[2],y=+m[3];if(y<1900||y>2100||mo<1||mo>12||d<1||d>31)return null;
+  const t=Date.UTC(y,mo-1,d),dt=new Date(t);if(dt.getUTCDate()!==d||dt.getUTCMonth()!==mo-1)return'bad';return t/86400000+25569}
+function xlStyles(sd){const root=sd.documentElement,nf=new Map(),xfs=s1(root,'cellXfs');if(!xfs)return null;
+  sk(s1(root,'numFmts'),'numFmt').forEach(e=>nf.set(+e.getAttribute('numFmtId'),e.getAttribute('formatCode')||''));
+  return{root,nf,xfs,fonts:s1(root,'fonts'),borders:s1(root,'borders'),list:sk(xfs,'xf'),cache:new Map(),fc:new Map(),dirty:false,thin:null,dfmt:null}}
+function xfAt(X,s){if(s>=X.list.length)X.list=sk(X.xfs,'xf');return X.list[s]||X.list[0]}
+function xlFmtCode(X,id){id=+id||0;if(id===0)return'General';if(X.nf.has(id))return X.nf.get(id);if((id>=14&&id<=22)||(id>=45&&id<=47))return'dd/mm/yyyy';return XL_BI[id]||'General'}
+function xlIsDate(code){const c=String(code).replace(/"[^"]*"/g,'').replace(/\[[^\]]*\]/g,'').replace(/\\./g,'');return/[dmyhs]/i.test(c)&&!/^\s*General\s*$/i.test(c)}
+function xlFont(X,s){const k=s;if(X.fc.has(k))return X.fc.get(k);const xf=xfAt(X,s);
+  const fo=sk(X.fonts,'font')[+(xf&&xf.getAttribute('fontId'))||0],se=fo&&s1(fo,'sz'),sz=(se&&parseFloat(se.getAttribute('val')))||11,be=fo&&s1(fo,'b'),
+    bold=!!be&&(be.getAttribute('val')===null||isT(be.getAttribute('val'))),al=xf&&s1(xf,'alignment');
+  const r={k:sz/11*(bold?1.1:1),sz,wrap:!!al&&isT(al.getAttribute('wrapText')),h:al&&al.getAttribute('horizontal')!=='general'?al.getAttribute('horizontal')||'':'',v:al?al.getAttribute('vertical')||'':'',
+    nf:+(xf&&xf.getAttribute('numFmtId'))||0,bd:+(xf&&xf.getAttribute('borderId'))||0};X.fc.set(k,r);return r}
+function xlClone(X,s,key,mut){const k=s+'|'+key;if(X.cache.has(k))return X.cache.get(k);
+  const list=sk(X.xfs,'xf'),base=list[s]||list[0];if(!base){X.cache.set(k,s);return s}
+  const nx=base.cloneNode(true);mut(nx);X.xfs.appendChild(nx);X.xfs.setAttribute('count',String(list.length+1));X.dirty=true;X.cache.set(k,list.length);return list.length}
+function xlAlign(X,nx,o){let a=s1(nx,'alignment');if(!a){a=mkS(X.root.ownerDocument,'alignment');nx.insertBefore(a,nx.firstChild)}
+  Object.keys(o).forEach(n=>{const cv=a.getAttribute(n);if(o[n]===true||!cv||cv==='general'||(n==='vertical'&&cv==='bottom'))a.setAttribute(n,o[n]===true?'1':o[n])});nx.setAttribute('applyAlignment','1')}
+function xlHasBorder(X,s){const bd=xlFont(X,s).bd;if(!bd)return false;const b=sk(X.borders,'border')[bd];
+  return['left','right','top','bottom'].some(n=>{const e=s1(b,n),st=e&&e.getAttribute('style');return st&&st!=='none'})}
+function xlThin(X){if(X.thin!=null)return X.thin;const d=X.root.ownerDocument,list=sk(X.borders,'border'),b=mkS(d,'border');
+  ['left','right','top','bottom'].forEach(n=>{const e=mkS(d,n);e.setAttribute('style','thin');const c=mkS(d,'color');c.setAttribute('auto','1');e.appendChild(c);b.appendChild(e)});
+  b.appendChild(mkS(d,'diagonal'));X.borders.appendChild(b);X.borders.setAttribute('count',String(list.length+1));X.dirty=true;return(X.thin=list.length)}
+function xlDateFmt(X){if(X.dfmt!=null)return X.dfmt;const d=X.root.ownerDocument;let nf=s1(X.root,'numFmts');
+  if(nf){const e=sk(nf,'numFmt').find(e=>/^dd\/mm\/yyyy$/i.test(e.getAttribute('formatCode')||''));if(e)return(X.dfmt=+e.getAttribute('numFmtId'))}
+  if(!nf){nf=mkS(d,'numFmts');X.root.insertBefore(nf,X.root.firstChild)}
+  let id=163;sk(nf,'numFmt').forEach(e=>{id=Math.max(id,+e.getAttribute('numFmtId')||0)});id++;
+  const e=mkS(d,'numFmt');e.setAttribute('numFmtId',String(id));e.setAttribute('formatCode','dd/mm/yyyy');nf.appendChild(e);nf.setAttribute('count',String(sk(nf,'numFmt').length));X.dirty=true;return(X.dfmt=id)}
+function xlNumLen(v,code){const n=Number(v);if(!isFinite(n))return String(v).length;
+  const base=code.replace(/"[^"]*"/g,'');
+  if(xlIsDate(code)){const t=/[hs]/i.test(base),d=/[dy]/i.test(base);return t&&d?16:t?8:/mmmm/i.test(base)?18:10}
+  const sec=base.split(';')[0].replace(/\[[^\]]*\]/g,''),lit=(code.split(';')[0].match(/"[^"]*"/g)||[]).join('').replace(/"/g,'').length;
+  if(/^\s*General\s*$/i.test(sec)||sec.trim()===''){const a=Math.abs(n),ip=a>=1?Math.floor(a).toString().length:1;return(n<0?1:0)+Math.min(ip,11)+(Number.isInteger(n)?0:2)}
+  if(sec.trim()==='@')return String(v).length;
+  if(/E[+-]/i.test(sec))return 9+lit;
+  const dm=/\.([0#?]+)/.exec(sec),dec=dm?dm[1].length:0,pct=/%/.test(sec),a=Math.abs(pct?n*100:n),ip=Math.floor(a+1e-9).toString().length,grp=/#,#|0,0|#,0|0,#/.test(sec);
+  return(n<0?1:0)+ip+(grp?Math.floor((ip-1)/3):0)+(dec?dec+1:0)+(pct?1:0)+lit}
+function xlCollect(doc,SS){const sd=s1(doc.documentElement,'sheetData'),out=[];let ri=0;
+  sk(sd,'row').forEach(ro=>{ri++;const r=+ro.getAttribute('r')||ri;let ci=0;
+    sk(ro,'c').forEach(ce=>{ci++;const ref=parseRef(ce.getAttribute('r'))||{r,c:ci},t=ce.getAttribute('t')||'n',f=s1(ce,'f'),vE=s1(ce,'v'),v=vE?vE.textContent:'';
+      let text=null;if(t==='s')text=SS[+v]!=null?SS[+v]:'';else if(t==='inlineStr'){const is=s1(ce,'is');text=is?xlTs(is).map(x=>x.textContent).join(''):''}else if(t==='str'||t==='e')text=v;
+      out.push({ce,ro,r:ref.r,c:ref.c,t,f,v,text,has:!!f||(t==='inlineStr'?text!=='':v!==''),s:+ce.getAttribute('s')||0})})});return out}
+function xlFixMerges(doc){const mc=s1(doc.documentElement,'mergeCells');if(!mc)return 0;const list=[];let bad=0;
+  sk(mc,'mergeCell').forEach(e=>{const p=String(e.getAttribute('ref')||'').split(':'),a=parseRef(p[0]),b=parseRef(p[1]||p[0]);
+    if(!a||!b||(a.r===b.r&&a.c===b.c)){mc.removeChild(e);bad++;return}
+    const m={r1:Math.min(a.r,b.r),r2:Math.max(a.r,b.r),c1:Math.min(a.c,b.c),c2:Math.max(a.c,b.c)};
+    if(list.some(x=>m.r1<=x.r2&&m.r2>=x.r1&&m.c1<=x.c2&&m.c2>=x.c1)){mc.removeChild(e);bad++}else list.push(m)});
+  if(!list.length)doc.documentElement.removeChild(mc);else mc.setAttribute('count',String(list.length));return bad}
+const XL_AFTER_MC=['phoneticPr','conditionalFormatting','dataValidations','hyperlinks','printOptions','pageMargins','pageSetup','headerFooter','rowBreaks','colBreaks','customProperties','cellWatches','ignoredErrors','smartTags','drawing','legacyDrawing','legacyDrawingHF','picture','oleObjects','controls','webPublishItems','tableParts','extLst'];
+function xlAddMerge(doc,r,c1,c2){const root=doc.documentElement;let mc=s1(root,'mergeCells');
+  if(!mc){mc=mkS(doc,'mergeCells');root.insertBefore(mc,Array.from(root.children).find(x=>XL_AFTER_MC.indexOf(x.localName)>=0)||null)}
+  const e=mkS(doc,'mergeCell');e.setAttribute('ref',colName(c1)+r+':'+colName(c2)+r);mc.appendChild(e);mc.setAttribute('count',String(sk(mc,'mergeCell').length))}
+function xlSetCols(doc,widths,maxC){const root=doc.documentElement;let cols=s1(root,'cols');const per=new Map(),tail=[];
+  sk(cols,'col').forEach(e=>{const a=+e.getAttribute('min'),b=+e.getAttribute('max'),at={};Array.from(e.attributes).forEach(x=>{if(x.name!=='min'&&x.name!=='max')at[x.name]=x.value});
+    for(let c=a;c<=Math.min(b,maxC);c++)per.set(c,Object.assign({},at));if(b>maxC)tail.push({a:Math.max(a,maxC+1),b,at})});
+  widths.forEach((w,c)=>{const at=per.get(c)||{};at.width=String(w);at.customWidth='1';per.set(c,at)});
+  const out=[];Array.from(per.keys()).sort((x,y)=>x-y).forEach(c=>{const at=per.get(c),k=JSON.stringify(at),L=out[out.length-1];if(L&&L.b===c-1&&L.k===k)L.b=c;else out.push({a:c,b:c,at,k})});
+  tail.forEach(t=>out.push({a:t.a,b:t.b,at:t.at}));out.sort((x,y)=>x.a-y.a);
+  if(cols)while(cols.firstChild)cols.removeChild(cols.firstChild);else{cols=mkS(doc,'cols');root.insertBefore(cols,s1(root,'sheetData'))}
+  out.forEach(o=>{const e=mkS(doc,'col');e.setAttribute('min',String(o.a));e.setAttribute('max',String(o.b));Object.keys(o.at).forEach(n=>e.setAttribute(n,o.at[n]));cols.appendChild(e)})}
+function xlEnsureCell(doc,ro,r,c){let before=null;
+  for(const ce of sk(ro,'c')){const ref=parseRef(ce.getAttribute('r'));if(!ref)continue;if(ref.c===c)return ce;if(ref.c>c){before=ce;break}}
+  const ce=mkS(doc,'c');ce.setAttribute('r',colName(c)+r);ro.insertBefore(ce,before);return ce}
+function xlToNum(k,val,X,kind){const ce=k.ce;ce.removeAttribute('t');sk(ce,'is').forEach(e=>ce.removeChild(e));
+  let v=s1(ce,'v');if(!v){v=mkS(ce.ownerDocument,'v');ce.appendChild(v)}v.textContent=String(val);k.t='n';k.v=String(val);k.text=null;
+  if(X){let ns=k.s;
+    if(kind==='date')ns=xlClone(X,k.s,'date',nx=>{nx.setAttribute('numFmtId',String(xlDateFmt(X)));nx.setAttribute('applyNumberFormat','1')});
+    else if(xlFont(X,k.s).nf===49)ns=xlClone(X,k.s,'gen',nx=>{nx.setAttribute('numFmtId','0');nx.setAttribute('applyNumberFormat','1')});
+    if(ns!==k.s){ce.setAttribute('s',String(ns));k.s=ns}}}
+const xlAddr=k=>colName(k.c)+k.r;
+const xlList=a=>a.slice(0,6).join(', ')+(a.length>6?'… (+'+(a.length-6)+')':'');
+/* Bảng: kẻ viền + căn giữa/xuống dòng dòng tiêu đề — chỉ khi bảng chưa có viền */
+function xlBorders(doc,X,S,hdr,rep,nm){
+  if(!X||!hdr)return false;let c1=1e9,c2=0;
+  for(let r=hdr.a;r<=hdr.b;r++){const ro=S.rows.get(r);if(!ro)continue;
+    sk(ro.el,'c').forEach(ce=>{const ref=parseRef(ce.getAttribute('r'));if(!ref)return;
+      if(sk(ce,'f').length||sk(ce,'is').length||sk(ce,'v').some(v=>v.textContent!=='')){c1=Math.min(c1,ref.c);c2=Math.max(c2,ref.c)}})}
+  S.merges.forEach(m=>{if(m.r1>=hdr.a&&m.r1<=hdr.b&&m.c1>=c1&&m.c1<=c2)c2=Math.max(c2,m.c2)});
+  if(!(c2>c1))return false;
+  const need=Math.max(2,Math.floor((c2-c1+1)*.3));let last=hdr.b;
+  for(let r=hdr.b+1;r<=S.maxR;r++){const ro=S.rows.get(r);if(!ro||ro.cnt<need)break;last=r}
+  if(last<=hdr.b)return false;
+  let tot=0,bd=0;
+  for(let r=hdr.a;r<=last;r++){const ro=S.rows.get(r);if(!ro)continue;
+    sk(ro.el,'c').forEach(ce=>{const ref=parseRef(ce.getAttribute('r'));if(ref&&ref.c>=c1&&ref.c<=c2){tot++;if(xlHasBorder(X,+ce.getAttribute('s')||0))bd++}})}
+  if(tot&&bd/tot>=.4){rep.notes.push(nm+'bảng đã có viền — giữ nguyên.');return false}
+  const th=xlThin(X);let n=0;
+  for(let r=hdr.a;r<=last;r++){const ro=S.rows.get(r);if(!ro)continue;ro.el.removeAttribute('spans');
+    for(let c=c1;c<=c2;c++){const ce=xlEnsureCell(doc,ro.el,r,c),s=+ce.getAttribute('s')||0;
+      const ns=r<=hdr.b?xlClone(X,s,'hb'+th,nx=>{nx.setAttribute('borderId',String(th));nx.setAttribute('applyBorder','1');xlAlign(X,nx,{horizontal:'center',vertical:'center',wrapText:true})})
+        :xlClone(X,s,'bd'+th,nx=>{nx.setAttribute('borderId',String(th));nx.setAttribute('applyBorder','1')});
+      ce.setAttribute('s',String(ns))}n++}
+  rep.fix('Kẻ viền bảng dữ liệu, căn giữa dòng tiêu đề (dòng)',n);rep.notes.push(nm+'kẻ viền bảng '+colName(c1)+hdr.a+':'+colName(c2)+last+'.');return true}
+/* Cột hẹp (#####), chữ bị cắt → nới cột, bật xuống dòng, tăng độ cao dòng */
+function xlFit(doc,X,SS,rep,nm){
+  const S=xlScan(doc);if(S.empty||!X)return;
+  const hd0=xlHeader(S),tStart=hd0?hd0.b+1:S.minR+1;
+  const cells=xlCollect(doc,SS),mAt=new Map(),inM=new Set(),occ=new Set();
+  S.merges.forEach(m=>{mAt.set(m.r1+','+m.c1,m);if((m.r2-m.r1+1)*(m.c2-m.c1+1)<=20000)for(let r=m.r1;r<=m.r2;r++)for(let c=m.c1;c<=m.c2;c++)if(r!==m.r1||c!==m.c1)inM.add(r+','+c)});
+  cells.forEach(k=>{if(k.has)occ.add(k.r+','+k.c)});
+  const cur=c=>S.colW(c),numNeed=new Map(),txtNeed=new Map(),wr=[],clip=[];let nMg=0;const bump=(m,c,v)=>{if(v>(m.get(c)||0))m.set(c,v)};
+  cells.forEach(k=>{
+    if(!k.has||k.t==='e'||k.r<S.minR||k.r>S.maxR||k.c<S.minC||k.c>S.maxC||inM.has(k.r+','+k.c))return;
+    const m=mAt.get(k.r+','+k.c),span=!!m&&m.c2>m.c1;let avail=0;
+    if(m){for(let c=m.c1;c<=m.c2;c++)avail+=cur(c)}else avail=cur(k.c);if(!(avail>0))return;
+    const fi=xlFont(X,k.s);
+    if(k.t==='n'){if(k.v===''||span)return;bump(numNeed,k.c,xlNumLen(k.v,xlFmtCode(X,fi.nf))*fi.k+1.2);return}
+    if(k.t==='b'){if(!span)bump(numNeed,k.c,6);return}
+    const tx=k.text;if(tx==null||tx==='')return;
+    const lines=tx.split('\n'),mx=Math.max.apply(null,lines.map(x=>x.length))*fi.k,rec={k,m,fi,lines,force:false};
+    if(fi.wrap){wr.push(rec);return}
+    if(mx+1.2<=avail&&lines.length===1)return;
+    if(lines.length>1){rec.force=true;wr.push(rec);return}
+    const h=fi.h,c2=m?m.c2:k.c,rE=!occ.has(k.r+','+(c2+1)),lE=k.c===1||!occ.has(k.r+','+(k.c-1));
+    const over=h==='right'?lE:(h==='center'||h==='centerContinuous')?(rE&&lE):rE;
+    if(over){if(h===''||h==='left'){let run=avail;for(let c=c2+1;c<=S.maxC&&!occ.has(k.r+','+c);c++)run+=cur(c);if(mx+1.2>run){
+        if(k.r>=tStart&&!span){rec.force=true;wr.push(rec);bump(txtNeed,k.c,40)}
+        else if(!span&&c2<S.maxC&&!S.merges.some(q=>q.r1<=k.r&&q.r2>=k.r&&q.c2>k.c)){   /* dòng tiêu đề/ghi chú dài: gộp ngang sang các ô trống bên phải rồi xuống dòng */
+          let e=k.c;while(e<S.maxC&&!occ.has(k.r+','+(e+1)))e++;
+          if(e>k.c){xlAddMerge(doc,k.r,k.c,e);rec.m={r1:k.r,c1:k.c,r2:k.r,c2:e};rec.force=true;wr.push(rec);nMg++}else clip.push(xlAddr(k))}
+        else clip.push(xlAddr(k))}}return}
+    if(span||mx+1.2>60){rec.force=true;wr.push(rec);if(!span)bump(txtNeed,k.c,40);return}
+    bump(txtNeed,k.c,mx+1.2)});
+  const widths=new Map();
+  for(let c=S.minC;c<=S.maxC;c++){const w0=cur(c);if(!(w0>0))continue;
+    const w=Math.ceil(Math.max(w0,Math.min(txtNeed.get(c)||0,60),Math.min(numNeed.get(c)||0,120))*10)/10;if(w>w0+.05)widths.set(c,w)}
+  const fw=c=>widths.get(c)||cur(c),rowNeed=new Map();let nWrap=0;
+  wr.forEach(o=>{const k=o.k,m=o.m;let av=0;if(m){for(let c=m.c1;c<=m.c2;c++)av+=fw(c)}else av=fw(k.c);
+    const n=o.lines.reduce((a,l)=>a+Math.max(1,Math.ceil(l.length*o.fi.k*1.08/Math.max(1,av-1.2))),0),need=n*o.fi.sz*1.36;
+    if(o.force){const ns=xlClone(X,k.s,'wrap',nx=>xlAlign(X,nx,{vertical:'center',wrapText:true}));if(ns!==k.s){k.ce.setAttribute('s',String(ns));nWrap++}}
+    if(!m||m.r2===m.r1)rowNeed.set(k.r,Math.max(rowNeed.get(k.r)||0,need))});
+  let nRow=0;
+  rowNeed.forEach((need,r)=>{const ro=S.rows.get(r);if(!ro||ro.hid)return;const h0=ro.ht!=null?ro.ht:S.defH;
+    if(need>h0+.5){ro.el.setAttribute('ht',Math.min(need,409).toFixed(2));ro.el.setAttribute('customHeight','1');nRow++}});
+  if(widths.size)xlSetCols(doc,widths,S.maxC);
+  rep.fix('Nới rộng cột bị ##### hoặc cắt chữ (cột)',widths.size);rep.fix('Bật tự xuống dòng cho ô chữ dài (ô)',nWrap);rep.fix('Tăng độ cao dòng để không cắt chữ (dòng)',nRow);rep.fix('Gộp ngang ô tiêu đề/ghi chú dài để không bị cắt khi in (ô)',nMg);
+  if(widths.size)rep.notes.push(nm+'nới cột '+Array.from(widths.keys()).map(colName).join(', ')+'.');
+  if(clip.length)rep.warn(nm+'chữ ở ô '+xlList(clip)+' dài hơn vùng in nên sẽ bị cắt khi in — hãy gộp ô hoặc cho xuống dòng.')}
+/* Làm sạch dữ liệu + kiểm tra một sheet */
+function xlFixSheet(doc,sh,C){
+  const xo=C.xo,rep=C.rep,X=C.X,SS=C.SS,nm='Sheet “'+sh.name+'”: ';
+  if(xo.fmerge){const n=xlFixMerges(doc);if(n)rep.fix('Gỡ vùng gộp ô trùng/chồng nhau (nguyên nhân báo “file bị hỏng” khi mở Excel)',n)}
+  if(xo.links&&C.ext){const n=xlBreakSheet(doc);if(n)rep.fix('Ngắt liên kết ngoài: đổi công thức trỏ sang file khác thành giá trị (ô)',n)}
+  let cells=xlCollect(doc,SS);if(!cells.length)return;
+  if(xo.clean){let n=0;cells.forEach(k=>{if(k.t==='inlineStr'){const is=s1(k.ce,'is');if(is&&xlCleanTs(xlTs(is))){n++;k.text=xlTs(is).map(x=>x.textContent).join('')}}});
+    if(n)rep.fix(C.cleanLbl,n)}
+  const S0=xlScan(doc),hdr=xlHeader(S0),start=hdr?hdr.b+1:S0.minR+1,anch=new Map();
+  S0.merges.forEach(m=>anch.set(m.r1+','+m.c1,m));
+  const msp=k=>{const m=anch.get(k.r+','+k.c);return!!m&&m.c2>m.c1},col=new Map(),cs=c=>{let o=col.get(c);if(!o){o={num:0,dnum:0,tn:[],td:[],toth:0};col.set(c,o)}return o};
+  cells.forEach(k=>{if(k.r<start||!k.has||msp(k))return;const o=cs(k.c);
+    if(k.t==='n'&&k.v!==''){if(X&&xlIsDate(xlFmtCode(X,xlFont(X,k.s).nf)))o.dnum++;else o.num++;return}
+    if((k.t==='s'||k.t==='inlineStr')&&!k.f){const tx=(k.text||'').trim();if(!tx)return;
+      if(xlParseDate(tx)!==null)o.td.push(k);else if(xlParseNum(tx)!==null)o.tn.push(k);else o.toth++}});
+  let nN=0,nD=0;const badD=[],leftD=[];
+  col.forEach(o=>{const all=o.num+o.dnum+o.tn.length+o.td.length+o.toth;
+    if(o.td.length&&xo.date&&X&&(o.td.length+o.dnum)>=.6*all){o.td.forEach(k=>{const d=xlParseDate(k.text.trim());if(d==='bad'){badD.push(xlAddr(k));return}xlToNum(k,d,X,'date');nD++})}
+    else{o.td.forEach(k=>leftD.push(xlAddr(k)));
+      if(o.tn.length&&xo.num&&(o.num+o.tn.length)>=.6*all){o.tn.forEach(k=>{xlToNum(k,xlParseNum(k.text.trim()),X,'num');nN++})}}});
+  rep.fix('Đổi số lưu dạng văn bản (vd “8,5”) thành số thật (ô)',nN);rep.fix('Đổi ngày lưu dạng văn bản thành ngày thật dd/mm/yyyy (ô)',nD);
+  if(badD.length)rep.warn(nm+'ngày không hợp lệ (vd 31/02) tại '+xlList(badD)+' — cần sửa tay.');
+  if(leftD.length&&xo.check)rep.warn(nm+leftD.length+' ô ngày tháng đang là văn bản (không sắp xếp/lọc theo ngày được) tại '+xlList(leftD)+'.');
+  /* công thức lỗi */
+  let nW=0,nCl=0,nK=0;
+  if(xo.err!=='off'){
+    const elig=xo.err==='all'?XL_ERRS:['#DIV/0!','#N/A'],masters=new Map(),wrapped=new Map();
+    cells.forEach(k=>{if(k.f&&k.f.getAttribute('t')==='shared'&&(k.f.textContent||'').trim())masters.set(k.f.getAttribute('si'),k.f)});
+    const key=k=>{const f=k.f;if(!f)return null;const t=f.getAttribute('t');return t==='dataTable'?null:t==='shared'?'s'+f.getAttribute('si'):'c'+k.r+','+k.c};
+    cells.forEach(k=>{if(k.t==='e'&&elig.indexOf(k.text)>=0){
+      if(k.f){const g2=key(k);if(!g2||wrapped.has(g2))return;const f=g2[0]==='s'?masters.get(g2.slice(1)):k.f;
+        if(!f||!(f.textContent||'').trim())return;wrapped.set(g2,f);
+        const tx=f.textContent;if(!/^\s*IF(ERROR|NA)\s*\(/i.test(tx)){f.textContent='IFERROR('+tx+',"")';nW++}}
+      else{k.ce.removeAttribute('t');sk(k.ce,'v').forEach(e=>k.ce.removeChild(e));k.t='n';k.v='';nK++}}});
+    cells.forEach(k=>{if(k.t==='e'&&k.f){const g2=key(k);if(g2&&wrapped.has(g2)){k.ce.setAttribute('t','str');let v=s1(k.ce,'v');if(!v){v=mkS(doc,'v');k.ce.appendChild(v)}v.textContent='';k.t='str';k.v='';k.text='';nCl++}}})}
+  rep.fix('Bọc IFERROR cho công thức lỗi #DIV/0! / #N/A để ô trống thay vì hiện lỗi (công thức)',nW);rep.fix('Xóa giá trị lỗi dán cứng (ô)',nK);
+  if(nN||nD||nW||nCl)C.recalc=true;
+  let nSt=0;
+  if(nN||nD)cells.forEach(k=>{if(k.t==='e'&&k.f&&k.text==='#VALUE!'){k.ce.removeAttribute('t');sk(k.ce,'v').forEach(e=>k.ce.removeChild(e));k.t='n';k.v='';nSt++}});
+  rep.fix('Xóa kết quả #VALUE! cũ do số/ngày dạng chữ — Excel tự tính lại khi mở (ô)',nSt);if(nSt)C.recalc=true;
+  const left=cells.filter(k=>k.t==='e');
+  if(left.length)rep.warn(nm+left.length+' ô còn hiện lỗi công thức ('+xlList(left.map(k=>xlAddr(k)+' '+k.text))+') — nguyên nhân thường là tham chiếu bị xóa (#REF!) hoặc sai tên hàm (#NAME?), cần sửa tay.');
+  /* kiểm tra & cảnh báo */
+  if(xo.check){
+    const hT=new Map(),addT=(c,t)=>hT.set(c,(hT.get(c)||'')+' '+t);
+    if(hdr)cells.forEach(k=>{if(k.r>=hdr.a&&k.r<=hdr.b&&k.text){const m=anch.get(k.r+','+k.c);if(m)for(let c=m.c1;c<=m.c2;c++)addT(c,k.text);else addT(k.c,k.text)}});
+    const bad=[],rv=new Map();
+    cells.forEach(k=>{if(k.r<start||!k.has||msp(k))return;
+      if(k.t==='n'&&!k.f&&k.v!==''&&/đđg|đtb|điểm|diem/i.test(hT.get(k.c)||'')&&!(X&&xlIsDate(xlFmtCode(X,xlFont(X,k.s).nf)))){const v=+k.v;if(v<0||v>10)bad.push(xlAddr(k)+'='+v)}
+      if(/^\s*(stt|tt|số\s*tt|số thứ tự)\s*$/i.test(hT.get(k.c)||''))return;
+      const val=k.t==='s'||k.t==='inlineStr'||k.t==='str'?String(k.text||'').trim().toLowerCase():k.v;if(val==='')return;
+      let a=rv.get(k.r);if(!a){a=[];rv.set(k.r,a)}a.push(k.c+':'+val)});
+    if(bad.length)rep.warn(nm+'điểm nằm ngoài khoảng 0–10 tại '+xlList(bad)+' — kiểm tra lại số liệu.');
+    const seen=new Map(),dup=[];Array.from(rv.keys()).sort((a,b)=>a-b).forEach(r=>{const a=rv.get(r);if(a.length<3)return;const k=a.join('|');if(seen.has(k))dup.push('dòng '+r+' = dòng '+seen.get(k));else seen.set(k,r)});
+    if(dup.length)rep.warn(nm+'có dòng trùng nội dung hoàn toàn ('+xlList(dup)+') — kiểm tra có nhập trùng không.');
+    let hr=0,hc=0;for(let r=S0.minR;r<=S0.maxR;r++){const ro=S0.rows.get(r);if(ro&&ro.hid&&ro.cnt)hr++}for(let c=S0.minC;c<=S0.maxC;c++)if(S0.colW(c)===0)hc++;
+    if(hr||hc)rep.warn(nm+'đang ẩn '+(hr?hr+' dòng có dữ liệu':'')+(hr&&hc?' và ':'')+(hc?hc+' cột':'')+' — bản in sẽ không có phần này, bỏ ẩn nếu cần in.')}
+  if(xo.border){const S1=xlScan(doc);xlBorders(doc,X,S1,xlHeader(S1),rep,nm)}
+  if(xo.fit)xlFit(doc,X,SS,rep,nm)}
+function xlBreakSheet(doc){const cells=xlCollect(doc,[]),sh=new Set();let n=0;
+  const ext=k=>/\[\d+\]/.test(k.f.textContent||'');
+  cells.forEach(k=>{if(k.f&&k.f.getAttribute('t')==='shared'&&(k.f.textContent||'').trim()&&ext(k))sh.add(k.f.getAttribute('si'))});
+  cells.forEach(k=>{if(!k.f)return;if(ext(k)||(k.f.getAttribute('t')==='shared'&&sh.has(k.f.getAttribute('si')))){
+    k.ce.removeChild(k.f);n++;
+    if(k.t==='str'){const tx=k.v;sk(k.ce,'v').forEach(e=>k.ce.removeChild(e));const is=mkS(doc,'is'),t=mkS(doc,'t');t.textContent=tx;if(/^\s|\s$/.test(tx))t.setAttributeNS(XMLNS,'xml:space','preserve');is.appendChild(t);k.ce.appendChild(is);k.ce.setAttribute('t','inlineStr')}}});
+  return n}
+async function xlDropExt(zip,wbRoot,rlDoc){
+  const er=s1(wbRoot,'externalReferences');if(er)wbRoot.removeChild(er);
+  Array.from(rlDoc.getElementsByTagName('Relationship')).forEach(r=>{if(/externalLink$/i.test(r.getAttribute('Type')||''))r.parentNode.removeChild(r)});
+  const dn=s1(wbRoot,'definedNames');if(dn){sk(dn,'definedName').forEach(e=>{if(/\[\d+\]/.test(e.textContent))dn.removeChild(e)});if(!sk(dn,'definedName').length)wbRoot.removeChild(dn)}
+  Object.keys(zip.files).filter(n=>/^xl\/externalLinks\//.test(n)).forEach(n=>zip.remove(n));
+  const cf=zip.file('[Content_Types].xml');
+  if(cf){const ct=pX(await cf.async('string'),'[Content_Types].xml');Array.from(ct.getElementsByTagName('Override')).forEach(o=>{if(/^\/xl\/externalLinks\//.test(o.getAttribute('PartName')||''))o.parentNode.removeChild(o)});zip.file('[Content_Types].xml',ser(ct))}}
+function xlFonts(X,sd,ssDoc,name,rep){
+  const legacy=new Set();let n=0;
+  sk(X.fonts,'font').forEach(fo=>{const ne=s1(fo,'name'),cur=ne&&ne.getAttribute('val');if(!cur)return;
+    if(LEGACY_FONT.test(cur)){legacy.add(cur);return}
+    if(!name||SYM.test(cur)||cur===name)return;
+    ne.setAttribute('val',name);sk(fo,'charset').concat(sk(fo,'scheme')).forEach(e=>fo.removeChild(e));n++;X.dirty=true});
+  if(name&&ssDoc)sk(ssDoc.documentElement,'si').forEach(si=>sk(si,'r').forEach(r=>{const pr=s1(r,'rPr'),rf=pr&&s1(pr,'rFont');
+    if(rf&&!SYM.test(rf.getAttribute('val')||'')&&!LEGACY_FONT.test(rf.getAttribute('val')||'')&&rf.getAttribute('val')!==name){rf.setAttribute('val',name);n++}}));
+  if(n)rep.fix('Thống nhất font chữ thành '+name+' (kiểu font)',n);
+  if(legacy.size)rep.warn('File dùng font Việt cũ ('+Array.from(legacy).join(', ')+'): chữ có thể hiện sai dấu. Hãy chuyển mã sang Unicode (Unikey: Công cụ chuyển mã) rồi mới in.')}
+function xlRecalc(wbDoc,wbRoot){let cp=s1(wbRoot,'calcPr');
+  if(!cp){cp=wbDoc.createElementNS(SN,'calcPr');cp.setAttribute('calcId','191029');const ref=Array.from(wbRoot.children).find(c=>XL_AFTER_DN.indexOf(c.localName)>0)||null;wbRoot.insertBefore(cp,ref)}
+  cp.setAttribute('fullCalcOnLoad','1')}
 async function auditExcel(buf,xo,hooks){
   const rep=mkRep(),zip=await JSZip.loadAsync(buf),prog=hooks&&hooks.progress?hooks.progress:()=>{};
   const wbF=zip.file('xl/workbook.xml'),rlF=zip.file('xl/_rels/workbook.xml.rels');
@@ -1858,12 +2110,27 @@ async function auditExcel(buf,xo,hooks){
   const shs=sk(s1(wbRoot,'sheets'),'sheet').map((e,i)=>({i,name:e.getAttribute('name'),hidden:(e.getAttribute('state')||'visible')!=='visible',path:rs('xl/',rel[e.getAttributeNS(RN,'id')]||'')}));
   if(!shs.length)throw new Error('File Excel không có sheet nào.');
   let stDoc=null;const stF=zip.file('xl/styles.xml');if(stF)stDoc=pX(await stF.async('string'),'styles.xml');
+  const X=stDoc?xlStyles(stDoc):null;
+  const fixOn=!!(xo.clean||xo.num||xo.date||xo.err!=='off'||xo.fit||xo.border||xo.fmerge||xo.links||xo.check);
+  const C={xo,rep,X,SS:[],recalc:false,ext:!!s1(wbRoot,'externalReferences'),cleanLbl:'Dọn khoảng trắng thừa, ký tự ẩn, chuẩn hóa dấu tiếng Việt (chuỗi văn bản)'};
+  /* chuỗi dùng chung */
+  let ssDoc=null;const ssF=zip.file('xl/sharedStrings.xml');
+  if(ssF){ssDoc=pX(await ssF.async('string'),'sharedStrings.xml');const sis=sk(ssDoc.documentElement,'si');let n=0;
+    if(xo.clean)sis.forEach(si=>{if(xlCleanTs(xlTs(si)))n++});
+    if(n)rep.fix(C.cleanLbl,n);C.ssDirty=n>0}
+  if(X)xlFonts(X,stDoc,ssDoc,xo.font,rep);
+  if(C.ssDirty||(ssDoc&&xo.font))zip.file('xl/sharedStrings.xml',ser(ssDoc));
+  if(ssDoc)C.SS=sk(ssDoc.documentElement,'si').map(si=>xlTs(si).map(t=>t.textContent).join(''));
+  if(C.ext&&!xo.links)rep.warn('File có liên kết tới file Excel khác (Excel sẽ hỏi “Cập nhật liên kết” khi mở). Bật mục “Ngắt liên kết ngoài” để loại bỏ.');
   const vcCache=new Map();let done=0,stDirty=false;
   for(const sh of shs){
     prog('Sheet “'+sh.name+'” ('+(sh.i+1)+'/'+shs.length+')...');await tick();
-    if(sh.hidden){rep.notes.push('Sheet “'+sh.name+'”: đang ẩn — bỏ qua.');continue}
     if(!/^xl\/worksheets\//.test(sh.path)||!zip.file(sh.path)){rep.notes.push('Sheet “'+sh.name+'”: không phải bảng tính (biểu đồ/macro) — bỏ qua.');continue}
-    const doc=pX(await zip.file(sh.path).async('string'),sh.path),S=xlScan(doc);
+    const orig=await zip.file(sh.path).async('string');let doc=pX(orig,sh.path);
+    if(fixOn){try{xlFixSheet(doc,sh,C)}catch(e){doc=pX(orig,sh.path);rep.warn('Sheet “'+sh.name+'”: không làm sạch được dữ liệu ('+e.message+') — giữ nguyên nội dung, chỉ căn trang in.')}}
+    zip.file(sh.path,ser(doc));
+    if(sh.hidden){rep.notes.push('Sheet “'+sh.name+'”: đang ẩn — đã làm sạch dữ liệu, không căn trang in.');continue}
+    const S=xlScan(doc);
     if(S.empty){rep.notes.push('Sheet “'+sh.name+'”: không có dữ liệu — bỏ qua.');continue}
     /* vùng in: tự xác định theo vùng có dữ liệu, hoặc giữ vùng in cũ */
     let area={r1:S.minR,c1:S.minC,r2:S.maxR,c2:S.maxC};
@@ -1885,6 +2152,8 @@ async function auditExcel(buf,xo,hooks){
           el.forEach(ro=>{ro.el.setAttribute('ht',((ro.ht!=null?ro.ht:S.defH)+add).toFixed(2));ro.el.setAttribute('customHeight','1');
             sk(ro.el,'c').forEach(ce=>{const s=parseInt(ce.getAttribute('s')||'0',10)||0,n=xlVC(stDoc,vcCache,s);if(n!==s){ce.setAttribute('s',String(n));stDirty=true}})});
           stretched=el.length;stDirty=true}}}
+    if(xo.stretch&&stDoc){for(let r=hdr?hdr.b+1:S.minR;r<=S.maxR;r++){const ro=S.rows.get(r);   /* dòng cao (ô xuống dòng): căn giữa theo chiều dọc cho đồng đều */
+      if(ro&&!ro.hid&&ro.cnt>0&&ro.ht!=null&&ro.ht>40)sk(ro.el,'c').forEach(ce=>{const s=parseInt(ce.getAttribute('s')||'0',10)||0,n=xlVC(stDoc,vcCache,s);if(n!==s){ce.setAttribute('s',String(n));stDirty=true}})}}
     xlSetPrint(doc,plan,xo,plan.one);
     const a1='$'+colName(area.c1)+'$'+area.r1+':$'+colName(area.c2)+'$'+area.r2;
     xlDefName(wbRoot,wbDoc,sh.i,'Print_Area',qName(sh.name)+'!'+a1);
@@ -1894,15 +2163,19 @@ async function auditExcel(buf,xo,hooks){
     rep.fix('Đặt khổ A4, hướng in, lề, căn giữa trang');rep.fix('Đặt vùng in = vùng có dữ liệu');rep.fix('Co vừa 1 trang theo chiều rộng');
     if(stretched)rep.fix('Tăng độ cao dòng bảng để lấp đầy trang (dòng)',stretched);
     if(useT)rep.fix('Lặp dòng tiêu đề bảng ở mỗi trang');
+    if(xo.footer&&!plan.one)rep.fix('Thêm số trang “Trang x/y” ở chân trang');
     const pct=Math.round(plan.e*100);
     rep.notes.push('Sheet “'+sh.name+'”: vùng in '+colName(area.c1)+area.r1+':'+colName(area.c2)+area.r2+', A4 '+(plan.o==='landscape'?'ngang':'dọc')+', ước tính thu còn ~'+pct+'%, '+(plan.one?'vừa 1 trang':'khoảng '+plan.pages+' trang (rộng 1 trang'+(useT?', lặp dòng '+hdr.a+(hdr.b>hdr.a?'–'+hdr.b:''):'')+')')+(stretched?'; tăng độ cao '+stretched+' dòng thêm ~'+addPt.toFixed(1)+' pt':'')+'.');
     if(plan.e<0.6)rep.warn('Sheet “'+sh.name+'”: bảng rất rộng, chữ sau khi thu nhỏ còn ~'+pct+'% — có thể khó đọc. Cân nhắc ẩn bớt cột hoặc chọn in ngang.');
     if(S.drawing)rep.warn('Sheet “'+sh.name+'”: có hình/biểu đồ/ghi chú — công cụ chỉ tính theo ô dữ liệu, hãy xem lại bản xem trước khi in.')}
-  if(!done)throw new Error('Không có sheet nào cần/được phép căn chỉnh.');
-  if(stDoc&&stDirty)zip.file('xl/styles.xml',ser(stDoc));
+  if(!done&&!rep.f.size)throw new Error('Không có sheet nào cần/được phép xử lý.');
+  if(xo.links&&C.ext){await xlDropExt(zip,wbRoot,rlDoc);zip.file('xl/_rels/workbook.xml.rels',ser(rlDoc));rep.fix('Gỡ khai báo liên kết ngoài khỏi workbook (không còn hỏi “Cập nhật liên kết”)')}
+  if(C.recalc)xlRecalc(wbDoc,wbRoot);
+  if(stDoc&&(stDirty||(X&&X.dirty)))zip.file('xl/styles.xml',ser(stDoc));
   zip.file('xl/workbook.xml',ser(wbDoc));
   const data=await zip.generateAsync({type:'uint8array',compression:'DEFLATE'});
-  rep.notes.push('Công thức, số liệu, định dạng và cột/dòng ẩn được giữ nguyên. Thu phóng thực tế do Excel tính khi in (đã đặt “vừa 1 trang theo chiều rộng”), nên kiểm tra lại ở File → Print.');
+  if(C.recalc)rep.notes.push('Đã đặt “tính lại toàn bộ công thức khi mở”: Excel sẽ tự cập nhật ĐTB/tổng sau khi sửa số liệu (có thể hỏi lưu khi đóng — chọn Save).');
+  rep.notes.push('Số liệu, công thức (trừ chỗ bọc IFERROR), cột/dòng ẩn được giữ nguyên. Thu phóng thực tế do Excel tính khi in (đã đặt “vừa 1 trang theo chiều rộng”), nên kiểm tra lại ở File → Print.');
   return{data,rep}}
 
 /* ====================== GIAO DIỆN ====================== */
@@ -1914,7 +2187,7 @@ function buildUI(){
   st.textContent='#wtAudit .raG{border:1px solid rgba(128,128,128,.35);border-radius:10px;margin:8px 0;padding:6px 10px}#wtAudit summary{cursor:pointer;font-weight:600;padding:4px 0}#wtAudit .raC{display:block;margin:5px 0;font-size:14px;line-height:1.4}#wtAudit .raR{margin:5px 0;font-size:14px}#wtAudit .raRes{border:1px solid rgba(128,128,128,.35);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:14px}#wtAudit .raRes ul{margin:4px 0 4px 18px;padding:0}#wtAudit .raRes li{margin:2px 0}';
   document.head.appendChild(st);
   const d=document.createElement('div');d.className='wtool';d.id='wtAudit';
-  d.innerHTML='<div class="note">Đưa file .docx lên → công cụ tự rà soát và sửa lỗi bố cục, định dạng, bảng, hình, công thức, đánh số… rồi xuất file mới kèm báo cáo (đã gồm cả chức năng Chuẩn hóa Word). <b>Mới:</b> đưa file <b>.xlsx</b> lên → tự căn chỉnh trang in (A4, hướng ngang/dọc, lề, vùng in, vừa trang, không mất nội dung); mục Excel bên dưới chỉ áp dụng cho file .xlsx. <b>File gốc không bị thay đổi.</b> File xuất ra được tự kiểm tra cấu trúc; nếu có nguy cơ lỗi, công cụ tự thử lại ở chế độ an toàn. Mặc định đã chọn các mục an toàn; mở từng nhóm để tinh chỉnh.</div>'
+  d.innerHTML='<div class="note">Đưa file .docx lên → công cụ tự rà soát và sửa lỗi bố cục, định dạng, bảng, hình, công thức, đánh số… rồi xuất file mới kèm báo cáo (đã gồm cả chức năng Chuẩn hóa Word). <b>Mới:</b> đưa file <b>.xlsx</b> lên → tự sửa lỗi dữ liệu (số/ngày lưu dạng chữ, công thức lỗi, cột hẹp ####, thiếu viền…) rồi căn trang in sẵn sàng in (A4, hướng ngang/dọc, lề, vùng in, vừa trang); mục Excel bên dưới chỉ áp dụng cho file .xlsx. <b>File gốc không bị thay đổi.</b> File xuất ra được tự kiểm tra cấu trúc; nếu có nguy cơ lỗi, công cụ tự thử lại ở chế độ an toàn. Mặc định đã chọn các mục an toàn; mở từng nhóm để tinh chỉnh.</div>'
   +'<div class="bar"><button class="ghost sm" id="ra_preset" type="button">⚡ Chuẩn hóa nhanh: Times New Roman 14, A4, lề chuẩn</button></div>'
   +'<div class="bar"><input type="file" id="ra_in" accept=".docx,.xlsx" multiple style="display:none"><button class="ghost" id="ra_pick" type="button">📁 Chọn file .docx / .xlsx (nhiều file / kéo thả vào đây)</button><button class="sec sm" id="ra_clear" type="button">🗑 Xóa danh sách</button></div><div id="ra_list"></div>'
   +'<details class="raG" open><summary>📝 Văn bản &amp; định dạng</summary>'
@@ -1934,8 +2207,22 @@ function buildUI(){
   +cb('tbl','Bảng: vừa lề, không cắt đôi hàng, lặp hàng tiêu đề, căn giữa ô ngắn, gỡ bảng trôi',1)+cb('tblkeep','Bảng nhỏ (dưới 1/5 trang): giữ nguyên cả bảng trên một trang. Bảng lớn vẫn được tách theo hàng để không chừa khoảng trống',1)+cb('tblborder','Thêm viền cho bảng nhiều hàng chưa có viền',0)
   +'<div class="raR">Chiều cao tối đa của hình/bản vẽ: <select id="ra_imgmax"><option value="0.4">40% trang (ít khoảng trống nhất)</option><option value="0.5" selected>50% trang</option><option value="0.65">65% trang</option><option value="0.95">Gần cả trang (kiểu cũ)</option></select></div>'+cb('imgInline','Hình: chuyển hình “trôi” thành hình cùng dòng (hết nhảy vị trí/che chữ)',1)+cb('imgFix','Hình: sửa méo, thu nhỏ hình tràn lề/ô bảng, căn giữa hình đứng riêng',1)
   +cb('latex','Công thức: chuyển LaTeX ($...$, \\(...\\), \\[...\\]) thành Equation của Word',1)+cb('mathsz','Công thức: đồng bộ font/cỡ chữ với văn bản',1)+'</details>'
-  +'<details class="raG" open><summary>📗 Excel (.xlsx): tự căn chỉnh trang in</summary>'
-  +'<div class="note" style="margin:4px 0">Chỉ áp dụng cho file .xlsx. Công thức, số liệu, định dạng, cột/dòng ẩn được giữ nguyên; chỉ đổi cài đặt in.</div>'
+  +'<details class="raG" open><summary>📗 Excel (.xlsx): sửa lỗi &amp; căn trang in</summary>'
+  +'<div class="note" style="margin:4px 0">Chỉ áp dụng cho file .xlsx. Số liệu hợp lệ được giữ nguyên; mã dài/số 0 đầu (mã định danh, SĐT) luôn giữ dạng chữ. Chỗ không chắc chắn chỉ cảnh báo trong báo cáo, không tự sửa.</div>'
+  +'<div class="raR"><b>① Làm sạch &amp; sửa lỗi dữ liệu</b></div>'
+  +cb('xclean','Dọn khoảng trắng thừa, dấu cách lạ (NBSP), ký tự ẩn; chuẩn hóa dấu tiếng Việt (NFC) để tìm kiếm/lọc/sắp xếp không sai',1)
+  +cb('xnum','Đổi số đang lưu dạng chữ (vd “8,5”, “7.5”, “10”) thành số thật — để công thức tính đúng, hết lỗi #VALUE!',1)
+  +cb('xdate','Đổi ngày đang lưu dạng chữ (vd “12/05/2010”) thành ngày thật, hiển thị dd/mm/yyyy',1)
+  +'<div class="raR">Công thức đang hiện lỗi: <select id="ra_xerr"><option value="basic" selected>Chia cho 0 (#DIV/0!) và không tìm thấy (#N/A) → để ô trống</option><option value="all">Mọi loại lỗi → để ô trống</option><option value="off">Không sửa (chỉ cảnh báo)</option></select></div>'
+  +cb('xmerge','Gỡ vùng gộp ô trùng/chồng nhau (nguyên nhân hay gặp của báo lỗi “file bị hỏng, cần sửa” khi mở Excel)',1)
+  +cb('xlinks','Ngắt liên kết ngoài (công thức trỏ sang file khác → giá trị hiện có; hết hộp thoại “Cập nhật liên kết”)',0)
+  +'<div class="raR">Font chữ: <select id="ra_xfont"><option value="" selected>Giữ nguyên font</option><option>Times New Roman</option><option>Arial</option><option>Calibri</option></select></div>'
+  +cb('xcheck','Kiểm tra &amp; cảnh báo: điểm ngoài 0–10, dòng trùng, dòng/cột đang ẩn, ngày không hợp lệ, font Việt cũ',1)
+  +'<div class="raR"><b>② Bố cục để in đẹp</b></div>'
+  +cb('xfit','Nới cột bị ##### hoặc cắt chữ; ô chữ dài tự xuống dòng và tăng độ cao dòng',1)
+  +cb('xborder','Bảng chưa có viền → kẻ viền, căn giữa dòng tiêu đề (bảng đã có viền thì giữ nguyên)',1)
+  +cb('xfooter','Bảng in nhiều trang: thêm số trang “Trang x/y” ở chân trang',1)
+  +'<div class="raR"><b>③ Trang in</b></div>'
   +'<div class="raR">Hướng giấy (A4): <select id="ra_xorient"><option value="auto">Tự chọn (ngang/dọc cho chữ lớn nhất)</option><option value="landscape">Luôn ngang</option><option value="portrait">Luôn dọc</option></select></div>'
   +'<div class="raR">Lề (mm): Trên '+num('xmt',13)+' Dưới '+num('xmb',13)+' Trái '+num('xml',10)+' Phải '+num('xmr',10)+'</div>'
   +cb('xarea','Tự đặt vùng in = vùng có dữ liệu (bỏ cột/dòng trống thừa; bỏ tick để giữ vùng in cũ nếu có)',1)
@@ -1987,7 +2274,8 @@ function readOpts(){
   return o}
 function readXlOpts(){
   const c=id=>g('ra_'+id).checked,n=id=>parseFloat(String(g('ra_'+id).value).replace(',','.'));
-  const o={orient:g('ra_xorient').value,mt:n('xmt'),mb:n('xmb'),ml:n('xml'),mr:n('xmr'),area:c('xarea'),center:c('xcenter'),stretch:c('xstretch'),titles:c('xtitles'),minScale:n('xmin')};
+  const o={orient:g('ra_xorient').value,mt:n('xmt'),mb:n('xmb'),ml:n('xml'),mr:n('xmr'),area:c('xarea'),center:c('xcenter'),stretch:c('xstretch'),titles:c('xtitles'),minScale:n('xmin'),
+    clean:c('xclean'),num:c('xnum'),date:c('xdate'),err:g('ra_xerr').value,fmerge:c('xmerge'),links:c('xlinks'),font:g('ra_xfont').value,check:c('xcheck'),fit:c('xfit'),border:c('xborder'),footer:c('xfooter')};
   if([o.mt,o.mb,o.ml,o.mr].some(x=>!isFinite(x)||x<0||x>100)||o.ml+o.mr>=150||o.mt+o.mb>=150)throw new Error('Lề Excel không hợp lệ (0–100 mm; trái+phải < 150, trên+dưới < 150).');
   return o}
 const MD='application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -2006,13 +2294,14 @@ async function run(){
       if(/\.xlsx$/i.test(f.name)){
         if(!xo)xo=readXlOpts();
         const r=await auditExcel(f.buf,xo,{progress:m=>setSt(pre+m)});
-        const base=f.name.replace(/\.xlsx$/i,'')+'_canin',rt=reportText(f.name,r.rep),total=Array.from(r.rep.f.values()).reduce((a,b)=>a+b,0),rb=new TextEncoder().encode('\ufeff'+rt);
+        const base=f.name.replace(/\.xlsx$/i,'')+'_hoanthien',rt=reportText(f.name,r.rep),total=Array.from(r.rep.f.values()).reduce((a,b)=>a+b,0),rb=new TextEncoder().encode('\ufeff'+rt);
         res.push({name:base+'.xlsx',data:r.data,mime:XL_MIME},{name:base+'_baocao.txt',data:rb,mime:'text/plain'});ok++;
-        let h='✅ <b>'+hx(f.name)+'</b> — đã căn chỉnh trang in Excel';
+        let h='✅ <b>'+hx(f.name)+'</b> — đã sửa <b>'+total+'</b> chỗ và căn trang in Excel';
+        if(r.rep.f.size)h+='<ul>'+Array.from(r.rep.f).map(([t,n])=>'<li>'+hx(t)+': <b>'+n+'</b></li>').join('')+'</ul>';
         if(r.rep.notes.length)h+='<ul>'+r.rep.notes.slice(0,12).map(x=>'<li>'+hx(x)+'</li>').join('')+'</ul>';
         if(r.rep.w.length)h+='<div>⚠ <b>Cần kiểm tra tay:</b><ul>'+r.rep.w.map(x=>'<li>'+hx(x)+'</li>').join('')+'</ul></div>';
         card.innerHTML=h;
-        [[base+'.xlsx',r.data,XL_MIME,'⬇ Tải file Excel đã căn trang in','green sm'],[base+'_baocao.txt',rb,'text/plain','📋 Báo cáo (.txt)','sec sm']].forEach(a=>{
+        [[base+'.xlsx',r.data,XL_MIME,'⬇ Tải file Excel hoàn thiện (sẵn sàng in)','green sm'],[base+'_baocao.txt',rb,'text/plain','📋 Báo cáo (.txt)','sec sm']].forEach(a=>{
           const b=document.createElement('button');b.type='button';b.className=a[4];b.textContent=a[3];b.onclick=()=>save(a[0],a[1],a[2]);card.appendChild(b);card.appendChild(document.createTextNode(' '))});
       }else{
       USED.clear();
@@ -2046,7 +2335,7 @@ async function run(){
     out.appendChild(card);await tick()}
   if(res.length>3&&g('ra_zip').checked&&typeof makeZip==='function'){const b=document.createElement('button');b.type='button';b.className='green';b.textContent='📦 Tải gộp tất cả (.zip)';
     b.onclick=()=>save('ra-soat-word.zip',makeZip(res.map(r=>({name:r.name,data:r.data}))),'application/zip');out.appendChild(b)}
-  btn.disabled=false;setSt('['+VERSION+'] Xong: '+ok+'/'+q.length+' file. Hãy mở file kết quả bằng Word, bấm Ctrl+A rồi F9 nếu có mục lục/số trang cần cập nhật.',ok?'o':'e')}
+  btn.disabled=false;setSt('['+VERSION+'] Xong: '+ok+'/'+q.length+' file. '+(q.every(x=>/\.xlsx$/i.test(x.name))?'Mở file Excel kết quả, xem trước ở File → Print rồi in.':'Hãy mở file kết quả bằng Word, bấm Ctrl+A rồi F9 nếu có mục lục/số trang cần cập nhật.'),ok?'o':'e')}
 function wire(){
   g('ra_pick').onclick=()=>g('ra_in').click();
   g('ra_in').onchange=e=>{const f=Array.from(e.target.files||[]);e.target.value='';if(f.length)addFiles(f)};
