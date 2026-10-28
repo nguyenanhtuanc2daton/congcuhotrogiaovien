@@ -935,7 +935,7 @@ html #tod-greet .g-hl{text-wrap:balance;font-size:clamp(11px,3vw,12.5px)}
 <section class="panel" id="t3">
 <h2>🧰 Công cụ Word và Excel</h2>
 <div class="bar"><label for="wtSel" style="font-weight:600">Chọn công cụ:</label>
-<select id="wtSel"><option value="wtGrade" selected>📊 Tính điểm TB &amp; xếp loại</option><option value="wtMerge">🔗 Ghép file Word</option><option value="wtLatex">📝 Chuyển LaTeX → Word / PDF</option></select></div>
+<select id="wtSel"><option value="wtGrade" selected>📊 Tính điểm TB &amp; xếp loại</option><option value="wtMerge">🔗 Ghép file Word</option><option value="wtSplit">✂️ Tách file Word</option><option value="wtLatex">📝 Chuyển LaTeX → Word / PDF</option></select></div>
 <div class="wtool on" id="wtGrade">
 <div class="cfg">
 <div><label>Hệ số ĐĐGtx</label><input type="number" id="k1" value="1" min="0" step="0.5"></div>
@@ -1163,6 +1163,7 @@ window.addEventListener('luufiletam:close',function(){if(s.value==='utFile'){s.v
 <script src="tron-de.js?v=20261005"></script>
 <script src="word-chuan-hoa.js?v=20261015"></script>
 <script src="word-ra-soat.js?v=20261121"></script>
+<script src="word-tach-file.js?v=20261121"></script>
 <script src="word-chuyen-doi.js?v=20261019"></script>
 <script src="word-doi-ten.js?v=20261102"></script>
 <script src="word-mail-merge.js?v=20261107"></script>
