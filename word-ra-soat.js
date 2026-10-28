@@ -2406,7 +2406,7 @@ function buildUI(){
   +'<div class="raR">Công thức đang hiện lỗi: <select id="ra_xerr"><option value="basic" selected>Chia cho 0 (#DIV/0!) và không tìm thấy (#N/A) → để ô trống</option><option value="all">Mọi loại lỗi → để ô trống</option><option value="off">Không sửa (chỉ cảnh báo)</option></select></div>'
   +cb('xmerge','Gỡ vùng gộp ô trùng/chồng nhau (nguyên nhân hay gặp của báo lỗi “file bị hỏng, cần sửa” khi mở Excel)',1)
   +cb('xlinks','Ngắt liên kết ngoài (công thức trỏ sang file khác → giá trị hiện có; hết hộp thoại “Cập nhật liên kết”)',0)
-  +'<div class="raR">Font chữ: <select id="ra_xfont"><option value="" selected>Giữ nguyên font</option><option>Times New Roman</option><option>Arial</option><option>Calibri</option></select></div>'
+  +'<div class="raR">Font chữ: <select id="ra_xfont" disabled><option value="Times New Roman" selected>Times New Roman, cỡ 14 (luôn áp dụng)</option></select></div>'
   +cb('xcheck','Kiểm tra &amp; cảnh báo: điểm ngoài 0–10, dòng trùng, dòng/cột đang ẩn, ngày không hợp lệ, font Việt cũ',1)
   +'<div class="raR"><b>② Bố cục để in đẹp</b></div>'
   +cb('xfit','Nới cột bị ##### hoặc cắt chữ; ô chữ dài tự xuống dòng và tăng độ cao dòng',1)
