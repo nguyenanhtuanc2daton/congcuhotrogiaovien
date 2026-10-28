@@ -36,7 +36,8 @@ function styleBreaks(sd){
     if(pb&&!/^(0|false|off)$/i.test(ga(pb,'val')||'1'))s.add(ga(st,'styleId'))});
   return s}
 
-function analyze(doc,sd){
+function analyze(doc,sd,mode){
+  mode=mode||'cells'; /* 'cells': mọi dấu ngắt trang trong ô bảng đều tính; 'start': chỉ tính dấu ngắt ở đầu hàng bảng (Word hay ghi dư dấu trong các hàng bảng nhiều cột) */
   const body=doc.getElementsByTagNameNS(W,'body')[0];
   if(!body)throw new Error('File không có phần nội dung (w:body).');
   const sb=styleBreaks(sd),units=[];
@@ -89,7 +90,7 @@ function analyze(doc,sd){
           case 'commentRangeStart':case 'commentRangeEnd':case 'del':case 'moveFrom':case 'sdtPr':case 'sdtEndPr':case 'fldChar':
           case 'tab':case 'sym':case 'noBreakHyphen':case 'softHyphen':case 'ptab':case 'footnoteReference':case 'endnoteReference':case 'commentReference':break;
           case 't':if(c.textContent.length)atom(u,ctx);break;
-          case 'lastRenderedPageBreak':evt(u,ctx,c);break;
+          case 'lastRenderedPageBreak':if(mode==='start'&&u.atomic&&(u.atoms>0||(ctx&&ctx.n>0)))break;evt(u,ctx,c);break;
           case 'br':{const t=ga(c,'type');if(t==='page')evt(u,ctx,c);else if(t!=='column')atom(u,ctx);break}
           case 'drawing':case 'pict':case 'object':atom(u,ctx);break;
           default:w(c)}}})(p)}
@@ -114,7 +115,7 @@ function analyze(doc,sd){
     else{
       kids(u.node,'tc').forEach(tc=>{const ctx={n:0};walkBox(tc,u,ctx)});
       if(u.startPage===null){u.startPage=S.page;u.endPage=S.page}}});
-  return{doc,body,units,N:S.page,events:S.events,bnd:S.bnd}}
+  return{doc,body,units,N:S.page,events:S.events,bnd:S.bnd,mode}}
 
 /* Trang chỉ có dòng trống (thường là đoạn trống + ngắt section nằm sau một bảng dài bị đẩy sang trang mới) không có chữ/hình
    nên Word không ghi dấu ngắt trang. Đối chiếu với tổng số trang Word ghi trong docProps/app.xml: nếu thiếu đúng bằng số vị trí
@@ -219,7 +220,7 @@ function outline(info){
     blank:!o.lines.length&&!o.pic}))}
 
 /* ---------- Nhận dạng các phần ---------- */
-const HEAD=/^(?:ĐỀ\s*(?:SỐ|THI|KIỂM\s*TRA|ÔN\s*TẬP|CƯƠNG|MINH\s*HỌA)(?![\p{L}])\s*[\dIVX]*(?![\p{L}\d])|ĐỀ\s*\d+(?![\p{L}\d])|ĐÁP\s*ÁN(?:\s*(?:MÃ\s*ĐỀ|ĐỀ)?\s*(?:SỐ)?\s*\d+)?(?![\p{L}\d])|HƯỚNG\s*DẪN\s*(?:GIẢI|CHẤM)(?![\p{L}])|LỜI\s*GIẢI(?![\p{L}]))/iu;
+const HEAD=/^(?:ĐỀ\s*(?:SỐ|THI|KIỂM\s*TRA|ÔN\s*TẬP|CƯƠNG|MINH\s*HỌA)(?![\p{L}])\s*[\dIVX]*(?![\p{L}\d])|ĐỀ\s*\d+(?![\p{L}\d])|ĐÁP\s*ÁN(?:\s*(?:MÃ\s*ĐỀ|ĐỀ)?\s*(?:SỐ)?\s*\d+)?(?![\p{L}\d])|HƯỚNG\s*DẪN\s*(?:GIẢI|CHẤM)(?![\p{L}])|LỜI\s*GIẢI(?![\p{L}])|TIẾT\s*\d+(?!\d))/iu;
 const HEADW=/^(?:PHẦN|BÀI|CHƯƠNG|CHUYÊN\s*ĐỀ|PHỤ\s*LỤC)\s*[\dIVXLC]+(?![\p{L}\d])/iu;
 function headKey(line,wide){
   if(!line||line.length>100)return null;
@@ -228,28 +229,31 @@ function headKey(line,wide){
   const txt=m[0].replace(/\s+/g,' ').trim();
   /* khóa so sánh: chữ hoa, bỏ số 0 đầu ("01" = "1") → tiêu đề lặp lại ở đầu mỗi trang không tạo phần mới */
   return{key:txt.toUpperCase().replace(/\d+/g,x=>String(+x)),txt}}
-function partsByHeading(ol,wide){
-  const st=[];let cur=null;
-  ol.forEach(o=>{
-    let h=null;for(const l of o.lines.slice(0,4)){h=headKey(l,wide);if(h)break}
-    if(h&&h.key!==cur){st.push({a:o.n,label:h.txt});cur=h.key}});
+/* Các phần được xác định theo VỊ TRÍ NỘI DUNG (đoạn/hàng bảng), không phụ thuộc số trang → không bị lệch dù số trang ước lượng sai */
+function unitHeadText(u){return u.kind==='tr'?textOf(kids(u.node,'tc')[0]||u.node):textOf(u.node)}
+function pagesOfUnits(info,ua,ub){
+  let a=Infinity,b=0;
+  for(let i=ua;i<=ub;i++){const u=info.units[i];if(u.startPage==null)continue;a=Math.min(a,u.startPage);b=Math.max(b,u.endPage)}
+  return a===Infinity?{a:1,b:1}:{a,b}}
+function mkPart(info,ua,ub,label){const pg=pagesOfUnits(info,ua,ub);return{ua,ub,a:pg.a,b:pg.b,label}}
+function partsByUnits(info,wide){
+  const U=info.units,st=[];let cur=null;
+  U.forEach((u,i)=>{
+    const t=unitHeadText(u),h=headKey(t,wide);
+    if(h&&h.key!==cur){st.push({i,label:t.length>70?t.slice(0,70)+'…':t});cur=h.key}});
   if(!st.length)return[];
-  const N=ol.length,res=[];
-  if(st[0].a>1)res.push({a:1,b:st[0].a-1,label:'Phần đầu'});
-  st.forEach((s,i)=>res.push({a:s.a,b:i+1<st.length?st[i+1].a-1:N,label:s.label}));
-  return res}
-function partsBySection(info,ol){
-  const raw=[];let cur=null;
-  info.units.forEach(u=>{
-    if(u.startPage==null)return;
-    if(!cur)cur={a:u.startPage,b:u.endPage};else{cur.a=Math.min(cur.a,u.startPage);cur.b=Math.max(cur.b,u.endPage)}
-    if(u.kind==='p'&&u.sect){raw.push(cur);cur=null}});
-  if(cur)raw.push(cur);
   const res=[];
-  raw.sort((x,y)=>x.a-y.a).forEach(r=>{
-    const l=res[res.length-1];
-    if(l&&r.a<=l.b){l.b=Math.max(l.b,r.b)}else res.push({a:r.a,b:r.b})});
-  res.forEach((r,i)=>{const o=ol[r.a-1];r.label=(o&&!o.blank&&o.text.slice(0,50))||('Section '+(i+1))});
+  if(st[0].i>0){
+    let chars=0;for(let i=0;i<st[0].i;i++)chars+=U[i].kind==='tr'?rowText(U[i].node).length:textOf(U[i].node).length;
+    if(chars>=200)res.push(mkPart(info,0,st[0].i-1,'Phần đầu'));else st[0].i=0}
+  st.forEach((x,k)=>res.push(mkPart(info,x.i,k+1<st.length?st[k+1].i-1:U.length-1,x.label)));
+  return res}
+function partsBySection(info){
+  const U=info.units,res=[];let ua=0;
+  U.forEach((u,i)=>{
+    if((u.kind==='p'&&u.sect)||i===U.length-1){
+      let l='';for(let k=ua;k<=i&&!l;k++)l=unitHeadText(U[k]);
+      res.push(mkPart(info,ua,i,(l&&l.slice(0,50))||('Section '+(res.length+1))));ua=i+1}});
   return res}
 
 /* ---------- Tiện ích dựng XML ---------- */
@@ -291,12 +295,14 @@ const rngTxt=rs=>rs.map(r=>r[0]===r[1]?String(r[0]):r[0]+'–'+r[1]).join(', ');
 function extract(info,ranges,opt){
   opt=opt||{};
   const {doc,body,units}=info,rs=normRanges(ranges),inR=q=>rs.some(r=>q>=r[0]&&q<=r[1]);
-  const keep=units.map(u=>{
+  const byU=!!opt.byUnit;
+  const keep=units.map((u,i)=>{
+    if(byU)return inR(i);
     if(u.atomic)return inR(u.startPage);
     for(let q=u.startPage;q<=u.endPage;q++)if(inR(q))return true;
     return false});
   /* trang nằm trọn trong phần đuôi của một hàng bảng cao: giữ nguyên cả hàng đó thay vì báo rỗng */
-  if(!keep.some(Boolean))units.forEach((u,i)=>{if(u.atomic&&rs.some(r=>u.endPage>=r[0]&&u.startPage<=r[1]))keep[i]=true});
+  if(!byU&&!keep.some(Boolean))units.forEach((u,i)=>{if(u.atomic&&rs.some(r=>u.endPage>=r[0]&&u.startPage<=r[1]))keep[i]=true});
   if(!keep.some(Boolean))throw new Error('Không tìm thấy nội dung nào trong các trang đã chọn.');
   const tinfo=new Map();units.forEach(u=>{if(u.tbl&&!tinfo.has(u.tbl))tinfo.set(u.tbl,kids(u.tbl,'tr'))});
   const bodySect0=one(body,'sectPr');
@@ -305,6 +311,7 @@ function extract(info,ranges,opt){
   const P=[];
   units.forEach((u,i)=>{
     if(!keep[i])return;
+    if(byU){P.push({u,node:u.node,a:i,b:i});return} /* tách theo phần: giữ nguyên cả đơn vị, không cắt đoạn */
     if(u.atomic){P.push({u,node:u.node,a:u.startPage,b:u.endPage});return}
     const runs=[];
     for(let q=u.startPage;q<=u.endPage;){if(inR(q)){let z=q;while(z<u.endPage&&inR(z+1))z++;runs.push([q,z]);q=z+1}else q++}
@@ -409,15 +416,21 @@ async function load(buf){
   if(af){const m=/<(?:\w+:)?Pages>\s*(\d+)\s*<\//.exec(await af.async('string'));if(m)wp=parseInt(m[1],10)}
   return{zip,sd,wp,docStr:await df.async('string')}}
 
+/* Chọn cách đếm trang khớp nhất với tổng số trang Word đã ghi trong file (docProps/app.xml) */
+function analyzeBest(L){
+  const mk=m=>fixBlank(analyze(pX(L.docStr,'document.xml'),L.sd,m),L.wp),a=mk('cells');
+  if(!L.wp||a.N===L.wp)return a;
+  const b=mk('start');
+  return Math.abs(b.N-L.wp)<Math.abs(a.N-L.wp)?b:a}
 async function inspect(buf){
-  const L=await load(buf),info=fixBlank(analyze(pX(L.docStr,'document.xml'),L.sd),L.wp),ol=outline(info);
-  return{N:info.N,events:info.events,wordPages:L.wp,guessed:info.guessed,outline:ol,
-    parts:{head:partsByHeading(ol,false),sec:partsBySection(info,ol),wide:partsByHeading(ol,true)}}}
+  const L=await load(buf),info=analyzeBest(L),ol=outline(info);
+  return{N:info.N,events:info.events,wordPages:L.wp,guessed:info.guessed,mode:info.mode,outline:ol,
+    parts:{head:partsByUnits(info,false),sec:partsBySection(info),wide:partsByUnits(info,true)}}}
 async function split(buf,ranges,opt){
   if(typeof ranges==='number'){opt=arguments[3];ranges=[[arguments[1],arguments[2]]]}
   opt=opt||{};
-  const L=await load(buf),info=fixBlank(analyze(pX(L.docStr,'document.xml'),L.sd),L.wp),rs=normRanges(ranges);
-  if(!rs.length||rs.some(r=>r[0]<1||r[1]>info.N||!isFinite(r[0])||!isFinite(r[1])))throw new Error('Khoảng trang không hợp lệ (file có '+info.N+' trang).');
+  const L=await load(buf),info=analyzeBest(L),rs=normRanges(ranges),lo=opt.byUnit?0:1,hi=opt.byUnit?info.units.length-1:info.N;
+  if(!rs.length||rs.some(r=>r[0]<lo||r[1]>hi||!isFinite(r[0])||!isFinite(r[1])))throw new Error(opt.byUnit?'Phần cần tách không hợp lệ.':'Khoảng trang không hợp lệ (file có '+info.N+' trang).');
   extract(info,rs,opt);
   const d=info.doc,hasContent=Array.from(d.getElementsByTagNameNS(W,'t')).some(t=>t.textContent.trim().length)||d.getElementsByTagNameNS(W,'drawing').length||d.getElementsByTagNameNS(W,'pict').length||d.getElementsByTagNameNS(W,'object').length;
   if(!hasContent)throw new Error('Trang '+rngTxt(rs)+' không có chữ hay hình nào (chỉ là trang trống hoặc dòng trống). Không xuất file. Hãy kiểm tra lại số trang.');
@@ -478,7 +491,7 @@ function renderPages(){
   paintSel()}
 function renderParts(){
   const ps=curParts();
-  g('ts_parts').innerHTML=ps.length?ps.map((p,i)=>'<label class="note" style="display:flex;gap:8px;align-items:flex-start;margin:4px 0"><input type="checkbox" class="ts_pc" data-i="'+i+'" checked><span>'+pgLbl(p.a,p.b)+' · <b>'+hx(p.label)+'</b></span></label>').join(''):'<div class="note">Không nhận ra phần nào theo cách này, hãy thử cách khác hoặc nhập khoảng trang thủ công.</div>';
+  g('ts_parts').innerHTML=ps.length?ps.map((p,i)=>'<label class="note" style="display:flex;gap:8px;align-items:flex-start;margin:4px 0"><input type="checkbox" class="ts_pc" data-i="'+i+'" checked><span>'+pgLbl(p.a,p.b)+' (ước tính) · <b>'+hx(p.label)+'</b></span></label>').join(''):'<div class="note">Không nhận ra phần nào theo cách này, hãy thử cách khác hoặc nhập khoảng trang thủ công.</div>';
   renderPages()}
 const checkedParts=()=>Array.from(g('ts_parts').querySelectorAll('.ts_pc')).filter(c=>c.checked).map(c=>curParts()[+c.dataset.i]);
 const getOpt=()=>({renum:g('ts_renum').checked,hdr:g('ts_hdr').value});
@@ -541,7 +554,7 @@ async function pick(f){
     else{
       g('ts_info').textContent='Phát hiện '+r.N+' trang (theo ngắt trang Word đã lưu trong file'+(r.guessed?'; trong đó '+r.guessed+' trang chỉ có dòng trống, suy ra từ tổng số trang Word ghi nhận':'')+').';
       if(r.wordPages&&r.wordPages!==r.N)
-        setSt('⚠ Word ghi nhận file này có '+r.wordPages+' trang nhưng công cụ chỉ nhận ra '+r.N+' trang nên số trang có thể lệch. Hãy mở file bằng Word, bấm Ctrl+S rồi đưa lên lại.','e');
+        setSt('⚠ Word ghi nhận file này có '+r.wordPages+' trang nhưng công cụ ước lượng được '+r.N+' trang (file có bảng nhiều cột hoặc ghép từ nhiều file nên dấu ngắt trang Word ghi không chính xác). Số trang trong danh sách chỉ là ước tính. Để tách CHÍNH XÁC, hãy dùng “Tách hàng loạt theo phần” bên dưới (theo tiêu đề Tiết / ĐỀ SỐ / ĐÁP ÁN, không phụ thuộc số trang).','e');
       else setSt('Chọn trang trong danh sách (hoặc nhập khoảng trang), hoặc tách hàng loạt theo phần ở bên dưới.','')}}
   catch(e){cur=null;renderFile();setSt('Lỗi: '+e.message,'e')}}
 
@@ -550,7 +563,7 @@ async function runJobs(jobs,zipName){
   for(let i=0;i<jobs.length;i++){
     const j=jobs[i];setSt('Đang tách '+(i+1)+'/'+jobs.length+': '+j.label+'...');await tick();
     try{
-      const r=await split(cur.buf,j.ranges,opt);
+      const r=await split(cur.buf,j.ranges,Object.assign({},opt,j.opt));
       let nm=j.name,k=2;while(used.has(nm.toLowerCase())){nm=j.name+'_'+k++}
       used.add(nm.toLowerCase());files.push({name:nm+'.docx',data:r.data})}
     catch(e){errs.push(j.label+': '+e.message)}}
@@ -563,7 +576,7 @@ async function runZipParts(){
   if(!cur){setSt('Chưa chọn file .docx.','e');return}
   const ps=checkedParts();if(!ps.length){setSt('Chưa tick phần nào để tách.','e');return}
   const btn=g('ts_pzip');btn.disabled=true;
-  try{await runJobs(ps.map((p,i)=>({ranges:[[p.a,p.b]],label:p.label,name:pad(i+1,ps.length)+'_'+(safe(p.label)||('Phan_'+(i+1)))})),safe(baseName())+'_tach.zip')}
+  try{await runJobs(ps.map((p,i)=>({ranges:[[p.ua,p.ub]],opt:{byUnit:true},label:p.label,name:pad(i+1,ps.length)+'_'+(safe(p.label)||('Phan_'+(i+1)))})),safe(baseName())+'_tach.zip')}
   catch(e){setSt('Lỗi: '+e.message,'e')}
   btn.disabled=false}
 async function run(){
@@ -596,7 +609,7 @@ function build(){
   +'<label class="note" style="margin:0">Dòng tiêu đề bảng <select id="ts_hdr"><option value="auto">Tự chèn lại (dòng đã đặt Repeat Header, không có thì dòng đầu)</option><option value="flagged">Chỉ dòng đã đặt Repeat Header</option><option value="none">Không chèn</option></select></label></div>'
   +'<div class="bar"><button class="green" id="ts_run" type="button">✂️ Tách &amp; Xuất file</button></div>'
   +'<div class="note"><b>Tách hàng loạt theo phần có sẵn</b> — chọn cách nhận dạng, tick các phần cần lấy, mỗi phần thành một file trong ZIP.</div>'
-  +'<div class="bar"><select id="ts_pm"><option value="head">Theo tiêu đề ĐỀ SỐ / ĐÁP ÁN</option><option value="sec">Theo ngắt section</option><option value="wide">Theo tiêu đề rộng (thêm PHẦN, BÀI, CHƯƠNG, PHỤ LỤC)</option></select></div>'
+  +'<div class="bar"><select id="ts_pm"><option value="head">Theo tiêu đề ĐỀ SỐ / ĐÁP ÁN / TIẾT n</option><option value="sec">Theo ngắt section</option><option value="wide">Theo tiêu đề rộng (thêm PHẦN, BÀI, CHƯƠNG, PHỤ LỤC)</option></select></div>'
   +'<div id="ts_parts"></div>'
   +'<div class="bar"><button class="green" id="ts_pzip" type="button">📦 Tách các phần đã tick ra ZIP</button><button class="ghost" id="ts_pfill" type="button">Đưa vào ô khoảng trang</button></div>'
   +'</div><div id="ts_st" class="status"></div><div id="ts_out"></div>'
