@@ -1,6 +1,7 @@
 /* Công cụ Word · "Rà soát Word toàn diện"
    Đưa file .docx lên → tự rà soát & sửa lỗi bố cục/định dạng/bảng/hình/công thức → xuất .docx mới + báo cáo.
    Cần: JSZip (index.html đã nạp) · word-latex.js (convertDocumentXML) · gkey.js (tùy chọn, cho AI soát chính tả).
+   Mới: cũng nhận file .xlsx → tự căn chỉnh trang in Excel (A4, hướng, lề, vùng in, vừa trang, lặp dòng tiêu đề).
    Tự chèn mục "🔍 Rà soát Word toàn diện" vào ô chọn công cụ #wtSel — không cần sửa HTML, chỉ thêm 1 thẻ <script>. */
 (function(){
 'use strict';
@@ -1743,7 +1744,7 @@ function txtTable(head,rows,wd,boldCol){
   emit(head.map(x=>[x.toUpperCase()]));L.push(sep);
   rows.forEach((r,ri)=>{emit(cell(r,ri));L.push(sep)});return L.join('\n')}
 function reportText(name,rep){
-  const L=['BÁO CÁO RÀ SOÁT WORD — '+name,'Phiên bản công cụ: '+VERSION,''];
+  const L=['BÁO CÁO RÀ SOÁT '+(/\.xlsx$/i.test(name)?'EXCEL (CĂN TRANG IN)':'WORD')+' — '+name,'Phiên bản công cụ: '+VERSION,''];
   const tot=Array.from(rep.f.values()).reduce((a,b)=>a+b,0);
   /* 1. Đã sửa */
   L.push('I. NỘI DUNG CÔNG CỤ ĐÃ RÀ SOÁT VÀ TỰ SỬA ('+tot+' chỗ)');if(!rep.f.size)L.push('  (không có thay đổi nào)');rep.f.forEach((n,k)=>L.push('  • '+k+': '+n));
@@ -1765,6 +1766,145 @@ function reportText(name,rep){
     L.push(txtTable(['STT','Câu','Cách giải ngắn của AI','Kết quả AI','Đáp án trong đề','Khớp'],D.map((x,i)=>[String(i+1),String(x.cau||''),String(x.cach_giai||''),String(x.ketqua_ai||''),String(x.trong_de||'—'),x.khop===true?'Khớp':x.khop===false?'KHÔNG KHỚP':'—']),[4,6,34,16,16,11],[]),'  (Chỉ là kết quả AI tự tính để bạn đối chiếu nhanh; câu có hình hoặc công thức ảnh AI có thể không giải được.)')}
   return L.join('\n')}
 
+/* ====================== EXCEL (.xlsx): TỰ CĂN CHỈNH TRANG IN ======================
+   Mở gói .xlsx bằng JSZip, chỉ sửa phần cài đặt in (khổ giấy, hướng, lề, vùng in, thu phóng, dòng tiêu đề lặp)
+   và (tuỳ chọn) độ cao dòng. Công thức, số liệu, định dạng, cột ẩn được giữ nguyên. */
+const SN='http://schemas.openxmlformats.org/spreadsheetml/2006/main',RN='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+const XL_MIME='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const sk=(p,n)=>p?Array.from(p.children).filter(c=>c.localName===n):[];
+const s1=(p,n)=>sk(p,n)[0]||null;
+const mkS=(d,n)=>d.createElementNS(SN,n);
+const isT=v=>/^(1|true)$/i.test(v||'');
+function colNum(s){let n=0;for(const ch of s)n=n*26+ch.charCodeAt(0)-64;return n}
+function colName(n){let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26}return s}
+function parseRef(a){const m=/^\$?([A-Z]+)\$?(\d+)$/.exec(a||'');return m?{c:colNum(m[1]),r:+m[2]}:null}
+const A4={w:595.28,h:841.89};
+const qName=n=>"'"+String(n).replace(/'/g,"''")+"'";
+function xlScan(doc){
+  const root=doc.documentElement,sd=s1(root,'sheetData'),fmt=s1(root,'sheetFormatPr');
+  const defH=(fmt&&parseFloat(fmt.getAttribute('defaultRowHeight')))||15;
+  let defW=fmt&&parseFloat(fmt.getAttribute('defaultColWidth'));if(!(defW>0))defW=9.14;
+  const specs=sk(s1(root,'cols'),'col').map(e=>({a:+e.getAttribute('min'),b:+e.getAttribute('max'),w:parseFloat(e.getAttribute('width')),h:isT(e.getAttribute('hidden'))}));
+  const colW=c=>{const s=specs.find(x=>c>=x.a&&c<=x.b);if(!s)return defW;return s.h?0:(isFinite(s.w)?s.w:defW)};
+  const rows=new Map();let minR=1e9,maxR=0,minC=1e9,maxC=0,idx=0;
+  sk(sd,'row').forEach(re=>{idx++;const r=+re.getAttribute('r')||idx;let cnt=0,txt=0;
+    sk(re,'c').forEach(ce=>{const ref=parseRef(ce.getAttribute('r'));if(!ref)return;
+      const has=sk(ce,'f').length>0||sk(ce,'is').length>0||sk(ce,'v').some(v=>v.textContent!=='');
+      if(!has)return;cnt++;const t=ce.getAttribute('t');if(t==='s'||t==='inlineStr'||t==='str')txt++;
+      minR=Math.min(minR,r);maxR=Math.max(maxR,r);minC=Math.min(minC,ref.c);maxC=Math.max(maxC,ref.c)});
+    const h=re.getAttribute('ht');
+    rows.set(r,{el:re,r,ht:h!==null&&h!==''&&isFinite(parseFloat(h))?parseFloat(h):null,hid:isT(re.getAttribute('hidden')),cnt,txt})});
+  const merges=sk(s1(root,'mergeCells'),'mergeCell').map(m=>{const p=String(m.getAttribute('ref')||'').split(':'),a=parseRef(p[0]),b=parseRef(p[1]||p[0]);return a&&b?{r1:a.r,c1:a.c,r2:b.r,c2:b.c}:null}).filter(Boolean);
+  if(maxR)merges.forEach(m=>{if(m.r1>=minR&&m.r1<=maxR&&m.c1>=minC&&m.c1<=maxC){maxR=Math.max(maxR,m.r2);maxC=Math.max(maxC,m.c2)}});
+  return{rows,defH,colW,minR,maxR,minC,maxC,merges,empty:!maxR,drawing:!!(s1(root,'drawing')||s1(root,'legacyDrawing'))}}
+function xlSize(S){
+  let cw=0,ch=0;
+  for(let c=S.minC;c<=S.maxC;c++)cw+=S.colW(c)*7*0.75;      /* độ rộng cột (ký tự) → điểm: ~7 px/ký tự, 1 px = 0,75 pt */
+  for(let r=S.minR;r<=S.maxR;r++){const ro=S.rows.get(r);ch+=ro?(ro.hid?0:(ro.ht!=null?ro.ht:S.defH)):S.defH}
+  return{cw,ch}}
+function xlHeader(S){
+  const nc=S.maxC-S.minC+1;
+  for(let r=S.minR;r<=Math.min(S.maxR-1,S.minR+30);r++){const ro=S.rows.get(r);if(!ro||ro.hid)continue;
+    if(ro.cnt>=Math.max(3,Math.ceil(nc*.6))&&ro.txt>=ro.cnt*.6){let b=r;S.merges.forEach(m=>{if(m.r1===r&&m.r2>b)b=m.r2});return b<S.maxR?{a:r,b}:null}}
+  return null}
+function xlPlan(cw,ch,xo){
+  const mm=v=>v/25.4*72,mg={t:mm(xo.mt),b:mm(xo.mb),l:mm(xo.ml),r:mm(xo.mr)};
+  const cand=['landscape','portrait'].filter(o=>xo.orient==='auto'||xo.orient===o).map(o=>{
+    const pw=o==='landscape'?A4.h:A4.w,ph=o==='landscape'?A4.w:A4.h,aw=pw-mg.l-mg.r,ah=ph-mg.t-mg.b,sw=Math.min(1,aw/cw),sa=Math.min(sw,ah/ch);
+    const pg1=Math.ceil(ch*sw/ah-1e-6),one=sa>=xo.minScale-1e-9||pg1<=1,e=one?sa:sw;
+    return{o,aw,ah,sw,sa,one,e,pages:one?1:Math.ceil(ch*sw/ah-1e-6)}});
+  cand.sort((a,b)=>Math.abs(a.e-b.e)>.03?b.e-a.e:(a.pages!==b.pages?a.pages-b.pages:((cw>=ch)===(a.o==='landscape')?-1:1)));
+  return Object.assign({mg},cand[0])}
+function xlVC(sd,cache,s){
+  if(cache.has(s))return cache.get(s);
+  const xfs=s1(sd.documentElement,'cellXfs'),list=sk(xfs,'xf'),base=list[s];
+  if(!base){cache.set(s,s);return s}
+  const al=s1(base,'alignment');
+  if(al&&al.getAttribute('vertical')&&al.getAttribute('vertical')!=='bottom'){cache.set(s,s);return s}
+  const nx=base.cloneNode(true);let a2=s1(nx,'alignment');
+  if(!a2){a2=mkS(sd,'alignment');nx.insertBefore(a2,nx.firstChild)}
+  a2.setAttribute('vertical','center');nx.setAttribute('applyAlignment','1');
+  xfs.appendChild(nx);xfs.setAttribute('count',String(list.length+1));cache.set(s,list.length);return list.length}
+const XL_AFTER_PS=['headerFooter','rowBreaks','colBreaks','customProperties','cellWatches','ignoredErrors','smartTags','drawing','legacyDrawing','legacyDrawingHF','drawingHF','picture','oleObjects','controls','webPublishItems','tableParts','extLst'];
+function xlSetPrint(doc,plan,xo,single){
+  const root=doc.documentElement;
+  let sp=s1(root,'sheetPr');if(!sp){sp=mkS(doc,'sheetPr');root.insertBefore(sp,root.firstChild)}
+  let ps=s1(sp,'pageSetUpPr');if(!ps){ps=mkS(doc,'pageSetUpPr');sp.appendChild(ps)}
+  ps.setAttribute('fitToPage','1');
+  const old=s1(root,'pageSetup');
+  ['printOptions','pageMargins','pageSetup'].forEach(n=>sk(root,n).forEach(e=>root.removeChild(e)));
+  const ref=Array.from(root.children).find(c=>XL_AFTER_PS.indexOf(c.localName)>=0)||null;
+  if(xo.center){const po=mkS(doc,'printOptions');po.setAttribute('horizontalCentered','1');if(single)po.setAttribute('verticalCentered','1');root.insertBefore(po,ref)}
+  const pm=mkS(doc,'pageMargins'),inch=v=>(v/72).toFixed(3);
+  pm.setAttribute('left',inch(plan.mg.l));pm.setAttribute('right',inch(plan.mg.r));pm.setAttribute('top',inch(plan.mg.t));pm.setAttribute('bottom',inch(plan.mg.b));pm.setAttribute('header','0.3');pm.setAttribute('footer','0.3');
+  root.insertBefore(pm,ref);
+  const pg=old||mkS(doc,'pageSetup');
+  ['scale','useFirstPageNumber','firstPageNumber'].forEach(a=>pg.removeAttribute(a));
+  pg.setAttribute('paperSize','9');pg.setAttribute('orientation',plan.o);pg.setAttribute('fitToWidth','1');pg.setAttribute('fitToHeight',plan.one?'1':'0');
+  root.insertBefore(pg,ref)}
+const XL_AFTER_DN=['calcPr','oleSize','customWorkbookViews','pivotCaches','smartTagPr','smartTagTypes','webPublishing','fileRecoveryPr','webPublishObjects','extLst'];
+function xlDefName(wbRoot,wbDoc,idx,kind,val){
+  let dn=s1(wbRoot,'definedNames');
+  if(!dn){dn=wbDoc.createElementNS(SN,'definedNames');const ref=Array.from(wbRoot.children).find(c=>XL_AFTER_DN.indexOf(c.localName)>=0)||null;wbRoot.insertBefore(dn,ref)}
+  sk(dn,'definedName').forEach(e=>{if(e.getAttribute('name')==='_xlnm.'+kind&&e.getAttribute('localSheetId')===String(idx))dn.removeChild(e)});
+  if(val===null)return;
+  const e=wbDoc.createElementNS(SN,'definedName');e.setAttribute('name','_xlnm.'+kind);e.setAttribute('localSheetId',String(idx));e.textContent=val;dn.appendChild(e)}
+async function auditExcel(buf,xo,hooks){
+  const rep=mkRep(),zip=await JSZip.loadAsync(buf),prog=hooks&&hooks.progress?hooks.progress:()=>{};
+  const wbF=zip.file('xl/workbook.xml'),rlF=zip.file('xl/_rels/workbook.xml.rels');
+  if(!wbF||!rlF)throw new Error('Không phải file .xlsx hợp lệ (thiếu xl/workbook.xml).');
+  const wbDoc=pX(await wbF.async('string'),'workbook.xml'),wbRoot=wbDoc.documentElement,rlDoc=pX(await rlF.async('string'),'workbook.xml.rels'),rel={};
+  Array.from(rlDoc.getElementsByTagName('Relationship')).forEach(r=>{rel[r.getAttribute('Id')]=r.getAttribute('Target')});
+  const shs=sk(s1(wbRoot,'sheets'),'sheet').map((e,i)=>({i,name:e.getAttribute('name'),hidden:(e.getAttribute('state')||'visible')!=='visible',path:rs('xl/',rel[e.getAttributeNS(RN,'id')]||'')}));
+  if(!shs.length)throw new Error('File Excel không có sheet nào.');
+  let stDoc=null;const stF=zip.file('xl/styles.xml');if(stF)stDoc=pX(await stF.async('string'),'styles.xml');
+  const vcCache=new Map();let done=0,stDirty=false;
+  for(const sh of shs){
+    prog('Sheet “'+sh.name+'” ('+(sh.i+1)+'/'+shs.length+')...');await tick();
+    if(sh.hidden){rep.notes.push('Sheet “'+sh.name+'”: đang ẩn — bỏ qua.');continue}
+    if(!/^xl\/worksheets\//.test(sh.path)||!zip.file(sh.path)){rep.notes.push('Sheet “'+sh.name+'”: không phải bảng tính (biểu đồ/macro) — bỏ qua.');continue}
+    const doc=pX(await zip.file(sh.path).async('string'),sh.path),S=xlScan(doc);
+    if(S.empty){rep.notes.push('Sheet “'+sh.name+'”: không có dữ liệu — bỏ qua.');continue}
+    /* vùng in: tự xác định theo vùng có dữ liệu, hoặc giữ vùng in cũ */
+    let area={r1:S.minR,c1:S.minC,r2:S.maxR,c2:S.maxC};
+    if(!xo.area){const dn=sk(s1(wbRoot,'definedNames'),'definedName').find(e=>e.getAttribute('name')==='_xlnm.Print_Area'&&e.getAttribute('localSheetId')===String(sh.i));
+      const m=dn&&/!\$?([A-Z]+)\$?(\d+):\$?([A-Z]+)\$?(\d+)$/.exec(dn.textContent.trim());
+      if(m)area={c1:colNum(m[1]),r1:+m[2],c2:colNum(m[3]),r2:+m[4]}}
+    S.minR=area.r1;S.maxR=area.r2;S.minC=area.c1;S.maxC=area.c2;
+    const sz=xlSize(S);if(!(sz.cw>0&&sz.ch>0)){rep.notes.push('Sheet “'+sh.name+'”: toàn bộ cột/dòng bị ẩn — bỏ qua.');continue}
+    const hdr=xlHeader(S),plan=xlPlan(sz.cw,sz.ch,xo);
+    /* kéo giãn độ cao dòng để bảng lấp đầy trang (chỉ khi bảng vừa 1 trang và còn chỗ trống) */
+    let stretched=0,addPt=0;
+    if(xo.stretch&&plan.one&&stDoc){
+      const start=hdr?hdr.b+1:S.minR,el=[];
+      for(let r=start;r<=S.maxR;r++){const ro=S.rows.get(r);if(ro&&!ro.hid&&ro.cnt>0&&(ro.ht==null||ro.ht<=40))el.push(ro)}
+      const room=plan.ah/plan.sw*0.965-sz.ch;
+      if(el.length&&room>0){
+        const avg=el.reduce((a,ro)=>a+(ro.ht!=null?ro.ht:S.defH),0)/el.length,add=Math.min(room/el.length,0.7*avg);
+        if(add>=2){addPt=add;
+          el.forEach(ro=>{ro.el.setAttribute('ht',((ro.ht!=null?ro.ht:S.defH)+add).toFixed(2));ro.el.setAttribute('customHeight','1');
+            sk(ro.el,'c').forEach(ce=>{const s=parseInt(ce.getAttribute('s')||'0',10)||0,n=xlVC(stDoc,vcCache,s);if(n!==s){ce.setAttribute('s',String(n));stDirty=true}})});
+          stretched=el.length;stDirty=true}}}
+    xlSetPrint(doc,plan,xo,plan.one);
+    const a1='$'+colName(area.c1)+'$'+area.r1+':$'+colName(area.c2)+'$'+area.r2;
+    xlDefName(wbRoot,wbDoc,sh.i,'Print_Area',qName(sh.name)+'!'+a1);
+    const useT=xo.titles&&!plan.one&&hdr;
+    xlDefName(wbRoot,wbDoc,sh.i,'Print_Titles',useT?qName(sh.name)+'!$'+hdr.a+':$'+hdr.b:null);
+    zip.file(sh.path,ser(doc));done++;
+    rep.fix('Đặt khổ A4, hướng in, lề, căn giữa trang');rep.fix('Đặt vùng in = vùng có dữ liệu');rep.fix('Co vừa 1 trang theo chiều rộng');
+    if(stretched)rep.fix('Tăng độ cao dòng bảng để lấp đầy trang (dòng)',stretched);
+    if(useT)rep.fix('Lặp dòng tiêu đề bảng ở mỗi trang');
+    const pct=Math.round(plan.e*100);
+    rep.notes.push('Sheet “'+sh.name+'”: vùng in '+colName(area.c1)+area.r1+':'+colName(area.c2)+area.r2+', A4 '+(plan.o==='landscape'?'ngang':'dọc')+', ước tính thu còn ~'+pct+'%, '+(plan.one?'vừa 1 trang':'khoảng '+plan.pages+' trang (rộng 1 trang'+(useT?', lặp dòng '+hdr.a+(hdr.b>hdr.a?'–'+hdr.b:''):'')+')')+(stretched?'; tăng độ cao '+stretched+' dòng thêm ~'+addPt.toFixed(1)+' pt':'')+'.');
+    if(plan.e<0.6)rep.warn('Sheet “'+sh.name+'”: bảng rất rộng, chữ sau khi thu nhỏ còn ~'+pct+'% — có thể khó đọc. Cân nhắc ẩn bớt cột hoặc chọn in ngang.');
+    if(S.drawing)rep.warn('Sheet “'+sh.name+'”: có hình/biểu đồ/ghi chú — công cụ chỉ tính theo ô dữ liệu, hãy xem lại bản xem trước khi in.')}
+  if(!done)throw new Error('Không có sheet nào cần/được phép căn chỉnh.');
+  if(stDoc&&stDirty)zip.file('xl/styles.xml',ser(stDoc));
+  zip.file('xl/workbook.xml',ser(wbDoc));
+  const data=await zip.generateAsync({type:'uint8array',compression:'DEFLATE'});
+  rep.notes.push('Công thức, số liệu, định dạng và cột/dòng ẩn được giữ nguyên. Thu phóng thực tế do Excel tính khi in (đã đặt “vừa 1 trang theo chiều rộng”), nên kiểm tra lại ở File → Print.');
+  return{data,rep}}
+
 /* ====================== GIAO DIỆN ====================== */
 const cb=(id,t,on)=>'<label class="raC"><input type="checkbox" id="ra_'+id+'"'+(on?' checked':'')+'> '+t+'</label>';
 const num=(id,v)=>'<input type="number" id="ra_'+id+'" value="'+v+'" min="0" max="100" step="1" style="width:60px">';
@@ -1774,9 +1914,9 @@ function buildUI(){
   st.textContent='#wtAudit .raG{border:1px solid rgba(128,128,128,.35);border-radius:10px;margin:8px 0;padding:6px 10px}#wtAudit summary{cursor:pointer;font-weight:600;padding:4px 0}#wtAudit .raC{display:block;margin:5px 0;font-size:14px;line-height:1.4}#wtAudit .raR{margin:5px 0;font-size:14px}#wtAudit .raRes{border:1px solid rgba(128,128,128,.35);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:14px}#wtAudit .raRes ul{margin:4px 0 4px 18px;padding:0}#wtAudit .raRes li{margin:2px 0}';
   document.head.appendChild(st);
   const d=document.createElement('div');d.className='wtool';d.id='wtAudit';
-  d.innerHTML='<div class="note">Đưa file .docx lên → công cụ tự rà soát và sửa lỗi bố cục, định dạng, bảng, hình, công thức, đánh số… rồi xuất file mới kèm báo cáo (đã gồm cả chức năng Chuẩn hóa Word). <b>File gốc không bị thay đổi.</b> File xuất ra được tự kiểm tra cấu trúc; nếu có nguy cơ lỗi, công cụ tự thử lại ở chế độ an toàn. Mặc định đã chọn các mục an toàn; mở từng nhóm để tinh chỉnh.</div>'
+  d.innerHTML='<div class="note">Đưa file .docx lên → công cụ tự rà soát và sửa lỗi bố cục, định dạng, bảng, hình, công thức, đánh số… rồi xuất file mới kèm báo cáo (đã gồm cả chức năng Chuẩn hóa Word). <b>Mới:</b> đưa file <b>.xlsx</b> lên → tự căn chỉnh trang in (A4, hướng ngang/dọc, lề, vùng in, vừa trang, không mất nội dung); mục Excel bên dưới chỉ áp dụng cho file .xlsx. <b>File gốc không bị thay đổi.</b> File xuất ra được tự kiểm tra cấu trúc; nếu có nguy cơ lỗi, công cụ tự thử lại ở chế độ an toàn. Mặc định đã chọn các mục an toàn; mở từng nhóm để tinh chỉnh.</div>'
   +'<div class="bar"><button class="ghost sm" id="ra_preset" type="button">⚡ Chuẩn hóa nhanh: Times New Roman 14, A4, lề chuẩn</button></div>'
-  +'<div class="bar"><input type="file" id="ra_in" accept=".docx" multiple style="display:none"><button class="ghost" id="ra_pick" type="button">📁 Chọn file .docx (nhiều file / kéo thả vào đây)</button><button class="sec sm" id="ra_clear" type="button">🗑 Xóa danh sách</button></div><div id="ra_list"></div>'
+  +'<div class="bar"><input type="file" id="ra_in" accept=".docx,.xlsx" multiple style="display:none"><button class="ghost" id="ra_pick" type="button">📁 Chọn file .docx / .xlsx (nhiều file / kéo thả vào đây)</button><button class="sec sm" id="ra_clear" type="button">🗑 Xóa danh sách</button></div><div id="ra_list"></div>'
   +'<details class="raG" open><summary>📝 Văn bản &amp; định dạng</summary>'
   +cb('text','Dọn khoảng trắng thừa, dấu cách trước dấu câu, ký tự ẩn, NBSP; chuẩn hóa dấu tiếng Việt (NFC)',1)+cb('indent','Bỏ Tab/dấu cách thụt đầu dòng thủ công',1)+cb('num','Đánh số lại “Câu/Bài” bị nhảy hoặc trùng (reset theo PHẦN/ĐỀ)',1)+cb('spell','Sửa lỗi chính tả thường gặp chắc chắn sai (vd “xác xuất”→“xác suất”, “bổ xung”→“bổ sung”, “xử dụng”→“sử dụng”)',1)+cb('unify','Thống nhất kiểu nhãn theo kiểu đa số: đáp án “A.” hay “A)”, nhãn “Câu 1.” hay “Câu 1:”',1)+cb('decimal','Đổi số thập phân 3.5 → 3,5 (bỏ qua số mục/hình/bảng, ngày tháng) — chỉ bật nếu tài liệu dùng dấu phẩy',0)+cb('cap','Tự viết hoa chữ đầu câu / đầu đoạn (chỉ khi chắc chắn; mặc định chỉ đánh dấu Comment)',0)+cb('quotes','Đổi ngoặc kép thẳng (") thành ngoặc kép cong “ ” khi mở/đóng đúng cặp',1)+cb('phead','Nhận diện tiêu đề không dùng style Heading (dòng ngắn in đậm hoặc IN HOA) để không căn đều/thụt dòng nhầm',1)
   +'<div class="raR">Font: <select id="ra_font"><option>Times New Roman</option><option>Arial</option><option>Calibri</option><option>Cambria</option><option value="">Giữ nguyên font</option></select> &nbsp; Cỡ chữ: <select id="ra_size"><option value="auto">Tự nhận diện</option><option value="12">12</option><option value="13">13</option><option value="14">14</option></select></div>'
@@ -1794,6 +1934,15 @@ function buildUI(){
   +cb('tbl','Bảng: vừa lề, không cắt đôi hàng, lặp hàng tiêu đề, căn giữa ô ngắn, gỡ bảng trôi',1)+cb('tblkeep','Bảng nhỏ (dưới 1/5 trang): giữ nguyên cả bảng trên một trang. Bảng lớn vẫn được tách theo hàng để không chừa khoảng trống',1)+cb('tblborder','Thêm viền cho bảng nhiều hàng chưa có viền',0)
   +'<div class="raR">Chiều cao tối đa của hình/bản vẽ: <select id="ra_imgmax"><option value="0.4">40% trang (ít khoảng trống nhất)</option><option value="0.5" selected>50% trang</option><option value="0.65">65% trang</option><option value="0.95">Gần cả trang (kiểu cũ)</option></select></div>'+cb('imgInline','Hình: chuyển hình “trôi” thành hình cùng dòng (hết nhảy vị trí/che chữ)',1)+cb('imgFix','Hình: sửa méo, thu nhỏ hình tràn lề/ô bảng, căn giữa hình đứng riêng',1)
   +cb('latex','Công thức: chuyển LaTeX ($...$, \\(...\\), \\[...\\]) thành Equation của Word',1)+cb('mathsz','Công thức: đồng bộ font/cỡ chữ với văn bản',1)+'</details>'
+  +'<details class="raG" open><summary>📗 Excel (.xlsx): tự căn chỉnh trang in</summary>'
+  +'<div class="note" style="margin:4px 0">Chỉ áp dụng cho file .xlsx. Công thức, số liệu, định dạng, cột/dòng ẩn được giữ nguyên; chỉ đổi cài đặt in.</div>'
+  +'<div class="raR">Hướng giấy (A4): <select id="ra_xorient"><option value="auto">Tự chọn (ngang/dọc cho chữ lớn nhất)</option><option value="landscape">Luôn ngang</option><option value="portrait">Luôn dọc</option></select></div>'
+  +'<div class="raR">Lề (mm): Trên '+num('xmt',13)+' Dưới '+num('xmb',13)+' Trái '+num('xml',10)+' Phải '+num('xmr',10)+'</div>'
+  +cb('xarea','Tự đặt vùng in = vùng có dữ liệu (bỏ cột/dòng trống thừa; bỏ tick để giữ vùng in cũ nếu có)',1)
+  +cb('xcenter','Căn giữa trang (ngang; bảng 1 trang thì căn giữa cả dọc)',1)
+  +cb('xstretch','Bảng vừa 1 trang mà còn trống phía dưới: tăng nhẹ độ cao dòng dữ liệu để bảng lấp đầy trang và căn chữ giữa ô',1)
+  +cb('xtitles','Bảng dài nhiều trang: lặp dòng tiêu đề bảng ở đầu mỗi trang',1)
+  +'<div class="raR">Ép vừa 1 trang nếu chữ sau khi thu nhỏ còn từ: <select id="ra_xmin"><option value="0.6">60% trở lên</option><option value="0.7" selected>70% trở lên</option><option value="0.8">80% trở lên</option></select> (nhỏ hơn thì chia nhiều trang, mỗi trang vẫn đủ cột)</div></details>'
   +'<details class="raG" open><summary>🔎 Kiểm tra &amp; đánh dấu</summary>'
   +cb('mark','Đánh dấu bằng Comment tại chỗ cần kiểm tra tay (nghi gõ sai, ngoặc/ngoặc kép lệch, thiếu dấu chấm cuối, viết hoa, dấu câu lạ…)',1)
   +cb('verify','Kiểm lại nhiều vòng: chạy lại rà soát trên file kết quả cho tới khi không còn lỗi tự sửa được',1)
@@ -1825,7 +1974,7 @@ const fsz=n=>n<1024?n+' B':n<1048576?(n/1024).toFixed(0)+' KB':(n/1048576).toFix
 function setSt(m,k){const e=g('ra_st');e.textContent=m;e.className='status'+(k==='e'?' err':k==='o'?' ok':' info')}
 function renderList(){g('ra_list').innerHTML=q.map((f,i)=>'<div class="frow"><span>📄</span><span class="fnm" title="'+hx(f.name)+'">'+hx(f.name)+'</span><span class="fsz">'+fsz(f.size)+'</span><button class="sec sm" type="button" data-i="'+i+'">✕</button></div>').join('')}
 async function addFiles(list){const bad=[];
-  for(const f of Array.from(list)){if(!/\.docx$/i.test(f.name)){bad.push(/\.doc$/i.test(f.name)?f.name+' (file .doc cũ — hãy mở bằng Word, Save As → .docx)':f.name+' (không phải .docx)');continue}
+  for(const f of Array.from(list)){if(!/\.(docx|xlsx)$/i.test(f.name)){bad.push(/\.doc$/i.test(f.name)?f.name+' (file .doc cũ — hãy mở bằng Word, Save As → .docx)':/\.xls$/i.test(f.name)?f.name+' (file .xls cũ — hãy mở bằng Excel, Save As → .xlsx)':f.name+' (không phải .docx/.xlsx)');continue}
     if(q.some(x=>x.name===f.name&&x.size===f.size))continue;q.push({name:f.name,size:f.size,buf:await f.arrayBuffer()})}
   renderList();setSt(bad.length?'Bỏ qua: '+bad.join('; '):(q.length?'Đã chọn '+q.length+' file, sẵn sàng rà soát.':''),bad.length?'e':'')}
 function readOpts(){
@@ -1836,19 +1985,36 @@ function readOpts(){
     lintOff:{typo:!c('l_typo'),dup:!c('l_dup'),bracket:!c('l_bracket'),quote:!c('l_quote'),dollar:!c('l_dollar'),punct:!c('l_punct'),lower:!c('l_lower'),mid:!c('l_mid'),noend:!c('l_noend'),struct:!c('l_struct')}};
   if([o.mt,o.mb,o.ml,o.mr].some(x=>!isFinite(x)||x<0||x>100)||o.ml+o.mr>=150||o.mt+o.mb>=200)throw new Error('Lề không hợp lệ (0–100 mm; trái+phải < 150, trên+dưới < 200).');
   return o}
+function readXlOpts(){
+  const c=id=>g('ra_'+id).checked,n=id=>parseFloat(String(g('ra_'+id).value).replace(',','.'));
+  const o={orient:g('ra_xorient').value,mt:n('xmt'),mb:n('xmb'),ml:n('xml'),mr:n('xmr'),area:c('xarea'),center:c('xcenter'),stretch:c('xstretch'),titles:c('xtitles'),minScale:n('xmin')};
+  if([o.mt,o.mb,o.ml,o.mr].some(x=>!isFinite(x)||x<0||x>100)||o.ml+o.mr>=150||o.mt+o.mb>=150)throw new Error('Lề Excel không hợp lệ (0–100 mm; trái+phải < 150, trên+dưới < 150).');
+  return o}
 const MD='application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 function save(name,data,mime){const b=new Blob([data],{type:mime});if(typeof saveBlob==='function')return saveBlob(b,name);
   const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)}
 async function run(){
   const out=g('ra_out'),btn=g('ra_run');out.innerHTML='';
-  if(!q.length)return setSt('Chưa chọn file .docx nào.','e');
+  if(!q.length)return setSt('Chưa chọn file .docx/.xlsx nào.','e');
   if(typeof JSZip==='undefined')return setSt('Chưa tải được thư viện JSZip (cần mạng để tải từ cdnjs).','e');
-  let o;try{o=readOpts()}catch(e){return setSt(e.message,'e')}
+  let o,xo=null;try{o=readOpts();if(q.some(x=>/\.xlsx$/i.test(x.name)))xo=readXlOpts()}catch(e){return setSt(e.message,'e')}
   const autoM=!o.aiModel;   /* để trống = tự động: Lite → Flash → Pro, tự chuyển khi model lỗi */
   btn.disabled=true;const res=[];let ok=0;
   for(let k=0;k<q.length;k++){const f=q[k],pre='('+(k+1)+'/'+q.length+') '+f.name+': ';
     const card=document.createElement('div');card.className='raRes';
     try{
+      if(/\.xlsx$/i.test(f.name)){
+        if(!xo)xo=readXlOpts();
+        const r=await auditExcel(f.buf,xo,{progress:m=>setSt(pre+m)});
+        const base=f.name.replace(/\.xlsx$/i,'')+'_canin',rt=reportText(f.name,r.rep),total=Array.from(r.rep.f.values()).reduce((a,b)=>a+b,0),rb=new TextEncoder().encode('\ufeff'+rt);
+        res.push({name:base+'.xlsx',data:r.data,mime:XL_MIME},{name:base+'_baocao.txt',data:rb,mime:'text/plain'});ok++;
+        let h='✅ <b>'+hx(f.name)+'</b> — đã căn chỉnh trang in Excel';
+        if(r.rep.notes.length)h+='<ul>'+r.rep.notes.slice(0,12).map(x=>'<li>'+hx(x)+'</li>').join('')+'</ul>';
+        if(r.rep.w.length)h+='<div>⚠ <b>Cần kiểm tra tay:</b><ul>'+r.rep.w.map(x=>'<li>'+hx(x)+'</li>').join('')+'</ul></div>';
+        card.innerHTML=h;
+        [[base+'.xlsx',r.data,XL_MIME,'⬇ Tải file Excel đã căn trang in','green sm'],[base+'_baocao.txt',rb,'text/plain','📋 Báo cáo (.txt)','sec sm']].forEach(a=>{
+          const b=document.createElement('button');b.type='button';b.className=a[4];b.textContent=a[3];b.onclick=()=>save(a[0],a[1],a[2]);card.appendChild(b);card.appendChild(document.createTextNode(' '))});
+      }else{
       USED.clear();
       const r=await audit(f.buf,o,{progress:m=>setSt(pre+m)});
       let aiR=null;
@@ -1875,6 +2041,7 @@ async function run(){
       card.innerHTML=h;
       [[base+'.docx',r.data,MD,'⬇ Tải file Word đã rà soát','green sm'],].concat(pdf?[[base+'.pdf',pdf,'application/pdf','⬇ PDF (xem nhanh)','sec sm']]:[]).concat([[base+'_baocao.txt',new TextEncoder().encode('\ufeff'+rt),'text/plain','📋 Báo cáo (.txt)','sec sm']]).forEach(a=>{
         const b=document.createElement('button');b.type='button';b.className=a[4];b.textContent=a[3];b.onclick=()=>save(a[0],a[1],a[2]);card.appendChild(b);card.appendChild(document.createTextNode(' '))})
+      }
     }catch(e){card.innerHTML='❌ <b>'+hx(f.name)+'</b>: bỏ qua — '+hx(e.message)}
     out.appendChild(card);await tick()}
   if(res.length>3&&g('ra_zip').checked&&typeof makeZip==='function'){const b=document.createElement('button');b.type='button';b.className='green';b.textContent='📦 Tải gộp tất cả (.zip)';
@@ -1893,6 +2060,6 @@ function wire(){
     g('ra_mt').value=20;g('ra_mb').value=20;g('ra_ml').value=30;g('ra_mr').value=15;
     setSt('Đã đặt: Times New Roman 14pt, giãn dòng 1,15, căn đều, thụt đầu dòng 1 cm, A4, lề 20/20/30/15 mm. Bấm “Rà soát & Xuất file” để chạy.','o')};
   g('ra_run').onclick=run}
-window.RaSoatWord={audit,reportText,readOpts,version:VERSION,_t:{docxToParas,structHints,evHit,ommlTex,aiExamReview,geminiJSON,answerKeyText}};
+window.RaSoatWord={audit,auditExcel,reportText,readOpts,version:VERSION,_t:{docxToParas,structHints,evHit,ommlTex,aiExamReview,geminiJSON,answerKeyText}};
 buildUI();
 })();
