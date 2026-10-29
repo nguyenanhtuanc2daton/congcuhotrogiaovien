@@ -451,6 +451,8 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
 .view{display:none}
 .card[data-view=idle] .v-idle,.card[data-view=busy] .v-busy,.card[data-view=done] .v-done,.card[data-view=err] .v-err{display:block}
 .note{margin:0 0 14px;text-align:center;color:#a9a39a;font-size:13.5px}
+.heartBlink{display:inline-block;animation:heartBlink 1s ease-in-out infinite}
+@keyframes heartBlink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.15;transform:scale(.85)}}
 .pick{display:block;width:100%;padding:16px;font-size:20px;font-weight:700;color:#fff;background:#5fa800;border:2px solid #4b8600;border-radius:12px}
 .pick2{display:block;width:100%;margin-top:10px;padding:11px;font-size:16px;font-weight:700;background:#12404f;border:1px solid #1d5666;border-radius:12px}
 .zip{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px;font-size:13.5px;color:#d8d2c8;cursor:pointer}
@@ -579,8 +581,9 @@ window.addEventListener('beforeunload',e=>{if(busy){e.preventDefault();e.returnV
 
 function hostTexts(){
   const g=useHost==='gofile';
-  $('noteTxt').textContent=g?'Gửi lên Gofile, không cần đăng nhập. Tệp KHÔNG mã hóa: ai có link đều mở được. Nhiều tệp/thư mục sẽ tự gộp thành 1 file .zip.'
-    :'Tệp được mã hóa ngay trên máy bạn rồi mới gửi đi. Tối đa '+MAX_FILES+' tệp riêng lẻ mỗi lần; gộp .zip thì không giới hạn số tệp.';
+  const nt=$('noteTxt');
+  if(g){nt.textContent='Bạn vui lòng chọn tệp hoặc chọn thư mục để tải lên server của thầy Tuấn ';const h=document.createElement('span');h.className='heartBlink';h.textContent='❤️';nt.appendChild(h)}
+  else nt.textContent='Tệp được mã hóa ngay trên máy bạn rồi mới gửi đi. Tối đa '+MAX_FILES+' tệp riêng lẻ mỗi lần; gộp .zip thì không giới hạn số tệp.';
   $('retTxt').textContent=g?'giữ ~10 ngày nếu không ai tải':'lưu '+RETENTION_TEXT;
   $('zipChk').disabled=g;if(g)$('zipChk').checked=true;
   $('out').textContent=g?'↗ Mở Gofile':'↗ Mở file.kiwi';
