@@ -453,18 +453,30 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
 .note{margin:0 0 14px;text-align:center;color:#a9a39a;font-size:13.5px}
 .heartBlink{display:inline-block;animation:heartBlink 1s ease-in-out infinite}
 .drop{container-type:inline-size}
-.note.one{white-space:nowrap;font-size:clamp(7px,2.5cqw,13.5px);margin-bottom:2px}
-.catrow{display:none;position:relative;height:40px;margin:0 0 10px;overflow:hidden}
+.note.one{white-space:normal;text-wrap:balance;font-size:clamp(15px,4.4cqw,18px);line-height:1.5;font-weight:600;color:#f3ecdc;text-shadow:0 1px 3px #000;margin:0 0 6px}
+.catrow{display:none;position:relative;height:52px;margin:0 0 10px;overflow:hidden}
 .catrow.on{display:block}
-.cat{position:absolute;left:0;bottom:0;width:46px;height:38px;animation:catMove 20s linear infinite}
+.cat{position:absolute;left:0;bottom:0;width:56px;height:46px;animation:catMove 26s linear infinite}
 .cat svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.cat .flip{position:absolute;inset:0;animation:catFlip 20s steps(1,end) infinite}
-.cat .walk{animation:catWalkVis 20s steps(1,end) infinite}
-.cat .sit{animation:catSitVis 20s steps(1,end) infinite}
-@keyframes catMove{0%{transform:translateX(0)}38%{transform:translateX(calc(100cqw - 46px))}50%{transform:translateX(calc(100cqw - 46px))}88%{transform:translateX(0)}100%{transform:translateX(0)}}
+.cat .flip{position:absolute;inset:0;animation:catFlip 26s steps(1,end) infinite}
+.cat .walk{animation:catWalkVis 26s steps(1,end) infinite}
+.cat .sit{opacity:0;animation:catSitVis 26s steps(1,end) infinite}
+.cat .groom{opacity:0;animation:catGroomVis 26s steps(1,end) infinite}
+/* Hành trình: đi sang phải → dừng vuốt râu → tới mép phải nghỉ chút → quay lại → dừng vuốt râu → về chỗ cũ nghỉ chút */
+@keyframes catMove{0%{transform:translateX(0)}18%{transform:translateX(calc((100cqw - 56px)*.42))}28%{transform:translateX(calc((100cqw - 56px)*.42))}46%{transform:translateX(calc((100cqw - 56px)*1))}50%{transform:translateX(calc((100cqw - 56px)*1))}68%{transform:translateX(calc((100cqw - 56px)*.58))}78%{transform:translateX(calc((100cqw - 56px)*.58))}94%{transform:translateX(0)}100%{transform:translateX(0)}}
 @keyframes catFlip{0%{transform:scaleX(1)}50%{transform:scaleX(-1)}100%{transform:scaleX(-1)}}
-@keyframes catWalkVis{0%{opacity:1}38%{opacity:0}50%{opacity:1}88%{opacity:0}100%{opacity:0}}
-@keyframes catSitVis{0%{opacity:0}38%{opacity:1}50%{opacity:0}88%{opacity:1}100%{opacity:1}}
+@keyframes catWalkVis{0%{opacity:1}18%{opacity:0}28%{opacity:1}46%{opacity:0}50%{opacity:1}68%{opacity:0}78%{opacity:1}94%{opacity:0}100%{opacity:0}}
+@keyframes catGroomVis{0%{opacity:0}18%{opacity:1}28%{opacity:0}68%{opacity:1}78%{opacity:0}100%{opacity:0}}
+@keyframes catSitVis{0%{opacity:0}46%{opacity:1}50%{opacity:0}94%{opacity:1}100%{opacity:1}}
+.cat .arm{transform-box:view-box;transform-origin:31px 32px;animation:armSwipe .5s ease-in-out infinite alternate}
+@keyframes armSwipe{from{transform:rotate(-12deg)}to{transform:rotate(22deg)}}
+.cat .gw{transform-box:fill-box;transform-origin:0% 50%;animation:gwWig .5s ease-in-out infinite alternate}
+@keyframes gwWig{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+.cat .ghead{transform-box:view-box;transform-origin:24px 28px;animation:gHead 1s ease-in-out infinite alternate}
+@keyframes gHead{from{transform:rotate(-4deg)}to{transform:rotate(5deg)}}
+.cat .hrt{opacity:0;animation:hrtUp 1.6s ease-out infinite}
+.cat .hrt.h2{animation-delay:.8s}
+@keyframes hrtUp{0%{opacity:0;transform:translateY(4px) scale(.6)}25%{opacity:1}100%{opacity:0;transform:translateY(-9px) scale(1.1)}}
 .cat .bob{animation:catBob .3s ease-in-out infinite alternate}
 @keyframes catBob{from{transform:translateY(0)}to{transform:translateY(-1.5px)}}
 .cat .lg{transform-box:fill-box;transform-origin:50% 0}
@@ -482,7 +494,7 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
 @keyframes look{from{transform:translateX(-1.1px)}to{transform:translateX(1.1px)}}
 .cat .tongue{transform-box:fill-box;transform-origin:50% 0;animation:tongue 1.2s ease-in-out infinite alternate}
 @keyframes tongue{from{transform:scaleY(.6)}to{transform:scaleY(1.15)}}
-@media (prefers-reduced-motion:reduce){.cat,.cat *{animation:none!important}.cat .walk{opacity:0}.cat .sit{opacity:1}}
+@media (prefers-reduced-motion:reduce){.cat,.cat *{animation:none!important}.cat .walk{opacity:0}.cat .groom{opacity:0}.cat .sit{opacity:1}}
 
 @keyframes heartBlink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.15;transform:scale(.85)}}
 .pick{display:block;width:100%;padding:16px;font-size:20px;font-weight:700;color:#fff;background:#5fa800;border:2px solid #4b8600;border-radius:12px}
@@ -574,6 +586,27 @@ button:disabled{opacity:.5;cursor:default}
               <g class="tongue"><path d="M22.6 23.3 q1.4 4.2 2.8 0z" fill="#ff6f91"/></g>
               <path d="M10 18 l-5 -1 M10 20 l-5 1.5 M38 18 l5 -1 M38 20 l5 1.5" stroke="#fff" stroke-width=".6" stroke-linecap="round"/>
             </g>
+          </svg>
+          <svg class="groom" viewBox="0 0 48 40">
+            <g class="tailW"><path d="M33 35 C42 36 45 28 41 22" fill="none" stroke="#f2a65a" stroke-width="4" stroke-linecap="round"/></g>
+            <ellipse cx="24" cy="30" rx="11" ry="9" fill="#f2a65a"/>
+            <ellipse cx="24" cy="32" rx="6" ry="6.5" fill="#fff3df"/>
+            <ellipse cx="19.5" cy="37.5" rx="3.6" ry="2.2" fill="#ffe3bd"/><ellipse cx="28.5" cy="37.5" rx="3.6" ry="2.2" fill="#ffe3bd"/>
+            <g class="ghead">
+              <polygon points="14,11 15,1 22,7" fill="#f2a65a"/><polygon points="26,7 33,1 34,11" fill="#f2a65a"/>
+              <polygon points="16,9 16.5,4.5 20,7.5" fill="#f9b8c4"/><polygon points="28,7.5 31.5,4.5 32,9" fill="#f9b8c4"/>
+              <circle cx="24" cy="16" r="10.5" fill="#f2a65a"/>
+              <path d="M24 6 v3.5 M19.5 6.8 l1 3 M28.5 6.8 l-1 3" stroke="#d98a3d" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M15.8 17 q3.2 -4.2 6.4 0 M25.8 17 q3.2 -4.2 6.4 0" fill="none" stroke="#3a2410" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="14.5" cy="20.5" r="2.6" fill="#ff8aa0" opacity=".85"/><circle cx="33.5" cy="20.5" r="2.6" fill="#ff8aa0" opacity=".85"/>
+              <path d="M22.6 20 h2.8 l-1.4 1.6z" fill="#f06a8a"/>
+              <path d="M21 22 q3 3.4 6 0 q-3 1 -6 0z" fill="#c94a68" stroke="#7a4a1d" stroke-width=".7" stroke-linejoin="round"/>
+              <path d="M10 18 l-5 -1 M10 20 l-5 1.5" stroke="#fff" stroke-width=".6" stroke-linecap="round"/>
+              <g class="gw"><path d="M38 18 l5.5 -1.6 M38 20 l5.5 1.6" stroke="#fff" stroke-width=".7" stroke-linecap="round"/></g>
+            </g>
+            <g class="arm"><line x1="31" y1="32" x2="37" y2="21" stroke="#f2a65a" stroke-width="4.6" stroke-linecap="round"/><circle cx="37" cy="21" r="3" fill="#ffe3bd"/></g>
+            <text class="hrt" x="40" y="9" font-size="7" fill="#ff5d85">♥</text>
+            <text class="hrt h2" x="4" y="10" font-size="5.5" fill="#ff8aa8">♥</text>
           </svg>
         </div></div>
         <button class="pick" id="pick" type="button">📦 Chọn Tệp</button>
