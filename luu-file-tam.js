@@ -452,6 +452,38 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
 .card[data-view=idle] .v-idle,.card[data-view=busy] .v-busy,.card[data-view=done] .v-done,.card[data-view=err] .v-err{display:block}
 .note{margin:0 0 14px;text-align:center;color:#a9a39a;font-size:13.5px}
 .heartBlink{display:inline-block;animation:heartBlink 1s ease-in-out infinite}
+.drop{container-type:inline-size}
+.note.one{white-space:nowrap;font-size:clamp(7px,2.5cqw,13.5px);margin-bottom:2px}
+.catrow{display:none;position:relative;height:40px;margin:0 0 10px;overflow:hidden}
+.catrow.on{display:block}
+.cat{position:absolute;left:0;bottom:0;width:46px;height:38px;animation:catMove 20s linear infinite}
+.cat svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.cat .flip{position:absolute;inset:0;animation:catFlip 20s steps(1,end) infinite}
+.cat .walk{animation:catWalkVis 20s steps(1,end) infinite}
+.cat .sit{animation:catSitVis 20s steps(1,end) infinite}
+@keyframes catMove{0%{transform:translateX(0)}38%{transform:translateX(calc(100cqw - 46px))}50%{transform:translateX(calc(100cqw - 46px))}88%{transform:translateX(0)}100%{transform:translateX(0)}}
+@keyframes catFlip{0%{transform:scaleX(1)}50%{transform:scaleX(-1)}100%{transform:scaleX(-1)}}
+@keyframes catWalkVis{0%{opacity:1}38%{opacity:0}50%{opacity:1}88%{opacity:0}100%{opacity:0}}
+@keyframes catSitVis{0%{opacity:0}38%{opacity:1}50%{opacity:0}88%{opacity:1}100%{opacity:1}}
+.cat .bob{animation:catBob .3s ease-in-out infinite alternate}
+@keyframes catBob{from{transform:translateY(0)}to{transform:translateY(-1.5px)}}
+.cat .lg{transform-box:fill-box;transform-origin:50% 0}
+.cat .l1,.cat .l4{animation:legA .3s ease-in-out infinite alternate}
+.cat .l2,.cat .l3{animation:legB .3s ease-in-out infinite alternate}
+@keyframes legA{from{transform:rotate(-28deg)}to{transform:rotate(28deg)}}
+@keyframes legB{from{transform:rotate(28deg)}to{transform:rotate(-28deg)}}
+.cat .tailW{transform-box:fill-box;transform-origin:0% 100%;animation:tailW .6s ease-in-out infinite alternate}
+@keyframes tailW{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+.cat .tilt{transform-box:view-box;transform-origin:24px 26px;animation:tilt 2.4s ease-in-out infinite alternate}
+@keyframes tilt{from{transform:rotate(-9deg)}to{transform:rotate(9deg)}}
+.cat .eye{transform-box:fill-box;transform-origin:50% 50%;animation:blink 3s infinite}
+@keyframes blink{0%,90%,100%{transform:scaleY(1)}94%{transform:scaleY(.1)}}
+.cat .pup{animation:look 1.6s ease-in-out infinite alternate}
+@keyframes look{from{transform:translateX(-1.1px)}to{transform:translateX(1.1px)}}
+.cat .tongue{transform-box:fill-box;transform-origin:50% 0;animation:tongue 1.2s ease-in-out infinite alternate}
+@keyframes tongue{from{transform:scaleY(.6)}to{transform:scaleY(1.15)}}
+@media (prefers-reduced-motion:reduce){.cat,.cat *{animation:none!important}.cat .walk{opacity:0}.cat .sit{opacity:1}}
+
 @keyframes heartBlink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.15;transform:scale(.85)}}
 .pick{display:block;width:100%;padding:16px;font-size:20px;font-weight:700;color:#fff;background:#5fa800;border:2px solid #4b8600;border-radius:12px}
 .pick2{display:block;width:100%;margin-top:10px;padding:11px;font-size:16px;font-weight:700;background:#12404f;border:1px solid #1d5666;border-radius:12px}
@@ -506,6 +538,44 @@ button:disabled{opacity:.5;cursor:default}
     <div class="view v-idle">
       <div class="drop" id="drop">
         <p class="note" id="noteTxt"></p>
+        <div class="catrow" id="catRow" aria-hidden="true"><div class="cat">
+          <div class="flip"><svg class="walk" viewBox="0 0 48 40"><g class="bob">
+            <g class="tailW"><path d="M10 22 C2 20 1 10 6 6" fill="none" stroke="#f2a65a" stroke-width="4" stroke-linecap="round"/></g>
+            <rect class="lg l3" x="11" y="27" width="4.5" height="10" rx="2.2" fill="#d98a3d"/>
+            <rect class="lg l1" x="27" y="27" width="4.5" height="10" rx="2.2" fill="#d98a3d"/>
+            <ellipse cx="22" cy="24" rx="13" ry="8" fill="#f2a65a"/>
+            <path d="M15 17 l2 5 M21 16 l1 6 M27 17 l-1 5" stroke="#d98a3d" stroke-width="1.6" stroke-linecap="round"/>
+            <rect class="lg l2" x="16" y="27" width="4.5" height="10" rx="2.2" fill="#f2a65a"/>
+            <rect class="lg l4" x="32" y="27" width="4.5" height="10" rx="2.2" fill="#f2a65a"/>
+            <polygon points="30,11 31,2 37,8" fill="#f2a65a"/><polygon points="38,8 44,3 44,13" fill="#f2a65a"/>
+            <polygon points="32,9 32.5,5 35,8" fill="#f9b8c4"/>
+            <circle cx="37" cy="16" r="8.5" fill="#f2a65a"/>
+            <ellipse cx="40.5" cy="14.5" rx="2.2" ry="2.6" fill="#fff"/><circle cx="41.2" cy="14.6" r="1.4" fill="#222"/><circle cx="41.6" cy="14" r=".5" fill="#fff"/>
+            <ellipse cx="44.6" cy="19" rx="1.5" ry="1" fill="#f06a8a"/>
+            <path d="M43 21 q-1.5 1.8 -3.5 .8" fill="none" stroke="#7a4a1d" stroke-width=".9" stroke-linecap="round"/>
+            <path d="M44 18 l5 -1.5 M44 19.5 l5 .5" stroke="#fff" stroke-width=".6" stroke-linecap="round"/>
+            <circle cx="36" cy="19.5" r="1.8" fill="#ff9aa8" opacity=".6"/>
+          </g></svg></div>
+          <svg class="sit" viewBox="0 0 48 40">
+            <g class="tailW"><path d="M33 35 C42 36 45 28 41 22" fill="none" stroke="#f2a65a" stroke-width="4" stroke-linecap="round"/></g>
+            <ellipse cx="24" cy="30" rx="11" ry="9" fill="#f2a65a"/>
+            <ellipse cx="24" cy="32" rx="6" ry="6.5" fill="#fff3df"/>
+            <ellipse cx="19.5" cy="37.5" rx="3.6" ry="2.2" fill="#ffe3bd"/><ellipse cx="28.5" cy="37.5" rx="3.6" ry="2.2" fill="#ffe3bd"/>
+            <g class="tilt">
+              <polygon points="14,11 15,1 22,7" fill="#f2a65a"/><polygon points="26,7 33,1 34,11" fill="#f2a65a"/>
+              <polygon points="16,9 16.5,4.5 20,7.5" fill="#f9b8c4"/><polygon points="28,7.5 31.5,4.5 32,9" fill="#f9b8c4"/>
+              <circle cx="24" cy="16" r="10.5" fill="#f2a65a"/>
+              <path d="M24 6 v3.5 M19.5 6.8 l1 3 M28.5 6.8 l-1 3" stroke="#d98a3d" stroke-width="1.5" stroke-linecap="round"/>
+              <g class="eye"><ellipse cx="19" cy="16" rx="3.6" ry="4" fill="#fff"/><circle class="pup" cx="19" cy="16.3" r="2.2" fill="#222"/><circle cx="18.2" cy="15.2" r=".8" fill="#fff"/></g>
+              <g class="eye"><ellipse cx="29" cy="16" rx="3.6" ry="4" fill="#fff"/><circle class="pup" cx="29" cy="16.3" r="2.2" fill="#222"/><circle cx="28.2" cy="15.2" r=".8" fill="#fff"/></g>
+              <circle cx="14.5" cy="20.5" r="2.2" fill="#ff9aa8" opacity=".65"/><circle cx="33.5" cy="20.5" r="2.2" fill="#ff9aa8" opacity=".65"/>
+              <path d="M22.6 20 h2.8 l-1.4 1.6z" fill="#f06a8a"/>
+              <path d="M24 21.6 q-1.6 2.2 -3.4 .8 M24 21.6 q1.6 2.2 3.4 .8" fill="none" stroke="#7a4a1d" stroke-width=".9" stroke-linecap="round"/>
+              <g class="tongue"><path d="M22.6 23.3 q1.4 4.2 2.8 0z" fill="#ff6f91"/></g>
+              <path d="M10 18 l-5 -1 M10 20 l-5 1.5 M38 18 l5 -1 M38 20 l5 1.5" stroke="#fff" stroke-width=".6" stroke-linecap="round"/>
+            </g>
+          </svg>
+        </div></div>
         <button class="pick" id="pick" type="button">📦 Chọn Tệp</button>
         <button class="pick2" id="pickDir" type="button">📁 Chọn Thư Mục</button>
         <label class="zip"><input type="checkbox" id="zipChk" checked> Gộp nhiều tệp thành 1 file .zip</label>
@@ -582,6 +652,7 @@ window.addEventListener('beforeunload',e=>{if(busy){e.preventDefault();e.returnV
 function hostTexts(){
   const g=useHost==='gofile';
   const nt=$('noteTxt');
+  nt.classList.toggle('one',g);$('catRow').classList.toggle('on',g);
   if(g){nt.textContent='Bạn vui lòng chọn tệp hoặc chọn thư mục để tải lên server của thầy Tuấn ';const h=document.createElement('span');h.className='heartBlink';h.textContent='❤️';nt.appendChild(h)}
   else nt.textContent='Tệp được mã hóa ngay trên máy bạn rồi mới gửi đi. Tối đa '+MAX_FILES+' tệp riêng lẻ mỗi lần; gộp .zip thì không giới hạn số tệp.';
   $('retTxt').textContent=g?'giữ ~10 ngày nếu không ai tải':'lưu '+RETENTION_TEXT;
