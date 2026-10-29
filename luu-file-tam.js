@@ -873,11 +873,11 @@ async function viaGofile(items,fills,totalSize,sig){
   for(let t=1;t<=3;t++){
     try{
       newMeter(blob.size);fills[0].style.width='0%';
-      $('sum').textContent='Đang tải lên Gofile…'+(t>1?' (lần '+t+')':'');
+      $('sum').textContent='Đang tải lên server thầy Tuấn…'+(t>1?' (lần '+t+')':'');
       const d=await gofileUpload(blob,it.name,sig,(l,tt)=>{
         fills[0].style.width=Math.round(l/tt*100)+'%';
         report('',l,tt);
-        if(l>=tt){setStat('wait','Đang Upload 100%');$('sum').textContent='Đã gửi xong, đang chờ Gofile xử lý…'}
+        if(l>=tt){setStat('wait','Đang Upload 100%');$('sum').textContent='Đã gửi xong, đang chờ server thầy Tuấn xử lý…'}
       });
       fills[0].style.width='100%';
       return d.downloadPage||(GOFILE_SITE+'/d/'+d.code);
