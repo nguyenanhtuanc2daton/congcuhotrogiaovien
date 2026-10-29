@@ -494,7 +494,6 @@ button.gold{background:#f5c542;border-color:#f5c542;color:#1b1500;font-weight:70
 @keyframes look{from{transform:translateX(-1.1px)}to{transform:translateX(1.1px)}}
 .cat .tongue{transform-box:fill-box;transform-origin:50% 0;animation:tongue 1.2s ease-in-out infinite alternate}
 @keyframes tongue{from{transform:scaleY(.6)}to{transform:scaleY(1.15)}}
-@media (prefers-reduced-motion:reduce){.cat,.cat *{animation:none!important}.cat .walk{opacity:0}.cat .groom{opacity:0}.cat .sit{opacity:1}}
 
 @keyframes heartBlink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.15;transform:scale(.85)}}
 .pick{display:block;width:100%;padding:16px;font-size:20px;font-weight:700;color:#fff;background:#5fa800;border:2px solid #4b8600;border-radius:12px}
