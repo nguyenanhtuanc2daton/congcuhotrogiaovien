@@ -4,7 +4,8 @@
    - Link dạng https://file.kiwi/xxxx#khoa — phần sau dấu # là khóa giải mã, không gửi lên máy chủ.
    - Tải tiếp được khi bị đứt giữa chừng (chọn lại đúng tệp đó trong vòng ~34 giờ, trên cùng trình duyệt).
    - Hiện phần trăm, tốc độ và thời gian còn lại. Nhiều tệp/thư mục có thể gộp thành 1 file .zip.
-   - Chỉ dùng file.kiwi (đã bỏ đường dự phòng Litterbox). Sau khi gửi xong sẽ chờ file.kiwi xác nhận tối đa ~2 phút và tự gửi bù phần còn thiếu.
+   - Chỉ dùng file.kiwi (đã bỏ đường dự phòng Litterbox). Sau khi gửi xong sẽ chờ file.kiwi xác nhận (kiên nhẫn tới ~6 phút nếu máy chủ xử lý chậm) và chỉ gửi bù khi thật sự thiếu phần.
+   - Tệp .zip (gộp nhiều tệp / thư mục) cũng dùng bộ mã hóa tự điều khiển → gửi bù / tải tiếp được như tệp thường.
    - Mã hóa dùng thư viện wormhole-crypto (RFC 8188), nạp từ jsDelivr.
    - Nếu trình duyệt chặn gọi thẳng api.file.kiwi (CORS) → đặt địa chỉ Worker vào PROXY bên dưới
      (xem filekiwi-proxy-worker.js).
@@ -24,7 +25,8 @@ const PROXY='';                       // vd: 'https://filekiwi-proxy.ten-ban.wor
 const CRYPTO_URL='https://cdn.jsdelivr.net/npm/wormhole-crypto@0.2.2/+esm';
 const SITE='https://file.kiwi/vi';    // dùng cho nút "Mở file.kiwi" khi có lỗi
 const MAX_FILES=10;                   // số tệp riêng lẻ tối đa mỗi lần (gộp .zip thì không giới hạn)
-const RETRY=3;                        // số lần thử lại mỗi phần khi lỗi mạng
+const RETRY=5;                        // số lần thử lại mỗi phần khi lỗi mạng
+const PUT_TIMEOUT_MS=5*60*1000;       // 1 phần gửi quá 5 phút không xong → coi là treo, hủy và gửi lại
 const RETURN_SECONDS=15;              // sao chép link xong → tự đóng sau số giây này
 const RETENTION_TEXT='khoảng 90 giờ';
 const RESUME_KEY='luuFileTam.resume.v1';
@@ -34,8 +36,9 @@ const PARALLEL=1;                     // file.kiwi chỉ cho gửi 1 phần mỗ
 const HIST_KEY='luuFileTam.history.v1';
 const HIST_MAX=30;                    // số link nhớ tối đa
 const KIWI_MS=90*3600*1000;           // khớp RETENTION_TEXT
-const CONFIRM_TRIES=15;               // số lần hỏi file.kiwi "đã nhận đủ chưa" sau khi gửi xong
-const CONFIRM_GAP_MS=3000;            // cách nhau 3 giây → chờ tối đa ~45 giây
+const CONFIRM_MS=6*60*1000;           // sau khi gửi xong: chờ file.kiwi xác nhận, bỏ cuộc nếu chừng này thời gian không có tiến triển
+const RESEND_AFTER_MS=45000;          // thiếu một phần mà 45 giây không nhúc nhích → gửi bù phần thiếu
+const RESEND_ALL_AFTER_MS=180000;     // máy chủ báo thiếu TẤT CẢ (thường là xử lý chậm) → đợi 3 phút mới gửi lại
 
 /* ---------- Hàm phụ ---------- */
 const enc=new TextEncoder();
@@ -159,6 +162,31 @@ async function* zipGen(entries,z64){
   yield zEnd(done.length,cdSize,cdStart,z64);
 }
 function genStream(g){return new ReadableStream({async pull(c){const r=await g.next();if(r.done)c.close();else c.enqueue(r.value)}})}
+/* Nguồn đọc ngẫu nhiên [a,b) của file .zip (tạo lại luồng zip khi cần lùi lại; đọc tuần tự thì chạy liền một mạch) */
+function zipSource(entries,z64){
+  let gen=null,pos=0,keep=[],keepStart=0;
+  const reset=()=>{gen=zipGen(entries,z64);pos=0;keep=[];keepStart=0};
+  const trim=lim=>{while(keep.length&&keepStart+keep[0].length<=lim){keepStart+=keep.shift().length}};
+  async function read(a,b){
+    if(!gen||a<keepStart)reset();
+    while(pos<b){
+      const r=await gen.next();
+      if(r.done)throw new Error('Tệp zip ngắn hơn dự kiến.');
+      keep.push(r.value);pos+=r.value.length;
+      trim(a);
+    }
+    const out=new Uint8Array(b-a);let o=keepStart,w=0;
+    for(const p of keep){
+      const st=o,en=o+p.length;o=en;
+      if(en<=a||st>=b)continue;
+      const f=Math.max(st,a),t=Math.min(en,b);
+      out.set(p.subarray(f-st,t-st),w);w+=t-f;
+    }
+    trim(Math.max(0,b-ECE_RS*2));
+    return out;
+  }
+  return{slice:(a,b)=>({arrayBuffer:()=>read(a,b).then(u=>u.buffer)})};
+}
 
 /* ----- Mã hóa RFC 8188 (AES-128-GCM) tự điều khiển được muối → tải tiếp được từ giữa chừng ----- */
 const ECE_RS=65536,ECE_HDR=21;
@@ -349,7 +377,7 @@ async function eceSelfTest(Keychain){
 }
 
 /* ---------- Lưu trạng thái để tải tiếp ---------- */
-const fpOf=items=>items.map(f=>f.name+'|'+f.size+'|'+f.lastModified);
+const fpOf=items=>items.flatMap(f=>f.isZip?f.srcFiles.map(x=>'z|'+(x.webkitRelativePath||x.name)+'|'+x.size+'|'+x.lastModified):[f.name+'|'+f.size+'|'+f.lastModified]);
 function readResume(){try{const r=JSON.parse(localStorage.getItem(RESUME_KEY)||'null');return(r&&r.v===1&&Date.now()-r.t<RESUME_MAX_MS)?r:null}catch(e){return null}}
 function loadResume(fp){const r=readResume();return(r&&JSON.stringify(r.fp)===JSON.stringify(fp))?r:null}
 function saveResume(r){try{localStorage.setItem(RESUME_KEY,JSON.stringify(r))}catch(e){}}
@@ -560,10 +588,16 @@ async function putOnce(url,headers,body,signal){
   if(viaProxy)r=await fetch(PROXY+'/put?u='+encodeURIComponent(url),{method:'PUT',headers,body,signal});
   if(!r.ok)throw new Error('Máy chủ lưu trữ trả lỗi '+r.status);
 }
+async function waitOnline(sig){while(navigator.onLine===false&&!(sig&&sig.aborted))await sleep(1000)}
 async function putChunk(url,headers,body,signal){
   for(let t=1;;t++){
-    try{return await putOnce(url,headers,body,signal)}
-    catch(e){if((signal&&signal.aborted)||t>=RETRY)throw e;await sleep(1000*t)}
+    const ctl=new AbortController(),onAb=()=>ctl.abort();
+    if(signal){if(signal.aborted)ctl.abort();signal.addEventListener('abort',onAb)}
+    const to=setTimeout(()=>ctl.abort(),PUT_TIMEOUT_MS);
+    try{return await putOnce(url,headers,body,ctl.signal)}
+    catch(e){if((signal&&signal.aborted)||t>=RETRY)throw e}
+    finally{clearTimeout(to);if(signal)signal.removeEventListener('abort',onAb)}
+    await waitOnline(signal);await sleep(Math.min(8000,1000*t*t));
   }
 }
 async function apiError(r){
@@ -605,12 +639,13 @@ function planItems(files){
   });
   const plan=zipPlan(entries);
   const root=hasDir?(files[0].webkitRelativePath.split('/')[0]||'thu-muc'):'tep-gop-'+stamp();
-  return{zip:true,items:[{name:root+'.zip',size:plan.total,type:'application/zip',lastModified:0,isZip:true,
+  return{zip:true,items:[{name:root+'.zip',size:plan.total,type:'application/zip',lastModified:0,isZip:true,srcFiles:files,entries,z64:plan.z64,
     stream:()=>genStream(zipGen(entries,plan.z64))}]};
 }
 
 /* ---------- file.kiwi ---------- */
-const statusPath=(j,i)=>'/v2/folders/'+j.folderId+'/files/'+j.files[i].fileId+'/upload-status?uploadAuth='+encodeURIComponent(j.uploadAuth||'');
+const statusPath=(j,i)=>'/v2/folders/'+j.folderId+'/files/'+j.files[i].fileId+'/upload-status?uploadAuth='+encodeURIComponent(j.uploadAuth||'')+'&_='+Date.now();
+const stat=(j,i,sig)=>callApi(statusPath(j,i),{signal:sig,cache:'no-store'});   // không cho trình duyệt/CDN trả kết quả cũ
 function normMissing(m,total){
   m=(m||[]).map(Number);
   if(m.includes(0))m=m.map(x=>x+1);
@@ -619,7 +654,7 @@ function normMissing(m,total){
 }
 async function viaKiwi(items,fills,totalSize,sig){
   const lib=await loadLib(),Keychain=lib.Keychain;
-  const own=items.some(i=>i.isZip)?null:await ownConfig(lib);
+  const own=await ownConfig(lib);
   const fp=fpOf(items);
   let kc=null,j=null,salts=null,resumed=false;
 
@@ -632,7 +667,7 @@ async function viaKiwi(items,fills,totalSize,sig){
       j=rec.j;salts=rec.salts.map(fromHex);resumed=true;
     }catch(e){kc=null;j=null;clearResume()}
     if(resumed){
-      const s=await callApi(statusPath(j,0),{signal:sig});          // lỗi mạng thì để lỗi nổi lên
+      const s=await stat(j,0,sig);          // lỗi mạng thì để lỗi nổi lên
       if(!s.ok){resumed=false;kc=null;j=null;salts=null;clearResume()}
     }
   }
@@ -663,7 +698,7 @@ async function viaKiwi(items,fills,totalSize,sig){
 
   /* 3) Giữ thư mục "còn đang tải" khi tải lâu */
   let cur=0;
-  const ka=setInterval(()=>{callApi(statusPath(j,cur),{signal:sig}).catch(()=>{})},KEEPALIVE_MS);
+  const ka=setInterval(()=>{stat(j,cur,sig).catch(()=>{})},KEEPALIVE_MS);
   try{
     for(let i=0;i<items.length;i++){
       cur=i;
@@ -674,23 +709,24 @@ async function viaKiwi(items,fills,totalSize,sig){
       const label='Đang tải lên '+(i+1)+'/'+items.length;
       $('sum').textContent=resumed?'Tiếp tục tải tệp '+(i+1)+'/'+items.length+'…':'Đang tải tệp '+(i+1)+'/'+items.length+'…';
       let n=0;
+      const src=(own&&it.isZip)?zipSource(it.entries,it.z64):it;
 
       if(own){
         const ctx=await eceCtx(ikm,salts[i],it.size,own.extra);
         if(Math.ceil(ctx.total/cs)!==info.chunks)throw new Error('Số phần dữ liệu không khớp với máy chủ.');
         let todo=Array.from({length:info.chunks},(_,k)=>k+1);
         if(resumed){
-          const sr=await callApi(statusPath(j,i),{signal:sig});
+          const sr=await stat(j,i,sig);
           if(sr.ok){const sj=await sr.json();todo=sj.complete?[]:normMissing(sj.missing,info.chunks)}
         }
-        if(todo.length>2){const f=todo[0],l=todo[todo.length-1];todo=[f,l].concat(todo.slice(1,-1))}
+        if(todo.length>2&&!it.isZip){const f=todo[0],l=todo[todo.length-1];todo=[f,l].concat(todo.slice(1,-1))}
         n=info.chunks-todo.length;
         fills[i].style.width=Math.round(n/info.chunks*100)+'%';
         report(label,before+it.size*n/info.chunks,totalSize);
         const sender=parSender(PARALLEL,sig);
         for(const c of todo){
           await sender.add(async()=>{
-            const data=await eceRange(ctx,it,(c-1)*cs,Math.min(c*cs,ctx.total));
+            const data=await eceRange(ctx,src,(c-1)*cs,Math.min(c*cs,ctx.total));
             await put(c,data);
             n++;
             fills[i].style.width=Math.round(n/info.chunks*100)+'%';
@@ -717,34 +753,43 @@ async function viaKiwi(items,fills,totalSize,sig){
         if(n!==info.chunks||fin!==info.chunks)throw new Error('Thiếu phần dữ liệu khi tải lên.');
       }
 
-      /* Chờ file.kiwi ghép xong tệp; nếu còn thiếu phần nào thì gửi bù (chỉ với tệp gửi nguyên bản) */
-      let okFile=false,lastErr='',lastRaw='',resent=0;
-      const tries=resumed?10:CONFIRM_TRIES;      // phiên cũ mà quá 10 lần vẫn chưa xong → coi như hỏng, gửi mới
-      for(let t=0;t<tries&&!okFile;t++){
+      /* Chờ file.kiwi ghép xong tệp. Máy chủ xử lý bất đồng bộ nên có lúc báo "thiếu" dù đã gửi đủ → kiên nhẫn chờ,
+         chỉ gửi bù khi báo thiếu mà không nhúc nhích một lúc lâu. */
+      let okFile=false,lastErr='',lastRaw='',resent=0,minMiss=Infinity,t=0;
+      const t0=Date.now(),budget=resumed?45000:CONFIRM_MS;
+      let lastProg=t0,lastResend=t0;
+      $('sum').style.whiteSpace='pre-line';
+      while(!okFile&&Date.now()-lastProg<budget){
+        t++;
         setStat('wait','Đang Upload 100%');
-        $('sum').style.whiteSpace='pre-line';
-        $('sum').textContent='Đã gửi xong, đang chờ file.kiwi xác nhận… ('+(t+1)+'/'+tries+')\nCác bạn hãy đợi chút xíu !';
+        $('sum').textContent='Đã gửi xong, đang chờ file.kiwi xác nhận… ('+Math.round((Date.now()-t0)/1000)+' giây)\nCác bạn hãy đợi chút xíu !';
         let sj=null;
         try{
-          const s=await callApi(statusPath(j,i),{signal:sig});
-          if(s.ok){sj=await s.json();lastRaw=JSON.stringify(sj).slice(0,220)}else lastErr='HTTP '+s.status;
+          const s=await stat(j,i,sig);
+          if(s.ok){sj=await s.json();lastRaw=JSON.stringify(sj).slice(0,220);lastErr=''}else lastErr='HTTP '+s.status;
         }catch(e){if(sig.aborted)throw e;lastErr=(e&&e.message)||String(e)}
         if(sj&&sj.complete){okFile=true;break}
-        if(own&&sj&&Array.isArray(sj.missing)&&sj.missing.length&&resent<3){
-          resent++;
-          const miss=normMissing(sj.missing,info.chunks);
-          const ctx2=await eceCtx(ikm,salts[i],it.size,own.extra);
-          const sender2=parSender(PARALLEL,sig);
-          for(const c of miss){
-            await sender2.add(async()=>{
-              const data=await eceRange(ctx2,it,(c-1)*cs,Math.min(c*cs,ctx2.total));
-              await put(c,data);
-            });
+        if(sj&&Array.isArray(sj.missing)){
+          const m=sj.missing.length;
+          if(m<minMiss){minMiss=m;lastProg=Date.now()}        // có tiến triển → gia hạn chờ
+          const grace=m>=info.chunks?RESEND_ALL_AFTER_MS:RESEND_AFTER_MS;
+          if(own&&m&&resent<3&&Date.now()-lastProg>=grace&&Date.now()-lastResend>=grace){
+            resent++;lastResend=Date.now();
+            const miss=normMissing(sj.missing,info.chunks);
+            const ctx2=await eceCtx(ikm,salts[i],it.size,own.extra);
+            const sender2=parSender(PARALLEL,sig);let k2=0;
+            for(const c of miss){
+              await sender2.add(async()=>{
+                $('sum').textContent='Đang gửi bù phần còn thiếu ('+(++k2)+'/'+miss.length+')…';
+                const data=await eceRange(ctx2,src,(c-1)*cs,Math.min(c*cs,ctx2.total));
+                await put(c,data);
+              });
+            }
+            await sender2.finish();
+            continue;
           }
-          await sender2.finish();
-          continue;
         }
-        await sleep(CONFIRM_GAP_MS);
+        await sleep(Math.min(15000,3000+t*1500));
       }
       if(!okFile&&resumed){const er=new Error('stale');er.stale=true;throw er}
       if(!okFile){
@@ -958,7 +1003,7 @@ $('histClear').onclick=()=>{if(confirm('Xóa toàn bộ lịch sử link đã g�
 /* ---------- Điều khiển ---------- */
 function resumeHint(){
   const r=readResume();
-  $('resNote').textContent=r?('Có lần tải dở dang ('+String(r.fp[0]).split('|')[0]+(r.fp.length>1?' và '+(r.fp.length-1)+' tệp khác':'')+'). Chọn lại đúng tệp đó để tải tiếp.'):'';
+  $('resNote').textContent=r?('Có lần tải dở dang ('+String(r.fp[0]).replace(/^z\|/,'').split('|')[0]+(r.fp.length>1?' và '+(r.fp.length-1)+' tệp khác':'')+'). Chọn lại đúng tệp đó để tải tiếp.'):'';
 }
 function resetUI(){setView('idle');setStat('ok','Sẵn sàng');$('link').value='';lastInput=null;resumeHint();renderHist()}
 function open(){
