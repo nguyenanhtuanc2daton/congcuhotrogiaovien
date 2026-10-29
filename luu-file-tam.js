@@ -15,11 +15,17 @@
    - Mã QR cho link (bộ tạo QR gọn nằm ngay trong file này, không cần file khác).
    - Gọi tay:  LuuFileTam.open()  |  LuuFileTam.close()      Gắn vào nút: thêm thuộc tính data-luu-file
    ===================================================================== */
+/* [v3] Máy chủ mặc định đổi sang Gofile (không cần tài khoản, không mã hóa). file.kiwi vẫn còn làm đường dự phòng:
+   đổi HOST_DEFAULT thành 'kiwi' để dùng lại file.kiwi, hoặc bấm nút "Gửi thử bằng …" ở màn hình lỗi. */
 (function(){
 'use strict';
 if(window.LuuFileTam)return;
 
 /* ---------- Cấu hình ---------- */
+const HOST_DEFAULT='gofile';          // 'gofile' | 'kiwi'
+const GOFILE_UP='https://upload.gofile.io/uploadfile';
+const GOFILE_SITE='https://gofile.io';
+const GOFILE_KEEP_MS=10*86400000;     // khách vãng lai: giữ ~10 ngày nếu không ai tải
 const API='https://api.file.kiwi';
 const PROXY='';                       // vd: 'https://filekiwi-proxy.ten-ban.workers.dev' (để trống = gọi thẳng)
 const CRYPTO_URL='https://cdn.jsdelivr.net/npm/wormhole-crypto@0.2.2/+esm';
@@ -162,6 +168,28 @@ async function* zipGen(entries,z64){
   yield zEnd(done.length,cdSize,cdStart,z64);
 }
 function genStream(g){return new ReadableStream({async pull(c){const r=await g.next();if(r.done)c.close();else c.enqueue(r.value)}})}
+/* Dựng file .zip thành Blob "lười" (không nạp cả tệp vào RAM): tính CRC trước rồi ghép [header, tệp gốc, descriptor…] */
+async function zipBlob(entries,z64,onProg,sig){
+  const parts=[],done=[];let off=0,read=0;
+  const total=entries.reduce((a,e)=>a+e.size,0)||1;
+  for(const e of entries){
+    const lh=zLocal(e,z64);parts.push(lh);const start=off;off+=lh.length;
+    let c=0xFFFFFFFF,sz=0;const rd=e.file.stream().getReader();
+    while(true){
+      if(sig&&sig.aborted){try{rd.cancel()}catch(x){}throw new Error('aborted')}
+      const r=await rd.read();if(r.done)break;
+      c=crcUpdate(c,r.value);sz+=r.value.length;read+=r.value.length;onProg&&onProg(read,total);
+    }
+    if(sz!==e.size)throw new Error('Tệp "'+e.file.name+'" bị thay đổi trong lúc nén.');
+    parts.push(e.file);off+=sz;
+    const crc=(c^0xFFFFFFFF)>>>0,dd=zDesc(crc,sz,z64);parts.push(dd);off+=dd.length;
+    done.push({e,crc,start});
+  }
+  const cdStart=off;let cdSize=0;
+  for(const x of done){const b=zCentral(x,z64);parts.push(b);cdSize+=b.length}
+  parts.push(zEnd(done.length,cdSize,cdStart,z64));
+  return new Blob(parts,{type:'application/zip'});
+}
 /* Nguồn đọc ngẫu nhiên [a,b) của file .zip (tạo lại luồng zip khi cần lùi lại; đọc tuần tự thì chạy liền một mạch) */
 function zipSource(entries,z64){
   let gen=null,pos=0,keep=[],keepStart=0;
@@ -475,11 +503,11 @@ button:disabled{opacity:.5;cursor:default}
   <div class="body">
     <div class="view v-idle">
       <div class="drop" id="drop">
-        <p class="note">Tệp được mã hóa ngay trên máy bạn rồi mới gửi đi. Tối đa ${MAX_FILES} tệp riêng lẻ mỗi lần; gộp .zip thì không giới hạn số tệp.</p>
+        <p class="note" id="noteTxt"></p>
         <button class="pick" id="pick" type="button">📦 Chọn Tệp</button>
         <button class="pick2" id="pickDir" type="button">📁 Chọn Thư Mục</button>
         <label class="zip"><input type="checkbox" id="zipChk" checked> Gộp nhiều tệp thành 1 file .zip</label>
-        <p class="hint">hoặc kéo thả tệp/thư mục vào đây · lưu ${RETENTION_TEXT}</p>
+        <p class="hint">hoặc kéo thả tệp/thư mục vào đây · <span id="retTxt"></span></p>
         <p class="hint resnote" id="resNote"></p>
       </div>
       <input type="file" id="inp" multiple hidden>
@@ -514,6 +542,7 @@ button:disabled{opacity:.5;cursor:default}
     <div class="view v-err">
       <div class="err" id="errTxt"></div>
       <div class="row"><button class="gold" id="retry" type="button">Thử lại</button><button id="out" type="button">↗ Mở file.kiwi</button></div>
+      <button class="sm" id="alt" type="button" style="width:100%;margin-top:8px"></button>
     </div>
   </div>
  </div>
@@ -529,7 +558,7 @@ button:disabled{opacity:.5;cursor:default}
 
 const $=id=>root.getElementById(id);
 const ov=$('ov'),card=$('card');
-let busy=false,pushed=false,ac=null,lastInput=null,viaProxy=false,backT=null,libP=null,meter=null;
+let useHost=HOST_DEFAULT,busy=false,pushed=false,ac=null,lastInput=null,viaProxy=false,backT=null,libP=null,meter=null;
 const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 
 /* ---------- Giữ máy không ngủ & cảnh báo khi lỡ đóng tab ---------- */
@@ -548,6 +577,15 @@ document.addEventListener('visibilitychange',()=>{if(wlWant&&document.visibility
 window.addEventListener('resize',()=>{if(card.dataset.view==='done')fitLink()});
 window.addEventListener('beforeunload',e=>{if(busy){e.preventDefault();e.returnValue='';return ''}});
 
+function hostTexts(){
+  const g=useHost==='gofile';
+  $('noteTxt').textContent=g?'Gửi lên Gofile, không cần đăng nhập. Tệp KHÔNG mã hóa: ai có link đều mở được. Nhiều tệp/thư mục sẽ tự gộp thành 1 file .zip.'
+    :'Tệp được mã hóa ngay trên máy bạn rồi mới gửi đi. Tối đa '+MAX_FILES+' tệp riêng lẻ mỗi lần; gộp .zip thì không giới hạn số tệp.';
+  $('retTxt').textContent=g?'giữ ~10 ngày nếu không ai tải':'lưu '+RETENTION_TEXT;
+  $('zipChk').disabled=g;if(g)$('zipChk').checked=true;
+  $('out').textContent=g?'↗ Mở Gofile':'↗ Mở file.kiwi';
+  $('alt').textContent='Gửi thử bằng '+(g?'file.kiwi':'Gofile');
+}
 function setView(v){card.dataset.view=v}
 function setStat(kind,text){$('dot').className='dot '+(kind||'');$('stat').textContent=text}
 
@@ -628,7 +666,7 @@ function buildList(files){
 /* ---------- Gộp .zip ---------- */
 function planItems(files){
   const hasDir=files.some(f=>f.webkitRelativePath);
-  const zip=hasDir||(files.length>1&&$('zipChk').checked);
+  const zip=hasDir||(files.length>1&&($('zipChk').checked||useHost==='gofile'));
   if(!zip)return{items:files,zip:false};
   const used=new Map();
   const entries=files.map(f=>{
@@ -804,9 +842,57 @@ async function viaKiwi(items,fills,totalSize,sig){
   return baseUrl+'#'+secret;
 }
 
+function gofileUpload(blob,name,sig,onProg){
+  return new Promise((res,rej)=>{
+    const x=new XMLHttpRequest();
+    x.open('POST',GOFILE_UP);
+    x.upload.onprogress=e=>{if(e.lengthComputable)onProg(e.loaded,e.total)};
+    x.onload=()=>{
+      let j=null;try{j=JSON.parse(x.responseText)}catch(e){}
+      if(x.status>=200&&x.status<300&&j&&j.status==='ok'&&j.data){res(j.data);return}
+      const er=new Error('Gofile trả lỗi '+x.status+(j&&j.status?' ('+j.status+')':''));
+      er.noRetry=x.status>=400&&x.status<500&&x.status!==429;rej(er);
+    };
+    x.onerror=()=>rej(new TypeError('network'));
+    x.ontimeout=()=>rej(new TypeError('timeout'));
+    x.onabort=()=>rej(new Error('aborted'));
+    if(sig){if(sig.aborted){rej(new Error('aborted'));return}sig.addEventListener('abort',()=>x.abort())}
+    const fd=new FormData();fd.append('file',blob,name);
+    x.send(fd);
+  });
+}
+async function viaGofile(items,fills,totalSize,sig){
+  const it=items[0];
+  $('sum').textContent='Đang chuẩn bị tệp…';
+  let blob=it;
+  if(it.isZip){
+    blob=await zipBlob(it.entries,it.z64,(d,t)=>{setStat('wait','Đang chuẩn bị '+pctText(d,t))},sig);
+    $('spd').textContent='';
+  }
+  let last=null;
+  for(let t=1;t<=3;t++){
+    try{
+      newMeter(blob.size);fills[0].style.width='0%';
+      $('sum').textContent='Đang tải lên Gofile…'+(t>1?' (lần '+t+')':'');
+      const d=await gofileUpload(blob,it.name,sig,(l,tt)=>{
+        fills[0].style.width=Math.round(l/tt*100)+'%';
+        report('',l,tt);
+        if(l>=tt){setStat('wait','Đang Upload 100%');$('sum').textContent='Đã gửi xong, đang chờ Gofile xử lý…'}
+      });
+      fills[0].style.width='100%';
+      return d.downloadPage||(GOFILE_SITE+'/d/'+d.code);
+    }catch(e){
+      if(sig.aborted)throw e;
+      last=e;if(e.noRetry||t===3)throw e;
+      setStat('wait','Lỗi mạng, thử lại lần '+(t+1)+'…');await waitOnline(sig);await sleep(2000*t);
+    }
+  }
+  throw last;
+}
+
 function showDone(lines,note,meta){
   const t=$('link');t.value=lines.join('\n');
-  if(meta)addHist({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Date.now(),exp:Date.now()+KIWI_MS,
+  if(meta)addHist({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Date.now(),exp:Date.now()+(meta.keep||KIWI_MS),
     lines,names:meta.names,size:meta.size,litter:false});
   $('keep').textContent=note+' Link cũng được lưu ở mục “Link đã gửi” trên máy này.';
   const nat=!!navigator.share;
@@ -834,7 +920,8 @@ async function run(input){
   setView('busy');setStat('wait','Đang mã hóa & kết nối…');
   try{
     let r1;
-    try{r1=await viaKiwi(items,fills,totalSize,sig)}
+    if(useHost==='gofile')r1=await viaGofile(items,fills,totalSize,sig);
+    else try{r1=await viaKiwi(items,fills,totalSize,sig)}
     catch(e){
       if(!(e&&e.stale)||sig.aborted)throw e;
       clearResume();                       // bỏ phiên cũ bị kẹt, gửi lại từ đầu
@@ -842,8 +929,10 @@ async function run(input){
       r1=await viaKiwi(items,fills,totalSize,sig);
     }
     const lines=[r1];
-    const meta={names:items.map(x=>x.name),size:totalSize,litter:false};
-    const note='Tệp được lưu '+RETENTION_TEXT+' rồi tự xóa. Chỉ ai có đủ link (kể cả phần sau dấu #) mới mở được.';
+    const gf=useHost==='gofile';
+    const meta={names:items.map(x=>x.name),size:totalSize,litter:false,keep:gf?GOFILE_KEEP_MS:0};
+    const note=gf?'Tệp KHÔNG mã hóa, ai có link đều mở được. Gofile giữ khoảng 10 ngày nếu không ai tải (tải đều thì giữ lâu hơn).'
+      :'Tệp được lưu '+RETENTION_TEXT+' rồi tự xóa. Chỉ ai có đủ link (kể cả phần sau dấu #) mới mở được.';
     showDone(lines,note,meta);
   }catch(e){
     if(sig.aborted)return;
@@ -852,9 +941,11 @@ async function run(input){
 }
 function fail(e){
   let m=(e&&e.message)||String(e);
-  if(e instanceof TypeError)m='Không kết nối được tới file.kiwi (có thể mạng lỗi hoặc trình duyệt chặn truy cập trực tiếp). '+(PROXY?'':'Cần cấu hình PROXY — xem filekiwi-proxy-worker.js. ')+'Chi tiết: '+m;
-  if(readResume())m+='\n\nTệp này có thể tải tiếp: bấm "Thử lại" hoặc chọn lại đúng tệp đó.';
-  $('errTxt').textContent=m;
+  if(e instanceof TypeError)m=useHost==='gofile'
+    ?'Không kết nối được tới Gofile (mạng lỗi, hoặc Gofile không cho trang web này gửi trực tiếp). Hãy thử lại hoặc bấm "Gửi thử bằng file.kiwi". Chi tiết: '+m
+    :'Không kết nối được tới file.kiwi (có thể mạng lỗi hoặc trình duyệt chặn truy cập trực tiếp). '+(PROXY?'':'Cần cấu hình PROXY — xem filekiwi-proxy-worker.js. ')+'Chi tiết: '+m;
+  if(useHost==='kiwi'&&readResume())m+='\n\nTệp này có thể tải tiếp: bấm "Thử lại" hoặc chọn lại đúng tệp đó.';
+  $('errTxt').textContent=m;hostTexts();
   setStat('bad','Có lỗi');setView('err');
 }
 
@@ -898,7 +989,8 @@ $('doneGo').onclick=()=>close();
 $('doneStay').onclick=cancelBack;
 $('more').onclick=()=>{cancelBack();resetUI()};
 $('retry').onclick=()=>{if(lastInput)run(lastInput);else resetUI()};
-$('out').onclick=()=>window.open(SITE,'_blank','noopener');
+$('out').onclick=()=>window.open(useHost==='gofile'?GOFILE_SITE:SITE,'_blank','noopener');
+$('alt').onclick=()=>{useHost=useHost==='gofile'?'kiwi':'gofile';hostTexts();if(lastInput)run(lastInput);else resetUI()};
 $('cancel').onclick=()=>{if(ac)ac.abort();busy=false;clearResume();resetUI()};
 
 /* ---------- Chọn tệp / thư mục / kéo thả ---------- */
@@ -1005,7 +1097,7 @@ function resumeHint(){
   const r=readResume();
   $('resNote').textContent=r?('Có lần tải dở dang ('+String(r.fp[0]).replace(/^z\|/,'').split('|')[0]+(r.fp.length>1?' và '+(r.fp.length-1)+' tệp khác':'')+'). Chọn lại đúng tệp đó để tải tiếp.'):'';
 }
-function resetUI(){setView('idle');setStat('ok','Sẵn sàng');$('link').value='';lastInput=null;resumeHint();renderHist()}
+function resetUI(){hostTexts();setView('idle');setStat('ok','Sẵn sàng');$('link').value='';lastInput=null;resumeHint();renderHist()}
 function open(){
   if(!host.isConnected)document.body.appendChild(host);
   const was=ov.classList.contains('on');
