@@ -261,7 +261,7 @@
     }catch(e){off('⚠ Kích thước quá lớn so với thiết bị — hãy chọn cỡ ảnh nhỏ hơn.');return;}
     last={g:g,sc:sc,W:W,Hpx:Hpx};
     cv.style.background=o.tr?'repeating-conic-gradient(#d0d0d0 0% 25%,#fff 0% 50%) 50%/16px 16px':'';
-    if(btnMsg)btnMsg.textContent='';cv.style.display='inline-block';mirror(true);dl.disabled=cp.disabled=false;if(shareBtn)shareBtn.disabled=false;
+    if(btnMsg)btnMsg.textContent='';cv.style.display='inline-block';mirror(true);dl.disabled=cp.disabled=false;if(shareBtn)shareBtn.disabled=false;if(typeof prepShare==='function')prepShare();
     var cm=(W/300*2.54).toFixed(1);
     say('✅ Đã tạo mã QR ('+W+'×'+Hpx+' px, in 300 dpi ≈ '+cm+' cm). Hãy quét thử bằng điện thoại trước khi dùng.'
         +(logoChk.checked&&!wantLogo?' (Không chèn được logo.)':'')+(wantLogo?' (Có logo → tự dùng mức sửa lỗi cao H.)':'')
@@ -885,15 +885,38 @@
     if(!cur)return;
     try{cv.toBlob(function(b){if(!b){blobErr();return;}copyPng(b,'✅ Đã sao chép ảnh QR — dán (nhấn giữ → Dán, hoặc Ctrl+V) vào Word, PowerPoint, Zalo…');},'image/png');}catch(e){blobErr();}
   });
-  /* gửi trực tiếp: mở bảng chia sẻ của điện thoại (chọn Zalo, Messenger, Gmail…). Luôn gửi ảnh PNG để người nhận xem được ngay. */
+  /* gửi trực tiếp: mở bảng chia sẻ của điện thoại (chọn Zalo, Messenger, Gmail…). Luôn gửi ảnh PNG để người nhận xem được ngay.
+     Ảnh được tạo sẵn (shareBlob) để lệnh share chạy NGAY trong lúc bấm nút — iOS/Safari và nhiều trình duyệt chặn nếu phải chờ. */
+  var shareBlob=null,shareTok=0;
+  function prepShare(){
+    var t=++shareTok;shareBlob=null;
+    if(!cur)return;
+    try{cv.toBlob(function(b){if(t===shareTok)shareBlob=b;},'image/png');}catch(e){}
+  }
+  function whyNoShare(){
+    if(!window.isSecureContext)return 'trang đang mở không qua HTTPS (hoặc mở trực tiếp file trong máy) nên trình duyệt chặn chia sẻ';
+    if(!navigator.share)return 'trình duyệt này không hỗ trợ chia sẻ (có thể đang mở trong Zalo/Messenger/Facebook — hãy mở bằng Chrome hoặc Safari)';
+    return 'trình duyệt không cho chia sẻ file ảnh';
+  }
+  function shareFallback(b,why){
+    copyPng(b,'ℹ Chưa mở được bảng chia sẻ ('+why+'). Đã sao chép ảnh QR — mở Zalo/Messenger, nhấn giữ ô chat và chọn Dán; hoặc bấm Tải ảnh rồi gửi file.');
+  }
+  function doShare(b){
+    var file=null;try{file=new File([b],fname('png'),{type:'image/png'});}catch(e){}
+    if(!file||!navigator.share){shareFallback(b,file?whyNoShare():'trình duyệt không tạo được file ảnh');return;}
+    var data={files:[file]};
+    try{if(navigator.canShare&&!navigator.canShare(data)){shareFallback(b,whyNoShare());return;}}catch(e){}
+    var pr;
+    try{pr=navigator.share(data);}catch(e){shareFallback(b,whyNoShare());return;}
+    if(pr&&pr.then)pr.then(function(){act('✅ Đã mở bảng chia sẻ.');},function(e){
+      if(e&&e.name==='AbortError')act('Đã huỷ gửi.');
+      else shareFallback(b,'trình duyệt từ chối: '+((e&&e.name)||'lỗi không rõ'));
+    });
+    else act('✅ Đã mở bảng chia sẻ.');
+  }
   if(shareBtn)shareBtn.addEventListener('click',function(){
     if(!cur)return;
-    try{cv.toBlob(function(b){
-      if(!b){blobErr();return;}
-      var file=null;try{file=new File([b],fname('png'),{type:'image/png'});}catch(e){}
-      if(file&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-        navigator.share({files:[file],title:'Mã QR'}).then(function(){act('✅ Đã mở bảng chia sẻ.');},function(e){if(e&&e.name==='AbortError')act('Đã huỷ gửi.');else act('Không mở được bảng chia sẻ — hãy bấm Tải ảnh rồi gửi file qua Zalo/Messenger.');});
-      }else copyPng(b,'✅ Máy này chưa mở được bảng chia sẻ nên đã sao chép ảnh QR — mở Zalo/Messenger, nhấn giữ ô chat và chọn Dán (Ctrl+V trên máy tính).');
-    },'image/png');}catch(e){blobErr();}
+    if(shareBlob){doShare(shareBlob);return;}
+    try{cv.toBlob(function(b){if(!b){blobErr();return;}shareBlob=b;doShare(b);},'image/png');}catch(e){blobErr();}
   });
 })();
