@@ -12,7 +12,7 @@ const cleanXml=s=>String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFF
 const bytesOf=u=>{const b=atob(u.split(',')[1]),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a};
 
 /* ---------- Tạo file .docx tối giản (văn bản + ảnh) ---------- */
-function rXml(r){if(r.br)return '<w:r><w:br/></w:r>';let pr='';if(r.b)pr+='<w:b/>';if(r.i)pr+='<w:i/>';if(r.sup)pr+='<w:vertAlign w:val="superscript"/>';else if(r.sub)pr+='<w:vertAlign w:val="subscript"/>';
+function rXml(r){if(r.br)return '<w:r><w:br/></w:r>';let pr='';if(r.b)pr+='<w:b/>';if(r.i)pr+='<w:i/>';if(r.u)pr+='<w:u w:val="single"/>';if(r.sup)pr+='<w:vertAlign w:val="superscript"/>';else if(r.sub)pr+='<w:vertAlign w:val="subscript"/>';
   return '<w:r>'+(pr?'<w:rPr>'+pr+'</w:rPr>':'')+'<w:t xml:space="preserve">'+cleanXml(r.t===undefined?'':r.t)+'</w:t></w:r>'}
 function pXml(b){const runs=b.runs||[{t:b.t===undefined?'':b.t}];let pp='';
   if(b.h)pp+='<w:pStyle w:val="Heading'+b.h+'"/>';else pp+='<w:spacing w:after="120"/>';
@@ -22,7 +22,7 @@ function tXml(rows,hdr){const n=Math.max.apply(null,[0].concat(rows.map(r=>r.len
   const bd=['top','left','bottom','right','insideH','insideV'].map(k=>'<w:'+k+' w:val="single" w:sz="4" w:space="0" w:color="808080"/>').join('');
   let x='<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblBorders>'+bd+'</w:tblBorders><w:tblLayout w:type="autofit"/><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>'+('<w:gridCol w:w="'+w+'"/>').repeat(n)+'</w:tblGrid>';
   rows.forEach((r,i)=>{x+='<w:tr>'+(i===0&&hdr?'<w:trPr><w:cantSplit/><w:tblHeader/></w:trPr>':'<w:trPr><w:cantSplit/></w:trPr>');
-    for(let k=0;k<n;k++)x+='<w:tc><w:tcPr><w:tcW w:w="'+w+'" w:type="dxa"/></w:tcPr>'+pXml({runs:[{t:r[k]===undefined?'':String(r[k]),b:!!(hdr&&i===0)}]})+'</w:tc>';
+    for(let k=0;k<n;k++)x+='<w:tc><w:tcPr><w:tcW w:w="'+w+'" w:type="dxa"/></w:tcPr>'+(r[k]&&typeof r[k]==='object'?pXml(r[k]):pXml({runs:[{t:r[k]===undefined?'':String(r[k]),b:!!(hdr&&i===0)}]}))+'</w:tc>';
     x+='</w:tr>'});
   return x+'</w:tbl><w:p/>'}
 function docxParts(blocks){
@@ -42,6 +42,104 @@ function docxParts(blocks){
   parts['word/document.xml']=H+'<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"><w:body>'+body+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="709" w:footer="709" w:gutter="0"/></w:sectPr></w:body></w:document>';
   return parts}
 async function makeDocx(blocks){const z=new JSZip(),p=docxParts(blocks);Object.keys(p).forEach(k=>z.file(k,p[k]));return z.generateAsync({type:'uint8array',compression:'DEFLATE'})}
+
+
+/* ---------- Đọc file .doc cũ (Word 97-2003, nhị phân OLE) → khối chữ/bảng để tạo .docx ---------- */
+function docRead(src){
+  const u8=new Uint8Array(src);
+  if(u8.length>3&&u8[0]===0x50&&u8[1]===0x4B)return{zip:true};
+  const head=new TextDecoder('latin1').decode(u8.subarray(0,64)).trim().toLowerCase();
+  if(head.indexOf('{\\rtf')===0)throw new Error('File này thực chất là RTF đặt đuôi .doc — mở bằng Word rồi Save As .docx.');
+  if(head.charAt(0)==='<'||head.indexOf('mime-version')===0)throw new Error('File này thực chất là trang HTML/MHT đặt đuôi .doc — mở bằng Word rồi Save As .docx.');
+  const wd=oleStream(u8,'WordDocument');
+  if(!wd)throw new Error('Không phải file .doc (Word 97-2003) hợp lệ hoặc file bị hỏng.');
+  const dv=new DataView(wd.buffer,wd.byteOffset,wd.byteLength);
+  if(dv.getUint16(0,true)!==0xA5EC)throw new Error('Không nhận ra cấu trúc file Word.');
+  const flags=dv.getUint16(10,true);
+  if(flags&0x0100)throw new Error('File .doc đang đặt mật khẩu — hãy mở bằng Word, bỏ mật khẩu rồi lưu lại.');
+  const tb=oleStream(u8,(flags&0x0200)?'1Table':'0Table');
+  if(!tb)throw new Error('Thiếu bảng dữ liệu của file .doc (file có thể bị hỏng).');
+  const tv=new DataView(tb.buffer,tb.byteOffset,tb.byteLength);
+  const csw=dv.getUint16(32,true),lwS=34+csw*2+2,cslw=dv.getUint16(34+csw*2,true),
+    ccpText=dv.getUint32(lwS+12,true),ccpFtn=dv.getUint32(lwS+16,true),ccpTxbx=dv.getUint32(lwS+36,true),
+    fb=lwS+cslw*4+2,fcl=i=>[dv.getUint32(fb+i*8,true),dv.getUint32(fb+i*8+4,true)];
+  /* bảng mảnh (piece table) trong CLX */
+  const cl=fcl(33);let p=cl[0],plc=null;
+  while(p<cl[0]+cl[1]){const t=tb[p];if(t===1)p+=3+tv.getUint16(p+1,true);else if(t===2){plc=[p+5,tv.getUint32(p+1,true)];break}else break}
+  if(!plc)throw new Error('Không đọc được bảng nội dung của file .doc.');
+  const np=((plc[1]-4)/12)|0,cps=[],pcs=[];
+  for(let i=0;i<=np;i++)cps.push(tv.getUint32(plc[0]+i*4,true));
+  for(let i=0;i<np;i++){const fc=tv.getUint32(plc[0]+(np+1)*4+i*8+2,true),comp=!!(fc&0x40000000),f=fc&0x3FFFFFFF;pcs.push({c0:cps[i],c1:cps[i+1],u:comp?1:2,fo:comp?(f>>>1):f})}
+  const d1=new TextDecoder('windows-1252'),d2=new TextDecoder('utf-16le',{ignoreBOM:true});
+  let txt='';
+  pcs.forEach(pc=>{const n=pc.c1-pc.c0;if(n<=0)return;txt+=pc.u===1?d1.decode(wd.subarray(pc.fo,pc.fo+n)):d2.decode(wd.subarray(pc.fo,pc.fo+n*2))});
+  txt=txt.slice(0,ccpText);const N=txt.length;
+  const eachCp=(f0,f1,cb)=>{for(const pc of pcs){const a=pc.fo,b=a+(pc.c1-pc.c0)*pc.u,s=Math.max(f0,a),e=Math.min(f1,b);if(s<e)cb(pc.c0+(((s-a)/pc.u)|0),pc.c0+(((e-a)/pc.u)|0))}};
+  /* đọc danh sách sprm (thuộc tính) trong một đoạn byte */
+  const sprms=(s,e,fn)=>{let i=s;while(i+2<=e){const op=wd[i]|(wd[i+1]<<8),sp=op>>13;i+=2;let n;
+    if(sp<2)n=1;else if(sp===3)n=4;else if(sp===7)n=3;else if(sp===6)n=(op===0xD608)?((wd[i]|(wd[i+1]<<8))+1):(wd[i]+1);else n=2;
+    if(i+n>e)break;fn(op,i);i+=n}};
+  const fl=new Uint8Array(N),jc=new Uint8Array(N),ttp=new Uint8Array(N),inT=new Uint8Array(N);
+  /* định dạng chữ: đậm / nghiêng / gạch chân / mũ / chỉ số dưới / đối tượng nhúng */
+  const bc=fcl(12);
+  if(bc[1]>4){const n=((bc[1]-4)/8)|0;
+    for(let i=0;i<n;i++){const base=(tv.getUint32(bc[0]+(n+1)*4+i*4,true)&0x3FFFFF)*512;if(base+512>wd.length)continue;
+      const cr=wd[base+511];
+      for(let r=0;r<cr;r++){const ob=wd[base+(cr+1)*4+r];if(!ob)continue;
+        const f0=dv.getUint32(base+r*4,true),f1=dv.getUint32(base+(r+1)*4,true),co=base+ob*2,cb=wd[co];let m=0;
+        sprms(co+1,Math.min(co+1+cb,wd.length),(op,o)=>{const v=wd[o];
+          if(op===0x0835){if(v===1)m|=1}else if(op===0x0836){if(v===1)m|=2}
+          else if(op===0x2A48){if(v===1)m|=4;else if(v===2)m|=8}
+          else if(op===0x2A3E){if(v)m|=16}
+          else if(op===0x080A){if(v===1)m|=32}});
+        if(m)eachCp(f0,f1,(a,b)=>{for(let k=a;k<b&&k<N;k++)fl[k]|=m})}}}
+  /* định dạng đoạn: căn lề, ô bảng, hết hàng bảng */
+  const pb=fcl(13);
+  if(pb[1]>4){const n=((pb[1]-4)/8)|0;
+    for(let i=0;i<n;i++){const base=(tv.getUint32(pb[0]+(n+1)*4+i*4,true)&0x3FFFFF)*512;if(base+512>wd.length)continue;
+      const cr=wd[base+511];
+      for(let r=0;r<cr;r++){const bo=wd[base+(cr+1)*4+13*r];
+        const f0=dv.getUint32(base+r*4,true),f1=dv.getUint32(base+(r+1)*4,true);let j=0,t=0,it=0;
+        if(bo){const po=base+bo*2;let gs,ge;
+          if(wd[po]===0){gs=po+2;ge=gs+wd[po+1]*2}else{gs=po+1;ge=gs+wd[po]*2-1}
+          sprms(gs+2,Math.min(ge,wd.length),(op,o)=>{const v=wd[o];
+            if(op===0x2461||op===0x2403)j=v;else if(op===0x2417)t=v?1:0;else if(op===0x2416)it=v?1:0})}
+        if(j||t||it)eachCp(f0,f1,(a,b)=>{for(let k=a;k<b&&k<N;k++){const ch=txt.charCodeAt(k);if(ch===13||ch===7){jc[k]=j;ttp[k]=t;inT[k]=it}}})}}}
+  /* dựng khối */
+  const JC={1:'center',2:'right',3:'both'},blocks=[],st={math:0,pic:0,shape:0,tables:0};
+  let runs=[],buf='',cf=-1,tbl=null,cellRuns=[],fstack=[];
+  const flush=()=>{if(buf){runs.push({t:buf,b:!!(cf&1),i:!!(cf&2),sup:!!(cf&4),sub:!!(cf&8),u:!!(cf&16)});buf=''}};
+  const push=(s,f)=>{if(f!==cf){flush();cf=f}buf+=s};
+  const endTbl=()=>{if(tbl){if(tbl.cur.length)tbl.rows.push(tbl.cur);if(tbl.rows.length){blocks.push({tbl:tbl.rows,hdr:false});st.tables++}tbl=null}};
+  for(let k=0;k<N;k++){const c=txt.charCodeAt(k),f=fl[k]&31;
+    if(c===0x13){fstack.push({code:'',ph:0});continue}
+    if(c===0x14){if(fstack.length)fstack[fstack.length-1].ph=1;continue}
+    if(c===0x15){fstack.pop();continue}
+    if(fstack.some(x=>x.ph===0)){fstack[fstack.length-1].code+=txt[k];continue}
+    if(c===0x0D||c===0x07){
+      flush();
+      if(c===0x07&&ttp[k]){ // hết hàng
+        if(!tbl)tbl={rows:[],cur:[]};tbl.rows.push(tbl.cur);tbl.cur=[];cellRuns=[];runs=[];cf=-1;continue}
+      if(c===0x07||inT[k]){ // trong bảng
+        if(!tbl)tbl={rows:[],cur:[]};
+        if(c===0x0D){cellRuns=cellRuns.concat(runs,[{br:true}]);runs=[];cf=-1;continue}
+        const all=cellRuns.concat(runs);if(!all.length)all.push({t:''});
+        tbl.cur.push({runs:all,jc:JC[jc[k]]});cellRuns=[];runs=[];cf=-1;continue}
+      endTbl();
+      blocks.push(runs.length?{runs,jc:JC[jc[k]]}:{t:'',jc:JC[jc[k]]});runs=[];cf=-1;continue}
+    if(c===0x01){if(fl[k]&32){st.math++;push('[công thức]',f)}else{st.pic++;push('[hình ảnh]',f)}continue}
+    if(c===0x08){st.shape++;push('[hình vẽ]',f);continue}
+    if(c===0x0B){flush();runs.push({br:true});continue}
+    if(c===0x09){push('    ',f);continue}
+    if(c===0x1E){push('-',f);continue}
+    if(c<0x20)continue;
+    push(txt[k],f)}
+  flush();
+  if(runs.length)blocks.push({runs});
+  endTbl();
+  while(blocks.length&&blocks[blocks.length-1].t===''&&!blocks[blocks.length-1].runs)blocks.pop();
+  if(!blocks.length)throw new Error('File .doc không có nội dung chữ đọc được.');
+  return{blocks,st,extra:ccpFtn>0||ccpTxbx>0}}
 
 /* ---------- Đọc chữ từ PDF: gom thành dòng / ô / đoạn ---------- */
 function toLines(items){
@@ -797,6 +895,17 @@ async function imgConvert(fs,c,type){
   return out}
 
 Object.assign(RUN,{
+  async doc2docx(fs,c){const r=docRead(fs[0].buf);
+    if(r.zip){c.note('File này thực chất đã là định dạng .docx (chỉ bị đặt đuôi .doc) nên được giữ nguyên nội dung.');return[{name:c.base+'.docx',data:new Uint8Array(fs[0].buf)}]}
+    const s=r.st;
+    c.note('Đã chuyển chữ, đoạn, căn lề, đậm/nghiêng/gạch chân, chỉ số trên/dưới và bảng. Font mặc định Times New Roman — có thể dùng "Chuẩn hóa Word" để đặt cỡ chữ 14.');
+    if(s.math)c.warn('Có '+s.math+' công thức/đối tượng (Equation, MathType) — không đưa được sang .docx, vị trí được đánh dấu [công thức]. File có nhiều công thức: hãy mở bằng Word → Save As → Word Document (.docx).');
+    if(s.pic)c.warn('Có '+s.pic+' hình ảnh — không đưa được sang .docx, vị trí được đánh dấu [hình ảnh].');
+    if(s.shape)c.warn('Có '+s.shape+' hình vẽ/khung (shape) bị bỏ qua.');
+    if(s.tables)c.warn('Có '+s.tables+' bảng: các cột được chia đều, ô gộp có thể bị lệch; viền đặt mặc định.');
+    if(r.extra)c.warn('Chú thích cuối trang / hộp văn bản (textbox) không được chuyển; đầu trang & chân trang cũng bị bỏ.');
+    c.warn('Nếu chữ tiếng Việt hiện lỗi ký tự lạ, file dùng bảng mã cũ (VNI/TCVN3) — chỉ cần chuyển bảng mã bằng Unikey sau khi đổi.');
+    return[{name:c.base+'.docx',data:await makeDocx(r.blocks)}]},
   async w2imgs(fs,c){return zipMedia(fs[0].buf,'word/media/',c)},
   async pp2img(fs,c){return zipMedia(fs[0].buf,'ppt/media/',c)},
   async pp2txt(fs,c){const s=await pptxSlides(fs[0].buf);
@@ -883,12 +992,12 @@ Object.assign(RUN,{
 });
 
 /* ====================== GIAO DIỆN ====================== */
-window.ChuyenDoiWord={mathtypeToLatex,ommlToLatex,ommlParaToLatex,texifyDocx,fillTex,docxParts,toLines,lineText,lineCells,toParas,htmlToMd,tblAoa,parseHtml,mdBlocks,mdInline,parseRange};
+window.ChuyenDoiWord={docRead,makeDocx,mathtypeToLatex,ommlToLatex,ommlParaToLatex,texifyDocx,fillTex,docxParts,toLines,lineText,lineCells,toParas,htmlToMd,tblAoa,parseHtml,mdBlocks,mdInline,parseRange};
 const sel=document.getElementById('wtSel'),t3=document.getElementById('t3');
 if(!sel||!t3)return;
 const g=id=>document.getElementById(id);
 const GROUPS=[
-  ['📝 Word →',[['w2imgs','Trích hình ảnh trong Word (.zip)','doc'],['w2html','Word → HTML (công thức → LaTeX/MathJax)','doc'],['w2md','Word → Markdown (công thức $…$)','doc'],['w2txt','Word → TXT (công thức $…$)','doc'],['w2xlsx','Word → Excel (bảng)','doc']]],
+  ['📝 Word →',[['w2imgs','Trích hình ảnh trong Word (.zip)','doc'],['w2html','Word → HTML (công thức → LaTeX/MathJax)','doc'],['w2md','Word → Markdown (công thức $…$)','doc'],['w2txt','Word → TXT (công thức $…$)','doc'],['w2xlsx','Word → Excel (bảng)','doc'],['doc2docx','Word cũ (.doc) → Word (.docx)','olddoc']]],
   ['📕 PDF',[['p2img','PDF → Ảnh (PNG, mỗi trang 1 ảnh)','pdf'],['pdfmerge','Ghép nhiều PDF thành 1','pdf'],['pdfsplit','Tách PDF (mỗi trang 1 file)','pdf'],['pdfextract','Trích trang PDF (nhập số trang)','pdf'],['pdfrotate','Xoay trang PDF','pdf'],['pdfnum','Đánh số trang PDF','pdf']]],
   ['📊 Excel / CSV / JSON',[['x2docx','Excel → Word','xls'],['x2pdf','Excel → PDF','xls'],['x2csv','Excel → CSV','xls'],['x2html','Excel → HTML','xls'],['x2json','Excel → JSON','xls'],['csv2xlsx','CSV → Excel','csv'],['json2xlsx','JSON → Excel','json']]],
   ['📽 PowerPoint',[['pp2txt','PowerPoint → TXT','ppt'],['pp2docx','PowerPoint → Word','ppt'],['pp2img','Trích hình ảnh trong PowerPoint (.zip)','ppt']]],
@@ -896,7 +1005,7 @@ const GROUPS=[
   ['🖼 Ảnh',[['i2docx','Ảnh → Word','img'],['i2pdf','Ảnh → PDF','img'],['i2png','Ảnh → PNG','img'],['i2jpg','Ảnh → JPG','img'],['i2webp','Ảnh → WEBP','img'],['i2small','Nén / thu nhỏ ảnh','img'],['heic2jpg','HEIC (ảnh iPhone) → JPG','heic']]]];
 const CONV=[].concat.apply([],GROUPS.map(x=>x[1]));
 const mkK=(acc,re,lab)=>({acc,ok:n=>re.test(n),lab});
-const KIND={doc:mkK('.docx',/\.docx$/i,'.docx'),pdf:mkK('.pdf,application/pdf',/\.pdf$/i,'.pdf'),img:mkK('image/*,.png,.jpg,.jpeg,.webp,.bmp,.gif',/\.(png|jpe?g|webp|bmp|gif)$/i,'ảnh (PNG/JPG/WEBP/BMP/GIF)'),
+const KIND={doc:mkK('.docx',/\.docx$/i,'.docx'),olddoc:mkK('.doc,application/msword',/\.doc$/i,'.doc'),pdf:mkK('.pdf,application/pdf',/\.pdf$/i,'.pdf'),img:mkK('image/*,.png,.jpg,.jpeg,.webp,.bmp,.gif',/\.(png|jpe?g|webp|bmp|gif)$/i,'ảnh (PNG/JPG/WEBP/BMP/GIF)'),
   xls:mkK('.xlsx,.xlsm,.xls',/\.(xlsx|xlsm|xls)$/i,'.xlsx/.xls'),csv:mkK('.csv,.tsv,.txt',/\.(csv|tsv|txt)$/i,'.csv/.tsv'),json:mkK('.json',/\.json$/i,'.json'),ppt:mkK('.pptx',/\.pptx$/i,'.pptx'),
   txt:mkK('.txt',/\.txt$/i,'.txt'),md:mkK('.md,.markdown,.txt',/\.(md|markdown|txt)$/i,'.md'),html:mkK('.html,.htm',/\.html?$/i,'.html'),heic:mkK('.heic,.heif',/\.(heic|heif)$/i,'.heic')};
 const MERGE=['i2docx','i2pdf'],ALLIN=['pdfmerge'];
@@ -914,7 +1023,7 @@ function syncType(){const t=g('cv_type').value;g('cv_in').accept=kind().acc;
   [['pages','cv_oPages'],['rot','cv_oRot'],['pn','cv_oPn'],['img','cv_oImg']].forEach(a=>{g(a[1]).style.display=OPTS[a[0]].indexOf(t)>=0?'':'none'});
   q.length=0;renderList();g('cv_out').innerHTML='';setSt('')}
 async function addFiles(list){const K=kind(),bad=[];
-  for(const f of Array.from(list)){if(!K.ok(f.name)&&!(cur()[2]==='img'&&/^image\//.test(f.type))){bad.push(/\.(doc|ppt)$/i.test(f.name)?f.name+' (định dạng Office cũ — hãy mở bằng Office, Save As bản mới .docx/.pptx)':f.name+' (cần '+K.lab+')');continue}
+  for(const f of Array.from(list)){if(!K.ok(f.name)&&!(cur()[2]==='img'&&/^image\//.test(f.type))){bad.push(/\.doc$/i.test(f.name)?f.name+' (file .doc cũ — hãy chọn kiểu "Word cũ (.doc) → Word (.docx)" để đổi sang .docx trước)':/\.ppt$/i.test(f.name)?f.name+' (định dạng PowerPoint cũ — hãy mở bằng PowerPoint, Save As bản mới .pptx)':f.name+' (cần '+K.lab+')');continue}
     if(q.some(x=>x.name===f.name&&x.size===f.size))continue;q.push({name:f.name,size:f.size,buf:await f.arrayBuffer()})}
   renderList();setSt(bad.length?'Bỏ qua: '+bad.join('; '):(q.length?'Đã chọn '+q.length+' file, sẵn sàng chuyển đổi.':''),bad.length?'e':'')}
 function save(name,data){const b=new Blob([data],{type:mimeOf(name)});if(typeof saveBlob==='function')return saveBlob(b,name);
@@ -945,7 +1054,7 @@ function buildUI(){
   if(g('wtConv'))return;
   const d=document.createElement('div');d.className='wtool';d.id='wtConv';
   const so=(id,arr,def)=>'<select id="'+id+'">'+arr.map(a=>'<option value="'+a[0]+'"'+(a[0]===def?' selected':'')+'>'+a[1]+'</option>').join('')+'</select>';
-  d.innerHTML='<div class="note">Chuyển đổi định dạng ngay trên máy bạn — file <b>không được gửi đi đâu</b>. Chọn kiểu chuyển, chọn file (nhiều file / kéo thả), rồi bấm Chuyển đổi. Lần đầu dùng một số kiểu cần mạng để tải thư viện. Với file Word có công thức, chỉ dùng các kiểu <b>Word → HTML / Markdown / TXT / Excel</b> (công thức Equation được đổi sang LaTeX); muốn PDF giữ nguyên công thức hãy dùng <i>Lưu thành PDF</i> trong Word.</div>'
+  d.innerHTML='<div class="note">Chuyển đổi định dạng ngay trên máy bạn — file <b>không được gửi đi đâu</b>. Chọn kiểu chuyển, chọn file (nhiều file / kéo thả), rồi bấm Chuyển đổi. Lần đầu dùng một số kiểu cần mạng để tải thư viện. Với file Word có công thức, chỉ dùng các kiểu <b>Word → HTML / Markdown / TXT / Excel</b> (công thức Equation được đổi sang LaTeX); muốn PDF giữ nguyên công thức hãy dùng <i>Lưu thành PDF</i> trong Word. File <b>.doc</b> cũ: dùng kiểu <b>Word cũ (.doc) → Word (.docx)</b>.</div>'
   +'<div class="bar"><label for="cv_type" style="font-weight:600">Kiểu chuyển:</label><select id="cv_type">'+GROUPS.map(gr=>'<optgroup label="'+gr[0].trim()+'">'+gr[1].map(x=>'<option value="'+x[0]+'">'+x[1]+'</option>').join('')+'</optgroup>').join('')+'</select></div>'
   +'<div class="bar"><input type="file" id="cv_in" multiple style="display:none"><button class="ghost" id="cv_pick" type="button">📁 Chọn file (nhiều file / kéo thả vào đây)</button><button class="sec sm" id="cv_clear" type="button">🗑 Xóa danh sách</button></div><div id="cv_list"></div>'
   +'<label class="note" id="cv_mergeW" style="display:none;margin:6px 0"><input type="checkbox" id="cv_merge" checked> Gộp nhiều ảnh thành 1 file (theo thứ tự trong danh sách)</label>'
