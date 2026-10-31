@@ -36,53 +36,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <link rel="stylesheet" href="style.css?v=20261017">
-<style id="hero-logo-top">/* Logo LUÔN nằm phía trên dòng "Trường THCS Đa Tốn" trên mọi thiết bị (điện thoại, máy tính, tivi) */
-.hero{flex-direction:column!important;text-align:center!important}
-.hero .logo{width:clamp(72px,10vw,110px)!important;height:clamp(72px,10vw,110px)!important}
-@media (max-height:480px) and (orientation:landscape){.hero .logo{width:44px!important;height:44px!important}}
-</style>
-<style id="gv-avatar">
-/* Ảnh đại diện giáo viên: tròn, nằm bên trái dòng tên; viền & hiệu ứng đổi theo giao diện sáng/tối */
-html[data-tod] .hero h1 .hgv,html .hero h1 .hgv{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:10px!important;flex-wrap:nowrap!important}
-.gv-avw,html .hero .gv-avw{position:relative;flex:0 0 auto!important;width:clamp(38px,11vw,48px)!important;height:clamp(38px,11vw,48px)!important;max-width:48px!important;max-height:48px!important;border-radius:50%;overflow:visible}
-.gv-av,html .hero .gv-av{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;padding:0!important;border-radius:50%!important;object-fit:cover;box-sizing:border-box;background:#fff}
-.gv-name{min-width:0}
-html[data-tod="sang"] .gv-av{border:2px solid #ffd166;box-shadow:0 4px 10px rgba(60,30,0,.4),0 0 0 2px rgba(255,255,255,.35)}
-html[data-tod="toi"] .gv-av{border:2px solid #7dd3fc;filter:brightness(.97) saturate(.9)}
-html[data-tod="toi"] .gv-avw{animation:gvGlow 4.5s ease-in-out infinite alternate}
-html[data-tod="toi"] .gv-avw::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;background:radial-gradient(circle at 35% 30%,rgba(180,215,255,.14),rgba(120,160,255,.2))}
-/* sao nhỏ ở mép ảnh (chỉ ban đêm) */
-html[data-tod="toi"] .gv-avw::before{content:"✦";position:absolute;right:-7px;top:-6px;font-size:10px;line-height:1;color:#e8f4ff;text-shadow:0 0 6px rgba(160,210,255,.9);animation:todTwinkle 3s ease-in-out infinite;z-index:2}
-@keyframes gvGlow{from{box-shadow:0 0 6px 1px rgba(125,211,252,.35),0 0 12px 3px rgba(125,211,252,.15)}to{box-shadow:0 0 10px 2px rgba(125,211,252,.55),0 0 20px 5px rgba(150,170,255,.25)}}
-html.tod-nofx .gv-avw,html.tod-nofx .gv-avw::before{animation:none!important}
-html.tod-nofx[data-tod="toi"] .gv-avw{box-shadow:0 0 12px 2px rgba(125,211,252,.45)}
-@media (prefers-reduced-motion:reduce){.gv-avw,.gv-avw::before{animation:none!important}}
-@media print{.gv-avw::before{display:none}}
-</style>
-<style id="hero-wide">
-/* Banner màn rộng (từ 1100px): 3 cột — trái: hình Toán lơ lửng · giữa: logo + tên trường + tên bộ công cụ · phải: lời chào, ngày giờ.
-   Dưới 1100px (điện thoại, máy tính bảng): giữ nguyên một cột như cũ. */
-.hero-deco{display:none}
-@keyframes heroDeco{0%,100%{transform:translateY(0) rotate(var(--r,0deg))}50%{transform:translateY(-9px) rotate(calc(var(--r,0deg) + 6deg))}}
-@media (min-width:1100px){
-  html .hero{display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
-    grid-template-areas:"deco logo greet" "deco school greet" "deco title greet" "deco stars greet";
-    column-gap:clamp(16px,2.4vw,36px);row-gap:0;align-items:center;justify-items:center;text-align:center;padding:clamp(16px,1.8vw,24px) clamp(18px,3vw,36px)}
-  html .hero .htxt{display:contents}                       /* các dòng chữ trở thành ô lưới của banner */
-  html .hero .logo{grid-area:logo;margin-bottom:10px}
-  html .hero .school{grid-area:school}
-  html .hero h1{grid-area:title}
-  html .hero .stars{grid-area:stars}
-  html .hero .school,html .hero h1,html .hero .stars,html .hero #tod-greet{position:relative;z-index:1}   /* nằm trên lớp phủ của banner */
-  html[data-tod] .hero #tod-greet{grid-area:greet;justify-self:center;align-self:center;width:100%;max-width:360px;margin:0;padding:14px 16px;box-sizing:border-box;
-    border:1px solid rgba(255,255,255,.28);border-radius:16px;background:rgba(255,255,255,.12);box-shadow:0 8px 22px -12px rgba(0,0,0,.5);backdrop-filter:blur(2px)}
-  .hero-deco{display:block;grid-area:deco;align-self:stretch;justify-self:stretch;position:relative;pointer-events:none;z-index:1;min-height:100px}
-  .hero-deco span{position:absolute;left:var(--x);top:var(--y);font-size:var(--s,30px);line-height:1;font-weight:700;color:rgba(255,255,255,.78);
-    text-shadow:0 0 10px rgba(255,255,255,.55),0 2px 6px rgba(0,0,0,.25);transform:rotate(var(--r,0deg));animation:heroDeco var(--t,6s) ease-in-out var(--d,0s) infinite}
-}
-@media (prefers-reduced-motion:reduce){.hero-deco span{animation:none}}
-html.tod-nofx .hero-deco span{animation:none}
-</style>
+
+
+
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <script id="am-lich-lib">
 /* Âm lịch Việt Nam (múi giờ GMT+7) – thuật toán Hồ Ngọc Đức. window.AmLich.solar2lunar(d,m,y) → {d,m,y,leap}; .lunar2solar(d,m,y,leap) → Date (hoặc null) */
@@ -122,119 +78,8 @@ html.tod-nofx .hero-deco span{animation:none}
 </script>
 <script src="gkey.js?v=20261025"></script>
 
-<script>
-/* Rèm cửa: chỉ hiện lần đầu trong mỗi phiên (sessionStorage) */
-(function(){
-  var d=document.documentElement;
-  try{
-    if(sessionStorage.getItem('rem_da_xem')){d.classList.add('no-curtain');}
-    else{sessionStorage.setItem('rem_da_xem','1');}
-  }catch(e){}
-})();
-</script>
-<style id="curtain-css">
-.curtain-wrap{position:fixed;inset:0;z-index:99999;pointer-events:none;overflow:hidden}
-.no-curtain .curtain-wrap{display:none}
 
-/* Mỗi tấm rèm: nền nhung đỏ + nếp gấp + đổ bóng trên/dưới */
-.curtain{position:absolute;top:0;width:50.3%;height:100%;
-  background:
-    linear-gradient(180deg,rgba(0,0,0,.45) 0,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 72%,rgba(0,0,0,.5) 100%),
-    repeating-linear-gradient(90deg,rgba(0,0,0,.50) 0,rgba(255,255,255,.14) 24px,rgba(0,0,0,.50) 48px),
-    linear-gradient(90deg,#7a1313,#a11d1d 50%,#7a1313);
-  background-blend-mode:normal;
-  will-change:transform}
-.curtain.left{left:0;transform-origin:left center;box-shadow:12px 0 36px rgba(0,0,0,.55)}
-.curtain.right{right:0;transform-origin:right center;box-shadow:-12px 0 36px rgba(0,0,0,.55)}
 
-/* Thanh treo rèm màu vàng đồng, có vòng móc */
-.curtain::before{content:"";position:absolute;top:0;left:0;right:0;height:26px;
-  background:
-    repeating-linear-gradient(90deg,rgba(60,40,0,.55) 0 3px,transparent 3px 40px),
-    linear-gradient(180deg,#f7dc82 0,#d4a017 45%,#8a6508 100%);
-  box-shadow:0 4px 8px rgba(0,0,0,.5)}
-/* Tua rua viền vàng ở mép dưới */
-.curtain::after{content:"";position:absolute;left:0;right:0;bottom:0;height:20px;
-  background:
-    linear-gradient(180deg,transparent,rgba(0,0,0,.35)),
-    repeating-linear-gradient(90deg,#f0cd62 0 3px,#8a6508 3px 4px,transparent 4px 7px);
-  -webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);
-  mask-image:linear-gradient(180deg,#000 55%,transparent)}
-
-/* Chữ chào ở giữa, mờ dần khi rèm bắt đầu mở */
-.curtain-title{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:min(86vw,560px);text-align:center;color:#ffe9a8;z-index:2;
-  text-shadow:0 2px 10px rgba(0,0,0,.7);transition:opacity .7s ease,transform .7s ease}
-.curtain-title img{width:84px;height:84px;object-fit:cover;border-radius:50%;
-  border:3px solid #e8c04f;box-shadow:0 4px 18px rgba(0,0,0,.6);margin-bottom:10px;background:#fff}
-.curtain-title .s{font-size:14px;letter-spacing:.14em;text-transform:uppercase;opacity:.9}
-.curtain-title .t{font-size:clamp(20px,5.2vw,30px);font-weight:700;margin-top:6px;line-height:1.25}
-.curtain-title .l{margin-top:10px;font-size:18px;letter-spacing:.5em;color:#e8c04f}
-
-/* Khi mở */
-body.open .curtain.left{animation:curOpenL 4s ease-in-out forwards}
-body.open .curtain.right{animation:curOpenR 4s ease-in-out .25s forwards}
-body.open .curtain .wr{animation:curWr 4s ease-in-out forwards}
-body.open .curtain.right .wr{animation-delay:.25s}
-
-/* Nếp nhăn tỏa ra từ điểm bị mắc trên thanh treo */
-.curtain .wr{position:absolute;left:0;right:0;top:26px;bottom:0;opacity:0;pointer-events:none;
-  background:repeating-conic-gradient(from 150deg at 85% 0,rgba(0,0,0,.42) 0 3deg,rgba(255,255,255,.14) 3deg 6deg,rgba(0,0,0,0) 6deg 11deg);
-  -webkit-mask-image:radial-gradient(ellipse 85% 75% at 85% 0,#000 20%,transparent 100%);
-  mask-image:radial-gradient(ellipse 85% 75% at 85% 0,#000 20%,transparent 100%)}
-.curtain.right .wr{
-  background:repeating-conic-gradient(from 150deg at 15% 0,rgba(0,0,0,.42) 0 3deg,rgba(255,255,255,.14) 3deg 6deg,rgba(0,0,0,0) 6deg 11deg);
-  -webkit-mask-image:radial-gradient(ellipse 85% 75% at 15% 0,#000 20%,transparent 100%);
-  mask-image:radial-gradient(ellipse 85% 75% at 15% 0,#000 20%,transparent 100%)}
-
-@keyframes curOpenL{
-  0%{transform:none}
-  10%{transform:translateX(-5%) scaleX(.97) skewY(.6deg)}
-  18%{transform:translateX(-5.5%) scaleX(.96) skewY(1deg);animation-timing-function:cubic-bezier(.2,.8,.3,1)}
-  26%{transform:translateX(-2.5%) scaleX(.99) skewY(-.3deg)}
-  38%{transform:translateX(-12%) scaleX(.94) skewY(.8deg)}
-  46%{transform:translateX(-11%) scaleX(.95) skewY(.5deg);animation-timing-function:cubic-bezier(.45,0,.2,1)}
-  100%{transform:translateX(-102%) scaleX(.78) skewY(0)}
-}
-@keyframes curOpenR{
-  0%{transform:none}
-  8%{transform:translateX(4%) scaleX(.975) skewY(-.5deg)}
-  15%{transform:translateX(4.5%) scaleX(.965) skewY(-.9deg);animation-timing-function:cubic-bezier(.2,.8,.3,1)}
-  23%{transform:translateX(2%) scaleX(.99) skewY(.3deg)}
-  34%{transform:translateX(10%) scaleX(.945) skewY(-.7deg)}
-  44%{transform:translateX(9%) scaleX(.955) skewY(-.4deg);animation-timing-function:cubic-bezier(.45,0,.2,1)}
-  100%{transform:translateX(102%) scaleX(.78) skewY(0)}
-}
-@keyframes curWr{
-  0%{opacity:0}
-  8%{opacity:.9}
-  18%{opacity:1}
-  26%{opacity:.25}
-  36%{opacity:.9}
-  46%{opacity:.8}
-  62%{opacity:0}
-  100%{opacity:0}
-}
-body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
-
-/* Cậu bé chào cờ: đứng nghiêm dưới chữ, giơ tay phải chào, hạ tay xuống rồi rèm mở; rèm mở được một lúc thì cậu bé mờ dần */
-.cur-boy{position:absolute;left:50%;top:calc(50% + max(172px,21vh));--bh:min(150px,18vh);height:var(--bh);width:calc(var(--bh) * 100 / 140);transform:translateX(-50%);z-index:3;animation:boyIn .6s ease-out .2s backwards}
-.cur-boy svg{display:block;width:100%;height:100%;overflow:visible}
-.cur-boy .eyes{transform-box:fill-box;transform-origin:center;animation:boyBlink 3.2s infinite}
-.cur-boy .arm-up{transform-origin:33px 67px;transition:transform .45s ease-in-out}
-.cur-boy .arm-fo{transform-origin:33px 92px;transition:transform .45s ease-in-out}
-.cur-boy.salute .arm-up{transform:rotate(157deg);transition-duration:.6s}
-.cur-boy.salute .arm-fo{transform:rotate(48deg);transition-duration:.6s}
-.cur-boy.out{opacity:0;transition:opacity .9s ease}
-@keyframes boyIn{from{opacity:0;transform:translateX(-50%) translateY(14px)}}
-@keyframes boyBlink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
-
-/* Nội dung phía sau hiện rõ dần */
-.cur-reveal .app{animation:curAppIn 1.8s ease-out 1.5s backwards}
-@keyframes curAppIn{from{opacity:.4;transform:scale(.985)}to{opacity:1;transform:none}}
-
-@media (prefers-reduced-motion:reduce){.curtain-wrap{display:none}.cur-reveal .app{animation:none}}
-</style>
 <style id="doc-css">
 #t9 .doc-bar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
 #t9 .doc-btn{cursor:pointer;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:inherit;
@@ -247,532 +92,16 @@ body.open .curtain-title{opacity:0;transform:translate(-50%,-50%) scale(1.12)}
 <style id="mt-guard">/* Panel công cụ Toán: luôn ẩn/hiện đúng, không bị CSS khác ghi đè */
 #t5>.mt{display:none}#t5>.mt.on{display:block}
 </style>
-<style id="meteor-css">
-.meteor-layer{position:fixed;inset:0;z-index:99997;pointer-events:none;overflow:hidden}
-.mtr-glow{position:absolute;left:50%;top:0;width:70vw;height:100%;transform:translateX(-50%);opacity:0;
-  background:radial-gradient(ellipse at center,rgba(255,236,170,.6) 0,rgba(255,200,90,.25) 35%,transparent 68%)}
-.mtr{position:absolute;height:3px;border-radius:3px;transform-origin:100% 50%;opacity:0;
-  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,236,170,.35) 45%,#fff);
-  filter:drop-shadow(0 0 6px rgba(255,220,130,.9))}
-.mtr::after{content:"";position:absolute;right:-3px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;
-  background:#fff;box-shadow:0 0 10px 4px rgba(255,225,140,.95),0 0 24px 10px rgba(255,190,80,.5)}
-.mtr-spark{position:absolute;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#fff;opacity:0;
-  box-shadow:0 0 16px 7px rgba(255,225,140,.95),0 0 36px 16px rgba(255,190,80,.45)}
-.mtr-spark::before,.mtr-spark::after{content:"";position:absolute;left:50%;top:50%;background:#fff;border-radius:2px}
-.mtr-spark::before{width:34px;height:2px;margin:-1px 0 0 -17px}
-.mtr-spark::after{width:2px;height:34px;margin:-17px 0 0 -1px}
-@media (prefers-reduced-motion:reduce){.meteor-layer{display:none}}
-</style>
+
 <!-- ===== GIAO DIỆN THEO THỜI ĐIỂM TRONG NGÀY (sáng / tối) · v5 =====
      - Mỗi buổi đổi bộ biến màu của style.css (nền tối + chữ sáng: tương phản cao) và có một cảnh nền nhẹ phía sau.
      - Mặt trời / mặt trăng di chuyển theo giờ thật; bầu trời buổi chiều chuyển dần sang hoàng hôn.
      - Màn chào đổi màu trời theo buổi; có lời chào + ngày giờ dưới banner; mỗi buổi một điểm nhấn nhỏ chạy một lần.
      - Chỉ dùng transform/opacity; không filter/blur/backdrop-filter trên khung nội dung → không ảnh hưởng chức năng.
      Khung giờ chỉnh trong hàm byHour(); câu chào chỉnh trong biến G. -->
-<style id="tod-css">
-/* ---------- Bảng màu từng buổi (ghi đè biến của style.css) ---------- */
-html[data-tod="sang"]{
-  --card:rgba(14,58,71,.93);--card2:#0a2c37;--bd:#2f8593;--fg:#f4fbff;--mut:#c3e4ea;--a1:#0f766e;--a2:#0369a1;--cy:#ffd166;
-  --tod-base:#9fe0ff;--tod-h1:#0f766e;--tod-h2:#0e7490;--tod-h3:#c2410c;--tod-r:22px;--tod-tr:999px;--tod-glow:rgba(255,209,102,.4)}
-  --card:rgba(12,42,94,.93);--card2:#081e46;--bd:#3b72c9;--fg:#f5f9ff;--mut:#c6d8f5;--a1:#1d4ed8;--a2:#0369a1;--cy:#ffe14d;
-  --tod-base:#2f9bff;--tod-h1:#1d4ed8;--tod-h2:#0369a1;--tod-h3:#0e7490;--tod-r:10px;--tod-tr:8px;--tod-glow:rgba(255,225,77,.4)}
-  --card:rgba(58,20,80,.93);--card2:#2a0f3b;--bd:#9a4a8c;--fg:#fff6f0;--mut:#f0cfe0;--a1:#be185d;--a2:#c2410c;--cy:#ffc27a;
-  --tod-base:#d98a5a;--tod-h1:#7e22ce;--tod-h2:#be185d;--tod-h3:#c2410c;--tod-r:18px;--tod-tr:12px;--tod-glow:rgba(255,130,120,.4)}
-html[data-tod="toi"]{
-  --card:rgba(15,21,48,.94);--card2:#0a0f26;--bd:#34447a;--fg:#eaf0ff;--mut:#b4c0e0;--a1:#4f46e5;--a2:#7c3aed;--cy:#7dd3fc;
-  --tod-base:#0b1030;--tod-h1:#3730a3;--tod-h2:#5b21b6;--tod-h3:#0e7490;--tod-r:14px;--tod-tr:10px;--tod-glow:rgba(125,211,252,.4)}
-
-/* ---------- Nền: để cảnh phía sau hiện ra ---------- */
-html[data-tod]{background:var(--tod-base)}
-html[data-tod] body{background:transparent}
-
-/* ---------- Banner: dải màu tĩnh theo buổi + một điểm nhấn riêng ---------- */
-html[data-tod] .hero{animation:none;background:linear-gradient(120deg,var(--tod-h1),var(--tod-h2) 50%,var(--tod-h3));
-  border-radius:var(--tod-r);box-shadow:0 10px 28px -10px var(--tod-glow),0 0 0 1px rgba(255,255,255,.14)}
-html[data-tod] .hero::before{display:block;content:"";position:absolute;inset:0;pointer-events:none;background:none;animation:none;border-radius:inherit}
-/* Sáng: ánh bình minh ấm ở sát đáy banner */
-html[data-tod="sang"] .hero::before{background:linear-gradient(0deg,rgba(255,196,110,.5),rgba(255,196,110,0) 55%)}
-/* Trưa: một vệt sáng quét qua banner đúng 1 lần, tiêu đề có quầng sáng */
-/* Chiều: nắng vàng chéo phủ banner */
-/* Tối: viền neon thở nhẹ */
-html[data-tod="toi"] .hero::before{box-shadow:inset 0 0 0 2px rgba(125,211,252,.85),inset 0 0 24px rgba(125,211,252,.4);animation:todNeon 4s ease-in-out infinite}
-
-/* ---------- Lời chào theo buổi ---------- */
-#tod-greet{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:12px 0 0;padding:10px 16px;border-radius:var(--tod-r);
-  background:var(--card);border:1px solid var(--bd);border-left:5px solid var(--cy);color:var(--fg);
-  font-size:clamp(13px,1.9vw,15px);line-height:1.45;animation:todIn .8s ease-out both}
-#tod-greet .g-ic{font-size:22px;line-height:1}
-#tod-greet .g-tx{flex:1 1 260px;font-weight:600}
-#tod-greet .g-time{color:var(--mut);font-size:13px;white-space:nowrap}
-html[data-tod="toi"] #tod-greet .g-tx{animation:todType 1.8s steps(var(--n,40)) .4s both}
-
-/* ---------- Khung & tab ---------- */
-html[data-tod] .tabs{border-radius:var(--tod-r)}
-html[data-tod] .tab{border-radius:var(--tod-tr)}
-html[data-tod] .tab.on{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff}
-html[data-tod] .tab:hover:not(.on){background:var(--card2);color:#fff}
-/* Tên các mục (Prompt AI, Công cụ Word và Excel, ...): chữ trắng sáng, đậm, dễ đọc như lời chào */
-html[data-tod] .tabs .tab,html[data-tod] .tab{color:#fff!important;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.55),0 0 10px rgba(255,255,255,.18)}
-html[data-tod] .tabs .tab:not(.on){opacity:1!important}
-html[data-tod] .tab.on{text-shadow:0 1px 3px rgba(0,0,0,.45)}
-html[data-tod] .panel{border-radius:var(--tod-r);border-top:3px solid var(--cy);
-  box-shadow:0 12px 30px -14px rgba(0,0,0,.55),0 0 26px -10px var(--tod-glow)}
-html[data-tod] button.ghost{border-color:var(--cy);color:var(--cy)}
-html[data-tod] button.sec{background:var(--card2);box-shadow:inset 0 0 0 1px var(--bd)}
-html[data-tod] table.g th{background:var(--card2)}
-html[data-tod] button.lp-card{background:linear-gradient(160deg,var(--card2),var(--card))}
-html[data-tod] #t0.panel{background:transparent;box-shadow:none;border-top:0}
-html[data-tod] button.lp-card{background:linear-gradient(160deg,color-mix(in srgb,var(--card2) 82%,transparent),color-mix(in srgb,var(--card) 78%,transparent))}
-html[data-tod] #tod-greet{background:color-mix(in srgb,var(--card) 82%,transparent)}
-/* ---------- Điểm nhấn nhẹ (v5): chạy một lần / khi tương tác ---------- */
-html[data-tod] .lp-card{animation:todCard .55s cubic-bezier(.2,.8,.2,1) calc(var(--i,1)*80ms) backwards;transition:transform .18s ease,box-shadow .18s ease}
-html[data-tod] .lp-card:hover{transform:translateY(-4px);box-shadow:0 12px 22px -10px var(--tod-glow)}
-html[data-tod] .panel.on{animation:todPanel .25s ease-out backwards}
-html[data-tod] button:not(#tod-switch):not(#tod-fx):not(#hcBtn){transition:transform .12s ease,filter .15s ease}
-html[data-tod] button:not(#tod-switch):not(#tod-fx):not(#hcBtn):active{transform:scale(.96)}
-html[data-tod] .lp-sym{animation-duration:calc(var(--t,7s) * 1.7)}
-#tod-greet{margin-top:8px;padding:8px 14px;gap:2px 10px;font-size:clamp(13px,1.8vw,14.5px)}
-#tod-greet .g-ic{font-size:18px}
-#tod-greet .g-tx{flex:1 1 220px}
-#tod-greet .g-meta{flex:1 1 100%;display:flex;flex-direction:column;align-items:flex-start;gap:2px;font-size:12.5px;color:var(--mut);line-height:1.4}
-#tod-greet .g-time{font-size:12.5px}
-#tod-greet .g-hl b{color:var(--cy);font-weight:700}
-#tod-greet .g-hl b{color:var(--cy)}
-html.tod-nofx .lp-card,html.tod-nofx .panel.on{animation:none!important}
-@keyframes todCard{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-@keyframes todPanel{from{opacity:0}to{opacity:1}}
-@media (prefers-reduced-motion:reduce){html[data-tod] .lp-card,html[data-tod] .panel.on{animation:none!important}}
-#tod-fw-msg{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:99999;max-width:92vw;padding:12px 22px;border-radius:16px;text-align:center;font-weight:800;
-  font-size:clamp(18px,5vw,34px);line-height:1.3;color:#fff7d6;background:rgba(10,15,40,.6);border:2px solid #ffd166;text-shadow:0 0 14px rgba(255,209,102,.9);
-  pointer-events:none;animation:todFwMsg 5s ease both}
-@keyframes todFwMsg{0%{opacity:0;transform:translate(-50%,-14px) scale(.92)}10%{opacity:1;transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{opacity:0}}
-@media (prefers-reduced-motion:reduce){#tod-fw-msg{animation:none}}
-@media print{#tod-fw,#tod-fw-msg{display:none!important}}
-/* v6: lời chào nằm trong banner, không khung riêng → gọn, đỡ rối */
-html[data-tod] #tod-greet{display:block;margin:10px auto 0;padding:10px 6px 0;max-width:660px;background:none;border:0;border-top:1px solid rgba(255,255,255,.25);border-radius:0;box-shadow:none;text-align:center;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.35)}
-html[data-tod] #tod-greet .g-ic{display:inline;font-size:16px;margin-right:6px;vertical-align:-1px}
-html[data-tod] #tod-greet .g-tx{display:inline-block;flex:none;font-size:clamp(13.5px,2vw,15.5px);font-weight:600;line-height:1.4}
-html[data-tod] #tod-greet .g-meta{display:block;margin-top:4px;font-size:12.5px;line-height:1.5;color:rgba(255,255,255,.85)}
-html[data-tod] #tod-greet .g-time,html[data-tod] #tod-greet .g-hl{display:block;font-size:12.5px;color:rgba(255,255,255,.85)}
-html[data-tod] #tod-greet .g-hl b{color:var(--cy)}
-html[data-tod] .tab{min-height:0}
-/* v7: chữ ở màn chào luôn đọc rõ trên nền trời sáng (đặt trên nền tối mờ) */
-html[data-tod] #t0 .lp-txt{width:100%;max-width:none;margin:12px 0 0;padding:16px 24px;text-align:center;box-sizing:border-box;border-radius:var(--tod-r);background:color-mix(in srgb,var(--card) 90%,transparent);border:1px solid var(--bd);text-shadow:none}
-html[data-tod] #t0 .lp-txt h2{color:#fff7d6;opacity:1;margin:0 0 6px}
-html[data-tod] #t0 .lp-txt p{color:var(--fg);opacity:1;margin:0 auto;max-width:860px;text-align:center}
-html[data-tod] #t0 .lp-note{display:table;margin:8px auto 0;padding:6px 14px;border-radius:999px;background:color-mix(in srgb,var(--card) 90%,transparent);border:1px solid var(--bd);color:var(--fg);opacity:1;text-shadow:none;text-align:center}
-/* v8: tên giáo viên và câu chúc xuống dòng gọn gàng */
-html[data-tod] .hero h1 .hsep{display:none}
-html[data-tod] .hero h1 .hgv{display:block;margin-top:.25em;font-size:.72em;font-weight:600;letter-spacing:.02em}
-html[data-tod] #tod-greet .g-l1,html[data-tod] #tod-greet .g-l2{display:block}
-html[data-tod] #tod-greet .g-l2{font-weight:500;font-size:.94em;margin-top:2px}
-html[data-tod] ::selection{background:var(--cy);color:#111}
-/* hiệu ứng chạm/rê chuột: màu & hình theo buổi (hình đổi bằng JS) */
-html[data-tod] .hc-h,html[data-tod] .hc-h.th{text-shadow:0 0 8px var(--c)}
-
-/* ---------- Màn chào: đổi màu trời, đồi, mặt trời theo buổi (chiều giữ nguyên hoàng hôn gốc) ---------- */
-html[data-tod="sang"] #lpSky stop:nth-child(1){stop-color:#4aa8ff}
-html[data-tod="sang"] #lpSky stop:nth-child(2){stop-color:#8fd8ff}
-html[data-tod="sang"] #lpSky stop:nth-child(3){stop-color:#ffe3a6}
-html[data-tod="sang"] #lpSky stop:nth-child(4){stop-color:#ffc46b}
-html[data-tod="sang"] #lpSunG stop:nth-child(1){stop-color:#fff7c8}
-html[data-tod="sang"] .lp-stage path[fill="#3a2270"]{fill:#3aa17a}
-html[data-tod="sang"] .lp-stage path[fill="#241452"]{fill:#237a5c}
-html[data-tod="toi"] #lpSky stop:nth-child(1){stop-color:#050816}
-html[data-tod="toi"] #lpSky stop:nth-child(2){stop-color:#0e1745}
-html[data-tod="toi"] #lpSky stop:nth-child(3){stop-color:#1d2a6b}
-html[data-tod="toi"] #lpSky stop:nth-child(4){stop-color:#2f449e}
-html[data-tod="toi"] #lpSunG stop:nth-child(1){stop-color:#e8ecff}
-html[data-tod="toi"] #lpSunG stop:nth-child(2){stop-color:#9fb0ff}
-html[data-tod="toi"] #lpSunG stop:nth-child(3){stop-color:#6d7dff}
-html[data-tod="toi"] .lp-stage path[fill="#3a2270"]{fill:#1a1f5a}
-html[data-tod="toi"] .lp-stage path[fill="#241452"]{fill:#10143c}
-/* ban ngày: ẩn sao, sao băng; ký hiệu toán đổi sang chữ trắng có viền tối để dễ đọc */
-html[data-tod="sang"] .lp-tw,html[data-tod="sang"] .lp-ss{display:none}
-html[data-tod="sang"] .lp-sym{color:#fff;text-shadow:0 0 6px rgba(0,70,140,.9),0 1px 2px rgba(0,50,110,.8)}
-
-/* ---------- Cảnh nền (đơn giản, chỉ transform/opacity) ---------- */
-#tod-scene{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;contain:strict;background:var(--tod-base,#0b1030)}
-#tod-scene .tod-sc{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity 1.2s ease}
-#tod-scene .tod-sc.on{opacity:1}
-#tod-scene .sang{--sz:clamp(80px,16vmin,150px);--halo:rgba(255,225,150,.55);background:linear-gradient(180deg,#5cc3ff 0%,#a8e4ff 45%,#ffe9b8 85%,#ffd1a0 100%)}
-#tod-scene .toi{--sz:clamp(64px,11vmin,104px);--halo:rgba(190,205,255,.16);background:linear-gradient(180deg,#050816 0%,#0e1745 55%,#1d2a6b 100%)}
-#tod-scene .dusk{position:absolute;inset:0;opacity:var(--dusk,.4);transition:opacity 2.4s ease;
-  background:linear-gradient(180deg,#2d1b69 0%,#8e3fa8 32%,#ff6b8b 62%,#ffa65c 88%,#ffd27a 100%)}
-
-/* mặt trời / trăng: vị trí đặt bằng --sx --sy (JS tính theo giờ thật), trượt êm khi đổi */
-#tod-scene .sunw{position:absolute;left:0;top:0;width:0;height:0;transform:translate3d(var(--sx,20vw),var(--sy,20vh),0);transition:transform 2.6s cubic-bezier(.2,.7,.2,1);will-change:transform}
-#tod-scene .sunw .sun,#tod-scene .sunw .moon{position:absolute;left:calc(var(--sz) / -2);top:calc(var(--sz) / -2);width:var(--sz);height:var(--sz);border-radius:50%}
-#tod-scene .sunw .halo{position:absolute;left:calc(var(--sz) * -2.2);top:calc(var(--sz) * -2.2);width:calc(var(--sz) * 4.4);height:calc(var(--sz) * 4.4);border-radius:50%;
-  background:radial-gradient(circle,var(--halo),transparent 65%);animation:todHalo 6s ease-in-out infinite alternate}
-#tod-scene .sang .sun{background:radial-gradient(circle at 40% 40%,#fffbe0,#ffe58a 50%,#ffb347);box-shadow:0 0 50px 24px rgba(255,214,120,.55)}
-#tod-scene .ring{position:absolute;left:calc(var(--sz) * -1.6);top:calc(var(--sz) * -1.6);width:calc(var(--sz) * 3.2);height:calc(var(--sz) * 3.2);border-radius:50%;border:2px solid rgba(255,255,255,.6);animation:todRing 5s ease-out infinite}
-#tod-scene .moon{background:radial-gradient(circle at 36% 32%,#fbfaf0 0%,#f0eed9 45%,#dedcc6 100%);opacity:.92;
-  box-shadow:0 0 0 1px rgba(255,255,245,.25),0 0 18px 4px rgba(235,240,255,.35),0 0 50px 16px rgba(170,190,255,.16)}
-/* vết hố rất nhạt */
-#tod-scene .moon::before{content:"";position:absolute;inset:0;border-radius:50%;
-  background:radial-gradient(circle at 30% 34%,rgba(160,155,125,.2) 0 9%,transparent 10%),
-    radial-gradient(circle at 62% 26%,rgba(160,155,125,.15) 0 6%,transparent 7%),
-    radial-gradient(circle at 68% 62%,rgba(160,155,125,.2) 0 12%,transparent 13%),
-    radial-gradient(circle at 36% 72%,rgba(160,155,125,.15) 0 7%,transparent 8%)}
-#tod-scene .moon::after{content:"";position:absolute;inset:0;border-radius:50%;
-  background:radial-gradient(circle at 34% 30%,transparent 60%,rgba(120,125,170,.18) 100%)}
-/* sao nhỏ quanh trăng */
-#tod-scene .ms{position:absolute;width:var(--s);height:var(--s);border-radius:50%;background:#fff;box-shadow:0 0 5px 1px rgba(255,255,255,.7);animation:todTwinkle var(--t) ease-in-out infinite;animation-delay:var(--d)}
-
-#tod-scene .hill{position:absolute;bottom:-1px;left:0;width:100%;height:30vh;display:block}
-#tod-scene .hill.h1{height:36vh}
-#tod-scene .cl{position:absolute;left:0;color:#fff;animation:todDrift var(--t) linear infinite;animation-delay:var(--d);will-change:transform}
-#tod-scene .bird{position:absolute;left:0;top:var(--y);width:var(--w);color:#3b5b78;animation:todBird 16s linear 1 both;animation-delay:var(--d)}
-#tod-scene .bird svg{display:block;width:100%;animation:todFlap .55s ease-in-out infinite alternate}
-#tod-scene .leaf{position:absolute;left:var(--x);top:-4vh;width:12px;height:16px;border-radius:0 100% 0 100%;opacity:.85;
-  background:linear-gradient(135deg,var(--c1),var(--c2));animation:todFall var(--t) linear infinite;animation-delay:var(--d)}
-#tod-scene .star{position:absolute;width:var(--s);height:var(--s);border-radius:50%;background:#fff;animation:todTwinkle var(--t) ease-in-out infinite;animation-delay:var(--d)}
-#tod-scene .const{position:absolute;left:36vw;top:6vh;width:clamp(150px,26vw,320px);overflow:visible}
-#tod-scene .cline{fill:none;stroke:rgba(190,210,255,.6);stroke-width:1.1;stroke-dasharray:330;stroke-dashoffset:330;animation:todDraw 3.5s ease-out .8s forwards}
-#tod-scene .cs{fill:#fff;animation:todTwinkle 3s ease-in-out infinite;animation-delay:var(--d)}
-#tod-scene .shoot,#tod-scene .shoot2{position:absolute;width:130px;height:2px;border-radius:2px;opacity:0;background:linear-gradient(90deg,transparent,#fff);transform:rotate(35deg)}
-#tod-scene .shoot{left:20%;top:8%;animation:todShoot 11s linear infinite}
-#tod-scene .shoot2{animation:todShoot2 1.1s ease-out forwards}
-
-html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,html.tod-nofx .hero::before{animation:none!important}
-
-/* ---------- Nút điều khiển (nhỏ, góc dưới trái) ---------- */
-#tod-switch,#tod-fx{position:fixed;left:12px;z-index:9000;min-width:0;padding:0;margin:0;border-radius:50%;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;line-height:1;color:#fff;
-  border:2px solid var(--cy,#7dd3fc);background:var(--card2,#0a0f26);box-shadow:0 3px 12px rgba(0,0,0,.4);opacity:.92}
-#tod-switch{bottom:calc(12px + env(safe-area-inset-bottom,0px));width:42px;height:42px;font-size:20px}
-#tod-fx{bottom:calc(60px + env(safe-area-inset-bottom,0px));width:32px;height:32px;font-size:15px}
-#tod-fx.off{opacity:.6;border-style:dashed}
-#tod-switch:hover,#tod-fx:hover{opacity:1}
-#tod-tip{position:fixed;left:62px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:9000;max-width:calc(100vw - 80px);
-  padding:7px 14px;border-radius:999px;font-size:13px;color:var(--fg,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  background:var(--card2,#0a0f26);border:1px solid var(--cy,#7dd3fc);opacity:0;transition:opacity .25s;pointer-events:none}
-#tod-tip.show{opacity:1}
-
-@keyframes todIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@keyframes todType{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
-@keyframes todNeon{0%,100%{opacity:.45}50%{opacity:1}}
-@keyframes todDrift{from{transform:translate3d(-40vw,0,0)}to{transform:translate3d(115vw,0,0)}}
-@keyframes todBird{0%{transform:translate3d(-12vw,0,0)}50%{transform:translate3d(50vw,-3vh,0)}100%{transform:translate3d(112vw,2vh,0)}}
-@keyframes todFlap{from{transform:scaleY(1)}to{transform:scaleY(.45)}}
-@keyframes todFall{0%{transform:translate3d(0,0,0) rotate(0)}50%{transform:translate3d(var(--dx),55vh,0) rotate(180deg)}100%{transform:translate3d(calc(var(--dx) * -.4),112vh,0) rotate(360deg)}}
-@keyframes todHalo{from{opacity:.65}to{opacity:1}}
-@keyframes todRing{0%{transform:scale(.5);opacity:.7}100%{transform:scale(2.4);opacity:0}}
-@keyframes todTwinkle{0%,100%{opacity:.2}50%{opacity:1}}
-@keyframes todDraw{to{stroke-dashoffset:0}}
-@keyframes todShoot{0%{opacity:0;transform:translate3d(0,0,0) rotate(35deg)}2%{opacity:1}11%{opacity:0;transform:translate3d(320px,224px,0) rotate(35deg)}100%{opacity:0}}
-@keyframes todShoot2{0%{opacity:1;transform:translate3d(0,0,0) rotate(35deg)}100%{opacity:0;transform:translate3d(300px,210px,0) rotate(35deg)}}
-@media (prefers-reduced-motion:reduce){
-  #tod-scene *,#tod-greet,#tod-greet *,html[data-tod] .hero::before{animation:none!important}
-  #tod-scene .tod-sc,#tod-scene .sunw{transition:none}
-  html[data-tod="toi"] .hero::before{opacity:1}
-}
-@media print{#tod-scene,#tod-switch,#tod-fx,#tod-tip,#tod-greet{display:none!important}}
-</style>
-
-<script id="tod-js">
-/* Tự đổi giao diện theo giờ máy: sáng 7h–17h59, tối 18h–6h59.
-   Nút tròn lớn: xem thử/ghim từng buổi hoặc quay về "Tự động". Nút ⚡: tắt/bật chuyển động nền. */
-(function(){
-  'use strict';
-  var KEY='tod_mode',FXK='tod_fx',MODES=['auto','sang','toi'];
-  var NAME={sang:'Giao diện sáng',toi:'Giao diện tối'};
-  var ICON={auto:'🕒',sang:'☀️',toi:'🌙'};
-  var BAR={sang:'#5cc3ff',toi:'#050816'};
-  var REP={sang:12.5,toi:22};           /* giờ đại diện khi ghim thủ công một buổi */
-  /* Câu chào: thêm/sửa tuỳ ý, mỗi lần tải trang chọn ngẫu nhiên một câu */
-  var G={
-    sang:['Chào buổi sáng! Chúc quý thầy cô một ngày dạy học tràn đầy năng lượng.','Buổi sáng tốt lành! Một ngày mới, thêm nhiều bài giảng thật hay.','Sáng nay nắng đẹp lắm — chúc quý thầy cô nhiều niềm vui trên bục giảng.'],
-    gtrua:['Chào buổi trưa! Đến giờ nghỉ ngơi rồi, đừng quên ăn trưa nhé.','Nắng rực rỡ như năng lượng của quý thầy cô — nạp pin một chút rồi mình tiếp tục.'],
-    gchieu:['Chiều rồi, nghỉ tay uống ngụm nước nhé.','Buổi chiều dịu dàng — cứ thong thả, công việc sẽ xong đâu vào đấy.','Chiều yên bình, chúc quý thầy cô một buổi chiều nhẹ nhàng.'],
-    gkhuya:['Khuya rồi — nghỉ ngơi sớm để mai đủ sức nhé quý thầy cô.','Đêm yên tĩnh — soạn bài xong nhớ nghỉ ngơi sớm nhé.','Trời đã khuya — chạm vào khoảng trống quanh trang để gọi sao băng nhé.'],
-    gsom:['Trời còn sớm — chúc quý thầy cô một ngày mới thật nhiều năng lượng.','Sáng sớm yên tĩnh — chúc quý thầy cô khởi đầu ngày mới thuận lợi.'],
-    toi:['Chào buổi tối! Cảm ơn quý thầy cô đã làm việc chăm chỉ cả ngày.','Buổi tối an lành — chúc quý thầy cô soạn bài thật nhẹ nhàng.','Trăng đã lên — chạm vào khoảng trống quanh trang để gọi sao băng nhé.']
-  };
-  var TOUCH={sang:'🌸 Chạm vào màn hình để thả hoa bay lên',toi:'✨ Chạm vào màn hình để thả sao bay lên'};
-  var GL={sang:['✿','❀'],toi:['✦','✧']};      /* hình thay cho trái tim theo buổi */
-  var HC={sang:['#ff9ec4','#ffd166','#ffffff','#7ee0c8'],toi:['#7dd3fc','#a78bfa','#ffffff','#c4b5fd']};
-  var DAYS=['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
-
-  /* Ngày quan trọng: [tháng, ngày, tên] lặp hằng năm; [năm, tháng, ngày, tên] cho ngày đổi theo năm (Tết Nguyên đán). Thêm/bớt tuỳ ý. */
-  var HOL=[[1,1,'Tết Dương lịch'],[2,3,'Thành lập Đảng Cộng sản Việt Nam'],[2,27,'Thầy thuốc Việt Nam'],[3,8,'Quốc tế Phụ nữ'],[3,26,'Thành lập Đoàn TNCS Hồ Chí Minh'],
-    [4,30,'Giải phóng miền Nam'],[5,1,'Quốc tế Lao động'],[5,7,'Chiến thắng Điện Biên Phủ'],[5,19,'Sinh nhật Chủ tịch Hồ Chí Minh'],[6,1,'Quốc tế Thiếu nhi'],[6,21,'Báo chí cách mạng Việt Nam'],[6,28,'Gia đình Việt Nam'],
-    [7,27,'Thương binh Liệt sĩ'],[8,19,'Cách mạng Tháng Tám thành công'],[9,2,'Quốc khánh'],[9,5,'Khai giảng năm học'],[10,10,'Giải phóng Thủ đô'],[10,13,'Doanh nhân Việt Nam'],
-    [10,20,'Ngày Phụ nữ Việt Nam'],[11,19,'Quốc tế Đàn ông'],[11,20,'Ngày Nhà giáo Việt Nam'],[12,22,'Ngày thành lập Quân đội nhân dân Việt Nam']];
-  /* Ngày lễ theo ÂM LỊCH, tự quy ra dương lịch mỗi năm: [ngày âm, tháng âm, tên] */
-  var LHOL=[[1,1,'Tết Nguyên đán'],[15,1,'Rằm tháng Giêng'],[10,3,'Giỗ Tổ Hùng Vương'],[15,8,'Tết Trung thu']];
-  var HOL_DAYS=45,HOL_MAX=1;   /* chỉ nhắc 1 ngày gần nhất, nếu còn trong 45 ngày tới */
-  function holidays(){
-    var n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),out=[];
-    for(var i=0;i<HOL.length;i++){
-      var h=HOL[i],ds=[new Date(t0.getFullYear(),h[0]-1,h[1]),new Date(t0.getFullYear()+1,h[0]-1,h[1])];
-      for(var j=0;j<ds.length;j++){var d=Math.round((ds[j]-t0)/864e5);
-        if(d>=0&&d<=HOL_DAYS){out.push({d:d,name:h[2],date:two(ds[j].getDate())+'/'+two(ds[j].getMonth()+1)});break;}}
-    }
-    if(window.AmLich){for(var q=0;q<LHOL.length;q++){var L=LHOL[q];
-      for(var yy=t0.getFullYear()-1;yy<=t0.getFullYear()+1;yy++){var sd=window.AmLich.lunar2solar(L[0],L[1],yy,0);
-        if(!sd)continue;var dd=Math.round((sd-t0)/864e5);
-        if(dd>=0&&dd<=HOL_DAYS){out.push({d:dd,name:L[2],date:two(sd.getDate())+'/'+two(sd.getMonth()+1)+' (âm '+L[0]+'/'+L[1]+')'});break;}}}}
-    out.sort(function(x,y){return x.d-y.d;});
-    return out.slice(0,HOL_MAX);
-  }
 
 
-  /* ----- Đúng ngày lễ: khi mở trang hiện lời chúc + pháo hoa khoảng 5 giây rồi tự tắt. Thử: thêm ?ngayle=1 vào địa chỉ trang ----- */
-  function holidayToday(){
-    var n=new Date(),m=n.getMonth()+1,d=n.getDate();
-    for(var i=0;i<HOL.length;i++){var h=HOL[i];if(h[0]===m&&h[1]===d)return h[2];}
-    try{var l=window.AmLich.solar2lunar(d,m,n.getFullYear());
-      if(!l.leap)for(var j=0;j<LHOL.length;j++)if(LHOL[j][0]===l.d&&LHOL[j][1]===l.m)return LHOL[j][2];}catch(e){}
-    return null;
-  }
-  function fireworks(){
-    var cv=document.createElement('canvas');cv.id='tod-fw';cv.setAttribute('aria-hidden','true');
-    var dpr=Math.min(window.devicePixelRatio||1,lite?1:1.5),W=window.innerWidth,H=window.innerHeight;
-    cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
-    cv.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;z-index:99998;pointer-events:none';
-    var c=cv.getContext&&cv.getContext('2d');if(!c)return;
-    document.body.appendChild(cv);c.scale(dpr,dpr);
-    var P=[],t0=performance.now(),last=t0,nextB=0,COLS=['#ff4d6d','#ffd166','#7dd3fc','#c084fc','#7ee0a8','#ffffff','#ff9f43'],ended=false;
-    function end(){if(ended)return;ended=true;if(cv.parentNode)cv.parentNode.removeChild(cv);}
-    function burst(){
-      var x=W*(.15+Math.random()*.7),y=H*(.12+Math.random()*.38),col=pick(COLS),n=lite?34:56;
-      for(var i=0;i<n;i++){var a=Math.PI*2*i/n+Math.random()*.1,v=1.6+Math.random()*2.6;
-        P.push({x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:0,m:1100+Math.random()*500,c:col});}
-    }
-    function frame(now){
-      if(ended)return;
-      var t=now-t0,dt=Math.min(now-last,40)/16.7;last=now;
-      c.globalCompositeOperation='source-over';c.clearRect(0,0,W,H);
-      if(t<3800&&t>=nextB){burst();nextB=t+350+Math.random()*350;}
-      c.globalCompositeOperation='lighter';
-      for(var i=P.length-1;i>=0;i--){
-        var p=P[i];p.vx*=.985;p.vy=p.vy*.985+.045*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.l+=dt*16.7;
-        var al=1-p.l/p.m;if(al<=0){P.splice(i,1);continue;}
-        c.globalAlpha=al;c.fillStyle=p.c;c.beginPath();c.arc(p.x,p.y,2*al+.8,0,6.2832);c.fill();
-      }
-      if(t>=3800&&!P.length||t>5600){end();return;}
-      requestAnimationFrame(frame);
-    }
-    requestAnimationFrame(frame);setTimeout(end,7000);   /* dự phòng */
-  }
-  function celebrate(){
-    var name=null;
-    try{if(/[?&]ngayle=/.test(location.search))name='Ngày Nhà giáo Việt Nam';}catch(e){}
-    if(!name)name=holidayToday();
-    if(!name)return;
-    var msg=/^Tết/.test(name)?'Chúc mừng năm mới! '+name+'!':'Chúc mừng '+(/^Ngày /.test(name)?'':'ngày ')+name+'!';
-    var m=document.createElement('div');m.id='tod-fw-msg';m.setAttribute('role','status');m.textContent='🎆 '+msg;
-    document.body.appendChild(m);setTimeout(function(){if(m.parentNode)m.parentNode.removeChild(m);},5200);
-    if(fx!=='off'&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches))fireworks();
-  }
 
-  function byHour(h){
-    if(h>=7&&h<18)return 'sang';   /* sáng 7h–17h59 */
-    return 'toi';                  /* tối 18h–6h59 */
-  }
-  var mode='auto',fx='on',cur='',scene=null,curEl=null,btn=null,fxBtn=null,tip=null,tipT=0,gEl=null,lastShoot=0;
-  try{localStorage.removeItem(KEY);if(localStorage.getItem(FXK)==='off')fx='off';}catch(e){}   /* luôn khởi động ở chế độ Tự động theo giờ thật; xoá chế độ ghim cũ còn lưu từ trước */
-  var root=document.documentElement;
-  function want(){return mode==='auto'?byHour(new Date().getHours()):mode;}
-  function rnd(a,b){return a+Math.random()*(b-a);}
-  function cl(v){return v<0?0:v>1?1:v;}
-  function pick(a){return a[(Math.random()*a.length)|0];}
-  var lite=(window.matchMedia&&matchMedia('(max-width:700px)').matches)||(navigator.hardwareConcurrency||8)<=4||(navigator.deviceMemory||8)<=4;
-  if(fx==='off')root.classList.add('tod-nofx');
-
-  /* ----- vị trí mặt trời/trăng theo giờ thật ----- */
-  function hours(k){if(mode==='auto'){var d=new Date();return d.getHours()+d.getMinutes()/60;}return REP[k];}
-  function place(el,k,intro){
-    var h=hours(k),p,x,y,dusk=0;
-    if(k==='sang'){p=cl((h-7)/11);x=8+p*80;y=52-44*Math.sin(p*Math.PI);}   /* mặt trời mọc, lên đỉnh giữa ngày, xuống dần */
-    else{   /* trăng đứng yên ở góc trái trên cùng */
-      el.style.setProperty('--dusk','0');
-      el.style.setProperty('--sx','calc(var(--sz) * .5 + 3vw + 8px)');
-      if(intro){
-        el.style.setProperty('--sy','calc(var(--sz) * -1)');
-        requestAnimationFrame(function(){requestAnimationFrame(function(){el.style.setProperty('--sy','calc(var(--sz) * .5 + 2vh + 8px)');});});
-      }else el.style.setProperty('--sy','calc(var(--sz) * .5 + 2vh + 8px)');
-      return;
-    }
-    el.style.setProperty('--dusk',dusk.toFixed(2));
-    el.style.setProperty('--sx',x.toFixed(1)+'vw');
-    if(intro){
-      el.style.setProperty('--sy',(y+30).toFixed(1)+'vh');
-      requestAnimationFrame(function(){requestAnimationFrame(function(){el.style.setProperty('--sy',y.toFixed(1)+'vh');});});
-    }else el.style.setProperty('--sy',y.toFixed(1)+'vh');
-  }
-
-  /* ----- phần tử dựng sẵn ----- */
-  function cloud(top,w,t,d,op){
-    return '<svg class="cl" viewBox="0 0 200 90" style="top:'+top+'vh;width:'+w+'px;--t:'+t+'s;--d:'+d+'s;opacity:'+op+'"><g fill="currentColor"><circle cx="55" cy="55" r="24"/><circle cx="90" cy="42" r="32"/><circle cx="130" cy="50" r="27"/><circle cx="158" cy="62" r="18"/><rect x="35" y="58" width="140" height="26" rx="13"/></g></svg>';
-  }
-  function clouds(){return cloud(14,190,110,-25,.9)+cloud(34,150,140,-80,.8)+(lite?'':cloud(52,230,160,-50,.75));}
-  function birds(){   /* đàn chim bay ngang một lần khi vào trang */
-    var s='',n=lite?2:3;
-    for(var i=0;i<n;i++)s+='<div class="bird" style="--y:'+rnd(12,38).toFixed(0)+'vh;--w:'+rnd(26,40).toFixed(0)+'px;--d:'+(.8+i*.9+rnd(0,.6)).toFixed(1)+'s"><svg viewBox="0 0 40 16"><path d="M2 12Q10 0 20 10Q30 0 38 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></div>';
-    return s;
-  }
-  function leaves(){  /* vài chiếc lá rơi chậm */
-    var s='',n=lite?3:5,C=[['#ffb067','#ff8f70'],['#ffd27a','#ffa94d'],['#ff9ab0','#ff7a8a']];
-    for(var i=0;i<n;i++){var c=C[i%3];s+='<i class="leaf" style="--x:'+rnd(5,90).toFixed(0)+'vw;--t:'+rnd(20,28).toFixed(0)+'s;--d:-'+rnd(0,22).toFixed(1)+'s;--dx:'+rnd(-14,14).toFixed(0)+'vw;--c1:'+c[0]+';--c2:'+c[1]+'"></i>';}
-    return s;
-  }
-  function stars(n){
-    var s='';
-    for(var i=0;i<n;i++)s+='<i class="star" style="left:'+rnd(0,100).toFixed(1)+'%;top:'+rnd(0,75).toFixed(1)+'%;--s:'+rnd(1.4,3).toFixed(1)+'px;--t:'+rnd(2,5).toFixed(1)+'s;--d:-'+rnd(0,5).toFixed(1)+'s"></i>';
-    return s;
-  }
-  function constellation(){
-    var P=[[12,92],[48,58],[86,72],[122,28],[160,46],[188,14]],pts='',dots='';
-    for(var i=0;i<P.length;i++){pts+=P[i][0]+','+P[i][1]+' ';dots+='<circle class="cs" cx="'+P[i][0]+'" cy="'+P[i][1]+'" r="2.6" style="--d:-'+(i*.7).toFixed(1)+'s"/>';}
-    return '<svg class="const" viewBox="0 0 200 100"><polyline class="cline" points="'+pts+'"/>'+dots+'</svg>';
-  }
-  function moonStars(){   /* vài ngôi sao nhỏ quanh trăng (toạ độ theo cỡ trăng) */
-    var P=[[-.95,-.55,2.6],[.78,-.78,2],[1.05,.1,3],[.5,.95,2.2],[-.8,.7,2],[-1.25,.05,1.6]],s='';
-    for(var i=0;i<P.length;i++)s+='<i class="ms" style="left:calc(var(--sz) * '+P[i][0]+');top:calc(var(--sz) * '+P[i][1]+');--s:'+P[i][2]+'px;--t:'+(2.4+i*.6).toFixed(1)+'s;--d:-'+(i*.8).toFixed(1)+'s"></i>';
-    return s;
-  }
-  var SCENES={
-    sang:function(){return '<div class="sunw"><div class="halo"></div><div class="sun"></div></div>'+clouds()+birds();},
-    toi:function(){return stars(lite?14:28)+constellation()+'<div class="sunw"><div class="halo"></div><div class="moon"></div>'+moonStars()+'</div>';}
-  };
-
-  /* ----- lời chào + ngày giờ ----- */
-  function two(n){return n<10?'0'+n:''+n;}
-  function lunarTxt(d){try{var l=window.AmLich.solar2lunar(d.getDate(),d.getMonth()+1,d.getFullYear());return 'Âm lịch '+l.d+'/'+l.m+(l.leap?' nhuận':'');}catch(e){return '';}}
-  function stamp(){var d=new Date(),al=lunarTxt(d);return DAYS[d.getDay()]+', '+two(d.getDate())+'/'+two(d.getMonth()+1)+'/'+d.getFullYear()+(al?' · '+al:'')+' · Thời gian '+two(d.getHours())+':'+two(d.getMinutes());}
-  function fitTime(){var e=gEl&&gEl.querySelector('.g-time');if(!e)return;
-    e.style.fontSize='';e.style.whiteSpace='';
-    var fs=parseFloat(getComputedStyle(e).fontSize)||12.5;
-    while(e.scrollWidth>e.clientWidth+1&&fs>9.5){fs-=.5;e.style.fontSize=fs+'px';}   /* thu chữ cho vừa MỘT hàng */
-    if(e.scrollWidth>e.clientWidth+1)e.style.whiteSpace='normal';                      /* khung quá hẹp: cho xuống dòng thay vì tràn */
-  }
-  var fitT=0;window.addEventListener('resize',function(){clearTimeout(fitT);fitT=setTimeout(fitTime,120);});
-  function clock(){var e=gEl&&gEl.querySelector('.g-time');if(e){e.textContent=stamp();fitTime();}}
-  function greet(){
-    if(!gEl)return;
-    var gk=cur;if(mode==='auto'){var hh=new Date().getHours();gk=hh>=7&&hh<11?'sang':hh>=11&&hh<14?'gtrua':hh>=14&&hh<18?'gchieu':hh>=18&&hh<22?'toi':(hh>=22||hh<5)?'gkhuya':'gsom';}else if(cur==='sang')gk='sang';
-    var t=pick(G[gk]);
-    gEl.innerHTML='<span class="g-ic"></span><span class="g-tx"></span><span class="g-meta"><span class="g-time"></span><span class="g-hl"></span></span>';
-    gEl.querySelector('.g-ic').textContent=ICON[cur];
-    var tx=gEl.querySelector('.g-tx');var mm=t.match(/^(.+?!)\s+(.+)$/)||t.match(/^(.+?)\s+—\s+(.+)$/)||t.match(/^(.+?,)\s+(chúc .+)$/);
-    if(mm){tx.textContent='';
-      var l1=document.createElement('span'),l2=document.createElement('span');
-      l1.className='g-l1';l1.textContent=mm[1];l2.className='g-l2';l2.textContent=mm[2].charAt(0).toUpperCase()+mm[2].slice(1);
-      tx.appendChild(l1);tx.appendChild(l2);
-    }else tx.textContent=t;
-    tx.style.setProperty('--n',Math.min(t.length,70));
-    gEl.style.animation='none';void gEl.offsetWidth;gEl.style.animation='';
-    var hl=holidays(),he=gEl.querySelector('.g-hl');
-    if(hl.length){
-      he.textContent='';he.appendChild(document.createTextNode('🎉 '));
-      hl.forEach(function(x,i){
-        if(i)he.appendChild(document.createTextNode(' · '));
-        he.appendChild(document.createTextNode(x.name+' '+x.date+' '));
-        var b=document.createElement('b');b.textContent=x.d===0?'(hôm nay!)':'(còn '+x.d+' ngày)';he.appendChild(b);
-      });
-    }else he.style.display='none';
-    clock();
-  }
-
-  function build(){
-    scene=document.createElement('div');scene.id='tod-scene';scene.setAttribute('aria-hidden','true');
-    document.body.insertBefore(scene,document.body.firstChild);
-    var hero=document.querySelector('.app .hero');
-    if(hero&&hero.parentNode){gEl=document.createElement('div');gEl.id='tod-greet';gEl.setAttribute('role','status');(hero.querySelector('.htxt')||hero).appendChild(gEl);}   /* lời chào nằm TRONG banner: bớt một khung */
-    btn=document.createElement('button');btn.id='tod-switch';btn.type='button';
-    btn.addEventListener('click',function(){
-      mode=MODES[(MODES.indexOf(mode)+1)%MODES.length];
-      /* chế độ ghim chỉ có hiệu lực đến khi tải lại trang (không lưu) */
-      apply(true);
-    });
-    fxBtn=document.createElement('button');fxBtn.id='tod-fx';fxBtn.type='button';
-    fxBtn.addEventListener('click',function(){
-      fx=fx==='on'?'off':'on';
-      root.classList.toggle('tod-nofx',fx==='off');
-      try{localStorage.setItem(FXK,fx);}catch(e){}
-      fxUi();showTip(fx==='on'?'⚡ Chuyển động nền: BẬT':'⏸ Chuyển động nền: TẮT');
-    });
-    tip=document.createElement('div');tip.id='tod-tip';tip.setAttribute('role','status');
-    document.body.appendChild(btn);document.body.appendChild(fxBtn);document.body.appendChild(tip);
-
-    /* sao băng khi bấm/chạm vào khoảng trống quanh trang (chỉ buổi tối) */
-    document.addEventListener('pointerdown',function(e){
-      if(cur!=='toi'||fx==='off'||!curEl)return;
-      var t=e.target;
-      if(!(t===document.body||t===root||t.id==='t0'||(t.classList&&(t.classList.contains('app')||t.classList.contains('lp-stage')))))return;
-      var n=Date.now();if(n-lastShoot<1200)return;lastShoot=n;
-      var s=document.createElement('i');s.className='shoot2';
-      s.style.left=e.clientX+'px';s.style.top=e.clientY+'px';
-      var rm=function(){if(s.parentNode)s.parentNode.removeChild(s);};
-      s.addEventListener('animationend',rm);setTimeout(rm,1500);
-      curEl.appendChild(s);
-    },{passive:true});
-
-    /* hình/màu của hiệu ứng thả tim đổi theo buổi (không sửa hieu-ung.js) */
-    if(window.MutationObserver){
-      new MutationObserver(function(ms){
-        if(!cur)return;
-        for(var i=0;i<ms.length;i++)for(var j=0;j<ms[i].addedNodes.length;j++){
-          var n=ms[i].addedNodes[j];
-          if(n.nodeType===1&&n.classList&&n.classList.contains('hc-h')){
-            n.textContent=pick(GL[cur]);n.style.setProperty('--c',pick(HC[cur]));
-          }
-        }
-      }).observe(document.body,{childList:true});
-    }
-    fxUi();apply(false);
-    setTimeout(celebrate,document.querySelector('.curtain-wrap')?4800:500);   /* đợi màn mở đầu kéo xong */
-  }
-  function fxUi(){
-    fxBtn.textContent=fx==='on'?'⚡':'⏸';fxBtn.classList.toggle('off',fx==='off');
-    var t=fx==='on'?'Chuyển động nền: bật — bấm để tắt (đỡ giật)':'Chuyển động nền: tắt — bấm để bật';
-    fxBtn.title=t;fxBtn.setAttribute('aria-label',t);
-  }
-  function showTip(t){
-    if(!tip)return;tip.textContent=t;tip.classList.add('show');clearTimeout(tipT);
-    tipT=setTimeout(function(){tip.classList.remove('show');},2400);
-  }
-  function label(){return (mode==='auto'?'Tự động · ':'Cố định · ')+NAME[cur];}
-  function apply(tipOn){
-    var k=want();
-    if(k!==cur){
-      cur=k;root.setAttribute('data-tod',k);
-      if(scene){
-        /* chỉ giữ cảnh của buổi hiện tại: cảnh cũ mờ dần rồi xoá hẳn */
-        var old=curEl,el=document.createElement('div');
-        el.className='tod-sc '+k;el.innerHTML=SCENES[k]();scene.appendChild(el);curEl=el;
-        if(el.querySelector('.sunw'))place(el,k,true);
-        requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('on');});});
-        if(old){old.classList.remove('on');setTimeout(function(){if(old.parentNode)old.parentNode.removeChild(old);},1400);}
-        if(k==='sang'){setTimeout(function(){var b=el.querySelectorAll('.bird');for(var i=0;i<b.length;i++)if(b[i].parentNode)b[i].parentNode.removeChild(b[i]);},24000);}
-      }
-      var mt=document.querySelector('meta[name="theme-color"]');
-      if(!mt){mt=document.createElement('meta');mt.name='theme-color';document.head.appendChild(mt);}
-      mt.content=BAR[k];
-      var lt=document.querySelector('.lp-touch');if(lt)lt.textContent=TOUCH[k];
-      greet();
-      try{window.dispatchEvent(new CustomEvent('todchange',{detail:k}));}catch(e){}
-    }
-    if(btn){
-      btn.textContent=ICON[mode];
-      var t=label()+' — bấm để đổi';btn.title=t;btn.setAttribute('aria-label','Giao diện: '+t);
-    }
-    if(tipOn)showTip(ICON[mode]+' '+label()+(cur==='toi'?' · thử chạm vào khoảng trống quanh trang':''));
-  }
-  function tick(){
-    if(mode==='auto'){apply(false);if(curEl&&curEl.querySelector('.sunw'))place(curEl,cur,false);}
-    clock();
-  }
-
-  root.setAttribute('data-tod',want());
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
-  setInterval(tick,30000);
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)tick();});
-})();
-</script>
 <!-- ===== BỘ ĐẾM LƯỢT TRUY CẬP (GoatCounter, ẩn danh) =====
      Đổi SITE bên dưới nếu bạn đổi tên tài khoản GoatCounter. Cần bật trong GoatCounter:
      Settings → "Allow adding visitor counts on your website". Nếu dịch vụ lỗi/bị chặn, bộ đếm tự ẩn, trang vẫn chạy bình thường. -->
@@ -856,84 +185,73 @@ html #tod-greet .g-hl{text-wrap:balance;font-size:clamp(11px,3vw,12.5px)}
 <style>/* tên tab luôn nằm trên 1 dòng (máy tính/máy tính bảng); điện thoại giữ lưới riêng */
 @media (min-width:640px){.tabs{overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
 .tabs .tab{white-space:nowrap;flex:1 1 auto;min-width:max-content}}</style>
-<style id="hero-v9">
-/* ===== Banner theo mẫu thiết kế: ban ngày (trời xanh–cam, mặt trời cười) / ban đêm (xanh navy, trăng khuyết, sao, chòm sao) ===== */
-#tod-scene .sunw,#tod-scene .const{display:none!important}
-html[data-tod] .hero{isolation:isolate;border-radius:clamp(12px,1.6vw,20px)}
-html[data-tod="sang"] .hero{--ht:#0b2f73;background:linear-gradient(180deg,#6dd6ea 0%,#a9e9ef 38%,#ffe4b6 78%,#ffd09a 100%);box-shadow:0 12px 28px -14px rgba(255,150,60,.55),0 0 0 1px rgba(255,255,255,.5)}
-html[data-tod="toi"] .hero{--ht:#fff;background:linear-gradient(180deg,#0b1a4d 0%,#112b72 55%,#1a3f94 100%);box-shadow:0 12px 30px -14px rgba(80,130,255,.6),0 0 0 1px rgba(150,185,255,.25)}
-html[data-tod] .hero::before,html[data-tod] .hero::after{display:none!important}
-html[data-tod] .hero-deco,html[data-tod] .hero .stars{display:none!important}
-html[data-tod] .hero .htxt{min-width:0}
-/* lớp nền trang trí */
-html .hero>.hero-art{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;border-radius:inherit}
-.hero-art .art-day,.hero-art .art-night{position:absolute;inset:0;display:none}
-html[data-tod="sang"] .hero-art .art-day,html[data-tod="toi"] .hero-art .art-night{display:block}
-.hero-art .wv{position:absolute;left:0;bottom:0;width:100%;height:34%}
-.hero-art .sp{position:absolute;width:var(--s);height:var(--s);animation:todTwinkle var(--t) ease-in-out infinite;animation-delay:var(--d);filter:drop-shadow(0 0 4px rgba(255,255,255,.7))}
-.hero-art .sun{position:absolute;right:2%;top:4%;width:clamp(60px,7.5vw,112px);height:auto;filter:drop-shadow(0 0 14px rgba(255,214,90,.7))}
-.hero-art .sun .rays{transform-origin:100px 100px;animation:hSpin 80s linear infinite}
-.hero-art .cld{position:absolute;height:auto}
-.hero-art .moon2{position:absolute;left:3%;top:4%;width:clamp(44px,5.5vw,84px);height:auto;filter:drop-shadow(0 0 12px rgba(255,226,140,.65));animation:hGlow 6s ease-in-out infinite alternate}
-.hero-art .const2{position:absolute;right:4%;top:6%;width:clamp(92px,12vw,200px);height:auto;opacity:.9}
-.hero-art .dt{position:absolute;width:var(--s);height:var(--s);border-radius:50%;background:#fff;opacity:.8;animation:todTwinkle var(--t) ease-in-out infinite;animation-delay:var(--d)}
-@keyframes hSpin{to{transform:rotate(360deg)}}
-@keyframes hGlow{from{filter:drop-shadow(0 0 8px rgba(255,226,140,.45))}to{filter:drop-shadow(0 0 16px rgba(255,226,140,.8))}}
-html.tod-nofx .hero-art *,html.tod-nofx .gv-avw{animation:none!important}
-@media (prefers-reduced-motion:reduce){.hero-art *{animation:none!important}}
-/* thẻ logo: khung bo tròn, viền xanh */
-html[data-tod] .hero .logo{border-radius:18px;padding:4px;background:#fff;box-shadow:0 8px 20px -8px rgba(0,0,0,.45)}
-html[data-tod="sang"] .hero .logo{border:3px solid #2f6fd6}
-html[data-tod="toi"] .hero .logo{border:3px solid #5aa9ff;box-shadow:0 0 22px -2px rgba(90,169,255,.55),0 8px 20px -8px rgba(0,0,0,.5)}
-html[data-tod] .hero .logo img{border-radius:12px}
-/* tên trường + tên bộ công cụ */
-html[data-tod] .hero .school{display:flex;align-items:center;justify-content:center;gap:clamp(8px,1.6vw,18px);width:100%;max-width:min(760px,100%);margin:6px auto 2px;color:var(--ht);font-size:clamp(12px,1.9vw,24px);font-weight:800;letter-spacing:.14em;text-shadow:none}
-html[data-tod] .hero .school::before,html[data-tod] .hero .school::after{content:"";flex:1 1 0;min-width:10px;height:1.5px;background:currentColor;opacity:.5}
-html[data-tod] .hero h1{color:var(--ht);font-size:clamp(19px,3.3vw,40px);font-weight:800;line-height:1.15}
-html[data-tod="sang"] .hero h1{text-shadow:0 1px 0 rgba(255,255,255,.55)}
-html[data-tod="toi"] .hero h1{text-shadow:0 2px 10px rgba(0,0,0,.35)}
-/* dòng giáo viên: viên thuốc + hai đường kẻ */
-html[data-tod] .hero h1 .hgv{display:flex!important;align-items:center;justify-content:center;gap:10px;width:100%;max-width:720px;margin:.55em auto 0;font-size:1em;letter-spacing:0;text-transform:none;font-weight:600}
-.gv-name{padding:.3em 1.1em;border-radius:999px;text-transform:none;font-weight:600;font-size:clamp(12px,1.9vw,22px);white-space:nowrap;line-height:1.35}
-html[data-tod="sang"] .gv-name{background:rgba(255,250,236,.95);color:#2a2f4a;box-shadow:0 3px 10px rgba(150,100,30,.28)}
-html[data-tod="toi"] .gv-name{background:rgba(205,220,255,.93);color:#1b2a63;box-shadow:0 0 16px rgba(120,160,255,.35)}
-/* ảnh đại diện: nhỏ trên điện thoại, to bên trái banner trên màn rộng */
-html[data-tod] .hero .gv-avw{--av:clamp(40px,11vw,50px);width:var(--av)!important;height:var(--av)!important;max-width:none!important;max-height:none!important}
-html[data-tod="sang"] .hero .gv-av{border:3px solid #ffc83d;box-shadow:0 0 0 3px rgba(255,255,255,.55),0 6px 14px rgba(150,100,30,.35)}
-html[data-tod="toi"] .hero .gv-av{border:3px solid #9cc8ff}
-@media (min-width:700px){
-  html[data-tod] .hero .htxt{position:static}
-  html[data-tod] .hero h1,html[data-tod] .hero .hgv{position:static}
-  html[data-tod] .hero .gv-avw{--av:clamp(84px,11vw,150px);position:absolute;left:clamp(14px,3vw,52px);top:56%;transform:translateY(-50%);z-index:3}
-  html[data-tod] .hero h1 .hgv::before,html[data-tod] .hero h1 .hgv::after{content:"";flex:1 1 0;height:1.5px;background:var(--ht);opacity:.5}
-  html[data-tod] .hero .gv-avw::before{right:2px;top:2px;font-size:16px}
-}
-/* lời chào: thẻ kính mờ, chữ luôn đọc rõ */
-@media (min-width:1100px){html[data-tod] .hero #tod-greet{align-self:end;margin-bottom:6px}}
-html[data-tod="sang"] .hero #tod-greet{background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.8);border-radius:14px;padding:10px 14px;color:#0b2f73;text-shadow:none;box-shadow:0 6px 16px -10px rgba(120,80,20,.4);backdrop-filter:none}
-html[data-tod="sang"] .hero #tod-greet .g-meta,html[data-tod="sang"] .hero #tod-greet .g-time,html[data-tod="sang"] .hero #tod-greet .g-hl{color:#2a4778}
-html[data-tod="sang"] .hero #tod-greet .g-hl b{color:#c2410c}
-html[data-tod="toi"] .hero #tod-greet{background:rgba(255,255,255,.08);border:1px solid rgba(150,185,255,.3);border-radius:14px;padding:10px 14px;color:#fff;box-shadow:none;backdrop-filter:none}
+
+<style id="giao-dien-moi">
+/* ===== GIAO DIỆN MỚI (sáng/tối) ===== */
+:root{--bg:#eaf4ff;--ink:#14275c;--mut:#4d6191;--card:rgba(255,255,255,.82);--bd:rgba(255,255,255,.95);--sh:0 8px 24px rgba(40,90,170,.15);--time:#ff5a1f;--nav:rgba(255,255,255,.96);--navon:#dcebff;--navtx:#1d5fd0;--chip:rgba(255,255,255,.88);--sk:#cfeaff}
+html[data-theme=toi]{--bg:#070d27;--ink:#eaf1ff;--mut:#a9bbe3;--card:rgba(18,32,82,.72);--bd:rgba(110,150,255,.38);--sh:0 8px 26px rgba(0,0,0,.5);--time:#ffe27a;--nav:rgba(9,17,50,.96);--navon:rgba(70,120,240,.22);--navtx:#74b3ff;--chip:rgba(24,40,100,.7);--sk:#0b1544}
+html,body{background:var(--bg)!important;color:var(--ink);-webkit-tap-highlight-color:transparent}
+.tabs,#tabRoutes,.app .hero{display:none!important}
+body{padding:0!important}
+.app{max-width:1200px;margin:0 auto;padding:0 0 96px!important;background:transparent!important}
+/* Bộ màu cho các công cụ (style.css dùng biến --card/--fg/...): sáng và tối riêng */
+.panel:not(#t0){--bg:#0b1220;--card:#131c2e;--card2:#0f1626;--bd:#25324d;--fg:#e6ebf5;--mut:#93a0ba;background:var(--card);color:var(--fg);border-radius:20px;margin:12px 10px;padding:clamp(12px,2vw,20px)}
+html[data-theme=sang] .panel:not(#t0){--bg:#eef3ff;--card:#ffffff;--card2:#f1f5ff;--bd:#cdd9f3;--fg:#14275c;--mut:#51648f;box-shadow:0 8px 24px rgba(40,90,170,.12)}
+#t0{padding:0;background:transparent;max-width:760px;margin:0 auto}
+.gd-top{position:relative;overflow:hidden;text-align:center;padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 14px;border-radius:0 0 26px 26px;min-height:268px}
+.gd-top>svg{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.gd-top>*:not(svg){position:relative;z-index:1}
+html:not([data-theme=toi]) .an,html[data-theme=toi] .ad{display:none}
+.gd-bar{display:flex;justify-content:space-between}
+.gd-ib{width:50px;height:46px;border:1px solid var(--bd);border-radius:16px;background:var(--chip);color:var(--ink);font-size:21px;box-shadow:var(--sh);backdrop-filter:blur(8px);cursor:pointer}
+.gd-logo{display:block;width:76px;height:76px;margin:-34px auto 4px;border-radius:14px;background:#fff;padding:3px;box-shadow:var(--sh);object-fit:contain}
+.gd-sch{display:flex;align-items:center;gap:10px;justify-content:center;font-weight:700;letter-spacing:.06em;font-size:15px;color:#1b3a8a;text-transform:uppercase}
+.gd-sch:before,.gd-sch:after{content:"";height:1.5px;width:15%;background:currentColor;opacity:.6}
+.gd-h1{margin:2px 0 8px;font-size:clamp(21px,6vw,31px);font-weight:800;color:#12296b;text-transform:uppercase;line-height:1.15}
+html[data-theme=toi] .gd-sch,html[data-theme=toi] .gd-h1{color:#f1f5ff;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.gd-gv{display:inline-flex;align-items:center;gap:0;background:var(--chip);border-radius:30px;padding:0 18px 0 0;box-shadow:var(--sh);border:1px solid var(--bd);font-weight:700;font-size:14px;color:var(--ink)}
+.gd-gv img{width:58px;height:58px;border-radius:50%;border:3px solid #fff;object-fit:cover;margin:-6px 10px -6px -6px;background:#fff}
+html[data-theme=toi] .gd-gv img{border-color:#9fc4ff;box-shadow:0 0 14px rgba(125,170,255,.6)}
+.gd-wrap{padding:0 12px}
+.gd-hi{display:flex;align-items:center;gap:12px;margin:-8px 0 14px;padding:14px;border-radius:22px;background:var(--card);border:1px solid var(--bd);box-shadow:var(--sh);backdrop-filter:blur(10px);position:relative;z-index:2}
+.gd-hi .ic{font-size:40px;line-height:1}
+.gd-hi .tx{flex:1 1 0;min-width:0}.gd-hi h2{margin:0;font-size:21px;font-weight:800;color:var(--ink)}.gd-hi p{margin:2px 0 0;font-size:12.5px;color:var(--mut);line-height:1.35}
+.gd-hi .tm{text-align:center;padding:0 10px;border-left:1.5px solid var(--bd);border-right:1.5px solid var(--bd);font-size:12px;color:var(--ink)}
+.gd-hi .tm b{display:block;font-size:30px;font-weight:800;color:var(--time);line-height:1.15;font-variant-numeric:tabular-nums}
+.gd-hi .hd{font-size:12px;line-height:1.35;text-align:center;color:var(--ink);max-width:104px}.gd-hi .hd:empty{display:none}
+.gd-hi .hd b{font-size:13px}
+@media(max-width:520px){.gd-hi{flex-wrap:wrap}.gd-hi .tx{flex:1 1 60%}.gd-hi .hd{max-width:none;flex:1 1 100%;border-top:1px solid var(--bd);padding-top:8px}.gd-hi .tm{border-right:0;padding-right:0}}
+.gd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:400px){.gd-grid{grid-template-columns:repeat(2,1fr)}}
+.gc{position:relative;text-align:left;border:1px solid var(--bd);border-radius:20px;padding:12px 10px 12px;background:var(--t);color:var(--ink);box-shadow:var(--sh);cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:center;font:inherit;transition:transform .15s}
+.gc:active{transform:scale(.97)}
+html[data-theme=toi] .gc{background:var(--td)}
+.gc .em{font-size:30px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.25))}
+.gc b{font-size:14px;line-height:1.2;padding-right:18px}
+.gc small{grid-column:1/-1;font-size:11.5px;line-height:1.35;color:var(--mut);margin-top:4px}
+.gc .go{position:absolute;right:8px;top:8px;width:22px;height:22px;border-radius:50%;background:var(--ac);color:#fff;font-size:13px;display:grid;place-items:center}
+.gc .fv{position:absolute;right:6px;bottom:4px;border:0;background:none;font-size:15px;color:var(--ac);cursor:pointer;padding:2px 4px}
+.c1{--t:#e1eeff;--td:rgba(30,90,210,.3);--ac:#3b82f6}.c2{--t:#ffeadf;--td:rgba(200,90,40,.26);--ac:#f97316}.c3{--t:#ece6ff;--td:rgba(110,70,220,.3);--ac:#8b5cf6}
+.c4{--t:#dcf6ea;--td:rgba(20,150,110,.28);--ac:#22b573}.c5{--t:#fff0cf;--td:rgba(200,150,20,.26);--ac:#f5a623}.c6{--t:#ffe1ea;--td:rgba(200,50,120,.28);--ac:#ec4899}
+.gd-board{display:block;width:calc(100% - 24px);margin:14px 12px 0;border-radius:24px;overflow:hidden;box-shadow:var(--sh)}
+.gd-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:640px;z-index:50;display:flex;justify-content:space-around;padding:8px 6px calc(env(safe-area-inset-bottom,0px) + 8px);background:var(--nav);border-radius:24px 24px 0 0;box-shadow:0 -6px 22px rgba(30,60,130,.2);border-top:1px solid var(--bd)}
+.gd-nav button{flex:1;border:0;background:none;color:var(--mut);font:600 12px/1.2 inherit;font-family:inherit;padding:7px 2px;border-radius:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.gd-nav button i{font-style:normal;font-size:22px}.gd-nav button.on{background:var(--navon);color:var(--navtx)}
+html[data-theme=toi] .gd-nav button.on{box-shadow:inset 0 -3px 0 var(--navtx)}
+#gdSheet{position:fixed;inset:0;z-index:90;background:rgba(5,10,30,.55);display:none;align-items:flex-end;justify-content:center}
+#gdSheet.on{display:flex}
+#gdSheet .bx{width:100%;max-width:640px;max-height:80vh;overflow:auto;background:var(--bg);color:var(--ink);border-radius:24px 24px 0 0;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 20px);border:1px solid var(--bd)}
+#gdSheet h3{margin:0 0 10px;font-size:18px}#gdSheet input{width:100%;box-sizing:border-box;padding:11px 14px;border-radius:14px;border:1px solid var(--bd);background:var(--card);color:var(--ink);font-size:15px;margin-bottom:10px}
+#gdSheet .it{display:block;width:100%;text-align:left;border:1px solid var(--bd);background:var(--card);color:var(--ink);padding:11px 14px;border-radius:14px;margin:6px 0;font:inherit;cursor:pointer}
+#gdSheet .it.on{outline:2px solid var(--navtx)}#gdSheet .em{color:var(--mut);font-size:13px;padding:8px 2px}
+.gd-sky{fill:var(--sk)}
+@keyframes gdTw{50%{opacity:.25}}.st{animation:gdTw 3s ease-in-out infinite}.st:nth-child(2n){animation-delay:1.1s}.st:nth-child(3n){animation-delay:2s}
+@media(prefers-reduced-motion:reduce){.st{animation:none}}
 </style>
 </head>
 <body>
-<div class="curtain-wrap" aria-hidden="true">
-<div class="curtain left"><i class="wr"></i></div>
-<div class="curtain right"><i class="wr"></i></div>
-<div class="curtain-title">
-<img src="logo.jpg?v=20261005" alt="" onerror="this.style.display='none'">
-<div class="s">Trường THCS Đa Tốn</div>
-<div class="t">Bộ công cụ trợ giảng Toán</div>
-<div class="l">✦ ★ ✦</div>
-</div>
-</div>
-
 <div class="app">
-<div class="hero"><div class="hero-art" aria-hidden="true"><div class="art-day"><svg class="sun" viewBox="0 0 200 200"><defs><radialGradient id="hsG" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#fff0a0"/><stop offset=".6" stop-color="#ffd23f"/><stop offset="1" stop-color="#ffbd2e"/></radialGradient></defs>
-<g class="rays" fill="#ffd54a" stroke="#ffd54a" stroke-width="6" stroke-linejoin="round"><path d="M100 10L111 40L89 40Z" transform="rotate(0 100 100)"/><path d="M100 10L111 40L89 40Z" transform="rotate(30 100 100)"/><path d="M100 10L111 40L89 40Z" transform="rotate(60 100 100)"/><path d="M100 10L111 40L89 40Z" transform="rotate(90 100 100)"/><path d="M100 10L111 40L89 40Z" transform="rotate(120 100 100)"/><path d="M100 10L111 40L89 40Z" transform="rotate(150 100 100)"/><path d="M100 10L111 40L89 40Z" transform="rotate(180 100 100)"/><path d="M100 10L111 40L89 40Z" transform="rotate(210 100 100)"/><path d="M100 10L111 40L89 40Z" transform="rotate(240 100 100)"/><path d="M100 10L111 40L89 40Z" transform="rotate(270 100 100)"/><path d="M100 10L111 40L89 40Z" transform="rotate(300 100 100)"/><path d="M100 10L111 40L89 40Z" transform="rotate(330 100 100)"/></g>
-<circle cx="100" cy="100" r="58" fill="url(#hsG)"/>
-<g fill="none" stroke="#7a3b12" stroke-width="4.5" stroke-linecap="round"><path d="M76 96q8-10 16 0"/><path d="M108 96q8-10 16 0"/><path d="M88 114q12 12 24 0"/></g>
-<circle cx="72" cy="112" r="9" fill="#ff8a8a" opacity=".55"/><circle cx="128" cy="112" r="9" fill="#ff8a8a" opacity=".55"/></svg><svg class="cld" viewBox="0 0 200 90" style="left:17%;top:14%;width:clamp(60px,9vw,150px);opacity:.95"><g fill="#fff"><circle cx="55" cy="55" r="24"/><circle cx="90" cy="42" r="32"/><circle cx="130" cy="50" r="27"/><circle cx="158" cy="62" r="18"/><rect x="35" y="58" width="140" height="26" rx="13"/></g></svg><svg class="cld" viewBox="0 0 200 90" style="right:1%;top:56%;width:clamp(50px,9vw,150px);opacity:.8"><g fill="#fff"><circle cx="55" cy="55" r="24"/><circle cx="90" cy="42" r="32"/><circle cx="130" cy="50" r="27"/><circle cx="158" cy="62" r="18"/><rect x="35" y="58" width="140" height="26" rx="13"/></g></svg><svg class="sp" viewBox="0 0 24 24" style="left:9%;top:7%;--s:26px;--t:2.6s;--d:-0.0s;color:#fff"><path fill="currentColor" d="M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z"/></svg><svg class="sp" viewBox="0 0 24 24" style="left:30%;top:5%;--s:18px;--t:3.1s;--d:-0.7s;color:#fff"><path fill="currentColor" d="M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z"/></svg><svg class="sp" viewBox="0 0 24 24" style="left:76%;top:30%;--s:28px;--t:3.6s;--d:-1.4s;color:#ffd54a"><path fill="currentColor" d="M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z"/></svg><svg class="sp" viewBox="0 0 24 24" style="left:9%;top:46%;--s:16px;--t:4.1s;--d:-2.0999999999999996s;color:#ffd54a"><path fill="currentColor" d="M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z"/></svg><svg class="sp" viewBox="0 0 24 24" style="left:92%;top:74%;--s:20px;--t:4.6s;--d:-2.8s;color:#fff"><path fill="currentColor" d="M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z"/></svg><svg class="sp" viewBox="0 0 24 24" style="left:58%;top:8%;--s:14px;--t:5.1s;--d:-3.5s;color:#fff"><path fill="currentColor" d="M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z"/></svg><svg class="wv" viewBox="0 0 1600 200" preserveAspectRatio="none"><path d="M0 110C250 60 450 140 700 100S1150 70 1350 110S1520 130 1600 100V200H0Z" fill="#7fdcd6" opacity=".85"/><path d="M700 200C900 140 1100 120 1300 100S1520 80 1600 60V200Z" fill="#ffbd66" opacity=".92"/><path d="M0 170C300 130 600 190 900 160S1400 130 1600 165V200H0Z" fill="#fff3d6" opacity=".5"/></svg></div><div class="art-night"><i class="dt" style="left:32.7%;top:12.3%;--s:1.5px;--t:2.2s;--d:-2.7s"></i><i class="dt" style="left:36.8%;top:5.9%;--s:3.0px;--t:2.6s;--d:-0.4s"></i><i class="dt" style="left:42.0%;top:18.4%;--s:3.0px;--t:3.3s;--d:-4.1s"></i><i class="dt" style="left:13.1%;top:17.2%;--s:3.0px;--t:4.8s;--d:-2.9s"></i><i class="dt" style="left:39.9%;top:68.4%;--s:1.5px;--t:3.7s;--d:-0.7s"></i><i class="dt" style="left:42.1%;top:38.8%;--s:3.0px;--t:2.9s;--d:-4.1s"></i><i class="dt" style="left:18.7%;top:41.5%;--s:2.0px;--t:3.1s;--d:-2.7s"></i><i class="dt" style="left:7.2%;top:6.1%;--s:2.0px;--t:3.5s;--d:-2.7s"></i><i class="dt" style="left:77.2%;top:33.7%;--s:2.5px;--t:3.1s;--d:-1.2s"></i><i class="dt" style="left:18.6%;top:55.0%;--s:1.5px;--t:3.7s;--d:-2.6s"></i><i class="dt" style="left:86.8%;top:51.6%;--s:2.0px;--t:3.8s;--d:-0.4s"></i><i class="dt" style="left:51.2%;top:13.2%;--s:2.0px;--t:2.5s;--d:-2.4s"></i><i class="dt" style="left:4.8%;top:47.4%;--s:3.0px;--t:3.7s;--d:-4.4s"></i><i class="dt" style="left:31.7%;top:49.3%;--s:3.0px;--t:3.5s;--d:-4.0s"></i><i class="dt" style="left:7.7%;top:8.4%;--s:2.0px;--t:3.4s;--d:-3.3s"></i><i class="dt" style="left:6.9%;top:49.7%;--s:3.0px;--t:5.0s;--d:-4.1s"></i><i class="dt" style="left:28.9%;top:28.2%;--s:2.0px;--t:2.1s;--d:-2.3s"></i><i class="dt" style="left:17.5%;top:10.0%;--s:1.5px;--t:2.7s;--d:-1.4s"></i><i class="dt" style="left:73.4%;top:29.1%;--s:2.5px;--t:2.2s;--d:-2.2s"></i><i class="dt" style="left:54.8%;top:62.1%;--s:2.5px;--t:4.6s;--d:-1.4s"></i><i class="dt" style="left:41.7%;top:26.4%;--s:2.5px;--t:4.9s;--d:-0.8s"></i><i class="dt" style="left:18.3%;top:17.8%;--s:2.0px;--t:2.0s;--d:-4.2s"></i><i class="dt" style="left:18.9%;top:21.2%;--s:2.0px;--t:3.3s;--d:-1.8s"></i><i class="dt" style="left:56.5%;top:66.8%;--s:3.0px;--t:4.9s;--d:-3.3s"></i><i class="dt" style="left:73.5%;top:33.1%;--s:3.0px;--t:3.2s;--d:-2.0s"></i><i class="dt" style="left:11.1%;top:45.1%;--s:1.5px;--t:2.6s;--d:-4.9s"></i><i class="dt" style="left:44.2%;top:9.5%;--s:3.0px;--t:2.2s;--d:-0.0s"></i><i class="dt" style="left:15.8%;top:8.9%;--s:2.0px;--t:3.8s;--d:-0.4s"></i><i class="dt" style="left:21.4%;top:27.6%;--s:2.0px;--t:4.9s;--d:-3.0s"></i><i class="dt" style="left:47.5%;top:9.8%;--s:2.5px;--t:5.0s;--d:-2.3s"></i><i class="dt" style="left:48.4%;top:7.8%;--s:1.5px;--t:4.2s;--d:-3.7s"></i><i class="dt" style="left:47.9%;top:49.1%;--s:3.0px;--t:2.1s;--d:-4.8s"></i><i class="dt" style="left:52.8%;top:12.0%;--s:3.0px;--t:4.7s;--d:-3.8s"></i><i class="dt" style="left:30.2%;top:45.7%;--s:1.5px;--t:4.1s;--d:-1.3s"></i><svg class="moon2" viewBox="0 0 100 100"><defs><mask id="hmM"><rect width="100" height="100" fill="#fff"/><circle cx="68" cy="40" r="36" fill="#000"/></mask><radialGradient id="hmG" cx="35%" cy="35%" r="80%"><stop offset="0" stop-color="#fff6c8"/><stop offset="1" stop-color="#ffd978"/></radialGradient></defs><circle cx="46" cy="54" r="40" fill="url(#hmG)" mask="url(#hmM)"/></svg><svg class="const2" viewBox="0 0 240 120"><polyline points="10,92 60,70 100,86 130,34 190,52 228,20" fill="none" stroke="rgba(190,205,255,.75)" stroke-width="1.6"/><g fill="#e6ecff"><circle cx="10" cy="92" r="3"/><circle cx="60" cy="70" r="3.4"/><circle cx="100" cy="86" r="3.6"/><circle cx="130" cy="34" r="4.4"/><circle cx="190" cy="52" r="4"/><circle cx="228" cy="20" r="3.6"/></g></svg><svg class="sp" viewBox="0 0 24 24" style="left:20%;top:14%;--s:24px;--t:2.6s;--d:-0.0s;color:#fff"><path fill="currentColor" d="M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z"/></svg><svg class="sp" viewBox="0 0 24 24" style="left:44%;top:8%;--s:16px;--t:3.1s;--d:-0.7s;color:#cfe0ff"><path fill="currentColor" d="M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z"/></svg><svg class="sp" viewBox="0 0 24 24" style="left:70%;top:36%;--s:26px;--t:3.6s;--d:-1.4s;color:#fff"><path fill="currentColor" d="M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z"/></svg><svg class="sp" viewBox="0 0 24 24" style="left:88%;top:56%;--s:18px;--t:4.1s;--d:-2.0999999999999996s;color:#cfe0ff"><path fill="currentColor" d="M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z"/></svg><svg class="wv" viewBox="0 0 1600 200" preserveAspectRatio="none"><defs><linearGradient id="hnG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a86ff"/><stop offset="1" stop-color="#2457d0"/></linearGradient></defs><path d="M0 120C200 60 380 150 620 110S1000 40 1250 100S1500 140 1600 90V200H0Z" fill="#2a5fcf" opacity=".85"/><path d="M1150 200C1150 150 1230 125 1280 150C1300 108 1380 98 1410 140C1450 118 1520 140 1520 200Z" fill="#5b93ff" opacity=".75"/><path d="M0 165C260 115 420 195 700 150S1200 115 1600 165V200H0Z" fill="url(#hnG)"/><path d="M0 158C260 108 420 188 700 143S1200 108 1600 158" fill="none" stroke="rgba(205,228,255,.8)" stroke-width="3"/></svg></div></div><div class="hero-deco" aria-hidden="true"><span style="--x:8%;--y:6%;--s:40px;--t:6.5s">π</span><span style="--x:52%;--y:12%;--s:30px;--t:7.5s;--d:.8s;--r:-8deg">∑</span><span style="--x:22%;--y:38%;--s:46px;--t:8s;--d:1.4s">√</span><span style="--x:66%;--y:44%;--s:34px;--t:6s;--d:.3s;--r:10deg">∞</span><span style="--x:6%;--y:66%;--s:34px;--t:7s;--d:2s;--r:-6deg">△</span><span style="--x:46%;--y:72%;--s:32px;--t:8.5s;--d:1s">θ</span><span style="--x:74%;--y:8%;--s:26px;--t:7s;--d:2.4s">✏️</span><span style="--x:36%;--y:88%;--s:26px;--t:6.8s;--d:.6s;--r:-12deg">📏</span></div><div class="logo"><img src="logo.jpg?v=20261005" alt="Logo Trường THCS Đa Tốn"></div><div class="htxt"><div class="school">Trường THCS Đa Tốn</div><h1>Bộ công cụ trợ giảng Toán<span class="hsep"> - </span><span class="hgv"><span class="gv-avw"><img class="gv-av" src="data:image/jpeg;base64,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" alt="Ảnh giáo viên Nguyễn Anh Tuấn" width="48" height="48"></span><span class="gv-name">Giáo viên: Nguyễn Anh Tuấn</span></span></h1><div class="stars" aria-hidden="true"><i style="--s:18px;--d:0s;--t:2.2s">✦</i><i style="--s:12px;--d:0.5s;--t:1.7s">★</i><i style="--s:20px;--d:1.1s;--t:2.6s">✧</i><i style="--s:14px;--d:0.3s;--t:1.9s">✦</i><i style="--s:20px;--d:1.6s;--t:2.4s">★</i><i style="--s:13px;--d:0.8s;--t:2.0s">✧</i><i style="--s:22px;--d:1.3s;--t:2.8s">✦</i><i style="--s:13px;--d:0.2s;--t:1.6s">★</i><i style="--s:17px;--d:1.9s;--t:2.3s">✧</i><i style="--s:12px;--d:0.6s;--t:1.8s">✦</i><i style="--s:18px;--d:1.0s;--t:2.5s">★</i><i style="--s:15px;--d:0.1s;--t:2.1s">✧</i><i style="--s:19px;--d:1.7s;--t:2.7s">✦</i></div></div></div>
+<div class="hero" hidden aria-hidden="true"><div class="htxt"><h1></h1></div></div>
 <div class="tabs" role="tablist">
 <button class="tab" data-tab="t3">🧰 3. Công cụ Word và Excel</button>
 <button class="tab" data-tab="t8">🛠 4. Công cụ thường dùng</button>
@@ -942,72 +260,50 @@ html[data-tod="toi"] .hero #tod-greet{background:rgba(255,255,255,.08);border:1p
 </div>
 <div id="tabRoutes" hidden aria-hidden="true"><button class="tab" data-tab="t1" tabindex="-1">Chuyển LaTeX</button><button class="tab" data-tab="t2" tabindex="-1">Vòng Quay Gọi Tên</button></div>
 
-<!-- ===== MÀN CHÀO: không có nút tab riêng; hiện khi tải trang hoặc bấm logo/tiêu đề ===== -->
-<section class="panel on" id="t0" aria-label="Màn chào">
-<div class="lp-stage">
-<svg viewBox="0 0 800 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-<defs>
-<linearGradient id="lpSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b1b6b"/><stop offset=".45" stop-color="#8a3fb0"/><stop offset=".78" stop-color="#f0739a"/><stop offset="1" stop-color="#ffc66b"/></linearGradient>
-<radialGradient id="lpSunG"><stop offset="0" stop-color="#fff3b0"/><stop offset=".4" stop-color="#ffc766" stop-opacity=".6"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient>
-<linearGradient id="lpBoard" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#17443d"/><stop offset="1" stop-color="#0d2a26"/></linearGradient>
-<linearGradient id="lpBeam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff3b0" stop-opacity=".75"/><stop offset="1" stop-color="#fff3b0" stop-opacity="0"/></linearGradient>
-</defs>
-<rect width="800" height="300" fill="url(#lpSky)"/>
-<circle class="lp-sun" cx="400" cy="230" r="170" fill="url(#lpSunG)"/>
-<g fill="#fff">
-<circle class="lp-tw" cx="60" cy="30" r="2" style="--d:.2s"/><circle class="lp-tw" cx="150" cy="70" r="1.6" style="--d:1s;--t:3s"/><circle class="lp-tw" cx="110" cy="120" r="1.8" style="--d:1.6s"/>
-<circle class="lp-tw" cx="250" cy="28" r="2.2" style="--d:.6s;--t:2.8s"/><circle class="lp-tw" cx="660" cy="36" r="2" style="--d:.9s"/><circle class="lp-tw" cx="730" cy="90" r="1.7" style="--d:.1s;--t:3.2s"/>
-<circle class="lp-tw" cx="700" cy="150" r="2" style="--d:1.3s"/><circle class="lp-tw" cx="560" cy="22" r="1.6" style="--d:1.9s;--t:2.6s"/><circle class="lp-tw" cx="40" cy="170" r="1.6" style="--d:.7s"/>
-</g>
-<path d="M0 250Q130 205 280 243T560 240T800 228V300H0Z" fill="#3a2270"/>
-<path d="M0 272Q200 240 400 268T800 258V300H0Z" fill="#241452"/>
-<!-- bảng xanh phấn -->
-<rect x="206" y="66" width="388" height="158" rx="8" fill="url(#lpBoard)" stroke="#b07a45" stroke-width="9"/>
-<rect x="228" y="222" width="344" height="9" rx="2" fill="#9a6a3a"/><rect x="330" y="217" width="18" height="5" rx="2" fill="#f4f1e6"/>
-<g fill="#eaf7ee" font-family="'Segoe Script','Bradley Hand','Comic Sans MS',cursive" text-anchor="middle">
-<text class="lp-ch" x="410" y="124" font-size="36" style="--d:.3s">a² + b² = c²</text>
-<text class="lp-ch" x="410" y="166" font-size="25" style="--d:.9s">Σ 1/n² = π²/6</text>
-<text class="lp-ch" x="410" y="205" font-size="22" style="--d:1.5s">√x · ∫ f(x)dx</text>
-</g>
-<path class="lp-ch" d="M228 200V152L276 200Z" fill="none" stroke="#eaf7ee" stroke-width="2" stroke-linejoin="round" style="--d:1.2s"/>
-<path class="lp-ch" d="M228 192h8v8" fill="none" stroke="#eaf7ee" stroke-width="1.5" style="--d:1.4s"/>
-<!-- mũ tốt nghiệp -->
-<g transform="translate(572 56) rotate(12)"><path d="M-17 8v15q17 10 34 0V8L0 16Z" fill="#2a2150"/><path d="M-34 0L0-15 34 0 0 15Z" fill="#1d1740"/><path d="M0 0L30 8v20" fill="none" stroke="#fbbf24" stroke-width="2"/><circle cx="30" cy="30" r="3.5" fill="#fbbf24"/></g>
-<!-- tia sáng + sách mở -->
-<polygon points="350,268 450,268 520,226 280,226" fill="url(#lpBeam)"/>
-<ellipse cx="400" cy="264" rx="110" ry="22" fill="url(#lpSunG)"/>
-<path d="M400 272Q340 254 282 262V294Q340 286 400 300Z" fill="#fff7e0"/><path d="M400 272Q460 254 518 262V294Q460 286 400 300Z" fill="#ffeec2"/>
-<path d="M400 272V300" stroke="#c99a4a" stroke-width="2"/>
-<g stroke="#d6b77a" stroke-width="1.5" fill="none"><path d="M300 270Q340 264 386 276M300 278Q340 272 386 284M414 276Q460 264 500 270M414 284Q460 272 500 278"/></g>
-<!-- bút chì -->
-<g transform="translate(92 262) rotate(-28)"><rect x="0" y="-6" width="74" height="12" fill="#fbbf24"/><rect x="0" y="-6" width="74" height="4" fill="#f59e0b"/><path d="M74-6L96 0 74 6Z" fill="#f1d3a1"/><path d="M89-2L96 0 89 2Z" fill="#333"/><rect x="-10" y="-6" width="10" height="12" rx="2" fill="#f472b6"/></g>
-<!-- thước -->
-<g transform="translate(650 270) rotate(-8)"><rect width="104" height="18" rx="2" fill="#7dd3fc"/><path d="M8 0v8M20 0v5M32 0v8M44 0v5M56 0v8M68 0v5M80 0v8M92 0v5" stroke="#0c4a6e" stroke-width="1.5"/></g>
-<!-- compa -->
-<g transform="translate(700 150)" stroke="#e5e7eb" stroke-width="3" stroke-linecap="round" fill="none"><path d="M0 0L-20 62M0 0L20 62"/><circle cx="0" cy="-4" r="5" fill="#fbbf24" stroke="#b45309" stroke-width="2"/><path d="M-20 62l-2 7" stroke="#fbbf24"/></g>
-</svg>
-<span class="lp-sym" style="--x:6%;--y:14%;--t:6s">π</span><span class="lp-sym" style="--x:16%;--y:52%;--t:7.5s;--d:1s">∑</span>
-<span class="lp-sym" style="--x:84%;--y:12%;--t:6.5s;--d:.5s">√</span><span class="lp-sym" style="--x:92%;--y:46%;--t:8s;--d:2s">∞</span>
-<span class="lp-sym" style="--x:28%;--y:8%;--t:7s;--d:1.5s">θ</span><span class="lp-sym" style="--x:70%;--y:60%;--t:6.8s;--d:.8s">△</span>
-<span class="lp-sym" style="--x:3%;--y:78%;--t:7.2s;--d:2.4s">∫</span><span class="lp-sym" style="--x:48%;--y:4%;--t:8.2s;--d:.3s">≈</span>
-<span class="lp-ss" style="--x:12%;--y:10%;--a:135deg;--l:120px;--k:230px;--c:7s;--d:1.5s"></span>
-<span class="lp-ss" style="--x:86%;--y:18%;--a:40deg;--l:140px;--k:260px;--c:9s;--d:4s"></span>
-<span class="lp-ss" style="--x:20%;--y:30%;--a:140deg;--l:90px;--k:180px;--c:11s;--d:7s"></span>
-<span class="lp-ss" style="--x:80%;--y:6%;--a:35deg;--l:100px;--k:200px;--c:8.5s;--d:2.5s"></span>
-<span class="lp-ss big" style="--x:24%;--y:5%;--a:145deg;--l:210px;--k:380px;--c:17s;--d:10s"></span>
+<section class="panel on" id="t0" aria-label="Trang chủ">
+<header class="gd-top">
+<svg viewBox="0 0 400 280" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<defs><linearGradient id="gdD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fc3ff"/><stop offset=".7" stop-color="#d9f1ff"/></linearGradient><linearGradient id="gdN" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a1450"/><stop offset="1" stop-color="#22397f"/></linearGradient><radialGradient id="gdS"><stop offset="0" stop-color="#fff6b0"/><stop offset="1" stop-color="#ffd23f"/></radialGradient></defs>
+<g class="ad"><rect width="400" height="280" fill="url(#gdD)"/><circle cx="340" cy="62" r="46" fill="#fff6b0" opacity=".35"/><circle cx="340" cy="62" r="27" fill="url(#gdS)"/>
+<g fill="#fff" opacity=".92"><ellipse cx="80" cy="48" rx="38" ry="12"/><ellipse cx="108" cy="40" rx="24" ry="13"/><ellipse cx="250" cy="30" rx="30" ry="9"/><ellipse cx="300" cy="150" rx="34" ry="9" opacity=".7"/></g>
+<path d="M0 205Q90 165 190 200T400 185V280H0Z" fill="#8fd16a"/><path d="M0 235Q120 205 240 232T400 222V280H0Z" fill="#6fbd52"/>
+<g><rect x="296" y="150" width="84" height="46" fill="#f6d9a8"/><rect x="290" y="143" width="96" height="9" fill="#d9573b"/><g fill="#7ec8f0"><rect x="304" y="160" width="10" height="9"/><rect x="326" y="160" width="10" height="9"/><rect x="348" y="160" width="10" height="9"/><rect x="304" y="177" width="10" height="9"/><rect x="326" y="177" width="10" height="9"/><rect x="348" y="177" width="10" height="9"/></g></g>
+<g><rect x="34" y="170" width="7" height="34" fill="#7a5233"/><circle cx="37" cy="150" r="26" fill="#3f9a45"/><circle cx="22" cy="165" r="17" fill="#53b25a"/><rect x="82" y="182" width="6" height="26" fill="#7a5233"/><circle cx="85" cy="166" r="19" fill="#4aa550"/></g></g>
+<g class="an"><rect width="400" height="280" fill="url(#gdN)"/><path d="M356 40a28 28 0 1 0 12 50a22 22 0 0 1-12-50z" fill="#ffe27a"/>
+<g fill="#fff"><circle class="st" cx="40" cy="40" r="1.6"/><circle class="st" cx="120" cy="24" r="2"/><circle class="st" cx="190" cy="56" r="1.4"/><circle class="st" cx="250" cy="22" r="1.8"/><circle class="st" cx="300" cy="70" r="1.5"/><circle class="st" cx="70" cy="95" r="1.4"/><circle class="st" cx="160" cy="105" r="1.6"/><circle class="st" cx="380" cy="130" r="1.5"/></g>
+<path d="M0 205Q90 175 190 203T400 190V280H0Z" fill="#0c1a3e"/><path d="M0 238Q120 215 240 236T400 226V280H0Z" fill="#081230"/>
+<rect x="296" y="150" width="84" height="46" fill="#1a2956"/><rect x="290" y="143" width="96" height="9" fill="#101c42"/><g fill="#ffd36b"><rect x="304" y="160" width="10" height="9"/><rect x="326" y="160" width="10" height="9"/><rect x="348" y="160" width="10" height="9"/><rect x="304" y="177" width="10" height="9"/><rect x="348" y="177" width="10" height="9"/></g>
+<circle cx="37" cy="152" r="26" fill="#0a1b3a"/><circle cx="85" cy="168" r="19" fill="#0a1b3a"/></g></svg>
+<div class="gd-bar"><button class="gd-ib" id="gdMenu" aria-label="Menu">☰</button><button class="gd-ib" id="gdSearch" aria-label="Tìm kiếm">🔍</button></div>
+<img class="gd-logo" src="logo.jpg?v=20261005" alt="Logo trường THCS Đa Tốn" onerror="this.style.visibility='hidden'">
+<div class="gd-sch">Trường THCS Đa Tốn</div>
+<h1 class="gd-h1">Bộ công cụ trợ giảng Toán</h1>
+<div class="gd-gv"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCADwAPADASIAAhEBAxEB/8QAHAAAAQQDAQAAAAAAAAAAAAAAAwECBAUGBwgA/8QAPRAAAgECBAMFBQcEAgICAwAAAQIRAwQAEiExBUFRBhMiYXEHMoGx0RRCkaHB4fAII1JiFfEWknKCFyQz/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAH/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwDqTKD5Y9oBj2blj2nPX0wCRO5x6NcJOu+PbYBQQDhMwJEjCEgRP4Y9Ma4BYJ20x4sqiSRhoJbYfjgZqSYQhyOfIYBTVJEsMo3g4aaubRZX4RgbEsdCCTzGPGAJGYidZ0A9BgCeHKND8RGPHYaE9ANh9cDZlo5DWJhmyqWPMj9jin7Rdq+HdmO4a+u6Q+1ytPM2pKgsxgScoUch5c8Beksdjp064aoBYgQSOXT6Y0jxz+ou0tblaFoBSptUbNVIDGnTE/d1JqEjbZQRqTMUvG/bvdW/BqtPhtpWo17hh3Zc561WmRJqzBCmB4QNBInAdDtVUEAZnLmARz9MIatNmNJXnJ76py9Tyxylde2btHeW7XTX4tSzGnRouxFECdy0y7kAbkKANjysKvt37WcPt6Xc0rdaSNl8Qd0qbeLMD4mPMZjvscB0+pznRSoA/nphzMWBCE9C/IY50t/6guJ1QLTPbVbhD/cepTCVQDtkol1UcwSzNBEkYzHgPtt4VUqGlfWF7Z1VAXvbqrSIGw2LzvyWB1wG2hlUjc688eNRkEgZj1jbyAxT8N7V8I4rlSyvKVas33FYO40nULOXTriyp1aZLHxOywSWUhV9JGAJBY5n08jy/nl+OFnwysgdToPgMMPigtr/AIg7n4YaXJqZBmeptJOgwBwx0ykzEAYcGFNSzNPVj8sAzZRCkuzczoMOzJTIao2Z9SNPkOWAOrhgDlIHmNceLjademAB3eCQyLzXn64eTlAQan/Eb/E4AhYASTAwkM+5K/M4YRlIZjLclHyGCBiw5jAOJ10548NN5wwQF6E9cO154BY110x6SNOeEhQJMadcJv19MB7fbbr1w0knQT5wdceLSdz9fTDcp0AnrlG3888ApOXWeXIT+GEdgi+L1gak481QINYMc+WGQXGapKg7DYtgEbPV94hV/wAZ+f0wjhKQ1JaNhEKD6YWcsD/1VRr/ADzw2JEsQIk+Ee76fXAOUGpPLqTviq7Qdo+H9nrCrf3lde7oNlctsIgmehg/iRzxS9tO29v2c4T/AMlZlbi4t7hbbuUYEMXMAMT8GjT1E45o7Udu+I33FrtqV1U+w1S1FKNScmcjUiRBnxlpAMx64DZXbr24i9rW1hwJyloa5StcVVnvQwkBF0IWNCZBOYgRuNT9vOPcd43xWvxG/v1qULXw5VqZmFNpYr4PCNokTtBJjFFYcSrcGpVriqopJUH9mlTc95Wacozbxvz+GmuI3FadKhXtyapeu927EUxkpK6sQQF1EAADXSes6BH4Zx6nw+5FfvluKVR2zU6tPQNyD84MnY8jOL7gVzwrjlwK1NLrh1w5g1be6EVGGsHNM9BOmgjGP0LT7fxm+seJuy3JbKiGIYAhojQTA8pxXXXDLrhFSuLi3FS3oV+4rNSkMjgSDPLnHmpnAZPe8G4lc8SHd8URLvLlQXNFaZOpgOySskyZIG2IFG6412YvG+306laktdqT04VlD/eUqY9eXUHFpw/iFHivCTaG+avTptn7i8yh0bKAXRyCJAA5jnviW9rxHhSZzR/5XhzoUqEDvEAB0V0JOWIXVWkYAFO/4J2guVoi5r8NvXWKNR6neUTPIEyynyYsPTE+3t63D7hqHEmta9zVCrTuqCmlX0n73uVCNirgbYpr7gXCDbpdC4NC1un/ALN8g7wWrmZp10A66T8ddsWlhaVa9vW4bxhVrXNFVFK6dGejWhQRSrKCGUxBWop22JGAsafaDjvZJy9C+vu7zzmpTSL6aBkQw2/LUfljafYv233VS3VeKA3yUGyi5NVnRFJgFlpIS0HSY/DGk34lQ4XVqcM4ktarZvApmoQ70xr4DIBbeAd9iDGuINSnc8C4uLi3qMaDjvKdWlmBykwSJ3K6z1GuA7c4L2lsuPUe94fWS61y1GtpZV9WYDFmElclPKqjku3xOOQ+zfbTiHCb/wD5O1e8qUbVV760N25NONQVAaHQrOhB2jzHQvYz2k8K7RcPQVGoUqrAFqFoDXmTAPgEhfMgQeZwGbZpzCj4o95zouEU92pLS5OsnQYVWRqYfKaSbAEaD4dcNmGOrBvxM+Z5fDAPZ3UhQdWMFo2wqiD4VOdtczaT8OmBgEAkSW2GYwB64dRYhSoY66s50J/DAHWmEaWJLfzTDuZlonkN8DzBVzMcicidB+GG5u8En+2nUjU4A2dUEkj8ZwoLOZjKo2HM/TA0VVGxHODufXDpd9/Cv54AhUHQ6jfCNLNAEKBqcLyjXCTGxgdTywDSsat8/wAzhhk66weZG/n6Y9UfWAIXl/thhIMakievP9cA3xBg5kn7um/nHTCg5pbMfNsOIDCWJjbzbyJw0OuXPKqqyZ+6vWPrgE8NBS7tlXqd8Yf7SO3VLsXwulf08zqlemtUU2E5GB11BGmnnG2JHa/tbwHs7ZtW4lxBjTqgtCVWJCjfRAYG2/XrjmntV7Qmq2lzZcE4r9q4BJr29rWJrNQbNmKN/ipg6SSJMyNAFT2j9oF5xfiNzxO/er3F2MlzRp1AyNVgZGA0gqsCYmRvjH+P0q1rXe4erWt3vWW6FWkXyq0MCoXp/t5EbHFFmV28FG3ubVKsElzBiJaZkDaP3xfcE4z3Vu9pXrCpRr1DQC1AEakCNHAGwVoPPcYCNxugU+zJbXVC8tEpGrTr0Dkd2zZmzSPeBJ32yjBr/gacUSwuKFdEq1mqAKB977oIGx39dTOE4deVeCV0oVAK1PN3lSgKYVa6aTAgw3pKnffFjbWtvSs3twUqcMrMalvUpj+9aPurqubVROoUmJ+OAqLSvrQtePitTFrlFK/QT3YM5UYCCUIkdRy2g5T9lrXK5bQJc3S1FQupDUr5F0CtPuuFKxO49NYl9XJrVm4kadV3hmqI5bPI99WA1zTqhA1M6ETjH7ik/A6rGwvAqMG1Y5gUOuSRJkbZSJ1wFrV4VY2VF77h9xUoXNB4q2VYFayKJgFZGYAGMw2yjUzAn8I7QWFKqHo3Bt7y6P8AfBAVGInLUUqQufygcx4tcUTdpRxE06nEqVNmpGadzTYowgzGcbH/AOQOCKLLitS4ql69SsQGVarU2JUnYEAZTzBk6jXQ4C9u2fh1xV4gLEXtjcPF0KAhKsjXOuw5QVMztJ0xUUeIvwqrTuuE3NW44aU7qn3jHMlMme7bTdNgeh6Yio15QRltEvK1KTTNK6pBqcwdTkY6bwYA/LArh1tWn7I1pVPiYCoKlNxOhXadBsfWcBknFuLcM7S8Oetc0alG5TLTetTh6bEbF031ESVI1G2mK7g9xUo8Pq8LuH3Bq2VdGkBx90c4IzidPe8zinSrW4U63tjFWjWMuV8vusCDB3g7fniTQvqdBkfvKj0ZBtnOrUySdGQzm56jl1gYCypFuEX9KyuKeSl3i17W7pxKhgC1E9VOb3SY8RxkfB+LXfZ3iWfh7260KUXFFGGam9IycwOpWBoVBBjUGNMYjfr3yCk4FvXqZpcTGdSCjRynz1gnFvZ3xWxs+Iogp3HD67LkRSZQmWEbMJlgvMFtcB012C9oSdo7NF+zM/gNQV7a4FeeTBV98FTuDJAIicZ7SZKlJWpsxVlzA7COv/eOMba5bhN5Xv8AhiU8lMjiFMrSzNRBMkK2pORgY5EBgdsdFezP2l1O1lvSs7i44c95lFRmt3cu2sGabQfWCYnaCMBsU5V8QAH+oG3n/Pyx4uEA0AjU5tgPQc8IYygzmESWIgAeQ64TvVHiC5cp1Oxn9T/BgHgO7ZnBcgeFG/X6YU1GY55M8un74YxKjKRryU6AT/l9MOACEktL8iQRHw5YAgpsBmqGR0Jj8fpiQIiSf2wFQEALFnjUA/Pyw4ZmhnIgHQa4Au41wNjmEfd6Ae9+2HProCAOZPLA2APM6/ifoMA0lvIDmRqcNdhAVCWY8xyH6YRnzro+VBz2HphoDLBAjca6E/TAPHhAB8RA9B+2IfF+KW/BLKpe3CMy01zNA2Ubx09NziUjf4eJtweQHUfXGrfbV2t4nwPg2ThdS9etUJzvb1FCpvHh95zOsdFJOm4ai9p3tI4vxjiouLJqVXhlVlIK1TbMrKYMuAGMczGh01xqritY8Tr0fsC1e4qB6tWoZhVG/mR5nXWMBv8Ai1X/AJCtelmvKtUtUb7TzJHvsPdJkyB1w3hV095eUql7U+0JUKoLfLmqXAB8NPyWTJ6xgMtPBbUcOtKVZClNKdNnVgTMHaY1JAQnkAF1xi92alV24koVXctRVcgGVx4mcAagHltuRyxd8f42ltTpW75jcvSKVTnzZXbKzMvkCoA5QWPMDFdwPs3xTtFWpmhRua9QTTcLSIJnQaDQnX4j0wEGrcG9oVKIomqHc17cgEmmWMsFbdesbSD1xZW1hxGhTdKluKtuw75FzhGmfeSOfWBI9Mbb7F+ymnbU/tJCV5GUslSQBJB2AMzMdcZncdgbZbRrS2Q2youYEKuYsBoRpI1O89RznAc8VLW/ueHtxFmq1ko1YZ0bK1IEAgnkVOfmNdcVdOxavVIcKwdzngEqrATG0j5a43RW7GHgHGHq07OncWN5ar3iKCXXKxByzpKkgEHUqdMVV92Gq8J4lSr2HeVrR0WozAw9NZBpOpnkfBruNzroGKWXYQIxJW4amulUUmMSeYgayI06H1wT/wAEvLi3pVaS0jUJekQAVZG319ZgR+uOgOE9kqdCnQp26CvYXGWrSbJlNF98saQOnQ6cxi8rdirS8qGtcUhTqwQrAeLqdPXr0wHK7dm+McHAqtVapT9xO+zZIXWNDIA23OI1dECmldWisisxe3d57uD9ypoxGvOT8dcdMcU7CAd5XaipLQxIaFzR72Tr11xhvG/Z47U+6W2y06pU/drIhJH3D+WU+WxwGlLSlTtbl6VOtVWhcNkCNmLoCI1A9B5HXbbEe74KbZnC0YoFYRoz03kExPKdSCNssY2HxjsHdULkrSeoUpOoVQrHui0gNBkhdB1HLFPccHq0xc1K1r3NIavllkeGE5W0KsQWkGfd5aYDAxeVKEo4BzEEaEgDYtB30A+I88ZH2cuapSvb6tRhRVFTTJUU+GRPuz4SdZD4Wv2V+12dQmAopBqIbXMjT4ummms6SMQuE99YcSFC/p1adQBqVR1iXVlE+sQCDgLuyuqfDbytY2tRwlBPtNuzNmJWPGmnkdV/1B64TgfGa/YjtHd29JuIWdSnWYolq/jIYTmXN4Ty/wDXAuOcPanc1L1WAvLd1dGo+6SujNH+6nluQdtRhnFeJV7paHEqdNTVtitO4ohIGUwQRMnbMNB+WA6+7Ddpx2j4TSrGy4hRdgDVqXlPJ3jEbrqc0xOmgGMir+HxaqF0UDYevnjnL2D9rrynxZLGxt+GraVwFU1b0oxXxFSiFiGYc4ExrAx0eVYLMkvETG3XfADpq6HRCHbUidh1J+mCApSBcmW+75/z88My93IFMMzalfPz+mFDKfEGzNsWAk/z0wBV97xDM0z/AKr64IgLk5iT54GqAIM7nKNQJ2/fCioGMTlSOR1OAkMCq+HfkCdB54EwVRLkkHYDTN+2HyT1JjYfzbA8wYli2bkTy9BgGsSIYtGnvdPT64QjMpVyV66/M8/TCkBT3jmPU/zXDFYVHG+UajT+fngG13NC2d0KqwEguCQTymMcke2Ttdxu57R3NK7t+EXtK3QpnoUFq5gWKgyS2RZjYgz8I6i7Y3f2Xsze3CtQTJSYmtcVRTpoYMEn1jbrjhjtLcq/EKjJTs6OYl3Sy1DsdwGaZG+v1wFLWamD3jvTdkpjwMdN9YAjT+axifwW8FnUp1VU0XIhavuzm5DnG2u+56YhG1q13ULbFg7QoAJOWYHoPP8ATBVta1e5S3YUw1Ewzhwcssdyeh88BZ9l+A3va/i9vRerVqSe5d1aSBPyjTlyx1T2K9nlpwPhCWqUodwFzElmiNYP066YwD2H9kGW7qXDrWUJM1GAzEHYTMgRr8cdCUrRXZaozAhcojcDywFVY8IS3RadJFWkkDQFQeUz5AYtKdhTRAq00CqIACwschGJS0VhWgJGoU8sKCxMlgB+uAp77s9QrlCgAYEgHLqJH7fniJS7NW9Jqfe0VNRPCHUDQRER0PTXGTUm72dj64I1NSDmE66nAVnDuDW1papb0lPdISEUnRVJmPQTiU1oACBMkRy/7nEtVCqIgxoMKAAfLrsMBCSh3Te6SR8IxHu+E0K4PeIJ6Rr8eRxa5R9wDqYOGkAAiSPQ4DEb3slb1RAooya6EaqScUF92Dt7hrirWoBmZe6gLoQNdfVhPx33xsWpoCWA89YjAjb0aqwyL+hPUYDSvB+w7DiT2t1RqNb0Xq0HRh4WpVkV1yzoIbOPLKMYh7TexVSxvqPG7a1ZlschuMhy96M0E+ZI+eOk6vD7d3BSiC43YGCRyB/E4pe0HAKd3ZVqKhGDCSsSDExI54DjpONUgLZXDPX7t6LQ0g6lVBG+zz8OuI95xGjfGjcKUp12prRrnN7zIAZHPWN+cabmJfbvsyvZ/jdShTplaYc1AomEYkgEnpofjjGapR6VfYtWArZVIYKRrqBqN2HxGAzb2e8crcL7RWSUeJWvCayVaa1atakrKigZTo06+W2u+2O1LWqXsaFVLha7PTVu8pyVYR7wnkeWOEeyDXNnxG3uKFm12phrdmomrDrDGMpmVOo8uWO5OzN7WvOBWtzdWz2tSpTVij5SxJHPJpr5YCeSDDQ5J2Wd/M4fKoATlaNddj+2Gs2QZnAznRVOpnz6+mG92WBeqWk6xImPl9OWAVBUuGYl5QGczDf6DEhQJyq7CBuNz+OGhjlAXQDaNvgOfqcFVcggeNiZ1PPAOaIgE5dj1Y4EzQA7MAIhVjD6mrEfdAgnl6YGZL6KR/jzJwDBmeMxbacx5jyGFWMkAAKNZ6/XHgVDgkZ25KPr0x5iZLt4gDrG0+vPAUfbO4rDgN0trbNUqik0McmRDtqXgT++OGO1JuP+Tu2qVFr1nqMBTpIFUFdM0Lp6anXU47s7W2Vlf9nb21vqFO4t3pHPSfRW6A6jSeXPHEfapqlbjdQ0LmjURcy95TpdxSRdyFTWAAB+XlgKqlbBaNGmlRC+uY0xOdyRAJnWNByGmLjs3wyrVrIltSLUKbnOxgsdInLG3Q8vzxW8Pss1ZSArpRTOgaPE0RBM6Aak88Z32L4TNxSoBc6LVCBFXViNWLE6jkAOemCN/wDsy4I/DOBU1cIGcSSASW8yTu0zjYdCnC5cx21jFJ2YsWteH0+9LFmG4j+Ri5qV6VvRapVqCmiAszkgADrrgp1YhQE+A6YRFXU6wTod8Yr/APknhFWsUtC9dVMFlXwN6Nt+eD0/aPwBmCPcZG+6ujE/gTgMmSmR7oIn+Thzq0+Dfc+eIllx3h3EVzW1ylUHYrqMWcAqDMj54AKsxGhg9SdsKhWNgAfzwQoY0064Y9OFIUkDy1wDDWFMGJAnbmcNLknQEDBe5DiIEfLDigAC4CI/PRiBqdJGBrUyGJ32nTTExlRBMgxO+uK244jYoda9PNE5c41H4YCSaR94CT8sRbpcyOpbwtoZ00PyxGpdpOGvW7hbumaswQzRB3xMuMtUK9JwBMTuPOf5zwHNPtp4HVTiHfUUKuSSKhb8NDoAT+nrjSXEKCUKyXVJWajSqBWHusNRM+uo5Y6m9sPAzWszc0nCVB4dfcZToVOmm4g8oxzvfIWZ6d1SArFMiOTlJGkEnqI1B9MBB4UlOlxGh31StRp0qhnKGBWdVJynSZ94fnpjufsjdPcdm7CtUuLe4qtSGd6FI01Zo1JU6g7T1O2+OG+A0u64la5aholGValZKpokCQBLLOXcGfI747r7P98nA7D7RdtdP3S/3GdWLiBEuujD/YbjAS1/sE+FnqvoTGoH6DDwuY97VaVOoHU+Xl+XrhWQP4SZB10Gh8vIfPCqstz6kk6n9AMAVSz+IgAbSeWHqTUEKCF2LHDIDe6fIkHl6/rgoIgBY058hgFlQdABGvp9TgJliTqB0Bj4HBSM3UKNgMDP9wwIFMCCR8gMAPxOpggA6Egx/BhvjqaUzAXQHLH4Y9DVDCKAs7AasfX54XYZFhYHibl/PngBXlAXNjVo92tcVEK92T4TOmuOMe29mLTtLUo0a1Ci1Oo1ALZpKU1B1AqMPEdyehMDHaJoJVTITmVhGUgajnPQY5n/AKheFVrXtIKtWkKKV1V1SjSmPeG+gBIGyz1OuA1NaqlAWtJ0YVFaCk+JYbWF6yBqx89IxuX2K9n6vE7tK5yrbW2rAal20kTvGY8t8uuNM52sKZFdCK7BWZSpMyZCzuevTXHT/sG4clPswbt2He1X8QXZf9RgNmOy0KJYjIAIAH0641F7QO3F7f1BwzhpSjRn+/X7yMkaZQRtr03j4Y2V2kW4qWJp20h2lSEJz6jYdPM4x3gHs+t7SlldaddqjGo7MiwrHeCJafU4DRl9Z1qge4pUnvVnKFWZcmPezPPQAQB5YqBQ7WrXZrbg11QVdVegndZVnQCB++Os7Dspwy1pU1NpRcU5KDLApyNYGLFeGWgBK0aa5gBtqRgOVeD2nbmhU76q97TWiABnd5SP/lp8+WmNidi+03akVO6vLipqqgFhKqJ5BQB+Q36Y27ccBtKoAFNUO4KiDp0jFXX4TStqne5Z10ldtPy3wFvwniZvaYqGACJEdOU9MWDnNT/LFLweitvSYBIcyBJnFvDPTiDI5nAOq1RSSSYXmYxgHa72pUuBUGqW9pcXJVipKCQCPOR0xlvEXqd1kSCJ113HPGJVux9nxTOLiia5qeLxidv+sBp7tN7ZuIXAdSLijDT3a1AGC+ZBJHxjGPUfaHctWFM3FasKrZlo1mUPTmdVfWfWPXHQL+yrgl2ym6tKTUyIZEWMx3knB09jXZDuzTPBLYyPESPe8t489cBo9OIkUxWpVahdtCjgKYMgZWHOTBidIjGzvZx20p8QoNYVrkPUpNAEw6jfKRzjXbpzjEu+9ivAaTGtZ2TUBTM93RrMM3wJ19MYvxXsLd8EuhxXhd1cU7unUDGjVUHvIkjaJMEgc9xrgNi9r+ELx7g1a3cAgqWWpOoMfKMcmcUtmpX1ULVzNQq5cxkgrMEP10O5kQOUY7A4RdPxPhVOq9MUqn3kIiDzEHbHK3tItPsPbritmgWkr1jUQuGyiSCJjk0wcA32c8Du7jtQKVjLZaxL0mAOVQ6kowPhdCBE6xAOm+OxqVI0aNOkaVOgqLHdUwMq+QgbY5d9glrd3PbSnUsJpfZ/7tanUAdqlBpUwTo0GDyjHVBFNF1UdABz6DACAmWcBQNfGdz5/TDlZm8Iz5dJkQD6nDYZgCrAEGZjb6fphaH+anKB98jX0A5nzwEkNl8KwzDoNB6dThV8bRvBmJ5+ZwIMG/trmC/izep5YOoAQTAUD3RoB64BamXYyEXTTmegwLLmEt4afIDnh75d9Wgctj+2GksQGUEtGkiIHXywAnckwFCsfCFnl0x4BWQQ3hGpbl8PrhrNC5Brm09f2x5ZBzVc2fmPkBgHopDgtJ02YRA6x+mNP/1A8JtrrgycTNk9VrdHZ7kwqIgG2u7OcoAGwB9RuBBm8bxO4n7vr1OMd7c8JbtPwavwKmB31whysWyrROoDMRqTqYHl5YDitSyU5rMrGpVNQk6KgAEgGNp/GTjr/wBkFv3Hs64KSDL0M8xvJJxyp2x4BX4FxqvwmKzChclEqZCqEAFtJ1OxMnkMdgdgqC0uyHBqSgf27SkPCND4BJnAXzUfDpuTE7wMMrV6FhbNVqsESmMxP7DniSy/2DMKDMHGF9qrXjvF6Bo8MvTw4A5WqKvjy8yDyPpgKztX7ZrLs/kt6dMfbqxihZhe+uao692phNP82B8sa24j/Ur2h+016tHhYtrW2qLRf7Rc0aZzkxGq66g7aDmcZh2T9ktx2O4o/F+H/wD7l62i1azhs3M5iRuTrin7R+w6/wCM8VurkAWtKu5r9y1olZKLMQzBGzDwzOh/HAN7M+3bj3FnuftfBHqUbaoEq1aGV1TNIBzIYKmDrEeeNl8H7T0OPWy3lpWp3Fs6z3iGRPTy9MY92W7B1uyfDL6xsL63Ne+rZ61w9spYACFUAHKoAmAJ3xadmux1Psnc3XEad2St0hataikqUzUmRU0+9y9DgMls7lXYQ5gwV1jTF0pzJodt41xifD6LU2Q5j4mOWOXljKaQJpCNgPXAVHEqsjKpKkjWRocV1xx614Rb1LitUpUbaiJqVHhVUdSTiRxOB3gmAd25jzxinbXsXU7WGg9S6X7LQSVtH9xqs6uwB1MaazGsQTgKvjP9RPZ7hdwKFlY8R4rUYF1W2SAVG7DQkjfXEa1/qj4CBTF/wbiFp3yipSLGS6HmJAn8eWK3tt7J+IdrbiyuaNTh9sbe2FnUSmlQ066gyCQPEhBkcwQdcQOw/shuOyXHk4rf8No3ttZszU7e1LVM9TLlDEuBCgEmACdthgNxdnvaJ2c7WpRbhvEabVagJWlUGR/MRsfgcWl3brdHMubMfvTA23xoXjnsv4zdcbrcV7OUjwipcstR6Lj+1UAJOqgmT5yCOWNpdiuK8ZFGnZcatO7qooUOrlwxGm5JO+AyW3tVoIgyqkp7o2JnfHL/ALdFFj7RqwA1r0aVSWMgyCDPPpp5HHV70/AGeC48og+WOY/6iraonbmwv1UvUNmoKsNCA7D154DLP6bezxtbK44jUp1czBWoXGaUKGQylfuuCu/MRjebtvMZt5Kz8cYD7G+EVuznZO14ZdU3p1Kpe6QM6uMhOwYb6QficZ/lHeSRJbWCP5tgGAzoFI3Jn9ThPeMyQnMnkOgx4krvU0iS0afzoMEQF8xfwgdTJ/DrgHK+kJT0+6ObftgyLqWZteZ5DyGB94ASBKTs0ST6fyMPFM6ZpjkBuPpgFK6gvsNlG3/WBuzVgVXwqd2PPBHQFSCTHMj5DAmYk5YhV+6OXrgGqQAMgDE7Tu2EACnMfE+okHfrGHNmPvDU7LPz8sD1LAqCf9iIB9B0wD8wJBJ0HuoNf+z54x3tOLqlSuvs929vUqm3LPTJDBfECAR6fnjIB4iZzGdNDv8AX5YruL0u/tLgDIua3JE/6sD8icBzz7X+z1yeK3FxdN9or3FIojwT3bv4wgjdgsknUfhjfnYxDS7McJWT/btKSR/l4BrjBe3fZ9L6/d0enTpW9rUua9zV8ZFR1AKovWOQ2HPrn3ZXw9nuGKXzH7PSmPJBgLpyW6joI1OPd0EIYgdNTth9MSBqddcECSZnTpgI/wBmznwsUP8ArgdThwee8qOZ/wBiZxN0URJiMN90aRgIlHh1KkMwQSNjHyxGv6SumQaGdBzxYMWbQk7+uIddu6YsygiInz9MBHpUAKqztoAI288WqAZPLFTRY3FdWJMHQADY4tl92Ry1wFNd0g9xDkkMY11nywtraqjlXAIdp1wXiSMJcESCDEan44S1rU6vuCSCQeoPTAPPDqVRx3ic5kGBiTStaqAKK1QjocOVpgs2U6Drg6MSdNufLARXsnMh2LHrt6YGLZVYoqgFds2oxZMMwiPXngbLAMfGDgIxcgMIJykCTjnv2+W9T/zDhNdXWm1G1YU2qCEJ7wAAnlMgfjjoVhKsxJUDxdZ5Y0p7ZOHDiPE7fI8vTs3aCJQf3AAHPIHbbeMBlns5biDWlonFKrNc061ZdB4WCoF5aRrt6b742AWVM0tO2YkfMYxH2f2dClwqze1LqhthVNNjJps5HhnyCR02IxlbSADnnLsBsD5dTgPZizku2UAyM2pHw5HDkLNDlYGwBGpPX0wOkRlckZQDqSTp5TzPphyM1dsy5qSHSQPEfTpgDochmA9Tn5ep54LT/uAhzmjcAaDAZRIUwF8jJ+GChO+ENog5fXzwDySxgHKoESNY9PPDCQoAA0X3R5/qcFYkAATgDROgOY6DXU+XkMAwgJq3iZj6yf19BhpljGh6yefmf0x4LBBBksI23HRfLDWYyAIUDnGiny6nAOBI1zQIgkjX0A5Yi8QQZKZyypfIxJ0Ctp+o0xIUsSMs6aCev6nzwK+an9nJdjlVlLRrzEx8MBhXbVaDXFe1dMpqsQ5ZgspHurpoNB+OMs4RTRbG2AJypSVdPLT9MROP8Ete0VrVtL1AK9IECoNJ/wAW/nPEyy/tpTB0YKBHntgLWmIYmR5xyw4sMunPpgCkRpp54MhEjqNwcAqpAGup2x5h0H64eDJ6YazBZAMk4AbEUwSxO2uKK7arxO67uixWkhgx/NsTeL3Jo2/hBLHfQ6DEXs9Wp/YZMCpmbNyKkE6dcBNt7daLL3kDbbFlTVcsgwNcc/8AHv6iE4H7S37P1+FvccOpVFt69zQYtUSoY1VOaiROs7xtGN0W/GKNWnTqUaq1KdRQ6sGkFSJBHlgJd2AjhJlW0jFIVuLG8FdhNF4DHof5pjD/AGne2LhHs6ogXAe94hcAmlZUXGZh/mzH3V/M8hjLeH8Uocb7LUL+pSah9ptxUFNhDU5EgR1wF/SIYHKJ28hg4VgPPkRiv4UX+y01qCSoG53xZiCQdM3r+eA8hLA5j59MNZmjpJj0w5isROh29cAqHaNATvO5wA6zhFAkwfzxrvtHQpXPbTh9GsitTurapauIkhXJEmNhIGvI64z+4qmJ1AAmN55b4xu3oJT7QVb80jXqZEt6S/4uxLST0H6aYC17P2T8Ptnt3KsaTLRzZfeyqAfLck/E4s3V9fEWHuyIX8J2xH4ZlW3YoweatRi2wPiIJ/LBmysZb3Roo5L5QMB6TWgLIpoNI8I+H13w56mU91REnYlfuj9MDd2JIXR5iPr0wYUlpCAQcuhDGATv8cA6iFXxM4ZRA/hxKRS5DNmAGy7fliNSDEipVDFj7oJ/PoMG7wP7pmN+Q+JwD3IUknfywIoWUBuf3Qdx5npgp0EafOPrgdSAuUtLHkN2OACzFNBqT05+Q6DzwwSBLOQDzAH4DBRBJNTLMaifCB5nDJZiN9Ry0/k9MA0MSmd23ELrBI8o2wG/fNw64IU5e7aJEco0GDTqQBBiSf35fPCqUYOGaVGjGInTrgEq2rrbmgnicrBeN/M4BZ0oRNxAUBsCqNxG3txSoVKTpEUzUYhgPMwZH54dw1zVt6DMPE1MFomAwGv54CYQWAA11+ODBoIAPiiT54bTgADTbTDgMusNmwBViABp00wxxkG0nUzhEJInNHywlSoBC6yTrywEatbrWRkYzM7YxWvwviPBzUFhUSotQmaVSRqRqwPX1xlNeutNS8zGkcziqrXH2pzTcBUG/INvgMRsuwXBm4snG7jhFH7e5yksoZi5nxz13xkjdl7nuu5pcS0cypZASqzMaRtibY27VLhmYaNvoIHL64mVamQPUkqAYAkCJwGFca9nfA+IvSF9YU72pbeNalWFLloBBPLlifY8JvagSyanStrClGSkCXJAOgLch+eMj4nSIo0ygglpCqJObriFb3JVYcMRn1O8dTgLa3pCjSXLvHLExDCg7T5ziDRuKdQMf8TG+JVNiRBOmAV4JOBVGkxBiZnXBKh+7OnLXA/EgOYgDzwEW5CqpaQTEjFVwaizXd7WZZQ1FLaRBAj9TizvPdI1MRpEz5HFZwt73v7z7MKH2RqkBmY5s+USMsba9cBZ2KpRomgGLLb1DSBmS0aj464lnwy5ImNxHgHl0wChbpZUlphu8eSZMSzHUk9MOUl25sCZnr5gch5nAJQYFp1OmhAiB8dh5nU4NSKsxqAyQNMx8I8454EhR/Agzxq2sg/DBCwoBVVtW5x+cc8AUyzHLmLHTMw+QwVTMKskTJgz+J54CPAQIY5uh1b6DEhdRGmnIcsAruEEGSTsAN8DKR4ywUnTTkP5/DghAWXfc6YZlmXcM06gRqcAFkLlYYqo/P1wxhnYosmOUb/QfPBHFRzvlnSB8hgZOYZKRYAblRJPkPrgEAykQAxBiY0J/nTDTlSMwmCYnXX9T5YeYTwiVKjxBd1HSeWBMc2VYgxoo1aP09cA8GczwDBnKxnXqeWI3DwEpPTBbNTeopk+cj8iMHEDLBAA3HJR9cBBFLiBTVVrKGB5Zhofyy4CegEAnNG2vlhwJIBIjzI2w0ax06jrhzttGx1BwCtIHTEDiNwaIAIb0GJ0aQZnqdsUXE6qWilrgOwJnLBObSdIwDSterUCqWUOZUHdR0/D8cEp8Nt7BPtNetkJJbMToDtAGMFvPaxRsK1SmeG3rVGlaZp0HZWYbCY0OKdO2fGuM3Od+DcVrU2JOXIVVBA3zRB1+uA2Z/5HTLKLWjTelPiZn1nyGH1OL8Jul+1VEenkOXLMSeXMY1s/Hu06sW/8dvGtm8MiqmZB1gGDtth1TtDU71bccF461IwJNsrZW/HT4dcBsVeP2uZYoN3cE58/zwapb0eI0xVtXLTzQ6xO5898azvO0XG6zijR7PXvdESD3qKWGm4B0+eIy9u+Idl7iX4dxGmDCOlSgzKJ6MsjrgNmUmqpDOrpDGFYjw7z64s+HXQuMysoUgwOU+eMH4R7TeAdobkJaVRVqUpNQKpUKRpzH8nGYcPqd+yuolWJIYaTHWMBbTpJMnl54aVzkEwTO3QY87yYEabjywjPlRiBsJj5YCFeNLgxJGsnbEfgjZOHrVGbNXdqoHMZmOg+EYbxpne1dKJ/u1PAp0OUtpP5/liZlS3opTpg5VAUb6ACAMApzk5FAJ3bSSfXoPLnjwUukKzMWMzOrAefIY8iNUBBIKjWJ09WP6YSjUNQu1FgEkA1WGvoBt6DlgCswSKSQznUIASD5nmfjgyQCRJer94g6/E8hhiBQCiSAZzVCdfgefqcKzLVGSmpyKM0LIB6a88ARWUrJYBNiRpm9OgwVGd+qLsZGvp5YCozjMToP8fkMGB2JgKDsNf4MA8rLF3MgbDkPrgc980z4AOegwVlznxEhRrvE4E7K7A7UwNAOf8AOmAY9RqxKUhC/wCQ0P48hhsZQFU5cumZV/JR1wpfLJYlRvlG4Hn54YEesc7uRTGiougI6efmcAx5qMKaTI1AXWB1J2nCFEUZZ8THRU1n48z57DD8+eme7yJRHvVOR8h1wIVJbKvjZh4idQB0/bbANSpmf+34UEmOQ8/3PwwO5Ru7WrRGZ6RzgAbrEMB6j9MFqVBRgsCG2AYyZ9BzwzO+zDKTqJ38sBIoVlqqtVHBpuPCZ388FzACTME66TGKWwrtZ3le3eBRaqe7JOikgEj8Tp8cWpqBl8SkTvzjAGpNm03GoHniFe2FO6EMA8dRH54OtSGhTIOh8owJ6hSpDAyRpgK6twC1ubT7LUUsjao5MZWxWvY3XCVWgiLUpHQFUMDn88ZMHmA0GOmI1Q1QWKRl/wAX2OAh0bm07tftFEqFGmTUDzI5Ycn/ABtOkxpq+V9WIgQYxV8Tu3p1HcWlwzfeVSNfScVjcfuxVYJwy+yo2jVKiAOdOkxvgMjulsqC1G7oo8Z1doB9fPnimPDa/FkyUaIRGf32JEDyxLsq13cOa9WwSkDt3j52+kYvqXeVYNTMNj5YCop9nre2oU6FtQQd3JL5AJnf44tuGW62tNKSgqRuN4/k4kgoEyrAG0jrhC2Ul8ukCD57YB1WotMZmkEHpMnAnqeIq5gLrPU+eGGqSoZjmgwRsC3XFXxniX2VRSo1A1eoQqD3tWMA+gmcA+1apecQNWCqW+gLGFdyNYH+o/M4sMoK96ZKmSqRLOTpOuwwy1tKNpa0qFIlioyy5lnMySek6k4c+bN4GleRAAD+nMDz6YD1QtUmkrCodWIUgLT6Cf1/DCU2LDVwVTwxTECD59cMLBmguDTJ1VTGeOXkPniQ7d1DOELbIo138v5OAJDFAFTwcl2EdTO49cLSplgSWzJP/sf19NsNUkktUqeIiG3hf38sOeqsgffOytrA6t9MAU1DplI1ESddMPSkSylnbeQDhlMZfE2pOpJiT+2C95rKgBebNucA+oS5Iy+ERoeZ/nLAyZbKklo1Y8h0H7YIVzmNtNhy9cDZwFyqSdYkcz0GAa6qTlkELoSdl/fAqoDxmMU490bsP0GHknKNoAMwJC9fjgT5VQM0gE+FT7zN1/c4BHeCqvCiNFiSP36DAmdUdimVCZJc+LLHU9f4MeaQ0mM865eQPKeXwwNSQdVXOBoGMBfgOflgPO7LTNQPlzarPvMf0x7Q659gdj+ZP6YRVBcZCFJkKxEuTzMdPzwyrWFCmapcLQpqT/lqNPifqMAxbWhWa8pspIzKJ9UH549b3DU4t67N3kQjk+/+k4Zwa4e5ur1aoFOqjU1akNTT8Ewx2zQZIG22JF/ZisocFlZPd6HAHzKGgRI6GPjhzDvACTlE7nFLS4k1tUWjcvOYQrtsT5+eu+2LajWg+IKonQk4AiocsgDfBVokqVJaCdceDQk6RvI+uFS6RjCnYxPQ4Bj8PpSWMktEmcBHDqa5QKWYjnoBiYtZahBjwxI0x6lUzk+EyfxA6k4AaWagj+0qzuSROPVUkFViB02nBWrADw66wT+uA/aKQUiYiQTM/HADyNT1PXmJP7YFXzZSSZgx0HxwVqyIpYEa88VPEeKrSDFmWBrtvpgPX12tnQOqiYVdYzE4rKFu9epRubow9SvTUL72VQ0x+X54dw21r8VuRd3KFVpe4rDYdSOpxO4ovcC1ejSaoxuECovhk67eflgLR3yrMplAiNxPIRz64QVR3bZ1JJ0cjdj0/m2GUa6VaaVBlK5ZVkEgSOQ68teeFZ6iEZTSpsvuqx6jX466n4DAPRiEMU/HAVUTQLPU8ycPV1Geozd48gEgRJ5KvkP+sMSnlphS4Yye8ZtIJ5evlrj3eo3iQioqaKQu52gAfzzwD3qNTUCA1SfCogBT5Tz6nD6cUD4gKjHWRAH7Dz54BTYU2zEBqreEACQo+H6YkUhEszNv7x3Y+v6D8cAVWzyXbMDqdIH4nlgqyviMljsIj/rEdKpLauAg2MbnyHP5YPTLNmUAqo0k6E/TAEdWYZY0G4wMAFoQAsRBjl9B88OfaGMek6eXngTLmAXMEpjVh19T+mAaSKoaSO7XdohfQeWGM4IPdq0AaGYny8vMnXCuTWVRqKQEqB4Z+g89+mI9RipPhVmXRVjRY/n1wCM4RACwzHmmhn/UfqcDYBcoDJJ92QcoHP18zh7LmLMR3jbHSApJ58z6fLHlqBRnJJUn/wDpzPKFH8AwDcjLPjYkjxHqOUxy/wBRhtCmby9lFRra08bA86o1A8oEH/16YZc1mohERM9Wt4aa6ldeXmBEn0xa8PtEtLcW9PUBTJ5sSZJPmTJwGA+y7if/AClXtMSSzpxmspYg6QqDn5jGdMneAQJcdMav9mrJwjtt2y4NVJ7x+JtdINYAdVYEfA42pT8a5ZJI0JwFTe8OWsjOUzAmYKzr+uKE3N1wh1TxVKYOwJLKPLqJxmVdNM4naIgQcVPELFGzS/vHUHWJG37YCDa8ao8QoZ++ziYYAHTqD5+eE+2tRqdXJJync7+L9vLzxRcT4LWFU16JqrVpR40JXy16jfTFKbzi9m2WEumhj3oDKRT0HP8AbAbHo8QFWEcqWUmdCC3oOm2HC7WmSFDFplpEQMa6pcfvqLBFoM1QmQwaSOgJnbTBKvau+zAtaV821QnKdeW5wGeVr+lRAioQoEh3+8By6/wYCL2mtPvczQCZ8Q0iJEfzY41w/am+uqhNC1Z0GvvaoR6SJ5YJn41fgGvW7qnUEKias0kk6nWdeUYDJeLdqKVuv9sVKtUArABGs6ajTph/B7KrfVQ16oCqcwTVteR9eg5YBwbgVGm6FaGUHdyZOnTpzxmllZJToqSgUzIQfr54AlCilJBlSCTrr/Jxh/tR4k/COziXtNyrJxCzAccprKP1xmjgQy6y3vQdsav9uNY3HA+HcPpyGr8StspI94rVU6xgM7rxZ3a1JNOxvAKiMB7lRhJH/wBtx5yOeJSIXBZpEaADWAdv/sf36YnXdnTubNLeooKMmQ9PL06j0xTUWr0KzWdds9WkB4xoXU/eHmdZ6EYCQKoY5WQSNCC3KNvQfn6Yf32Y5j7o9xdYb4Dc+UQMCdc75afdjn4RuOXmRhBXgBaJOfQCDJJ6k/IYCRIojNV3f7pMH49B5b4RGLSbhwrEc9FQen1wye5BQOpqH75PuHy+vPBadIURmrEM556SCeQ88BKpke8SAo+8R4jgwIyBivh3A2k/PAULk5mRQfTMV/fD6bBizl83KRqfScB//9k=" alt="Ảnh giáo viên Nguyễn Anh Tuấn"><span>Giáo viên: Nguyễn Anh Tuấn</span></div>
+</header>
+<div class="gd-wrap">
+<div class="gd-hi" role="status"><div class="ic" id="gdIc">☀️</div><div class="tx"><h2 id="gdT1"></h2><p id="gdT2"></p></div><div class="tm"><span id="gdDate"></span><b id="gdTime"></b></div><div class="hd" id="gdHol"></div></div>
+<div class="gd-grid">
+<button type="button" class="gc c1 lp-card" data-k="prompt" data-go="t6"><span class="em">🤖</span><b>1. Prompt AI</b><small>Tạo giáo án, đề kiểm tra và học liệu</small><span class="go">›</span><span class="fv" data-fv="prompt">☆</span></button>
+<button type="button" class="gc c2 lp-card" data-k="word" data-go="t3"><span class="em">🧰</span><b>2. Công cụ Word và Excel</b><small>Mẫu, biểu mẫu, tính toán tự động</small><span class="go">›</span><span class="fv" data-fv="word">☆</span></button>
+<button type="button" class="gc c3 lp-card" data-k="tools" data-go="t8"><span class="em">🛠️</span><b>3. Công cụ thường dùng</b><small>Tiện ích hỗ trợ giảng dạy</small><span class="go">›</span><span class="fv" data-fv="tools">☆</span></button>
+<button type="button" class="gc c4 lp-card" data-k="math" data-go="t5"><span class="em">🧮</span><b>4. Toán học</b><small>Công thức, ví dụ, bài tập, chuyên đề</small><span class="go">›</span><span class="fv" data-fv="math">☆</span></button>
+<button type="button" class="gc c5 lp-card" id="lpDocCard" data-k="docs" data-go="t9"><span class="em">📚</span><b>5. Tài liệu</b><small>Sách, đề thi, chuyên đề tham khảo</small><span class="go">›</span><span class="fv" data-fv="docs">☆</span></button>
+<button type="button" class="gc c6 lp-card" data-k="games"><span class="em">🎮</span><b>6. Trò chơi</b><small>Trò chơi học Toán thú vị</small><span class="go">›</span><span class="fv" data-fv="games">☆</span></button>
 </div>
-<div class="lp-txt">
-<h2>Chào mừng quý thầy cô</h2>
-<p>Mỗi bài giảng là một hạt mầm tri thức – chúc quý thầy cô một ngày dạy học thật nhiều cảm hứng và niềm vui.</p>
-</div>
-<div class="lp-cards">
-<button type="button" class="lp-card" data-go="t6" style="--i:1"><span class="ic">🤖</span><b>Prompt AI</b><small>Tạo prompt để AI hỗ trợ soạn giáo án, đề bài</small></button>
-<button type="button" class="lp-card" data-go="t3" style="--i:2"><span class="ic">🧰</span><b>Công cụ Word và Excel</b><small>Chuyển LaTeX, bảng điểm, chuẩn hóa, ghép file</small></button>
-<button type="button" class="lp-card" data-go="t8" style="--i:3"><span class="ic">🛠</span><b>Công cụ thường dùng</b><small>Gọi tên học sinh (vòng quay, bắt gà), đếm giờ, chia nhóm, kéo co, mã QR</small></button>
-<button type="button" class="lp-card" data-go="t5" style="--i:4"><span class="ic">🧮</span><b>Toán học</b><small>Máy tính, đồ thị và hình học</small></button>
-<button type="button" class="lp-card" data-go="t9" id="lpDocCard" style="--i:5"><span class="ic">📚</span><b>Tài liệu</b><small>Tài liệu Toán, PowerPoint, phần mềm, công nghệ</small></button>
+<svg class="gd-board" viewBox="0 0 400 200" aria-hidden="true"><rect width="400" height="200" class="gd-sky"/>
+<g fill="#3f9a45" opacity=".75"><circle cx="14" cy="120" r="34"/><circle cx="388" cy="110" r="30"/></g>
+<g font-family="'Bradley Hand','Segoe Script','Comic Sans MS',cursive" fill="#e9f7ee"><text x="200" y="68" font-size="22" text-anchor="middle">a² + b² = c²</text><text x="205" y="104" font-size="14" text-anchor="middle">x = (−b ± √(b²−4ac)) / 2a</text></g>
+<rect x="100" y="22" width="206" height="122" rx="6" fill="#a9743c"/><rect x="106" y="28" width="194" height="110" rx="3" fill="#1f4d43"/>
+<g fill="none" stroke="#e9f7ee" stroke-width="1.6"><path d="M118 118V84L148 118Z"/><circle cx="268" cy="86" r="16"/><path d="M268 86h16M268 86l10-10"/></g>
+<g font-family="'Bradley Hand','Segoe Script',cursive" fill="#fff" font-size="12"><text x="14" y="68" transform="rotate(-9 14 68)">Toán học</text><text x="14" y="82" transform="rotate(-9 14 82)">là chìa khóa</text><text x="14" y="96" transform="rotate(-9 14 96)">để mở ra</text><text x="14" y="110" transform="rotate(-9 14 110)">thế giới.</text></g>
+<rect x="0" y="168" width="400" height="32" fill="#b07a45"/>
+<path d="M200 160Q160 148 112 156V180Q160 174 200 186Z" fill="#fff8e8"/><path d="M200 160Q240 148 288 156V180Q240 174 200 186Z" fill="#fff1d2"/><path d="M200 160V186" stroke="#c99a4a"/>
+<g transform="translate(318 150)"><rect x="0" y="12" width="26" height="30" rx="4" fill="#fff"/><g stroke-width="3" stroke-linecap="round"><path d="M5 14L2-6" stroke="#2f6fe0"/><path d="M11 14L10-10" stroke="#f59e0b"/><path d="M17 14L19-8" stroke="#16a34a"/></g></g>
+<g transform="translate(286 20) rotate(14)"><path d="M-22 0L0-11 22 0 0 11Z" fill="#1d2a6b"/><path d="M0 0L18 6v12" stroke="#fbbf24" stroke-width="2" fill="none"/></g>
+<g class="an"><circle cx="372" cy="150" r="14" fill="#5b8fe0" opacity=".85"/></g></svg>
 </div>
 </section>
+
 
 
 
@@ -1447,6 +743,84 @@ window.addEventListener('luufiletam:close',function(){if(s.value==='utFile'){s.v
     mo=new MutationObserver(function(){setTimeout(fixTabs,0)});
     mo.observe(btn.parentNode,{childList:true,subtree:true,characterData:true});
   }
+})();
+</script>
+<nav class="gd-nav" aria-label="Điều hướng"><button data-n="home" class="on"><i>🏠</i>Trang chủ</button><button data-n="tools"><i>📁</i>Công cụ</button><button data-n="fav"><i>☆</i>Yêu thích</button><button data-n="hist"><i>🕘</i>Lịch sử</button><button data-n="set"><i>⚙️</i>Cài đặt</button></nav>
+<div id="gdSheet"><div class="bx"></div></div>
+<script>
+(function(){
+'use strict';
+var $=function(i){return document.getElementById(i)},Q=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var P2=function(n){return(n<10?'0':'')+n};
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+/* ----- Giao diện sáng/tối: tự động 7h–17h59 sáng, còn lại tối ----- */
+function autoT(){var h=new Date().getHours();return h>=7&&h<18?'sang':'toi'}
+function applyTheme(){var m=store('gd_theme')||'auto',t=m==='auto'?autoT():m,r=document.documentElement;
+ r.setAttribute('data-theme',t);r.setAttribute('data-tod',t);
+ var mt=document.querySelector('meta[name="theme-color"]');if(!mt){mt=document.createElement('meta');mt.name='theme-color';document.head.appendChild(mt)}
+ mt.content=t==='toi'?'#070d27':'#5cc3ff'}
+/* ----- Lời chào, giờ, ngày lễ ----- */
+var DAYS=['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+var G={sang:['Chào buổi sáng!','Chúc thầy cô có một ngày mới','nhiều năng lượng và nhiều bài giảng thật hay!','☀️'],
+ trua:['Chào buổi trưa!','Đến giờ nghỉ ngơi rồi,','thầy cô đừng quên ăn trưa nhé.','🌞'],
+ chieu:['Chào buổi chiều!','Buổi chiều dịu dàng, cứ thong thả,','công việc sẽ xong đâu vào đấy.','🌇'],
+ toi:['Chào buổi tối!','Chúc thầy cô soạn bài thật nhẹ nhàng','và có thời gian nghỉ ngơi an lành!','🌙'],
+ khuya:['Khuya rồi!','Nghỉ ngơi sớm để mai đủ sức','cho một ngày giảng dạy mới nhé.','🌙']};
+var HOL=[[1,1,'Tết Dương lịch'],[2,3,'Thành lập Đảng CSVN'],[2,27,'Thầy thuốc Việt Nam'],[3,8,'Quốc tế Phụ nữ'],[3,26,'Thành lập Đoàn TNCS HCM'],[4,30,'Giải phóng miền Nam'],[5,1,'Quốc tế Lao động'],[5,7,'Chiến thắng Điện Biên Phủ'],[5,19,'Sinh nhật Bác Hồ'],[6,1,'Quốc tế Thiếu nhi'],[6,21,'Báo chí cách mạng VN'],[7,27,'Thương binh Liệt sĩ'],[8,19,'Cách mạng Tháng Tám'],[9,2,'Quốc khánh'],[9,5,'Khai giảng năm học'],[10,10,'Giải phóng Thủ đô'],[10,13,'Doanh nhân Việt Nam'],[10,20,'Phụ nữ Việt Nam'],[11,19,'Quốc tế Đàn ông'],[11,20,'Ngày Nhà giáo Việt Nam'],[12,22,'Thành lập QĐNDVN']];
+var LH=[[1,1,'Tết Nguyên đán'],[15,1,'Rằm tháng Giêng'],[10,3,'Giỗ Tổ Hùng Vương'],[15,8,'Tết Trung thu']];
+function nextHol(){var n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),out=[],i,j;
+ for(i=0;i<HOL.length;i++){var h=HOL[i];for(j=0;j<2;j++){var d=new Date(t0.getFullYear()+j,h[0]-1,h[1]),k=Math.round((d-t0)/864e5);if(k>=0&&k<=45){out.push({d:k,n:h[2],s:P2(d.getDate())+'/'+P2(d.getMonth()+1)});break}}}
+ if(window.AmLich){for(i=0;i<LH.length;i++){var L=LH[i];for(var y=t0.getFullYear()-1;y<=t0.getFullYear()+1;y++){try{var sd=window.AmLich.lunar2solar(L[0],L[1],y,0);if(!sd)continue;var kk=Math.round((sd-t0)/864e5);if(kk>=0&&kk<=45){out.push({d:kk,n:L[2],s:P2(sd.getDate())+'/'+P2(sd.getMonth()+1)});break}}catch(e){}}}}
+ out.sort(function(a,b){return a.d-b.d});return out[0]}
+var cp='';
+function tick(){var n=new Date(),h=n.getHours(),p=h<5?'khuya':h<11?'sang':h<14?'trua':h<18?'chieu':h<22?'toi':'khuya',g=G[p];
+ if(p!==cp){cp=p;$('gdT1').textContent=g[0];$('gdT2').textContent=g[1]+' '+g[2];$('gdIc').textContent=g[3];
+  var hl=nextHol(),e=$('gdHol');e.textContent='';
+  if(hl){e.appendChild(document.createElement('b')).textContent=hl.n;e.appendChild(document.createElement('br'));e.appendChild(document.createTextNode(hl.s));e.appendChild(document.createElement('br'));e.appendChild(document.createTextNode(hl.d?'(còn '+hl.d+' ngày)':'(hôm nay!)'))}}
+ $('gdDate').textContent=DAYS[n.getDay()]+', '+P2(n.getDate())+'/'+P2(n.getMonth()+1)+'/'+n.getFullYear();
+ $('gdTime').textContent=P2(h)+':'+P2(n.getMinutes());
+ if((store('gd_theme')||'auto')==='auto'&&document.documentElement.getAttribute('data-theme')!==autoT())applyTheme()}
+/* ----- Điều hướng (giữ nguyên bộ chuyển tab cũ) ----- */
+var SEC={prompt:{id:'t6',re:/prompt/i,n:'Prompt AI',e:'🤖'},word:{id:'t3',re:/word\s*và\s*excel/i,n:'Công cụ Word và Excel',e:'🧰'},tools:{id:'t8',re:/thường dùng/i,n:'Công cụ thường dùng',e:'🛠️'},math:{id:'t5',re:/toán học/i,n:'Toán học',e:'🧮'},docs:{id:'t9',re:/tài liệu/i,n:'Tài liệu',e:'📚'},games:{id:null,re:/trò chơi/i,n:'Trò chơi',e:'🎮'}};
+function tabOf(s){var tabs=Q('.tabs .tab,#tabRoutes .tab'),i;if(s.id)for(i=0;i<tabs.length;i++)if(tabs[i].getAttribute('data-tab')===s.id)return tabs[i];
+ for(i=0;i<tabs.length;i++)if(s.re.test(tabs[i].textContent))return tabs[i];return null}
+function showPanel(id){var p=$(id);if(!p)return false;Q('.panel').forEach(function(x){x.classList.remove('on')});p.classList.add('on');return true}
+function goHome(){showPanel('t0');Q('.tabs .tab').forEach(function(t){t.classList.remove('on','active')});window.scrollTo(0,0);sync()}
+function hist(k){var a;try{a=JSON.parse(store('gd_hist')||'[]')}catch(e){a=[]}a=[k].concat(a.filter(function(x){return x!==k})).slice(0,8);store('gd_hist',JSON.stringify(a))}
+function openSec(k){var s=SEC[k];if(!s)return;var t=tabOf(s),pid=t?t.getAttribute('data-tab'):s.id;hist(k);
+ if(t)t.click();
+ setTimeout(function(){var p=pid&&$(pid);if(p&&!p.classList.contains('on'))showPanel(pid);window.scrollTo(0,0);sync()},90)}
+function sync(){var h=$('t0').classList.contains('on');Q('.gd-nav button').forEach(function(b){var k=b.getAttribute('data-n');b.classList.toggle('on',k==='home'?h:k==='tools'?(!h&&$('t8')&&$('t8').classList.contains('on')):false)})}
+/* ----- Yêu thích, lịch sử, tìm kiếm, cài đặt ----- */
+function favs(){try{return JSON.parse(store('gd_fav')||'[]')}catch(e){return[]}}
+function paintFav(){var f=favs();Q('[data-fv]').forEach(function(s){s.textContent=f.indexOf(s.getAttribute('data-fv'))>-1?'★':'☆'})}
+var sh=$('gdSheet');
+function sheet(title,fill){var b=sh.querySelector('.bx');b.textContent='';var h=document.createElement('h3');h.textContent=title;b.appendChild(h);fill(b);sh.classList.add('on')}
+function item(b,txt,fn,on){var x=document.createElement('button');x.type='button';x.className='it'+(on?' on':'');x.textContent=txt;x.onclick=fn;b.appendChild(x);return x}
+function secList(b,keys,empty){if(!keys.length){var d=document.createElement('div');d.className='em';d.textContent=empty;b.appendChild(d)}keys.forEach(function(k){if(SEC[k])item(b,SEC[k].e+' '+SEC[k].n,function(){close();openSec(k)})})}
+function close(){sh.classList.remove('on')}
+function sFav(){sheet('★ Yêu thích',function(b){secList(b,favs(),'Chưa có mục nào. Bấm ☆ ở góc mỗi thẻ trên trang chủ để thêm.')})}
+function sHist(){sheet('🕘 Lịch sử',function(b){var a;try{a=JSON.parse(store('gd_hist')||'[]')}catch(e){a=[]}secList(b,a,'Chưa mở mục nào.')})}
+function sSet(){sheet('⚙️ Cài đặt',function(b){var m=store('gd_theme')||'auto';[['auto','🕒 Tự động theo giờ'],['sang','☀️ Giao diện sáng'],['toi','🌙 Giao diện tối']].forEach(function(o){item(b,o[1],function(){store('gd_theme',o[0]);applyTheme();tick();sSet()},m===o[0])});
+ secList(b,[],'')})}
+function sMenu(){sheet('☰ Danh mục',function(b){secList(b,Object.keys(SEC),'')})}
+function sFind(){sheet('🔍 Tìm kiếm',function(b){var inp=document.createElement('input');inp.placeholder='Gõ tên công cụ...';var box=document.createElement('div');b.appendChild(inp);b.appendChild(box);
+ var idx=Object.keys(SEC).map(function(k){return{l:SEC[k].e+' '+SEC[k].n,k:k}});
+ Q('.panel select').forEach(function(sl){var p=sl.closest('.panel');if(!p)return;Q('option',sl).forEach(function(o){idx.push({l:o.textContent.trim(),pid:p.id,sl:sl,v:o.value})})});
+ function run(){var q=inp.value.trim().toLowerCase();box.textContent='';var n=0;idx.forEach(function(x){if(n<30&&(!q||x.l.toLowerCase().indexOf(q)>-1)){n++;item(box,x.l,function(){close();
+  if(x.k)return openSec(x.k);var k=Object.keys(SEC).filter(function(z){return SEC[z].id===x.pid})[0];if(k)openSec(k);else showPanel(x.pid);
+  setTimeout(function(){x.sl.value=x.v;x.sl.dispatchEvent(new Event('change',{bubbles:true}))},160)})}})}
+ inp.oninput=run;run();setTimeout(function(){inp.focus()},50)})}
+document.addEventListener('click',function(e){var t=e.target;
+ if(t.getAttribute&&t.getAttribute('data-fv')){e.stopPropagation();e.preventDefault();var k=t.getAttribute('data-fv'),f=favs(),i=f.indexOf(k);if(i>-1)f.splice(i,1);else f.push(k);store('gd_fav',JSON.stringify(f));paintFav();return}
+ var c=t.closest&&t.closest('.gc');if(c){if(!c.getAttribute('data-go')||c.getAttribute('data-k')==='games'){e.stopPropagation()}openSec(c.getAttribute('data-k'));return}
+ if(t===sh){close();return}
+ var nb=t.closest&&t.closest('.gd-nav button');if(nb){var n=nb.getAttribute('data-n');if(n==='home')goHome();else if(n==='tools')openSec('tools');else if(n==='fav')sFav();else if(n==='hist')sHist();else sSet();return}
+ if(t.closest&&t.closest('#gdMenu'))sMenu();else if(t.closest&&t.closest('#gdSearch'))sFind()},true);
+document.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
+applyTheme();paintFav();tick();setInterval(tick,5000);
+Q('.panel').forEach(function(p){try{new MutationObserver(sync).observe(p,{attributes:true,attributeFilter:['class']})}catch(e){}});
+sync();
 })();
 </script>
 </body>
