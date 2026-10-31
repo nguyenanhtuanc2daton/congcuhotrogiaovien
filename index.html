@@ -265,6 +265,46 @@ html .gd-grid .c6{background:linear-gradient(135deg,#f5307f,#ff6aa9)!important}
 html[data-theme=toi] .gd-grid .gc{box-shadow:0 10px 24px -8px rgba(0,0,0,.7),0 0 18px -6px var(--ac),inset 0 1px 0 rgba(255,255,255,.3)!important;filter:saturate(1.05)}
 /* Ngày lễ: một hàng riêng, chữ trên 1 dòng */
 html .gd-hi{flex-wrap:wrap!important}html .gd-hi .hd{flex:1 1 100%!important;max-width:none!important;border-top:1px solid var(--bd);padding-top:8px;white-space:nowrap;font-size:clamp(11px,3.4vw,14px)!important;text-align:center}html .gd-hi .hd b{font-size:inherit!important}
+/* Công thức chuyển động trên bảng */
+.gd-board{--fl:#2f6fe0}html[data-theme=toi] .gd-board{--fl:#bcd4ff}
+.gd-board .fl{fill:var(--fl);opacity:0;animation:gdFl var(--t) ease-in-out var(--d) infinite;transform-box:fill-box;transform-origin:center}
+@keyframes gdFl{0%{opacity:0;transform:translate(0,14px) rotate(-12deg)}15%{opacity:.9}70%{opacity:.8}100%{opacity:0;transform:translate(var(--x),-90px) rotate(14deg)}}
+.gd-board .cy{opacity:0;animation:gdCy 12s ease-in-out var(--d) infinite}
+@keyframes gdCy{0%{opacity:0;transform:translateY(6px)}6%,22%{opacity:1;transform:none}28%,100%{opacity:0;transform:translateY(-4px)}}
+.gd-board .wr{animation:gdWr 4s ease-in-out infinite}@keyframes gdWr{0%,100%{opacity:.85}50%{opacity:1;transform:scale(1.04);transform-box:fill-box;transform-origin:center}}
+@media(prefers-reduced-motion:reduce){.gd-board .fl,.gd-board .cy,.gd-board .wr{animation:none}.gd-board .cy:first-of-type{opacity:1}}
+/* Chữ khẩu hiệu rõ nét */
+.gd-board .tg{fill:#10296b;stroke:rgba(255,255,255,.9);stroke-width:2.6px;paint-order:stroke;font-weight:700}
+html[data-theme=toi] .gd-board .tg{fill:#fff;stroke:rgba(4,8,40,.75);stroke-width:2.4px}
+.gd-nav button{color:var(--ink)!important;opacity:.92}.gd-nav button.on{color:var(--navtx)!important;opacity:1}
+/* Máy tính / tivi: tràn màn hình, chữ lớn theo độ rộng màn hình */
+@media(min-width:900px){
+.app{max-width:min(1900px,98vw)!important}
+#t0{max-width:none!important;width:100%}
+.gd-top{min-height:clamp(300px,25vw,560px);border-radius:0 0 3vw 3vw;padding-top:1.4vw}
+.gd-ib{width:4.2vw;height:3.8vw;font-size:1.9vw;border-radius:1.2vw}
+.gd-logo{width:7.4vw;height:7.4vw;margin-top:-2.6vw;border-radius:1.2vw}
+.gd-sch{font-size:clamp(16px,1.7vw,40px)}
+.gd-h1{font-size:clamp(30px,3.7vw,84px)}
+.gd-gv{font-size:clamp(15px,1.6vw,36px);padding-right:1.6vw}.gd-gv img{width:5vw;height:5vw}
+.gd-wrap{padding:0 2.2vw}
+.gd-hi{padding:1.4vw 2vw;gap:1.8vw;border-radius:2vw;margin-bottom:1.4vw}
+.gd-hi .ic{font-size:4.6vw}.gd-hi h2{font-size:clamp(22px,2.6vw,60px)}.gd-hi p{font-size:clamp(15px,1.6vw,36px)}
+.gd-hi .tm{font-size:clamp(14px,1.5vw,32px);padding:0 2vw}.gd-hi .tm b{font-size:clamp(34px,4.2vw,96px)}
+html .gd-hi .hd{font-size:clamp(14px,1.7vw,38px)!important;padding-top:.8vw}
+.gd-grid{gap:1.4vw!important}
+html .gd-grid .gc{border-radius:2vw!important;padding:1.6vw 1.5vw!important;min-height:11vw;gap:.4vw 1.2vw!important}
+html .gd-grid .gc .em{font-size:clamp(40px,4.6vw,110px)!important}
+html .gd-grid .gc b{font-size:clamp(18px,2vw,46px)!important;padding-right:3vw}
+html .gd-grid .gc small{font-size:clamp(14px,1.55vw,36px)!important}
+html .gd-grid .gc .go{width:2.6vw;height:2.6vw;font-size:1.7vw;right:1vw;top:1vw}
+html .gd-grid .gc .fv{font-size:clamp(20px,2vw,44px)!important}
+.gd-board{max-width:1150px;width:calc(100% - 4.4vw);margin:1.6vw auto 0;border-radius:2vw}
+.gd-nav{max-width:1000px;padding-top:.7vw}.gd-nav button{font-size:clamp(14px,1.4vw,30px);border-radius:1.4vw}.gd-nav button i{font-size:clamp(24px,2.4vw,52px)}
+#gdSheet .bx{max-width:1000px;padding:2vw}#gdSheet h3{font-size:clamp(20px,2vw,44px)}#gdSheet input{font-size:clamp(16px,1.6vw,36px);padding:1vw 1.4vw}
+#gdSheet .it{font-size:clamp(16px,1.6vw,36px);padding:1vw 1.4vw}#gdSheet .em{font-size:clamp(14px,1.3vw,30px)}
+.app{padding-bottom:9vw!important}
+}
 </style>
 </head>
 <body>
@@ -308,17 +348,7 @@ html .gd-hi{flex-wrap:wrap!important}html .gd-hi .hd{flex:1 1 100%!important;max
 <button type="button" class="gc c5" id="lpDocCard" data-k="docs" data-go="t9"><span class="em">📚</span><b>5. Tài liệu</b><small>Sách, đề thi, chuyên đề tham khảo</small><span class="go">›</span><span class="fv" data-fv="docs">☆</span></button>
 <button type="button" class="gc c6" data-k="games"><span class="em">🎮</span><b>6. Trò chơi</b><small>Trò chơi học Toán thú vị</small><span class="go">›</span><span class="fv" data-fv="games">☆</span></button>
 </div>
-<svg class="gd-board" viewBox="0 0 400 200" aria-hidden="true"><rect width="400" height="200" class="gd-sky"/>
-<g fill="#3f9a45" opacity=".75"><circle cx="14" cy="120" r="34"/><circle cx="388" cy="110" r="30"/></g>
-<g font-family="'Bradley Hand','Segoe Script','Comic Sans MS',cursive" fill="#e9f7ee"><text x="200" y="68" font-size="22" text-anchor="middle">a² + b² = c²</text><text x="205" y="104" font-size="14" text-anchor="middle">x = (−b ± √(b²−4ac)) / 2a</text></g>
-<rect x="100" y="22" width="206" height="122" rx="6" fill="#a9743c"/><rect x="106" y="28" width="194" height="110" rx="3" fill="#1f4d43"/>
-<g fill="none" stroke="#e9f7ee" stroke-width="1.6"><path d="M118 118V84L148 118Z"/><circle cx="268" cy="86" r="16"/><path d="M268 86h16M268 86l10-10"/></g>
-<g font-family="'Bradley Hand','Segoe Script',cursive" fill="#fff" font-size="12"><text x="14" y="68" transform="rotate(-9 14 68)">Toán học</text><text x="14" y="82" transform="rotate(-9 14 82)">là chìa khóa</text><text x="14" y="96" transform="rotate(-9 14 96)">để mở ra</text><text x="14" y="110" transform="rotate(-9 14 110)">thế giới.</text></g>
-<rect x="0" y="168" width="400" height="32" fill="#b07a45"/>
-<path d="M200 160Q160 148 112 156V180Q160 174 200 186Z" fill="#fff8e8"/><path d="M200 160Q240 148 288 156V180Q240 174 200 186Z" fill="#fff1d2"/><path d="M200 160V186" stroke="#c99a4a"/>
-<g transform="translate(318 150)"><rect x="0" y="12" width="26" height="30" rx="4" fill="#fff"/><g stroke-width="3" stroke-linecap="round"><path d="M5 14L2-6" stroke="#2f6fe0"/><path d="M11 14L10-10" stroke="#f59e0b"/><path d="M17 14L19-8" stroke="#16a34a"/></g></g>
-<g transform="translate(286 20) rotate(14)"><path d="M-22 0L0-11 22 0 0 11Z" fill="#1d2a6b"/><path d="M0 0L18 6v12" stroke="#fbbf24" stroke-width="2" fill="none"/></g>
-<g class="an"><circle cx="372" cy="150" r="14" fill="#5b8fe0" opacity=".85"/></g></svg>
+<svg class="gd-board" viewBox="0 0 400 200" aria-hidden="true"><rect width="400" height="200" class="gd-sky"/><g fill="#3f9a45" opacity=".75"><circle cx="12" cy="156" r="30"/><circle cx="388" cy="110" r="30"/></g><rect x="0" y="168" width="400" height="32" fill="#b07a45"/><rect x="100" y="22" width="206" height="122" rx="6" fill="#a9743c"/><rect x="106" y="28" width="194" height="110" rx="3" fill="#1f4d43"/><g fill="none" stroke="#e9f7ee" stroke-width="1.6"><path d="M114 122V88L144 122Z"/><path d="M114 114h8v8"/><circle cx="270" cy="92" r="16"/><path d="M270 92h16M270 92l10-10"/></g><g font-family="'Bradley Hand','Segoe Script','Comic Sans MS',cursive" fill="#e9f7ee"><text class="wr" x="203" y="66" font-size="22" text-anchor="middle">a² + b² = c²</text><text class="cy" x="203" y="108" text-anchor="middle" font-size="12" style="--d:0s">x = (−b ± √(b²−4ac)) / 2a</text><text class="cy" x="203" y="108" text-anchor="middle" font-size="12" style="--d:3s">S = πr²</text><text class="cy" x="203" y="108" text-anchor="middle" font-size="12" style="--d:6s">∫₀¹ x dx = ½</text><text class="cy" x="203" y="108" text-anchor="middle" font-size="12" style="--d:9s">Σ 1/n² = π²/6</text></g><g font-family="'Bradley Hand','Segoe Script','Comic Sans MS',cursive" font-size="15"><text class="tg" x="14" y="60" transform="rotate(-8 14 60)">Toán học</text><text class="tg" x="14" y="77" transform="rotate(-8 14 77)">là chìa khóa</text><text class="tg" x="14" y="94" transform="rotate(-8 14 94)">để mở ra</text><text class="tg" x="14" y="111" transform="rotate(-8 14 111)">thế giới.</text></g><path d="M200 160Q160 148 112 156V180Q160 174 200 186Z" fill="#fff8e8"/><path d="M200 160Q240 148 288 156V180Q240 174 200 186Z" fill="#fff1d2"/><path d="M200 160V186" stroke="#c99a4a"/><g transform="translate(318 150)"><rect x="0" y="12" width="26" height="30" rx="4" fill="#fff"/><g stroke-width="3" stroke-linecap="round"><path d="M5 14L2-6" stroke="#2f6fe0"/><path d="M11 14L10-10" stroke="#f59e0b"/><path d="M17 14L19-8" stroke="#16a34a"/></g></g><g transform="translate(286 20) rotate(14)"><path d="M-22 0L0-11 22 0 0 11Z" fill="#1d2a6b"/><path d="M0 0L18 6v12" stroke="#fbbf24" stroke-width="2" fill="none"/></g><g class="an"><circle cx="372" cy="150" r="14" fill="#5b8fe0" opacity=".85"/></g><g font-family="'Bradley Hand','Segoe Script','Comic Sans MS',cursive" font-size="15" text-anchor="middle"><text class="fl" x="24" y="150" style="--d:0.0s;--t:9s;--x:12px">π</text><text class="fl" x="70" y="160" style="--d:2.5s;--t:11s;--x:-10px">√x</text><text class="fl" x="330" y="150" style="--d:1.0s;--t:10s;--x:8px">∑</text><text class="fl" x="366" y="160" style="--d:4.0s;--t:12s;--x:-12px">∫</text><text class="fl" x="120" y="170" style="--d:5.0s;--t:9s;--x:10px">Δ</text><text class="fl" x="250" y="168" style="--d:3.0s;--t:11s;--x:-8px">sin x</text><text class="fl" x="300" y="165" style="--d:6.0s;--t:10s;--x:10px">x²</text><text class="fl" x="46" y="120" style="--d:7.0s;--t:12s;--x:8px">θ</text><text class="fl" x="350" y="120" style="--d:2.0s;--t:9s;--x:-6px">∞</text></g></svg>
 </div>
 </section>
 
@@ -822,12 +852,20 @@ function sHist(){sheet('🕘 Lịch sử',function(b){var a;try{a=JSON.parse(sto
 function sSet(){sheet('⚙️ Cài đặt',function(b){var m=store('gd_theme')||'auto';[['auto','🕒 Tự động theo giờ'],['sang','☀️ Giao diện sáng'],['toi','🌙 Giao diện tối']].forEach(function(o){item(b,o[1],function(){store('gd_theme',o[0]);applyTheme();tick();sSet()},m===o[0])});
  secList(b,[],'')})}
 function sMenu(){sheet('☰ Danh mục',function(b){secList(b,Object.keys(SEC),'')})}
+function nrm(x){return String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d')}
 function sFind(){sheet('🔍 Tìm kiếm',function(b){var inp=document.createElement('input');inp.placeholder='Gõ tên công cụ...';var box=document.createElement('div');b.appendChild(inp);b.appendChild(box);
- var idx=Object.keys(SEC).map(function(k){return{l:SEC[k].e+' '+SEC[k].n,k:k}});
- Q('.panel select').forEach(function(sl){var p=sl.closest('.panel');if(!p)return;Q('option',sl).forEach(function(o){idx.push({l:o.textContent.trim(),pid:p.id,sl:sl,v:o.value})})});
- function run(){var q=inp.value.trim().toLowerCase();box.textContent='';var n=0;idx.forEach(function(x){if(n<30&&(!q||x.l.toLowerCase().indexOf(q)>-1)){n++;item(box,x.l,function(){close();
-  if(x.k)return openSec(x.k);var k=Object.keys(SEC).filter(function(z){return SEC[z].id===x.pid})[0];if(k)openSec(k);else showPanel(x.pid);
-  setTimeout(function(){x.sl.value=x.v;x.sl.dispatchEvent(new Event('change',{bubbles:true}))},160)})}})}
+ var idx=[],seen={};function add(o){var key=o.g+'|'+o.l;if(seen[key])return;seen[key]=1;idx.push(o)}
+ Object.keys(SEC).forEach(function(k){add({l:SEC[k].e+' '+SEC[k].n,k:k,g:'Danh mục'})});
+ Q('.panel').forEach(function(p){if(p.id==='t0')return;var gk=Object.keys(SEC).filter(function(z){return SEC[z].id===p.id})[0],gn=gk?SEC[gk].n:'Khác';
+  Q('select',p).forEach(function(sl){Q('option',sl).forEach(function(o){var t=o.textContent.trim();if(t&&o.value!=='')add({l:t,g:gn,pid:p.id,sl:sl,v:o.value})})});
+  Q('input[type=radio]',p).forEach(function(r){var lb=r.closest('label')||(r.id&&p.querySelector('label[for="'+r.id+'"]'));var t=lb?lb.textContent.trim().replace(/\s+/g,' '):'';if(t)add({l:t,g:gn,pid:p.id,rd:r})})});
+ function openTo(x){var k=x.k||Object.keys(SEC).filter(function(z){return SEC[z].id===x.pid})[0];
+  if(k){openSec(k);return}var t=Q('.tabs .tab,#tabRoutes .tab').filter(function(z){return z.getAttribute('data-tab')===x.pid})[0];if(t)t.click();else showPanel(x.pid);sync()}
+ function run(){var q=nrm(inp.value.trim()),n=0,last='';box.textContent='';
+  idx.forEach(function(x){if(n>=120||(q&&nrm(x.l).indexOf(q)<0))return;n++;
+   if(x.g!==last){last=x.g;var h=document.createElement('div');h.className='em';h.textContent=x.g;box.appendChild(h)}
+   item(box,x.l,function(){close();openTo(x);if(x.sl||x.rd)setTimeout(function(){if(x.sl){x.sl.value=x.v;x.sl.dispatchEvent(new Event('change',{bubbles:true}))}else{x.rd.click();x.rd.dispatchEvent(new Event('change',{bubbles:true}))}},200)})});
+  if(!n){var d=document.createElement('div');d.className='em';d.textContent='Không tìm thấy công cụ phù hợp.';box.appendChild(d)}}
  inp.oninput=run;run();setTimeout(function(){inp.focus()},50)})}
 document.addEventListener('click',function(e){var t=e.target;
  if(t.getAttribute&&t.getAttribute('data-fv')){e.stopPropagation();e.preventDefault();var k=t.getAttribute('data-fv'),f=favs(),i=f.indexOf(k);if(i>-1)f.splice(i,1);else f.push(k);store('gd_fav',JSON.stringify(f));paintFav();return}
