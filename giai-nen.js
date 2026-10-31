@@ -23,6 +23,8 @@
       var b = new Uint8Array(buf);
       if (b[0] === 0x50 && b[1] === 0x4B) return 'zip';
       if (b[0] === 0x52 && b[1] === 0x61 && b[2] === 0x72 && b[3] === 0x21) return 'rar';
+      if (b[0] === 0x37 && b[1] === 0x7A && b[2] === 0xBC && b[3] === 0xAF) return '7z';
+      if (b[0] === 0x3C) return 'html';
       return 'other';                     // rar, 7z, tar, gz… giao cho libarchive
     });
   }
@@ -111,6 +113,35 @@
       return out;
     }).catch(function (er) { throw bad(er) ? pwErr() : er; });
   }
+  /* 7z: 7z-wasm (WebAssembly) nạp từ CDN, hỗ trợ mật khẩu */
+  var szMod = null;
+  function sevenJs(file, pw) {
+    var p = szMod ? Promise.resolve(szMod) : tryEach(['1.2.0', '1.1.0'], function (v) {
+      var base = 'https://cdn.jsdelivr.net/npm/7z-wasm@' + v + '/';
+      return import(base + '+esm').then(function (m) { return { init: m.default || m, base: base }; });
+    }, 'nạp 7z').then(function (m) { szMod = m; return m; });
+    return p.then(function (m) {
+      return file.arrayBuffer().then(function (buf) {
+        var logs = [];
+        return m.init({ print: function (t) { logs.push(t); }, printErr: function (t) { logs.push(t); }, locateFile: function (f) { return m.base + f; } }).then(function (sz) {
+          sz.FS.writeFile('/in.7z', new Uint8Array(buf));
+          try { sz.callMain(['x', '/in.7z', '-o/out', '-y', '-p' + (pw || 'xxxxxxxx')]); } catch (e) { logs.push(String(e && e.message || e)); }
+          var text = logs.join('\n'), out = [];
+          if (/password/i.test(text)) throw pwErr();
+          function w(d, pre) {
+            sz.FS.readdir(d).forEach(function (n) {
+              if (n === '.' || n === '..') return;
+              var q = d + '/' + n;
+              if (sz.FS.isDir(sz.FS.stat(q).mode)) w(q, pre + n + '/'); else out.push({ path: pre + n, blob: new Blob([sz.FS.readFile(q)]) });
+            });
+          }
+          try { w('/out', ''); } catch (e) { throw new Error('7z: ' + text.slice(-300)); }
+          if (!out.length) throw new Error('7z: ' + text.slice(-300));
+          return out;
+        });
+      });
+    });
+  }
   function extract(file, pw) {
     return sniff(file).then(function (kind) {
       var out = [];
@@ -125,6 +156,8 @@
         }).catch(function (er) { throw /ncrypt/i.test(er && er.message) ? pwErr() : er; });
       }
       var viaLA = function () { return laExtract(file, pw, out); };
+      if (kind === 'html') throw new Error('HTML');
+      if (kind === '7z') return sevenJs(file, pw).catch(function (er) { if (er && er.pw) throw er; console.warn('7z-wasm lỗi, thử libarchive', er); return viaLA().catch(function () { throw er; }); });
       if (kind === 'rar') return rarJs(file, pw).catch(function (er) { if (er && er.pw) throw er; console.warn('unrar lỗi, thử libarchive', er); return viaLA().catch(function () { throw er; }); });
       return viaLA();
     });
@@ -237,9 +270,11 @@
         }
         console.error(e);
         var zip = /\.(zip|cbz|jar|apk|docx|xlsx|pptx)$/i.test(f.name);
-        say('Không giải nén được ' + f.name + '. ' + (zip
-          ? 'File có thể bị hỏng.'
-          : (/\.rar$/i.test(f.name) ? 'Chi tiết: ' + String(e && e.message || e).slice(0, 400) : 'Định dạng này cần thư mục "' + LA_DIR + '" (libarchive.js) trong repo.')), true);
+        if (e && e.message === 'HTML') { say(f.name + ' thực chất là một trang web, không phải file nén. Hãy tải lại file gốc rồi thử lại.', true); return; }
+        f.slice(0, 6).arrayBuffer().then(function (ab) {
+          var hex = Array.prototype.map.call(new Uint8Array(ab), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(' ');
+          say('Không giải nén được ' + f.name + '. ' + (zip ? 'File có thể bị hỏng.' : 'Chi tiết: ' + String(e && e.message || e).slice(0, 400)) + ' [mã nhận dạng file: ' + hex + ']', true);
+        });
       });
     }
     function handle(files) {
