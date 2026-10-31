@@ -60,17 +60,27 @@
     });
   }
   /* RAR: node-unrar-js (WebAssembly) nạp từ CDN, không cần thư mục trong repo */
-  var UNRAR = 'https://cdn.jsdelivr.net/npm/node-unrar-js@2.0.2/';
+  var V = 'node-unrar-js@2.0.2/';
+  var UNRAR_JS = ['https://cdn.jsdelivr.net/npm/' + V + '+esm', 'https://esm.sh/' + V.slice(0, -1), 'https://cdn.jsdelivr.net/npm/' + V + 'esm/index.esm.js'];
+  var UNRAR_WASM = ['https://cdn.jsdelivr.net/npm/' + V + 'esm/js/unrar.wasm', 'https://cdn.jsdelivr.net/npm/' + V + 'dist/js/unrar.wasm', 'https://unpkg.com/' + V + 'esm/js/unrar.wasm'];
   var unrarMod = null;
+  function tryEach(list, fn, label) {
+    var errs = [];
+    return list.reduce(function (p, u) {
+      return p.then(function (v) { return v; }, function () {
+        return fn(u).catch(function (e) { errs.push(u.replace(/^https:\/\//, '').split('/').slice(0, 2).join('/') + ' → ' + (e && e.message || e)); throw e; });
+      });
+    }, Promise.reject()).catch(function () { throw new Error(label + ' lỗi: ' + errs.join(' | ')); });
+  }
   function rarJs(file, pw) {
     var p = unrarMod ? Promise.resolve(unrarMod) : Promise.all([
-      import(UNRAR + '+esm'),
-      fetch(UNRAR + 'esm/js/unrar.wasm').then(function (r) { if (!r.ok) throw new Error('wasm'); return r.arrayBuffer(); })
+      tryEach(UNRAR_JS, function (u) { return import(u); }, 'nạp thư viện'),
+      tryEach(UNRAR_WASM, function (u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); }); }, 'nạp wasm')
     ]).then(function (a) { unrarMod = { mod: a[0], wasm: a[1] }; return unrarMod; });
     var bad = function (er) { return /password/i.test(String(er && (er.reason || er.message))); };
     return p.then(function (u) {
       return file.arrayBuffer().then(function (buf) {
-        return u.mod.createExtractorFromData({ wasmBinary: u.wasm, data: new Uint8Array(buf), password: pw || undefined });
+        return (u.mod.createExtractorFromData ? u.mod : (u.mod.default || u.mod)).createExtractorFromData({ wasmBinary: u.wasm, data: new Uint8Array(buf), password: pw || undefined });
       });
     }).then(function (ex) {
       var names = [], hs = ex.getFileList().fileHeaders;
@@ -96,7 +106,7 @@
         }).catch(function (er) { throw /ncrypt/i.test(er && er.message) ? pwErr() : er; });
       }
       var viaLA = function () { return laExtract(file, pw, out); };
-      if (kind === 'rar') return rarJs(file, pw).catch(function (er) { if (er && er.pw) throw er; console.warn('unrar lỗi, thử libarchive', er); return viaLA(); });
+      if (kind === 'rar') return rarJs(file, pw).catch(function (er) { if (er && er.pw) throw er; console.warn('unrar lỗi, thử libarchive', er); return viaLA().catch(function () { throw er; }); });
       return viaLA();
     });
   }
@@ -210,7 +220,7 @@
         var zip = /\.(zip|cbz|jar|apk|docx|xlsx|pptx)$/i.test(f.name);
         say('Không giải nén được ' + f.name + '. ' + (zip
           ? 'File có thể bị hỏng.'
-          : (/\.rar$/i.test(f.name) ? 'Không tải được thư viện giải nén RAR từ mạng, hãy kiểm tra kết nối rồi thử lại.' : 'Định dạng này cần thư mục "' + LA_DIR + '" (libarchive.js) trong repo.')), true);
+          : (/\.rar$/i.test(f.name) ? 'Chi tiết: ' + String(e && e.message || e).slice(0, 400) : 'Định dạng này cần thư mục "' + LA_DIR + '" (libarchive.js) trong repo.')), true);
       });
     }
     function handle(files) {
