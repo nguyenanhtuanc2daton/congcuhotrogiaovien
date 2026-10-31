@@ -83,12 +83,20 @@
         return (u.mod.createExtractorFromData ? u.mod : (u.mod.default || u.mod)).createExtractorFromData({ wasmBinary: u.wasm, data: new Uint8Array(buf), password: pw || undefined });
       });
     }).then(function (ex) {
-      var names = [], hs = ex.getFileList().fileHeaders;
-      for (var h of hs) if (!h.flags.directory) names.push(h.name);
-      var out = [];
-      for (var f of ex.extract({ files: names }).files) {
-        if (f.extraction && f.extraction.data) out.push({ path: f.fileHeader.name, blob: new Blob([f.extraction.data]) });
+      var fl = ex.getFileList(), hs = Array.from(fl.fileHeaders || (fl[1] && fl[1].fileHeaders) || []);
+      var names = hs.filter(function (h) { return !(h.flags && h.flags.directory); }).map(function (h) { return h.name; });
+      var out = [], total = 0;
+      function collect(r) {
+        var it = r.files || (r[1] && r[1].files) || [];
+        for (var f of it) {
+          total++;
+          var d = f.extraction && (f.extraction.data || (f.extraction[1] && f.extraction[1].data));
+          if (d) out.push({ path: f.fileHeader.name, blob: new Blob([d]) });
+        }
       }
+      collect(ex.extract({ files: names }));
+      if (!out.length && names.length) collect(ex.extract({ files: function (h) { return !(h.flags && h.flags.directory); } }));
+      if (!out.length) throw new Error('RAR rỗng hoặc không đọc được nội dung (tiêu đề=' + hs.length + ', file=' + names.length + ', đã duyệt=' + total + ')');
       return out;
     }).catch(function (er) { throw bad(er) ? pwErr() : er; });
   }
