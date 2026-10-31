@@ -85,18 +85,29 @@
     }).then(function (ex) {
       var fl = ex.getFileList(), hs = Array.from(fl.fileHeaders || (fl[1] && fl[1].fileHeaders) || []);
       var names = hs.filter(function (h) { return !(h.flags && h.flags.directory); }).map(function (h) { return h.name; });
-      var out = [], total = 0;
+      var out = [], total = 0, shape = '';
+      function find(o, d) {
+        if (o instanceof Uint8Array) return o;
+        if (!o || typeof o !== 'object' || d > 3) return null;
+        for (var k in o) { if (k === 'fileHeader') continue; var r = find(o[k], d + 1); if (r) return r; }
+        return null;
+      }
+      function sh(f) {
+        return Object.keys(f).map(function (k) { var v = f[k]; return k + ':' + (v && typeof v === 'object' ? '{' + Object.keys(v).join(',') + '}' : typeof v); }).join(' ');
+      }
       function collect(r) {
         var it = r.files || (r[1] && r[1].files) || [];
         for (var f of it) {
           total++;
-          var d = f.extraction && (f.extraction.data || (f.extraction[1] && f.extraction[1].data));
+          if (!shape) shape = sh(f);
+          var d = find(f, 0);
           if (d) out.push({ path: f.fileHeader.name, blob: new Blob([d]) });
         }
       }
       collect(ex.extract({ files: names }));
       if (!out.length && names.length) collect(ex.extract({ files: function (h) { return !(h.flags && h.flags.directory); } }));
-      if (!out.length) throw new Error('RAR rỗng hoặc không đọc được nội dung (tiêu đề=' + hs.length + ', file=' + names.length + ', đã duyệt=' + total + ')');
+      if (!out.length) collect(ex.extract());
+      if (!out.length) throw new Error('RAR không đọc được nội dung (tiêu đề=' + hs.length + ', file=' + names.length + ', đã duyệt=' + total + ', cấu trúc: ' + shape + ')');
       return out;
     }).catch(function (er) { throw bad(er) ? pwErr() : er; });
   }
