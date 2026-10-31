@@ -317,7 +317,7 @@ html[data-theme=sang] button.ghost:disabled{color:#1f3fc4}
 .gd-cat::after{content:"";position:absolute;left:6px;right:6px;bottom:5px;height:0;border-top:2px dotted var(--bd);opacity:.8;pointer-events:none}
 .gd-cat .cw{position:absolute;left:0;bottom:4px;width:64px;height:50px;will-change:transform;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .gd-cat .cf{width:100%;height:100%;transform-origin:50% 100%}
-.gd-cat.l .cf{transform:scaleX(-1)}
+.gd-cat svg{transition:transform .22s ease}.gd-cat.l svg{transform:scaleX(-1)}
 .gd-cat svg{width:100%;height:100%;overflow:visible;display:block}
 .gd-cat .bub{position:absolute;left:50%;top:-4px;font-size:15px;line-height:1;opacity:0;pointer-events:none;transform:translate(-50%,0)}
 .gd-cat .bub.go{animation:catBub 1.6s ease-out forwards}
@@ -960,14 +960,13 @@ function frame(t){
  var max=Math.max(0,W-CW-4);
  if(state==='walk'){
   x+=dir*SP*dt;
-  if(x>=max||x<=4){x=x>=max?max:4;dir=-dir;cat.classList.toggle('l',dir<0);state='stop';set('open','idle','stand','up');say('👀');until=t+1400;}
+  if(x>=max||x<=4){x=x>=max?max:4;state='edge';set('open','idle','stand','up');say('👀');until=t+1300;}
   else if(t>until)stop();
  }else if(t>until){
-  if(state==='stop'&&Math.random()<.35){set('blink','idle','stand');state='blinkpause';until=t+250;}
-  else{
-   if(Math.random()<.4){dir=-dir;cat.classList.toggle('l',dir<0)}
-   if(x>=max-1)dir=-1;if(x<=5)dir=1;cat.classList.toggle('l',dir<0);walk();
-  }
+  if(state==='edge'){dir=-dir;cat.classList.toggle('l',dir<0);set('open','idle','stand');state='turn';until=t+350;}
+  else if(state==='blinkpause'||state==='turn'){walk();}
+  else if(Math.random()<.35){set('blink','idle','stand');state='blinkpause';until=t+250;}
+  else walk();
  }
  w.style.transform='translateX('+x.toFixed(1)+'px)';
 }
