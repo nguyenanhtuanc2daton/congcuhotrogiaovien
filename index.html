@@ -374,7 +374,7 @@ html[data-tod="sang"] .lp-sym{color:#fff;text-shadow:0 0 6px rgba(0,70,140,.9),0
 #tod-scene .tod-sc{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity 1.2s ease}
 #tod-scene .tod-sc.on{opacity:1}
 #tod-scene .sang{--sz:clamp(80px,16vmin,150px);--halo:rgba(255,225,150,.55);background:linear-gradient(180deg,#5cc3ff 0%,#a8e4ff 45%,#ffe9b8 85%,#ffd1a0 100%)}
-#tod-scene .toi{--sz:clamp(70px,13vmin,120px);--halo:rgba(150,170,255,.3);background:linear-gradient(180deg,#050816 0%,#0e1745 55%,#1d2a6b 100%)}
+#tod-scene .toi{--sz:clamp(90px,17vmin,160px);--halo:rgba(200,215,255,.5);background:linear-gradient(180deg,#050816 0%,#0e1745 55%,#1d2a6b 100%)}
 #tod-scene .dusk{position:absolute;inset:0;opacity:var(--dusk,.4);transition:opacity 2.4s ease;
   background:linear-gradient(180deg,#2d1b69 0%,#8e3fa8 32%,#ff6b8b 62%,#ffa65c 88%,#ffd27a 100%)}
 
@@ -385,10 +385,19 @@ html[data-tod="sang"] .lp-sym{color:#fff;text-shadow:0 0 6px rgba(0,70,140,.9),0
   background:radial-gradient(circle,var(--halo),transparent 65%);animation:todHalo 6s ease-in-out infinite alternate}
 #tod-scene .sang .sun{background:radial-gradient(circle at 40% 40%,#fffbe0,#ffe58a 50%,#ffb347);box-shadow:0 0 50px 24px rgba(255,214,120,.55)}
 #tod-scene .ring{position:absolute;left:calc(var(--sz) * -1.6);top:calc(var(--sz) * -1.6);width:calc(var(--sz) * 3.2);height:calc(var(--sz) * 3.2);border-radius:50%;border:2px solid rgba(255,255,255,.6);animation:todRing 5s ease-out infinite}
-#tod-scene .moon{background:radial-gradient(circle at 35% 35%,#fffef0,#e6e9ff 60%,#b8c0ff);box-shadow:0 0 40px 14px rgba(190,200,255,.4),0 0 90px 36px rgba(120,140,255,.2)}
-#tod-scene .moon::before,#tod-scene .moon::after{content:"";position:absolute;border-radius:50%;background:rgba(150,160,210,.35)}
-#tod-scene .moon::before{left:24%;top:30%;width:18%;height:18%}
-#tod-scene .moon::after{right:22%;bottom:26%;width:24%;height:24%}
+#tod-scene .moon{background:radial-gradient(circle at 36% 32%,#ffffff 0%,#fffbe6 28%,#f4efd2 58%,#dcd6b4 100%);
+  box-shadow:0 0 0 2px rgba(255,255,240,.55),0 0 34px 12px rgba(255,250,220,.75),0 0 90px 40px rgba(190,205,255,.45),0 0 170px 80px rgba(120,140,255,.25);animation:todMoon 7s ease-in-out infinite alternate}
+/* vết hố trên mặt trăng */
+#tod-scene .moon::before{content:"";position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 30% 34%,rgba(170,160,120,.38) 0 9%,transparent 10%),
+    radial-gradient(circle at 62% 26%,rgba(170,160,120,.28) 0 6%,transparent 7%),
+    radial-gradient(circle at 68% 62%,rgba(170,160,120,.34) 0 12%,transparent 13%),
+    radial-gradient(circle at 36% 72%,rgba(170,160,120,.26) 0 7%,transparent 8%),
+    radial-gradient(circle at 50% 50%,rgba(170,160,120,.14) 0 20%,transparent 21%)}
+/* bóng mờ nhẹ phía dưới-phải cho có khối */
+#tod-scene .moon::after{content:"";position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,transparent 55%,rgba(120,125,170,.28) 100%)}
+@keyframes todMoon{from{filter:brightness(1)}to{filter:brightness(1.12)}}
 
 #tod-scene .hill{position:absolute;bottom:-1px;left:0;width:100%;height:30vh;display:block}
 #tod-scene .hill.h1{height:36vh}
@@ -457,7 +466,8 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
     gtrua:['Chào buổi trưa! Đến giờ nghỉ ngơi rồi, đừng quên ăn trưa nhé.','Nắng rực rỡ như năng lượng của quý thầy cô — nạp pin một chút rồi mình tiếp tục.'],
     gchieu:['Chiều rồi, nghỉ tay uống ngụm nước nhé.','Buổi chiều dịu dàng — cứ thong thả, công việc sẽ xong đâu vào đấy.','Chiều yên bình, chúc quý thầy cô một buổi chiều nhẹ nhàng.'],
     gkhuya:['Khuya rồi — nghỉ ngơi sớm để mai đủ sức nhé quý thầy cô.','Đêm yên tĩnh — soạn bài xong nhớ nghỉ ngơi sớm nhé.','Trời đã khuya — chạm vào khoảng trống quanh trang để gọi sao băng nhé.'],
-    toi:['Chào buổi tối! Cảm ơn quý thầy cô đã làm việc chăm chỉ cả ngày.','Đêm yên tĩnh — soạn bài xong nhớ nghỉ ngơi sớm nhé.','Trời đã khuya — chạm vào khoảng trống quanh trang để gọi sao băng nhé.']
+    gsom:['Trời còn sớm — chúc quý thầy cô một ngày mới thật nhiều năng lượng.','Sáng sớm yên tĩnh — chúc quý thầy cô khởi đầu ngày mới thuận lợi.'],
+    toi:['Chào buổi tối! Cảm ơn quý thầy cô đã làm việc chăm chỉ cả ngày.','Buổi tối an lành — chúc quý thầy cô soạn bài thật nhẹ nhàng.','Trăng đã lên — chạm vào khoảng trống quanh trang để gọi sao băng nhé.']
   };
   var TOUCH={sang:'🌸 Chạm vào màn hình để thả hoa bay lên',toi:'✨ Chạm vào màn hình để thả sao bay lên'};
   var GL={sang:['✿','❀'],toi:['✦','✧']};      /* hình thay cho trái tim theo buổi */
@@ -609,7 +619,7 @@ html.tod-nofx #tod-scene *,html.tod-nofx #tod-greet,html.tod-nofx #tod-greet *,h
   function clock(){var e=gEl&&gEl.querySelector('.g-time');if(e){e.textContent=stamp();fitTime();}}
   function greet(){
     if(!gEl)return;
-    var gk=cur;if(mode==='auto'){var hh=new Date().getHours();gk=hh>=7&&hh<11?'sang':hh>=11&&hh<14?'gtrua':hh>=14&&hh<18?'gchieu':hh>=18?'toi':'gkhuya';}else if(cur==='sang')gk='sang';
+    var gk=cur;if(mode==='auto'){var hh=new Date().getHours();gk=hh>=7&&hh<11?'sang':hh>=11&&hh<14?'gtrua':hh>=14&&hh<18?'gchieu':hh>=18&&hh<22?'toi':(hh>=22||hh<5)?'gkhuya':'gsom';}else if(cur==='sang')gk='sang';
     var t=pick(G[gk]);
     gEl.innerHTML='<span class="g-ic"></span><span class="g-tx"></span><span class="g-meta"><span class="g-time"></span><span class="g-hl"></span></span>';
     gEl.querySelector('.g-ic').textContent=ICON[cur];
