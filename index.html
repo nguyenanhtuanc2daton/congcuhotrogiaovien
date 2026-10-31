@@ -293,6 +293,10 @@ html[data-tod] .tabs{border-radius:var(--tod-r)}
 html[data-tod] .tab{border-radius:var(--tod-tr)}
 html[data-tod] .tab.on{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff}
 html[data-tod] .tab:hover:not(.on){background:var(--card2);color:#fff}
+/* Tên các mục (Prompt AI, Công cụ Word và Excel, ...): chữ trắng sáng, đậm, dễ đọc như lời chào */
+html[data-tod] .tabs .tab,html[data-tod] .tab{color:#fff!important;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.55),0 0 10px rgba(255,255,255,.18)}
+html[data-tod] .tabs .tab:not(.on){opacity:1!important}
+html[data-tod] .tab.on{text-shadow:0 1px 3px rgba(0,0,0,.45)}
 html[data-tod] .panel{border-radius:var(--tod-r);border-top:3px solid var(--cy);
   box-shadow:0 12px 30px -14px rgba(0,0,0,.55),0 0 26px -10px var(--tod-glow)}
 html[data-tod] button.ghost{border-color:var(--cy);color:var(--cy)}
