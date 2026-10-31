@@ -25,6 +25,7 @@
       if (b[0] === 0x52 && b[1] === 0x61 && b[2] === 0x72 && b[3] === 0x21) return 'rar';
       if (b[0] === 0x37 && b[1] === 0x7A && b[2] === 0xBC && b[3] === 0xAF) return '7z';
       if (b[0] === 0x3C) return 'html';
+      if (b[0] === 0x46 && b[1] === 0x72 && b[2] === 0x6F && b[3] === 0x6D && b[4] === 0x3A) return 'html';
       return 'other';                     // rar, 7z, tar, gz… giao cho libarchive
     });
   }
@@ -270,7 +271,7 @@
         }
         console.error(e);
         var zip = /\.(zip|cbz|jar|apk|docx|xlsx|pptx)$/i.test(f.name);
-        if (e && e.message === 'HTML') { say(f.name + ' thực chất là một trang web, không phải file nén. Hãy tải lại file gốc rồi thử lại.', true); return; }
+        if (e && e.message === 'HTML') { say(f.name + ' thực chất là một trang web đã lưu lại (thường do bấm "Lưu trang" trên Google Drive), không phải file nén. Hãy mở file trên Drive, bấm nút Tải xuống để lấy file gốc rồi chọn lại.', true); return; }
         f.slice(0, 6).arrayBuffer().then(function (ab) {
           var hex = Array.prototype.map.call(new Uint8Array(ab), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(' ');
           say('Không giải nén được ' + f.name + '. ' + (zip ? 'File có thể bị hỏng.' : 'Chi tiết: ' + String(e && e.message || e).slice(0, 400)) + ' [mã nhận dạng file: ' + hex + ']', true);
