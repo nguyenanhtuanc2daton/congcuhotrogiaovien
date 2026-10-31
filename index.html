@@ -305,6 +305,13 @@ html .gd-grid .gc .fv{font-size:clamp(20px,2vw,44px)!important}
 #gdSheet .it{font-size:clamp(16px,1.6vw,36px);padding:1vw 1.4vw}#gdSheet .em{font-size:clamp(14px,1.3vw,30px)}
 .app{padding-bottom:9vw!important}
 }
+/* Nút trong các công cụ: chữ luôn rõ ở cả giao diện sáng và tối (gốc lỗi: style.css) */
+button.sec{background:#22304d;color:#fff!important;border:1px solid rgba(125,211,252,.35)}
+html[data-theme=sang] button.ghost{color:#1f3fc4;border-color:#1f3fc4;background:rgba(31,63,196,.06)}
+html[data-theme=toi] button.ghost{color:#c7d2ff}
+button:disabled{opacity:.7!important}
+button:disabled,button.sec:disabled{color:#fff}
+html[data-theme=sang] button.ghost:disabled{color:#1f3fc4}
 </style>
 </head>
 <body>
@@ -829,7 +836,7 @@ function tick(){var n=new Date(),h=n.getHours(),p=h<5?'khuya':h<11?'sang':h<14?'
   if(hl){e.appendChild(document.createElement('b')).textContent=hl.n;e.appendChild(document.createTextNode(' '+hl.s+' '+(hl.d?'(còn '+hl.d+' ngày)':'(hôm nay!)')))}}
  $('gdDate').textContent=DAYS[n.getDay()]+', '+P2(n.getDate())+'/'+P2(n.getMonth()+1)+'/'+n.getFullYear();
  $('gdTime').textContent=P2(h)+':'+P2(n.getMinutes());
- if((TM)==='auto'&&document.documentElement.getAttribute('data-theme')!==autoT())applyTheme()}
+ if((TM)==='auto'&&document.documentElement.getAttribute('data-theme')!==autoT()){applyTheme();fixSoon()}}
 /* ----- Điều hướng (giữ nguyên bộ chuyển tab cũ) ----- */
 var SEC={prompt:{id:'t6',re:/prompt/i,n:'Prompt AI',e:'🤖'},word:{id:'t3',re:/word\s*và\s*excel/i,n:'Công cụ Word và Excel',e:'🧰'},tools:{id:'t8',re:/thường dùng/i,n:'Công cụ thường dùng',e:'🛠️'},math:{id:'t5',re:/toán học/i,n:'Toán học',e:'🧮'},docs:{id:'t9',re:/tài liệu/i,n:'Tài liệu',e:'📚'},games:{id:null,re:/trò chơi/i,n:'Trò chơi',e:'🎮'}};
 function tabOf(s){var tabs=Q('.tabs .tab,#tabRoutes .tab'),i;if(s.id)for(i=0;i<tabs.length;i++)if(tabs[i].getAttribute('data-tab')===s.id)return tabs[i];
@@ -851,7 +858,7 @@ function secList(b,keys,empty){if(!keys.length){var d=document.createElement('di
 function close(){sh.classList.remove('on')}
 function sFav(){sheet('★ Yêu thích',function(b){secList(b,favs(),'Chưa có mục nào. Bấm ☆ ở góc mỗi thẻ trên trang chủ để thêm.')})}
 function sHist(){sheet('🕘 Lịch sử',function(b){var a;try{a=JSON.parse(store('gd_hist')||'[]')}catch(e){a=[]}secList(b,a,'Chưa mở mục nào.')})}
-function sSet(){sheet('⚙️ Cài đặt',function(b){var m=TM;[['auto','🕒 Tự động theo giờ'],['sang','☀️ Giao diện sáng'],['toi','🌙 Giao diện tối']].forEach(function(o){item(b,o[1],function(){TM=o[0];applyTheme();tick();sSet()},m===o[0])});
+function sSet(){sheet('⚙️ Cài đặt',function(b){var m=TM;[['auto','🕒 Tự động theo giờ'],['sang','☀️ Giao diện sáng'],['toi','🌙 Giao diện tối']].forEach(function(o){item(b,o[1],function(){TM=o[0];applyTheme();fixSoon();tick();sSet()},m===o[0])});
  secList(b,[],'')})}
 function sMenu(){sheet('☰ Danh mục',function(b){secList(b,Object.keys(SEC),'')})}
 function nrm(x){return String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d')}
@@ -879,6 +886,19 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
 applyTheme();paintFav();tick();setInterval(tick,5000);
 Q('.panel').forEach(function(p){try{new MutationObserver(sync).observe(p,{attributes:true,attributeFilter:['class']})}catch(e){}});
 sync();
+/* ----- Tự sửa độ tương phản chữ trên các nút trong công cụ (chữ bị mờ/chìm trên nền cùng tông) ----- */
+function rgbOf(x){var m=x&&x.match(/rgba?\(([^)]+)\)/);if(!m)return null;var a=m[1].split(',').map(parseFloat);return{r:a[0],g:a[1],b:a[2],a:a.length>3?a[3]:1}}
+function lumOf(c){function f(v){v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)}return .2126*f(c.r)+.7152*f(c.g)+.0722*f(c.b)}
+function bgOf(el){for(var e=el;e&&e.nodeType===1;e=e.parentElement){var cs=getComputedStyle(e),bi=cs.backgroundImage,m=bi&&bi!=='none'&&bi.match(/rgba?\([^)]+\)/),c=m&&rgbOf(m[0]);if(c&&c.a>.5)return c;c=rgbOf(cs.backgroundColor);if(c&&c.a>.5)return c}return{r:255,g:255,b:255,a:1}}
+function fixContrast(){try{Q('.panel:not(#t0) button,.panel:not(#t0) .btn,.panel:not(#t0) [role=button]').forEach(function(el){
+ if(el.closest('.gd-nav,#gdSheet'))return;var cs=getComputedStyle(el);if(cs.display==='none')return;
+ var fg=rgbOf(cs.color);if(!fg)return;var bg=bgOf(el),l1=lumOf(bg)+.05,l2=lumOf(fg)+.05,cr=Math.max(l1,l2)/Math.min(l1,l2);
+ if(cr<4.5)el.style.setProperty('color',lumOf(bg)<.4?'#ffffff':'#14275c','important');
+})}catch(e){}}
+var fxT=0;function fixSoon(){clearTimeout(fxT);fxT=setTimeout(fixContrast,150)}
+document.addEventListener('click',fixSoon,true);document.addEventListener('change',fixSoon,true);document.addEventListener('input',fixSoon,true);
+try{new MutationObserver(fixSoon).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','disabled']})}catch(e){}
+setTimeout(fixContrast,600);
 })();
 </script>
 </body>
