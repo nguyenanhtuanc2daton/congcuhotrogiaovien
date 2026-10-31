@@ -182,8 +182,25 @@
       '.gn-drop{display:block;border:2px dashed var(--cy,#ffd166);border-radius:14px;padding:26px 12px;text-align:center;cursor:pointer;background:var(--card2,rgba(0,0,0,.2))}' +
       '.gn-drop.over{filter:brightness(1.25)}.gn-drop b{display:block;font-size:17px}.gn-drop span{font-size:13px;opacity:.8}' +
       '#utGiaiNen{display:none}#utGiaiNen.on{display:block}' +
-      '.gn-ov{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px}' +
-      '.gn-bx{width:min(380px,100%);background:var(--card2,#0a2c37);color:var(--fg,#fff);border:1px solid var(--bd,#2f8593);border-radius:14px;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.5)}' +
+      '.gn-ov{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.68);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px}' +
+      '.gn-bx{width:min(420px,100%);background:linear-gradient(160deg,var(--card2,#0a2c37),#07202a);color:var(--fg,#fff);border:1px solid var(--cy,#ffd166);border-radius:22px;padding:26px 22px 22px;text-align:center;box-shadow:0 18px 60px rgba(0,0,0,.6),0 0 0 6px rgba(255,209,102,.08);animation:gnIn .22s ease-out}' +
+      '@keyframes gnIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}' +
+      '@keyframes gnSh{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}' +
+      '.gn-bx.gn-shake{animation:gnSh .35s}' +
+      '.gn-ic{width:68px;height:68px;margin:0 auto 12px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;background:radial-gradient(circle at 30% 25%,rgba(255,209,102,.38),rgba(255,209,102,.08));border:2px solid var(--cy,#ffd166)}' +
+      '.gn-ttl{font-size:22px;font-weight:700;color:var(--cy,#ffd166);margin:0 0 6px}' +
+      '.gn-fn{font-size:14px;opacity:.85;word-break:break-all;margin-bottom:8px;padding:6px 10px;border-radius:10px;background:rgba(0,0,0,.25)}' +
+      '.gn-msg{font-size:15px;margin:0 0 16px;opacity:.9}.gn-msg.bad{color:#ff907a;opacity:1;font-weight:600}' +
+      '.gn-fld{position:relative;margin-bottom:18px}' +
+      '.gn-bx input.gn-in{display:block;width:100%;height:58px;margin:0;padding:0 56px 0 18px;font-size:18px;letter-spacing:.04em;border-radius:14px;border:2px solid var(--bd,#2f8593);background:rgba(0,0,0,.38);color:var(--fg,#fff);outline:none;box-sizing:border-box}' +
+      '.gn-bx input.gn-in::placeholder{opacity:.55;letter-spacing:0}' +
+      '.gn-bx input.gn-in:focus{border-color:var(--cy,#ffd166);box-shadow:0 0 0 4px rgba(255,209,102,.22)}' +
+      '.gn-bx .gn-eye{position:absolute;right:7px;top:7px;width:44px;height:44px;margin:0;padding:0;border:0;border-radius:10px;background:transparent;box-shadow:none;font-size:20px;cursor:pointer}' +
+      '.gn-btns{display:flex;gap:10px}' +
+      '.gn-bx .gn-btns button{flex:1;height:54px;margin:0;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer}' +
+      '.gn-bx .gn-no{background:transparent;border:2px solid var(--bd,#2f8593);color:inherit;box-shadow:none}' +
+      '.gn-bx .gn-ok{flex:1.3;border:0;color:#08241a;background:linear-gradient(135deg,#ffd166,#ffb347)}' +
+      '@media (prefers-reduced-motion:reduce){.gn-bx,.gn-bx.gn-shake{animation:none}}' +
       '.gn-arc{margin-top:14px;border:1px solid var(--bd,#2f8593);border-radius:12px;overflow:hidden}' +
       '.gn-h{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card2,rgba(0,0,0,.2))}' +
       '.gn-h strong{word-break:break-all}' +
@@ -238,24 +255,25 @@
 
     function askPw(f, wrong) {
       return new Promise(function (done) {
-        var ov = $('div', { cls: 'gn-ov', role: 'dialog', 'aria-modal': 'true' }), bx = $('div', { cls: 'gn-bx' });
-        bx.appendChild($('h3', { style: 'margin:0 0 6px' }, '🔒 File có mật khẩu'));
-        bx.appendChild($('div', { style: 'word-break:break-all;font-weight:600' }, f.name));
-        bx.appendChild($('div', { cls: 'note', style: 'margin:6px 0;' + (wrong ? 'color:#ff907a' : '') }, wrong ? 'Mật khẩu chưa đúng, hãy nhập lại.' : 'Nhập mật khẩu để tiếp tục giải nén.'));
-        var pw = $('input', { type: 'password', autocomplete: 'off', placeholder: 'Mật khẩu', style: 'width:100%' });
-        var sh = $('label', { cls: 'note', style: 'display:block;margin:6px 0' }), ck = $('input', { type: 'checkbox' });
-        ck.onchange = function () { pw.type = ck.checked ? 'text' : 'password'; };
-        sh.appendChild(ck); sh.appendChild(document.createTextNode(' Hiện mật khẩu'));
-        var bar = $('div', { cls: 'bar', style: 'justify-content:flex-end;margin-top:8px' });
-        var go = $('button', { type: 'button' }, '🔓 Giải nén'), no = $('button', { type: 'button', cls: 'sec' }, 'Bỏ qua file này');
+        var ov = $('div', { cls: 'gn-ov', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Nhập mật khẩu' }), bx = $('div', { cls: 'gn-bx' + (wrong ? ' gn-shake' : '') });
+        bx.appendChild($('div', { cls: 'gn-ic' }, '🔒'));
+        bx.appendChild($('div', { cls: 'gn-ttl' }, 'File có mật khẩu'));
+        bx.appendChild($('div', { cls: 'gn-fn' }, f.name));
+        bx.appendChild($('div', { cls: 'gn-msg' + (wrong ? ' bad' : '') }, wrong ? 'Mật khẩu chưa đúng, hãy nhập lại.' : 'Nhập mật khẩu để tiếp tục giải nén.'));
+        var fld = $('div', { cls: 'gn-fld' });
+        var pw = $('input', { cls: 'gn-in', type: 'password', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', placeholder: 'Nhập mật khẩu…' });
+        var eye = $('button', { type: 'button', cls: 'gn-eye', 'aria-label': 'Hiện hoặc ẩn mật khẩu' }, '👁');
+        eye.onclick = function () { var show = pw.type === 'password'; pw.type = show ? 'text' : 'password'; eye.textContent = show ? '🙈' : '👁'; pw.focus(); };
+        fld.appendChild(pw); fld.appendChild(eye); bx.appendChild(fld);
+        var bar = $('div', { cls: 'gn-btns' });
+        var no = $('button', { type: 'button', cls: 'gn-no' }, 'Bỏ qua'), go = $('button', { type: 'button', cls: 'gn-ok' }, '🔓 Giải nén');
         function close(v) { document.removeEventListener('keydown', key, true); ov.remove(); done(v); }
         function key(ev) { if (ev.key === 'Escape') close(null); }
         function submit() { if (!pw.value) { pw.focus(); return; } close(pw.value); }
         go.onclick = submit; no.onclick = function () { close(null); };
         pw.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') submit(); });
         document.addEventListener('keydown', key, true);
-        bar.appendChild(no); bar.appendChild(go);
-        bx.appendChild(pw); bx.appendChild(sh); bx.appendChild(bar); ov.appendChild(bx);
+        bar.appendChild(no); bar.appendChild(go); bx.appendChild(bar); ov.appendChild(bx);
         document.body.appendChild(ov); pw.focus();
       });
     }
