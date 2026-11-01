@@ -209,6 +209,7 @@
       if(low)w.push('⚠ Màu mã và màu nền quá gần nhau, rất khó quét — hãy chọn màu mã đậm hơn.');
       else if(inv)w.push('⚠ Mã sáng trên nền tối (đảo màu): một số máy quét không đọc được.');
     }else w.push('ℹ Nền trong suốt: hãy đặt mã lên nền sáng.');
+    if(['dot','gap','dia','vbar','hbar'].indexOf(o.shape)>=0)w.push('ℹ Hình ô cách điệu có thể khó quét với một số máy — nếu quét chậm, hãy chọn "Vuông" hoặc "Bo tròn liền".');
     if((parseInt(o.quiet,10)||0)<2)w.push('⚠ Viền trống quá nhỏ, có thể khó quét.');
     return w.join(' ');
   }
@@ -229,7 +230,7 @@
   function build(wantLogo){
     var order=['L','M','Q','H'],chain,qr=null,used='',lv=0;
     if(wantLogo)chain=['H'];
-    else if(o.ecc==='auto')chain=['M','L'];
+    else if(o.ecc==='auto')chain=(o.shape==='sq'||o.shape==='rd')?['M','L']:['Q','M','L'];
     else{lv=order.indexOf(o.ecc);chain=order.slice(0,lv+1).reverse();}
     for(var i=0;i<chain.length&&!qr;i++){
       try{holder.innerHTML='';var q=new QRCode(holder,{text:cur,width:128,height:128,correctLevel:QRCode.CorrectLevel[chain[i]]});qr=q._oQRCode;used=chain[i];
@@ -523,6 +524,8 @@
   function enc(x){return encodeURIComponent(x);}
   function esc(x){return String(x).replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/([,;])/g,'\\$1');}
   function phone(p){p=(p||'').replace(/[\s().\-]/g,'');return /^\+?\d{6,15}$/.test(p)?p:null;}
+  /* số Việt Nam dạng 0xxxxxxxxx → +84xxxxxxxxx để điện thoại nào quét cũng gọi/nhắn đúng (kể cả đang ở nước ngoài) */
+  function intl(p){return /^0\d{9,10}$/.test(p)?'+84'+p.slice(1):p;}
   function dt(v){return v.replace(/[-:]/g,'')+(v.length===16?'00':'');}
   var FORMS={
     text:{label:'📝 Văn bản',name:'VanBan',hint:'Nhập nội dung văn bản, mã QR sẽ tự hiện.',
@@ -535,12 +538,12 @@
         if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.to))return {e:'⚠ Địa chỉ email chưa hợp lệ.'};
         var q=[];if(v.sub)q.push('subject='+enc(v.sub));if(v.body)q.push('body='+enc(v.body));
         return {s:'mailto:'+v.to+(q.length?'?'+q.join('&'):'')};}},
-    tel:{label:'📞 Gọi điện',name:'DienThoai',hint:'Nhập số điện thoại để tạo mã. Quét mã sẽ hiện nút gọi.',
+    tel:{label:'📞 Gọi điện',name:'DienThoai',hint:'Nhập số điện thoại để tạo mã. Quét bằng Camera điện thoại sẽ hiện nút "Gọi" ngay trên màn hình — chạm 1 lần là gọi (điện thoại không cho tự gọi mà chưa bấm, vì lý do an toàn).',
       f:[{k:'p',l:'Số điện thoại',ph:'0901234567 hoặc +84901234567',im:'tel'}],
-      b:function(v){if(!v.p)return null;var p=phone(v.p);return p?{s:'tel:'+p}:{e:'⚠ Số điện thoại chưa hợp lệ (chỉ gồm số, có thể bắt đầu bằng +).'};}},
-    sms:{label:'💬 Tin nhắn SMS',name:'SMS',hint:'Nhập số điện thoại nhận để tạo mã.',
+      b:function(v){if(!v.p)return null;var p=phone(v.p);return p?{s:'tel:'+intl(p)}:{e:'⚠ Số điện thoại chưa hợp lệ (chỉ gồm số, có thể bắt đầu bằng +).'};}},
+    sms:{label:'💬 Tin nhắn SMS',name:'SMS',hint:'Nhập số điện thoại nhận để tạo mã. Quét mã sẽ mở sẵn tin nhắn gửi tới số đó, chỉ cần bấm Gửi.',
       f:[{k:'p',l:'Số điện thoại nhận',ph:'0901234567',im:'tel'},{k:'m',l:'Nội dung tin nhắn (tuỳ chọn)',ta:1,max:300}],
-      b:function(v){if(!v.p)return null;var p=phone(v.p);if(!p)return {e:'⚠ Số điện thoại chưa hợp lệ.'};return {s:'sms:'+p+(v.m?'?body='+enc(v.m):'')};}},
+      b:function(v){if(!v.p)return null;var p=phone(v.p);if(!p)return {e:'⚠ Số điện thoại chưa hợp lệ.'};return {s:'sms:'+intl(p)+(v.m?'?body='+enc(v.m):'')};}},
     vcard:{label:'👤 Danh thiếp',name:'DanhThiep',hint:'Nhập họ tên (hoặc số điện thoại) để tạo danh thiếp.',
       f:[{k:'ho',l:'Họ và tên đệm',ph:'Nguyễn Văn'},{k:'ten',l:'Tên',ph:'An'},{k:'tel',l:'Số điện thoại',im:'tel'},{k:'mail',l:'Email',im:'email'},
          {k:'org',l:'Đơn vị / Công ty / Trường'},{k:'job',l:'Chức vụ'},{k:'web',l:'Website'},{k:'adr',l:'Địa chỉ',max:200}],
@@ -550,8 +553,8 @@
         if(v.mail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.mail))return {e:'⚠ Email chưa hợp lệ.'};
         var fn=((v.ho?v.ho+' ':'')+v.ten).trim()||v.org||v.tel||v.mail,L=['BEGIN:VCARD','VERSION:3.0','N:'+esc(v.ho)+';'+esc(v.ten)+';;;','FN:'+esc(fn)];
         if(v.org)L.push('ORG:'+esc(v.org));if(v.job)L.push('TITLE:'+esc(v.job));
-        if(v.tel)L.push('TEL;TYPE=CELL:'+phone(v.tel));if(v.mail)L.push('EMAIL:'+v.mail);
-        if(v.web)L.push('URL:'+v.web);if(v.adr)L.push('ADR:;;'+esc(v.adr)+';;;;');
+        if(v.tel)L.push('TEL;TYPE=CELL:'+intl(phone(v.tel)));if(v.mail)L.push('EMAIL:'+v.mail);
+        if(v.web)L.push('URL:'+(norm(v.web)||v.web));if(v.adr)L.push('ADR:;;'+esc(v.adr)+';;;;');
         L.push('END:VCARD');return {s:L.join('\r\n')};}},
     geo:{label:'📍 Vị trí',name:'ViTri',hint:'Nhập toạ độ (vd: 10.7769, 106.7009) hoặc bấm nút lấy vị trí hiện tại. Quét mã sẽ tự mở Google Maps tại vị trí đó.',
       f:[{k:'c',l:'Toạ độ: vĩ độ, kinh độ',ph:'10.776889, 106.700806'}],
@@ -569,12 +572,13 @@
             function(){bt.disabled=false;say('Không lấy được vị trí — hãy cho phép truy cập vị trí hoặc nhập toạ độ thủ công.');},{enableHighAccuracy:true,timeout:15000});
         });
         g.appendChild(r);}},
-    social:{label:'💙 Zalo / Facebook / MXH',name:'MangXaHoi',hint:'Chọn nền tảng, nhập số điện thoại hoặc tên người dùng. Quét mã sẽ mở trang/chat của người đó.',
+    social:{label:'💙 Zalo / Facebook / MXH',name:'MangXaHoi',hint:'Chọn nền tảng, nhập số điện thoại hoặc tên người dùng. Quét mã sẽ tự mở app (Zalo, Facebook…) tới trang/chat của người đó. Có thể dán cả link trang cá nhân.',
       f:[{k:'pl',l:'Nền tảng',sel:[['zalo','Zalo (theo số điện thoại)'],['facebook','Facebook'],['messenger','Messenger'],['instagram','Instagram'],['tiktok','TikTok'],['whatsapp','WhatsApp'],['telegram','Telegram']]},
          {k:'u',l:'Số điện thoại / tên người dùng',ph:'0901234567'}],
       b:function(v){
         var u=v.u.replace(/^@/,''),US=/^[A-Za-z0-9._\-]{3,60}$/,bad={e:'⚠ Tên người dùng chưa hợp lệ (chỉ gồm chữ, số, dấu chấm, gạch).'},p;
         if(!u)return null;
+        if(/^https?:\/\//i.test(u)||/^(www\.|m\.)?(zalo\.me|facebook\.com|fb\.com|fb\.me|m\.me|messenger\.com|instagram\.com|tiktok\.com|wa\.me|t\.me)\//i.test(u)){var lk=norm(u);return lk?{s:lk}:{e:'⚠ Link chưa hợp lệ.'};}
         switch(v.pl){
           case 'zalo':p=phone(u);return p?{s:'https://zalo.me/'+p.replace('+','')}:{e:'⚠ Số điện thoại chưa hợp lệ.'};
           case 'whatsapp':p=phone(u);if(!p)return {e:'⚠ Số điện thoại chưa hợp lệ.'};p=p.replace('+','');if(p.charAt(0)==='0')p='84'+p.slice(1);return {s:'https://wa.me/'+p};
@@ -645,6 +649,7 @@
       else{
         var nb=utf8(r.s).length;
         msg.textContent=nb>2300?'⚠ Nội dung dài '+nb+' byte, vượt giới hạn của mã QR (khoảng 2300 byte; chữ có dấu tính 2–3 byte). Hãy rút gọn bớt.':(nb>700?'Nội dung khá dài ('+nb+' byte) — mã sẽ dày, khó quét; nên rút gọn bớt.':'');
+        if(nb<=90&&/^(tel:|sms:|mailto:|https?:)/i.test(r.s))msg.textContent+=(msg.textContent?' ':'')+'🔎 Quét mã sẽ mở: '+r.s;
         extraStr=r.s;extraName=F.name;}
       update();
     }
