@@ -526,24 +526,27 @@
   function phone(p){p=(p||'').replace(/[\s().\-]/g,'');return /^\+?\d{6,15}$/.test(p)?p:null;}
   /* số Việt Nam dạng 0xxxxxxxxx → +84xxxxxxxxx để điện thoại nào quét cũng gọi/nhắn đúng (kể cả đang ở nước ngoài) */
   function intl(p){return /^0\d{9,10}$/.test(p)?'+84'+p.slice(1):p;}
+  /* trang trung gian goi.html (để cạnh index.html): quét bằng Zalo / bất kỳ ứng dụng nào cũng mở được trang → bấm 1 nút để gọi/nhắn/soạn mail */
+  var VIA=[['web','Quét bằng Zalo / mọi ứng dụng (qua trang goi.html)'],['std','Chuẩn: chỉ Camera điện thoại (tel:)']];
+  function hub(t,q){var u=new URL('goi.html',location.href);u.search='';u.hash='';u.searchParams.set('t',t);for(var k in q)if(q[k])u.searchParams.set(k,q[k]);return u.href;}
   function dt(v){return v.replace(/[-:]/g,'')+(v.length===16?'00':'');}
   var FORMS={
     text:{label:'📝 Văn bản',name:'VanBan',hint:'Nhập nội dung văn bản, mã QR sẽ tự hiện.',
       f:[{k:'t',l:'Nội dung văn bản',ta:1,ph:'Nhập nội dung bất kỳ…',max:1000}],
       b:function(v){return v.t?{s:v.t}:null;}},
     email:{label:'✉ Email',name:'Email',hint:'Nhập địa chỉ email nhận để tạo mã.',
-      f:[{k:'to',l:'Địa chỉ email nhận',ph:'ten@gmail.com',im:'email'},{k:'sub',l:'Tiêu đề (tuỳ chọn)'},{k:'body',l:'Nội dung thư (tuỳ chọn)',ta:1,max:500}],
+      f:[{k:'to',l:'Địa chỉ email nhận',ph:'ten@gmail.com',im:'email'},{k:'sub',l:'Tiêu đề (tuỳ chọn)'},{k:'body',l:'Nội dung thư (tuỳ chọn)',ta:1,max:500},{k:'via',l:'Cách quét',sel:VIA}],
       b:function(v){
         if(!v.to)return null;
         if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.to))return {e:'⚠ Địa chỉ email chưa hợp lệ.'};
         var q=[];if(v.sub)q.push('subject='+enc(v.sub));if(v.body)q.push('body='+enc(v.body));
-        return {s:'mailto:'+v.to+(q.length?'?'+q.join('&'):'')};}},
-    tel:{label:'📞 Gọi điện',name:'DienThoai',hint:'Nhập số điện thoại để tạo mã. Quét bằng Camera điện thoại sẽ hiện nút "Gọi" ngay trên màn hình — chạm 1 lần là gọi (điện thoại không cho tự gọi mà chưa bấm, vì lý do an toàn).',
-      f:[{k:'p',l:'Số điện thoại',ph:'0901234567 hoặc +84901234567',im:'tel'}],
-      b:function(v){if(!v.p)return null;var p=phone(v.p);return p?{s:'tel:'+intl(p)}:{e:'⚠ Số điện thoại chưa hợp lệ (chỉ gồm số, có thể bắt đầu bằng +).'};}},
+        return {s:v.via==='std'?'mailto:'+v.to+(q.length?'?'+q.join('&'):''):hub('mail',{v:v.to,s:v.sub,m:v.body})};}},
+    tel:{label:'📞 Gọi điện',name:'DienThoai',hint:'Nhập số điện thoại để tạo mã. Quét xong sẽ hiện nút "Gọi ngay" — chạm 1 lần là gọi (điện thoại không cho tự gọi khi chưa bấm, vì lý do an toàn). Nhớ để file goi.html cùng thư mục với index.html.',
+      f:[{k:'p',l:'Số điện thoại',ph:'0901234567 hoặc +84901234567',im:'tel'},{k:'via',l:'Cách quét',sel:VIA}],
+      b:function(v){if(!v.p)return null;var p=phone(v.p);return p?{s:v.via==='std'?'tel:'+intl(p):hub('tel',{v:intl(p)})}:{e:'⚠ Số điện thoại chưa hợp lệ (chỉ gồm số, có thể bắt đầu bằng +).'};}},
     sms:{label:'💬 Tin nhắn SMS',name:'SMS',hint:'Nhập số điện thoại nhận để tạo mã. Quét mã sẽ mở sẵn tin nhắn gửi tới số đó, chỉ cần bấm Gửi.',
-      f:[{k:'p',l:'Số điện thoại nhận',ph:'0901234567',im:'tel'},{k:'m',l:'Nội dung tin nhắn (tuỳ chọn)',ta:1,max:300}],
-      b:function(v){if(!v.p)return null;var p=phone(v.p);if(!p)return {e:'⚠ Số điện thoại chưa hợp lệ.'};return {s:'sms:'+intl(p)+(v.m?'?body='+enc(v.m):'')};}},
+      f:[{k:'p',l:'Số điện thoại nhận',ph:'0901234567',im:'tel'},{k:'m',l:'Nội dung tin nhắn (tuỳ chọn)',ta:1,max:300},{k:'via',l:'Cách quét',sel:VIA}],
+      b:function(v){if(!v.p)return null;var p=phone(v.p);if(!p)return {e:'⚠ Số điện thoại chưa hợp lệ.'};return {s:v.via==='std'?'sms:'+intl(p)+(v.m?'?body='+enc(v.m):''):hub('sms',{v:intl(p),m:v.m})};}},
     vcard:{label:'👤 Danh thiếp',name:'DanhThiep',hint:'Nhập họ tên (hoặc số điện thoại) để tạo danh thiếp.',
       f:[{k:'ho',l:'Họ và tên đệm',ph:'Nguyễn Văn'},{k:'ten',l:'Tên',ph:'An'},{k:'tel',l:'Số điện thoại',im:'tel'},{k:'mail',l:'Email',im:'email'},
          {k:'org',l:'Đơn vị / Công ty / Trường'},{k:'job',l:'Chức vụ'},{k:'web',l:'Website'},{k:'adr',l:'Địa chỉ',max:200}],

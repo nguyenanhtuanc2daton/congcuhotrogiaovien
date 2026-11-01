@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Mở ứng dụng</title>
+<style>
+:root{--bg:#eef3ff;--card:#fff;--ink:#14275c;--mut:#51648f;--bd:#cdd9f3}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#131c2e;--ink:#f1f5ff;--mut:#b4c0d9;--bd:#25324d}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.c{width:100%;max-width:420px;background:var(--card);border:1px solid var(--bd);border-radius:26px;padding:28px 20px;text-align:center;box-shadow:0 12px 34px rgba(30,60,140,.15)}
+.ic{font-size:64px;line-height:1}
+h1{margin:10px 0 4px;font-size:22px}
+.v{margin:6px 0 4px;font-size:26px;font-weight:800;letter-spacing:.5px;word-break:break-all}
+.m{margin:0 0 18px;color:var(--mut);font-size:15px;line-height:1.45;word-break:break-word}
+a.b,button.b{display:block;width:100%;padding:16px;margin-top:10px;border:0;border-radius:18px;font-size:19px;font-weight:800;text-decoration:none;color:#fff;background:linear-gradient(135deg,#047857,#07875c);cursor:pointer;font-family:inherit}
+button.b{background:transparent;color:var(--ink);border:2px solid var(--bd);font-size:16px;font-weight:700}
+.s{margin-top:14px;font-size:13px;color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="c" id="c">
+  <div class="ic" id="ic">📞</div>
+  <h1 id="h"></h1>
+  <div class="v" id="v"></div>
+  <p class="m" id="m"></p>
+  <a class="b" id="go" href="#">Mở ngay</a>
+  <button class="b" id="cp" type="button">📋 Sao chép</button>
+  <div class="s" id="s"></div>
+</div>
+<script>
+(function(){
+  var q=new URLSearchParams(location.search),t=q.get('t')||'',v=(q.get('v')||'').trim(),m=q.get('m')||'',sub=q.get('s')||'',
+      $=function(i){return document.getElementById(i)},uri='',h='',ic='',label='',txt=v;
+  var okTel=/^\+?\d{6,15}$/.test(v),okMail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  if(t==='tel'&&okTel){uri='tel:'+v;ic='📞';h='Gọi điện';label='📞 Gọi ngay';}
+  else if(t==='sms'&&okTel){uri='sms:'+v+(m?'?body='+encodeURIComponent(m):'');ic='💬';h='Nhắn tin SMS';label='💬 Soạn tin nhắn';}
+  else if(t==='mail'&&okMail){var a=[];if(sub)a.push('subject='+encodeURIComponent(sub));if(m)a.push('body='+encodeURIComponent(m));uri='mailto:'+v+(a.length?'?'+a.join('&'):'');ic='✉️';h='Gửi email';label='✉️ Soạn email';}
+  $('ic').textContent=ic||'⚠️';
+  if(!uri){$('h').textContent='Liên kết không hợp lệ';$('m').textContent='Hãy tạo lại mã QR.';$('go').style.display='none';$('cp').style.display='none';return;}
+  document.title=h;$('h').textContent=h;$('v').textContent=v;
+  if(m&&t==='sms')$('m').textContent='Nội dung: '+m;else $('m').style.display='none';
+  var go=$('go');go.href=uri;go.textContent=label;
+  $('cp').addEventListener('click',function(){
+    function ok(){$('s').textContent='✅ Đã sao chép '+txt;}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok,function(){$('s').textContent='Không sao chép được.';});}
+    else{var i=document.createElement('input');i.value=txt;document.body.appendChild(i);i.select();try{document.execCommand('copy');ok();}catch(e){}document.body.removeChild(i);}
+  });
+  $('s').textContent='Nếu điện thoại chưa tự mở, hãy bấm nút xanh ở trên.';
+  setTimeout(function(){try{location.href=uri;}catch(e){}},500);
+})();
+</script>
+</body>
+</html>
