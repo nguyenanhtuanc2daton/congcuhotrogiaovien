@@ -213,14 +213,14 @@ html[data-theme=toi] .gd-sch,html[data-theme=toi] .gd-h1{color:#f1f5ff;text-shad
 .gd-gv img{width:58px;height:58px;border-radius:50%;border:3px solid #fff;object-fit:cover;margin:-6px 10px -6px -6px;background:#fff}
 html[data-theme=toi] .gd-gv img{border-color:#9fc4ff;box-shadow:0 0 14px rgba(125,170,255,.6)}
 .gd-wrap{padding:0 12px}
-.gd-hi{display:flex;align-items:center;gap:12px;margin:-8px 0 14px;padding:14px;border-radius:22px;background:var(--card);border:1px solid var(--bd);box-shadow:var(--sh);backdrop-filter:blur(10px);position:relative;z-index:2}
+.gd-hi{display:flex;align-items:center;gap:12px;margin:-8px 0 14px;padding:10px 14px;border-radius:22px;background:var(--card);border:1px solid var(--bd);box-shadow:var(--sh);backdrop-filter:blur(10px);position:relative;z-index:2}
 .gd-hi .ic{font-size:40px;line-height:1}
-.gd-hi .tx{flex:1 1 0;min-width:0}.gd-hi h2{margin:0;font-size:21px;font-weight:800;color:var(--ink)}.gd-hi p{margin:2px 0 0;font-size:12.5px;color:var(--mut);line-height:1.35}
+.gd-hi .tx{flex:1 1 0;min-width:0}.gd-hi h2{margin:0;font-size:21px;font-weight:800;color:var(--ink);line-height:1.15}.gd-hi p{margin:1px 0 0;font-size:12.5px;color:var(--mut);line-height:1.2;white-space:nowrap;overflow:hidden}
 .gd-hi .tm{text-align:center;padding:0 10px;border-left:1.5px solid var(--bd);border-right:1.5px solid var(--bd);font-size:12px;color:var(--ink)}
 .gd-hi .tm b{display:block;font-size:30px;font-weight:800;color:var(--time);line-height:1.15;font-variant-numeric:tabular-nums}
 .gd-hi .hd{font-size:12px;line-height:1.35;text-align:center;color:var(--ink);max-width:104px}.gd-hi .hd:empty{display:none}
 .gd-hi .hd b{font-size:13px}
-@media(max-width:520px){.gd-hi{flex-wrap:wrap}.gd-hi .tx{flex:1 1 60%}.gd-hi .hd{max-width:none;flex:1 1 100%;border-top:1px solid var(--bd);padding-top:8px}.gd-hi .tm{border-right:0;padding-right:0}}
+@media(max-width:520px){.gd-hi{flex-wrap:wrap;row-gap:4px}.gd-hi .tx{flex:1 1 60%}.gd-hi .hd{max-width:none;flex:1 1 100%;border-top:1px solid var(--bd);padding-top:8px}.gd-hi .tm{border-right:0;padding-right:0}}
 .gd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 @media(max-width:400px){.gd-grid{grid-template-columns:repeat(2,1fr)}}
 .gc{position:relative;text-align:left;border:1px solid var(--bd);border-radius:20px;padding:12px 10px 12px;background:var(--t);color:var(--ink);box-shadow:var(--sh);cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:center;font:inherit;transition:transform .15s}
@@ -264,7 +264,7 @@ html .gd-grid .c5{background:linear-gradient(135deg,#7c3f10,#b45309)!important}
 html .gd-grid .c6{background:linear-gradient(135deg,#a21caf,#db2777)!important}
 html[data-theme=toi] .gd-grid .gc{box-shadow:0 10px 24px -8px rgba(0,0,0,.7),0 0 18px -6px var(--ac),inset 0 1px 0 rgba(255,255,255,.3)!important;filter:saturate(1.05)}
 /* Ngày lễ: một hàng riêng, chữ trên 1 dòng */
-html .gd-hi{flex-wrap:wrap!important}html .gd-hi .hd{flex:1 1 100%!important;max-width:none!important;border-top:1px solid var(--bd);padding-top:8px;white-space:nowrap;font-size:clamp(11px,3.4vw,14px)!important;text-align:center}html .gd-hi .hd b{font-size:inherit!important}
+html .gd-hi{flex-wrap:wrap!important}html .gd-hi .hd{flex:1 1 100%!important;max-width:none!important;border-top:1px solid var(--bd);padding-top:5px;white-space:nowrap;font-size:clamp(11px,3.4vw,14px)!important;text-align:center}html .gd-hi .hd b{font-size:inherit!important}
 /* Công thức chuyển động trên bảng */
 .gd-board{--fl:#2f6fe0}html[data-theme=toi] .gd-board{--fl:#bcd4ff}
 .gd-board .fl{fill:var(--fl);opacity:0;animation:gdFl var(--t) ease-in-out var(--d) infinite;transform-box:fill-box;transform-origin:center}
@@ -869,11 +869,11 @@ function applyTheme(){var m=TM,t=m==='auto'?autoT():m,r=document.documentElement
  mt.content=t==='toi'?'#070d27':'#5cc3ff'}
 /* ----- Lời chào, giờ, ngày lễ ----- */
 var DAYS=['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
-var G={sang:['Chào buổi sáng!','Chúc thầy cô có một ngày mới','nhiều năng lượng và nhiều bài giảng thật hay!','☀️'],
- trua:['Chào buổi trưa!','Đến giờ nghỉ ngơi rồi,','thầy cô đừng quên ăn trưa nhé.','🌞'],
- chieu:['Chào buổi chiều!','Buổi chiều dịu dàng, cứ thong thả,','công việc sẽ xong đâu vào đấy.','🌇'],
- toi:['Chào buổi tối!','Chúc thầy cô soạn bài thật nhẹ nhàng','và có thời gian nghỉ ngơi an lành!','🌙'],
- khuya:['Khuya rồi!','Nghỉ ngơi sớm để mai đủ sức','cho một ngày giảng dạy mới nhé.','🌙']};
+var G={sang:['Chào buổi sáng!','Chúc thầy cô một ngày nhiều năng lượng!','','☀️'],
+ trua:['Chào buổi trưa!','Đến giờ nghỉ rồi, thầy cô nhớ ăn trưa nhé!','','🌞'],
+ chieu:['Chào buổi chiều!','Buổi chiều dịu dàng, cứ thong thả nhé!','','🌇'],
+ toi:['Chào buổi tối!','Chúc thầy cô một buổi tối an lành!','','🌙'],
+ khuya:['Khuya rồi!','Nghỉ ngơi sớm để mai đủ sức giảng dạy nhé!','','🌙']};
 var HOL=[[1,1,'Tết Dương lịch'],[2,3,'Thành lập Đảng CSVN'],[2,27,'Thầy thuốc Việt Nam'],[3,8,'Quốc tế Phụ nữ'],[3,26,'Thành lập Đoàn TNCS HCM'],[4,30,'Giải phóng miền Nam'],[5,1,'Quốc tế Lao động'],[5,7,'Chiến thắng Điện Biên Phủ'],[5,19,'Sinh nhật Bác Hồ'],[6,1,'Quốc tế Thiếu nhi'],[6,21,'Báo chí cách mạng VN'],[7,27,'Thương binh Liệt sĩ'],[8,19,'Cách mạng Tháng Tám'],[9,2,'Quốc khánh'],[9,5,'Khai giảng năm học'],[10,10,'Giải phóng Thủ đô'],[10,13,'Doanh nhân Việt Nam'],[10,20,'Phụ nữ Việt Nam'],[11,19,'Quốc tế Đàn ông'],[11,20,'Ngày Nhà giáo Việt Nam'],[12,22,'Thành lập QĐNDVN']];
 var LH=[[1,1,'Tết Nguyên đán'],[15,1,'Rằm tháng Giêng'],[10,3,'Giỗ Tổ Hùng Vương'],[15,8,'Tết Trung thu']];
 function nextHol(){var n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),out=[],i,j;
@@ -881,8 +881,10 @@ function nextHol(){var n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.g
  if(window.AmLich){for(i=0;i<LH.length;i++){var L=LH[i];for(var y=t0.getFullYear()-1;y<=t0.getFullYear()+1;y++){try{var sd=window.AmLich.lunar2solar(L[0],L[1],y,0);if(!sd)continue;var kk=Math.round((sd-t0)/864e5);if(kk>=0&&kk<=45){out.push({d:kk,n:L[2],s:P2(sd.getDate())+'/'+P2(sd.getMonth()+1)});break}}catch(e){}}}}
  out.sort(function(a,b){return a.d-b.d});return out[0]}
 var cp='';
+function fitT2(){var e=$('gdT2');if(!e)return;e.style.fontSize='';var z=parseFloat(getComputedStyle(e).fontSize)||12.5;while(e.scrollWidth>e.clientWidth+1&&z>9){z-=.5;e.style.fontSize=z+'px'}}
+window.addEventListener('resize',function(){try{fitT2()}catch(e){}});
 function tick(){var n=new Date(),h=n.getHours(),p=h<5?'khuya':h<11?'sang':h<14?'trua':h<18?'chieu':h<22?'toi':'khuya',g=G[p];
- if(p!==cp){cp=p;$('gdT1').textContent=g[0];$('gdT2').textContent=g[1]+' '+g[2];$('gdIc').textContent=g[3];
+ if(p!==cp){cp=p;$('gdT1').textContent=g[0];$('gdT2').textContent=(g[1]+' '+g[2]).trim();fitT2();$('gdIc').textContent=g[3];
   var hl=nextHol(),e=$('gdHol');e.textContent='';
   if(hl){e.appendChild(document.createElement('b')).textContent=hl.n;e.appendChild(document.createTextNode(' '+hl.s+' '+(hl.d?'(còn '+hl.d+' ngày)':'(hôm nay!)')))}}
  $('gdDate').textContent=DAYS[n.getDay()]+', '+P2(n.getDate())+'/'+P2(n.getMonth()+1)+'/'+n.getFullYear();
