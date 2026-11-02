@@ -2,6 +2,8 @@
    GAMES — thêm tab "Trò chơi" (Sudoku, Cờ Caro, Cờ vua, Cờ tướng, Pikachu, Chém hoa quả) vào index.html
    - Không sửa code cũ: tự chèn nút tab + panel + thẻ ở màn chào, tự đánh số tab.
    - Chạy hoàn toàn trên trình duyệt, không cần mạng, không gửi dữ liệu đi đâu.
+   - Mọi trò đều có nút ⛶ "Toàn màn hình": ẩn thanh công cụ/tab bên dưới, bàn chơi choán cả màn hình; thoát bằng nút ✕ hoặc phím Esc.
+   - Bấm bắt đầu / chơi lại / ván mới ở bất kỳ trò nào (chọn Sudoku/Caro/Cờ vua/Cờ tướng, chọn màn Pikachu, ▶ Bắt đầu của Chém hoa quả) là tự vào toàn màn hình.
    - Nạp SAU prompt-hub.js:  <script src="games.js"></script>
    - Thêm trò mới: viết hàm initXxx(container) rồi đăng ký trong GAMES ở cuối file.
    ===================================================================== */
@@ -1073,7 +1075,7 @@
     '@media (min-width:820px){.lp-cards.six{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}.lp-cards.six .lp-card{grid-column:auto;padding:16px 8px}}',
     '.gm-board.pk-board{flex:2 1 340px;max-width:min(780px,100%)}',
     '.pk-stage{position:relative;background:linear-gradient(180deg,#101c33,#0b1322);border:2px solid #facc15;border-radius:12px;padding:8px}',
-    '.pk-stage.pk-full{position:fixed;inset:0;z-index:8500;border-radius:0;border:0;padding:8px;display:flex;flex-direction:column;background:#0b1220}',
+    '.pk-stage.pk-full{position:fixed;inset:0;z-index:2147483000;border-radius:0;border:0;padding:8px;display:flex;flex-direction:column;background:#0b1220}',
     '.pk-hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:700;font-size:15px;margin:2px 2px 6px}',
     '.pk-hud .pk-sp{flex:1}.pk-hud button{padding:4px 12px;min-height:36px;font-size:17px}',
     '.pk-time{position:relative;height:20px;border-radius:10px;background:#1c2a47;overflow:hidden;margin:0 0 6px;border:1px solid var(--bd)}',
@@ -1098,6 +1100,14 @@
     '.fr-overlay.on{display:flex}.fr-overlay .box{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:20px 24px;max-width:90%}',
     '.fr-overlay h3{margin:0 0 8px;font-size:22px;color:var(--cy)}.fr-overlay p{margin:6px 0;color:var(--mut)}',
     '.fr-stage{position:relative}',
+    /* --- Toàn màn hình dùng chung cho mọi trò --- */
+    '.gm-fsbar{display:flex;justify-content:flex-end;margin:0 0 8px}',
+    'html.gm-fs-on,html.gm-fs-on body{overflow:hidden!important}',
+    'html.gm-fs-on .tabs{display:none!important}',
+    '.gm-view.gm-fs{position:fixed;left:0;top:0;right:0;bottom:0;width:100%;height:100%;z-index:2147483000;box-sizing:border-box;margin:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--bg,var(--card,#0b1220));padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}',
+    '.gm-view.gm-fs .gm-fsbar{position:sticky;top:0;z-index:6;margin:0 0 6px}',
+    '.gm-view.gm-fs .gm-wrap{justify-content:center;gap:12px}',
+    '.gm-view.gm-fs #frCv{min-height:0}',
     /* --- Điện thoại: bàn cờ/Sudoku rộng gần hết màn hình --- */
     '@media (max-width:639px){',
     '#gvSd .gm-wrap,#gvCaro .gm-wrap,#gvCh .gm-wrap,#gvXq .gm-wrap{gap:12px}',
@@ -1278,8 +1288,8 @@
 
     gridEl.addEventListener('click', function (e) { var c = e.target.closest('.sd-c'); if (!c) return; Au.unlock(); S.sel = +c.getAttribute('data-i'); paint(); });
     padEl.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; Au.unlock(); setNum(+b.getAttribute('data-d')); });
-    $('sdNew').addEventListener('click', function () { Au.unlock(); askNew(+$('sdLevel').value); });
-    $('sdLevel').addEventListener('change', function () { askNew(+$('sdLevel').value); });
+    $('sdNew').addEventListener('click', function () { Au.unlock(); enterHostFs($('sdNew')); askNew(+$('sdLevel').value); });
+    $('sdLevel').addEventListener('change', function () { enterHostFs($('sdLevel')); askNew(+$('sdLevel').value); });
     $('sdNote').addEventListener('click', function () { S.noteMode = !S.noteMode; paint(); });
     $('sdUndo').addEventListener('click', undo); $('sdErase').addEventListener('click', erase);
     $('sdHintB').addEventListener('click', hint); $('sdCheck').addEventListener('click', check);
@@ -1458,7 +1468,7 @@
     });
     cv.addEventListener('pointerleave', function () { if (hover !== -1) { hover = -1; draw(); } });
 
-    $('cgNew').addEventListener('click', function () { Au.unlock(); newRound(); });
+    $('cgNew').addEventListener('click', function () { Au.unlock(); enterHostFs($('cgNew')); newRound(); });
     $('cgUndo').addEventListener('click', function () {
       if (thinking || over || !hist.length) return;
       var last = hist.pop(); eng.unplace(last);
@@ -1706,7 +1716,7 @@
       else { sel = -1; targets = []; }
       draw();
     });
-    $(p + 'New').addEventListener('click', function () { Au.unlock(); newRound(); });
+    $(p + 'New').addEventListener('click', function () { Au.unlock(); enterHostFs($(p + 'New')); newRound(); });
     $(p + 'Undo').addEventListener('click', function () {
       if (thinking || over || !eng.count()) return;
       eng.undo();
@@ -1944,7 +1954,7 @@
     cv.addEventListener('click', onTap);
     $('pkLvGrid').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-l]'); if (!b || b.disabled) return;
-      Au.unlock(); startLevel(+b.getAttribute('data-l'));
+      Au.unlock(); if (!full) setFull(true); startLevel(+b.getAttribute('data-l'));
     });
     $('pkUnlock').addEventListener('click', function () { cfg.unlocked = PK_LEVELS.length; save(); buildMenu(); });
     $('pkReset').addEventListener('click', function () {
@@ -1952,8 +1962,8 @@
       cfg = { unlocked: 1, stars: {}, hi: {} }; save(); toMenu(); msg('Đã xóa tiến trình.', 'info');
     });
     ['pkMenu', 'pkMenu1', 'pkMenu2', 'pkMenu3'].forEach(function (id) { $(id).addEventListener('click', toMenu); });
-    ['pkRetry', 'pkAgain1', 'pkAgain2'].forEach(function (id) { $(id).addEventListener('click', function () { Au.unlock(); startLevel(li); }); });
-    $('pkNext').addEventListener('click', function () { Au.unlock(); startLevel(li + 1); });
+    ['pkRetry', 'pkAgain1', 'pkAgain2'].forEach(function (id) { $(id).addEventListener('click', function () { Au.unlock(); if (!full) setFull(true); startLevel(li); }); });
+    $('pkNext').addEventListener('click', function () { Au.unlock(); if (!full) setFull(true); startLevel(li + 1); });
     $('pkPause').addEventListener('click', function () { if (state === 'play') pause(); else if (state === 'paused') resume(); });
     $('pkResume').addEventListener('click', resume);
     $('pkHint').addEventListener('click', function () {
@@ -1966,11 +1976,12 @@
       if (state !== 'play' || busy || shufs <= 0) return;
       shufs--; combo = 0; shuffleBoard(false); setHud();
     });
-    function setFull(on) {
-      full = !!on; stage.classList.toggle('pk-full', full); document.body.style.overflow = full ? 'hidden' : '';
+    function applyFull(on) {
+      full = !!on;
       $('pkFull').textContent = full ? '✕' : '⛶'; $('pkFull').title = full ? 'Thoát toàn màn hình (Esc)' : 'Toàn màn hình';
       setTimeout(layout, 30);
     }
+    function setFull(on) { if (on) FS.enter(stage, 'pk-full', applyFull); else if (full) FS.exit(); }
     $('pkFull').addEventListener('click', function () { setFull(!full); });
     document.addEventListener('keydown', function (e) {
       if (!panelOn() || !host.classList.contains('on') || typing(e)) return;
@@ -2203,8 +2214,8 @@
     cv.addEventListener('pointerup', function () { ptr = null; });
     cv.addEventListener('pointercancel', function () { ptr = null; });
 
-    $('frGo').addEventListener('click', function () { Au.unlock(); startGame(); });
-    $('frAgain').addEventListener('click', function () { Au.unlock(); startGame(); });
+    $('frGo').addEventListener('click', function () { Au.unlock(); enterHostFs('fr'); startGame(); });
+    $('frAgain').addEventListener('click', function () { Au.unlock(); enterHostFs('fr'); startGame(); });
     $('frResume').addEventListener('click', function () { if (state === 'paused') { showOv(null); state = 'play'; loop(); } });
     $('frPauseBtn').addEventListener('click', function () {
       if (state === 'play') { state = 'paused'; stopLoop(); showOv('frPause'); }
@@ -2238,12 +2249,111 @@
   };
   var inst = {}, curG = 'sd';
 
+  /* ---------- Toàn màn hình dùng chung (mọi trò) ----------
+     - Ưu tiên Fullscreen API của trình duyệt (phần tử chiếm cả màn hình, mọi thanh khác tự biến mất).
+     - Dự phòng cho trình duyệt không hỗ trợ (vd. iPhone): phủ kín màn hình bằng CSS + tự ẩn mọi thanh cố định ở nửa dưới màn hình + ẩn thanh tab. */
+  var FS = (function () {
+    var cur = null, hid = [], root = document.documentElement;
+    function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+    function kick() { try { window.dispatchEvent(new Event('resize')); } catch (e) { } }
+    function hideBars(keep) {
+      var vh = window.innerHeight, list = document.body.querySelectorAll('*');
+      for (var i = 0; i < list.length; i++) {
+        var n = list[i], tg = n.tagName;
+        if (n === keep || keep.contains(n) || n.contains(keep) || tg === 'SCRIPT' || tg === 'STYLE') continue;
+        var cs = getComputedStyle(n);
+        if ((cs.position !== 'fixed' && cs.position !== 'sticky') || cs.display === 'none') continue;
+        var r = n.getBoundingClientRect();
+        if (!r.width || !r.height || r.top < vh * 0.4 || r.height > vh * 0.45) continue;   // chỉ ẩn thanh nằm phía dưới, không ẩn lớp phủ toàn màn hình
+        hid.push([n, n.style.getPropertyValue('display'), n.style.getPropertyPriority('display')]);
+        n.style.setProperty('display', 'none', 'important');
+      }
+    }
+    function showBars() {
+      for (var i = hid.length - 1; i >= 0; i--) { var h = hid[i]; if (h[1]) h[0].style.setProperty('display', h[1], h[2]); else h[0].style.removeProperty('display'); }
+      hid = [];
+    }
+    function enter(el, cls, cb) {
+      if (cur) exit();
+      cur = { el: el, cls: cls, cb: cb, native: false };
+      el.classList.add(cls); root.classList.add('gm-fs-on');
+      hideBars(el);
+      var rq = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (rq) { try { var pr = rq.call(el); if (pr && pr.catch) pr.catch(function () { }); } catch (e) { } }
+      if (cb) cb(true);
+      setTimeout(kick, 80);
+    }
+    function exit() {
+      var c = cur; if (!c) return; cur = null;
+      c.el.classList.remove(c.cls); root.classList.remove('gm-fs-on');
+      showBars();
+      if (fsEl() === c.el) { try { var ex = document.exitFullscreen || document.webkitExitFullscreen, pr = ex && ex.call(document); if (pr && pr.catch) pr.catch(function () { }); } catch (e) { } }
+      if (c.cb) c.cb(false);
+      setTimeout(kick, 80);
+    }
+    function onFsChange() { if (!cur) return; var f = fsEl(); if (f === cur.el) cur.native = true; else if (cur.native) exit(); }   // người dùng bấm Esc/vuốt thoát
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener('webkitfullscreenchange', onFsChange);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && cur && !cur.native) exit(); });
+    return { enter: enter, exit: exit, toggle: function (el, cls, cb) { if (cur && cur.el === el) exit(); else enter(el, cls, cb); }, active: function () { return !!cur; }, is: function (el) { return !!cur && cur.el === el; } };
+  })();
+
+  var fsView = null, fsLastW = 0;
+  function resetBoard(v) {
+    var b = v.querySelector('.gm-board'), w = v.querySelector('.gm-wrap'), sd = v.querySelector('.gm-side');
+    if (b) { b.style.flex = ''; b.style.width = ''; b.style.maxWidth = ''; b.style.margin = ''; b.style.position = ''; b.style.top = ''; }
+    if (w) w.style.flexWrap = '';
+    if (sd) sd.style.flex = '';
+  }
+  /* Toàn màn hình: bàn chơi to nhất có thể mà vẫn nằm gọn trong màn hình (ngang: bảng điều khiển bên phải; dọc: bảng điều khiển bên dưới, cuộn xuống để xem) */
+  function fitFull() {
+    var v = fsView; if (!v) return;
+    var b = v.querySelector('.gm-board'); if (!b) return;
+    var cs = getComputedStyle(v), aw = v.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ah = v.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    var bar = v.querySelector('.gm-fsbar'), bh = bar ? bar.offsetHeight + 6 : 0, id = v.id;
+    var asp = id === 'gvXq' ? 0.9 : id === 'gvFr' ? (window.innerWidth <= 639 ? 0.8 : 1.25) : 1, extra = id === 'gvSd' ? 72 : 0;
+    var land = aw > ah * 1.1 && aw >= 560, gap = 12, sideW = land ? Math.min(360, Math.max(250, Math.round(aw * 0.3))) : 0;
+    var w = land ? Math.min(aw - sideW - gap, (ah - bh - extra) * asp) : Math.min(aw, (ah - bh - extra) * asp);
+    w = Math.max(240, Math.floor(w));
+    var wrap = v.querySelector('.gm-wrap'), sd = v.querySelector('.gm-side');
+    if (wrap) wrap.style.flexWrap = land ? 'nowrap' : '';
+    if (sd) sd.style.flex = land ? '1 1 0' : '';
+    b.style.flex = '0 0 auto'; b.style.maxWidth = 'none'; b.style.width = w + 'px'; b.style.margin = '0'; b.style.position = ''; b.style.top = '';
+    if (w !== fsLastW) { fsLastW = w; setTimeout(function () { try { window.dispatchEvent(new Event('resize')); } catch (e) { } }, 0); }   // để canvas vẽ lại đúng kích thước mới
+  }
+  function setFsLabel(btn, on) { btn.textContent = on ? '✕ Thoát toàn màn hình' : '⛶ Toàn màn hình'; btn.title = on ? 'Thoát toàn màn hình (Esc)' : 'Toàn màn hình'; }
+  function addFsBar(id) {
+    if (id === 'pk') return;                                   // Pikachu có nút ⛶ riêng trong thanh điểm, cùng dùng bộ toàn màn hình chung
+    var host = GAMES[id].host; if (host.querySelector('.gm-fsbar')) return;
+    var bar = document.createElement('div'); bar.className = 'gm-fsbar';
+    var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'sec sm gm-fsb'; setFsLabel(btn, false);
+    bar.appendChild(btn); host.insertBefore(bar, host.firstChild);
+    btn.addEventListener('click', function () { FS.toggle(host, 'gm-fs', hostFsCb(host)); });
+  }
+  function hostFsCb(host) {
+    return function (on) {
+      var btn = host.querySelector('.gm-fsb');
+      fsView = on ? host : null; fsLastW = 0; if (btn) setFsLabel(btn, on);
+      if (on) { resetBoard(host); host.scrollTop = 0; fitFull(); } else { resetBoard(host); fitBleed(); }
+    };
+  }
+  /* Tự vào toàn màn hình khi người chơi bấm bắt đầu (phải gọi trong lúc xử lý cú bấm/chạm thì trình duyệt mới cho phép) */
+  function enterHostFs(ref) {
+    var id = typeof ref === 'string' ? ref : null, host = id ? GAMES[id] && GAMES[id].host : (ref && ref.closest ? ref.closest('.gm-view') : null);
+    if (!host) return;
+    if (!id) Object.keys(GAMES).forEach(function (k) { if (GAMES[k].host === host) id = k; });
+    if (!id || id === 'pk' || FS.is(host)) return;
+    addFsBar(id);
+    FS.enter(host, 'gm-fs', hostFsCb(host));
+  }
+
   /* Tự co giãn bàn chơi theo CẢ chiều rộng lẫn chiều cao màn hình (điện thoại / máy tính bảng, dọc / ngang).
      - Dọc: bàn rộng gần hết bề ngang, nhưng không cao quá màn hình.
      - Ngang: bàn cao vừa màn hình, bảng điều khiển nằm bên phải, bàn dính (sticky) khi cuộn.
      - Màn hình >= 1100px (máy tính): giữ nguyên bố cục gốc. */
   var fitRaf = 0;
   function fitBleed() {
+    if (fsView) { fitFull(); return; }
     var vv = window.visualViewport, vw = document.documentElement.clientWidth, vh = Math.round(vv ? vv.height : window.innerHeight), PAD = 4;
     panel.querySelectorAll('#gvSd .gm-board,#gvCaro .gm-board,#gvCh .gm-board,#gvXq .gm-board').forEach(function (b) {
       b.style.flex = ''; b.style.width = ''; b.style.maxWidth = ''; b.style.marginLeft = ''; b.style.position = ''; b.style.top = '';
@@ -2269,15 +2379,20 @@
   window.addEventListener('orientationchange', function () { setTimeout(fitSoon, 250); });
   if (window.visualViewport) window.visualViewport.addEventListener('resize', fitSoon);
 
-  function openGame(id) {
+  function openGame(id, autoFull) {
+    FS.exit();
     if (curG && inst[curG] && inst[curG].hide) try { inst[curG].hide(); } catch (e) { }
     curG = id;
     Object.keys(GAMES).forEach(function (k) { GAMES[k].host.classList.toggle('on', k === id); });
     panel.querySelectorAll('.gm-menu button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-g') === id); });
     if (!inst[id]) { try { inst[id] = GAMES[id].init(GAMES[id].host); } catch (e) { GAMES[id].host.innerHTML = '<div class="status err">Không khởi tạo được trò chơi: ' + esc(e.message) + '</div>'; console.error(e); return; } }
+    addFsBar(id);
     inst[id].show();
     fitBleed(); requestAnimationFrame(fitBleed);
+    // Sudoku / Caro / Cờ vua / Cờ tướng: bấm chọn trò là bắt đầu chơi ngay → vào toàn màn hình
+    // (Pikachu và Chém hoa quả có nút bắt đầu riêng, xử lý ở bên trong từng trò)
+    if (autoFull && id !== 'pk' && id !== 'fr') enterHostFs(id);
   }
-  panel.querySelector('.gm-menu').addEventListener('click', function (e) { var b = e.target.closest('button[data-g]'); if (b) openGame(b.getAttribute('data-g')); });
-  window.addEventListener('tabshow', function (e) { if (e.detail === 't7') openGame(curG); });
+  panel.querySelector('.gm-menu').addEventListener('click', function (e) { var b = e.target.closest('button[data-g]'); if (b) openGame(b.getAttribute('data-g'), true); });
+  window.addEventListener('tabshow', function (e) { if (e.detail === 't7') openGame(curG); else FS.exit(); });
 })();
