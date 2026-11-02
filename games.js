@@ -2,7 +2,7 @@
    GAMES — thêm tab "Trò chơi" (Sudoku, Cờ Caro, Cờ vua, Cờ tướng, Pikachu, Chém hoa quả) vào index.html
    - Không sửa code cũ: tự chèn nút tab + panel + thẻ ở màn chào, tự đánh số tab.
    - Chạy hoàn toàn trên trình duyệt, không cần mạng, không gửi dữ liệu đi đâu.
-   - Mọi trò đều có nút ⛶ "Toàn màn hình": ẩn thanh công cụ/tab bên dưới, bàn chơi choán cả màn hình; thoát bằng nút ✕ hoặc phím Esc.
+   - Không còn nút "Toàn màn hình": bấm bắt đầu/chơi lại là tự vào toàn màn hình (ẩn thanh công cụ/tab bên dưới, bàn chơi choán cả màn hình); thoát bằng nút ✕ nhỏ ở góc, phím Esc hoặc cử chỉ Back.
    - Bấm bắt đầu / chơi lại / ván mới ở bất kỳ trò nào (chọn Sudoku/Caro/Cờ vua/Cờ tướng, chọn màn Pikachu, ▶ Bắt đầu của Chém hoa quả) là tự vào toàn màn hình.
    - Nạp SAU prompt-hub.js:  <script src="games.js"></script>
    - Thêm trò mới: viết hàm initXxx(container) rồi đăng ký trong GAMES ở cuối file.
@@ -1075,7 +1075,8 @@
     '@media (min-width:820px){.lp-cards.six{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}.lp-cards.six .lp-card{grid-column:auto;padding:16px 8px}}',
     '.gm-board.pk-board{flex:2 1 340px;max-width:min(780px,100%)}',
     '.pk-stage{position:relative;background:linear-gradient(180deg,#101c33,#0b1322);border:2px solid #facc15;border-radius:12px;padding:8px}',
-    '.pk-stage.pk-full{position:fixed;inset:0;z-index:2147483000;border-radius:0;border:0;padding:8px;display:flex;flex-direction:column;background:#0b1220}',
+    '.pk-stage.pk-full{position:fixed;inset:0;z-index:2147483000;border-radius:0;border:0;padding:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));display:flex;flex-direction:column;background:#0b1220}',
+    '.pk-stage:not(.pk-full) #pkFull{display:none}',
     '.pk-hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:700;font-size:15px;margin:2px 2px 6px}',
     '.pk-hud .pk-sp{flex:1}.pk-hud button{padding:4px 12px;min-height:36px;font-size:17px}',
     '.pk-time{position:relative;height:20px;border-radius:10px;background:#1c2a47;overflow:hidden;margin:0 0 6px;border:1px solid var(--bd)}',
@@ -1101,12 +1102,17 @@
     '.fr-overlay h3{margin:0 0 8px;font-size:22px;color:var(--cy)}.fr-overlay p{margin:6px 0;color:var(--mut)}',
     '.fr-stage{position:relative}',
     /* --- Toàn màn hình dùng chung cho mọi trò --- */
-    '.gm-fsbar{display:flex;justify-content:flex-end;margin:0 0 8px}',
+    '.gm-fsbar{display:none}',
     'html.gm-fs-on,html.gm-fs-on body{overflow:hidden!important}',
     'html.gm-fs-on .tabs{display:none!important}',
-    '.gm-view.gm-fs{position:fixed;left:0;top:0;right:0;bottom:0;width:100%;height:100%;z-index:2147483000;box-sizing:border-box;margin:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--bg,var(--card,#0b1220));padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}',
-    '.gm-view.gm-fs .gm-fsbar{position:sticky;top:0;z-index:6;margin:0 0 6px}',
-    '.gm-view.gm-fs .gm-wrap{justify-content:center;gap:12px}',
+    '.gm-view.gm-fs{position:fixed;left:0;top:0;right:0;bottom:0;width:100%;height:100%;z-index:2147483000;box-sizing:border-box;margin:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--bg,var(--card,#0b1220));padding:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left))}',
+    /* nút ✕ thoát: nhỏ, nổi ở góc phải trên, không chiếm chỗ của bàn chơi */
+    '.gm-view.gm-fs .gm-fsbar{display:block;position:fixed;top:max(4px,env(safe-area-inset-top));right:max(4px,env(safe-area-inset-right));z-index:2147483100;margin:0}',
+    '.gm-view.gm-fs .gm-fsb{width:32px;height:32px;min-height:0;padding:0;border-radius:50%;font-size:15px;line-height:1;opacity:.6;display:flex;align-items:center;justify-content:center}',
+    '.gm-view.gm-fs .gm-fsb:active{opacity:1}',
+    '@media (orientation:portrait){.gm-view.gm-fs{padding-top:max(38px,calc(env(safe-area-inset-top) + 34px))}}',
+    '@media (orientation:landscape){.gm-view.gm-fs .gm-side{padding-top:30px}}',
+    '.gm-view.gm-fs .gm-wrap{justify-content:center;gap:8px}',
     '.gm-view.gm-fs #frCv{min-height:0}',
     /* --- Điện thoại: bàn cờ/Sudoku rộng gần hết màn hình --- */
     '@media (max-width:639px){',
@@ -1751,7 +1757,7 @@
     host.innerHTML =
       '<div class="gm-wrap"><div class="gm-board pk-board"><div class="pk-stage" id="pkStage">' +
       '<div class="pk-hud"><span>⚡ Màn <b id="pkLv">1</b></span><span>⭐ <b id="pkScore">0</b></span><span>🔥 Combo <b id="pkCombo">0</b></span><span class="pk-sp"></span>' +
-      '<button type="button" class="sec sm" id="pkFull" title="Toàn màn hình">⛶</button><button type="button" class="sec sm" id="pkPause" title="Tạm dừng (P)">⏸</button></div>' +
+      '<button type="button" class="sec sm" id="pkFull" title="Thoát toàn màn hình">✕</button><button type="button" class="sec sm" id="pkPause" title="Tạm dừng (P)">⏸</button></div>' +
       '<div class="pk-time"><i id="pkTbar"></i><b id="pkTtxt">0:00</b></div>' +
       '<div class="pk-info" id="pkInfo"></div>' +
       '<div class="pk-cvwrap" id="pkWrap"><canvas id="pkCv"></canvas>' +
@@ -1770,7 +1776,7 @@
       '<div class="gm-line">🏆 Màn đã mở: <b id="pkOpen">1</b>/' + PK_LEVELS.length + ' &nbsp;·&nbsp; ⭐ Tổng sao: <b id="pkStarSum">0</b></div>' +
       '<div class="note">Cách chơi: bấm 2 con thú <b>giống nhau</b> sao cho nối được bằng đường thẳng có <b>tối đa 2 góc rẽ</b>, không đi qua ô còn thú (được đi vòng ngoài bàn). Nối đúng được cộng giờ và điểm; nối liên tiếp trong ~4 giây để có <b>combo</b>. ' +
       'Từ màn 4, sau mỗi lần nối các ô còn lại sẽ <b>rơi/dồn</b> theo hướng của màn nên hãy tính trước. Hết nước đi máy tự đảo bàn miễn phí. Mỗi màn có 3 lượt gợi ý và 3 lượt đảo bàn. ' +
-      'Sao: còn ≥50% thời gian = 3★, ≥25% = 2★, còn lại 1★. Phím tắt: <b>H</b> gợi ý, <b>S</b> đảo bàn, <b>P</b> tạm dừng, <b>Esc</b> thoát toàn màn hình. Bấm ⛶ để chơi toàn màn hình cho bàn to nhất.</div>' +
+      'Sao: còn ≥50% thời gian = 3★, ≥25% = 2★, còn lại 1★. Phím tắt: <b>H</b> gợi ý, <b>S</b> đảo bàn, <b>P</b> tạm dừng, <b>Esc</b> thoát toàn màn hình. Bấm chọn màn là tự vào toàn màn hình cho bàn to nhất.</div>' +
       '<div class="bar"><button type="button" class="sec sm" id="pkReset">Xóa tiến trình</button></div>' +
       '</div></div>';
 
@@ -1978,7 +1984,7 @@
     });
     function applyFull(on) {
       full = !!on;
-      $('pkFull').textContent = full ? '✕' : '⛶'; $('pkFull').title = full ? 'Thoát toàn màn hình (Esc)' : 'Toàn màn hình';
+      $('pkFull').textContent = '✕'; $('pkFull').title = 'Thoát toàn màn hình';
       setTimeout(layout, 30);
     }
     function setFull(on) { if (on) FS.enter(stage, 'pk-full', applyFull); else if (full) FS.exit(); }
@@ -2310,9 +2316,9 @@
     var v = fsView; if (!v) return;
     var b = v.querySelector('.gm-board'); if (!b) return;
     var cs = getComputedStyle(v), aw = v.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ah = v.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-    var bar = v.querySelector('.gm-fsbar'), bh = bar ? bar.offsetHeight + 6 : 0, id = v.id;
+    var bh = 0, id = v.id;
     var asp = id === 'gvXq' ? 0.9 : id === 'gvFr' ? (window.innerWidth <= 639 ? 0.8 : 1.25) : 1, extra = id === 'gvSd' ? 72 : 0;
-    var land = aw > ah * 1.1 && aw >= 560, gap = 12, sideW = land ? Math.min(360, Math.max(250, Math.round(aw * 0.3))) : 0;
+    var land = aw > ah * 1.1 && aw >= 560, gap = 8, sideW = land ? Math.min(360, Math.max(250, Math.round(aw * 0.3))) : 0;
     var w = land ? Math.min(aw - sideW - gap, (ah - bh - extra) * asp) : Math.min(aw, (ah - bh - extra) * asp);
     w = Math.max(240, Math.floor(w));
     var wrap = v.querySelector('.gm-wrap'), sd = v.querySelector('.gm-side');
@@ -2321,19 +2327,19 @@
     b.style.flex = '0 0 auto'; b.style.maxWidth = 'none'; b.style.width = w + 'px'; b.style.margin = '0'; b.style.position = ''; b.style.top = '';
     if (w !== fsLastW) { fsLastW = w; setTimeout(function () { try { window.dispatchEvent(new Event('resize')); } catch (e) { } }, 0); }   // để canvas vẽ lại đúng kích thước mới
   }
-  function setFsLabel(btn, on) { btn.textContent = on ? '✕ Thoát toàn màn hình' : '⛶ Toàn màn hình'; btn.title = on ? 'Thoát toàn màn hình (Esc)' : 'Toàn màn hình'; }
+  function setFsLabel(btn) { btn.textContent = '✕'; btn.title = 'Thoát toàn màn hình'; }
   function addFsBar(id) {
-    if (id === 'pk') return;                                   // Pikachu có nút ⛶ riêng trong thanh điểm, cùng dùng bộ toàn màn hình chung
+    if (id === 'pk') return;                                   // Pikachu có nút ✕ thoát riêng trong thanh điểm, cùng dùng bộ toàn màn hình chung
     var host = GAMES[id].host; if (host.querySelector('.gm-fsbar')) return;
     var bar = document.createElement('div'); bar.className = 'gm-fsbar';
-    var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'sec sm gm-fsb'; setFsLabel(btn, false);
+    var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'sec sm gm-fsb'; setFsLabel(btn);
     bar.appendChild(btn); host.insertBefore(bar, host.firstChild);
-    btn.addEventListener('click', function () { FS.toggle(host, 'gm-fs', hostFsCb(host)); });
+    btn.addEventListener('click', function () { FS.exit(); });
   }
   function hostFsCb(host) {
     return function (on) {
       var btn = host.querySelector('.gm-fsb');
-      fsView = on ? host : null; fsLastW = 0; if (btn) setFsLabel(btn, on);
+      fsView = on ? host : null; fsLastW = 0; if (btn) setFsLabel(btn);
       if (on) { resetBoard(host); host.scrollTop = 0; fitFull(); } else { resetBoard(host); fitBleed(); }
     };
   }
