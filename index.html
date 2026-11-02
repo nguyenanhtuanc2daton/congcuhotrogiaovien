@@ -488,6 +488,14 @@ html[data-theme=toi] .gd-cat .gs,html[data-theme=toi] .gd-cat .gf{filter:brightn
   html .app:has(#t0.on) .gd-top{border-radius:0 0 calc(3*var(--hw)) calc(3*var(--hw))}
 }
 </style>
+<style id="hi-center">
+/* Giao diện sáng: chia bố cục thanh lời chào giống giao diện tối (cột chữ không chiếm thêm chỗ, khối ngày giờ nằm giữa, có vạch ngăn hai bên) */
+@media(min-width:900px){
+  html[data-theme=sang] .gd-hi .tx{flex:1 1 0}
+  html[data-theme=sang] .gd-hi .tm{border-left:1.5px solid rgba(70,130,200,.45);border-right:1.5px solid rgba(70,130,200,.45)}
+  html[data-theme=sang] .gd-hi .gd-cat{flex:1 1 0}
+}
+</style>
 </head>
 <body>
 <div class="app">
