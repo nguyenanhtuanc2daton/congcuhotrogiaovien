@@ -286,31 +286,31 @@ html[data-theme=toi] .gd-board .tg{fill:#fff;stroke:rgba(4,8,40,.75);stroke-widt
 .gd-nav button{color:var(--ink)!important;opacity:.92}.gd-nav button.on{color:var(--navtx)!important;opacity:1}
 /* Máy tính / tivi: tràn màn hình, chữ lớn theo độ rộng màn hình */
 @media(min-width:900px){
-.app{max-width:min(1900px,98vw)!important}
+.app{max-width:none!important}
 #t0{max-width:none!important;width:100%}
-.gd-top{min-height:clamp(300px,25vw,560px);border-radius:0 0 3vw 3vw;padding-top:1.4vw}
-.gd-ib{width:4.2vw;height:3.8vw;font-size:1.9vw;border-radius:1.2vw}
-.gd-logo{width:7.4vw;height:7.4vw;margin-top:-2.6vw;border-radius:1.2vw}
-.gd-sch{font-size:clamp(16px,1.7vw,40px)}
-.gd-h1{font-size:clamp(30px,3.7vw,84px)}
-.gd-gv{font-size:clamp(15px,1.6vw,36px);padding-right:1.6vw}.gd-gv img{width:5vw;height:5vw}
-.gd-wrap{padding:0 2.2vw}
-.gd-hi{padding:1.4vw 2vw;gap:1.8vw;border-radius:2vw;margin-bottom:1.4vw}
-.gd-hi .ic{font-size:4.6vw}.gd-hi h2{font-size:clamp(22px,2.6vw,60px)}.gd-hi p{font-size:clamp(15px,1.6vw,36px)}
-.gd-hi .tm{font-size:clamp(14px,1.5vw,32px);padding:0 2vw}.gd-hi .tm b{font-size:clamp(34px,4.2vw,96px)}
-html .gd-hi .hd{font-size:clamp(14px,1.7vw,38px)!important;padding-top:.8vw}
-.gd-grid{gap:1.4vw!important}
-html .gd-grid .gc{border-radius:2vw!important;padding:1.6vw 1.5vw!important;min-height:11vw;gap:.4vw 1.2vw!important}
-html .gd-grid .gc .em{font-size:clamp(40px,4.6vw,110px)!important}
-html .gd-grid .gc b{font-size:clamp(18px,2vw,46px)!important;padding-right:3vw}
-html .gd-grid .gc small{font-size:clamp(14px,1.55vw,36px)!important}
-html .gd-grid .gc .go{width:2.6vw;height:2.6vw;font-size:1.7vw;right:1vw;top:1vw}
-html .gd-grid .gc .fv{font-size:clamp(20px,2vw,44px)!important}
-.gd-board{max-width:1150px;width:calc(100% - 4.4vw);margin:1.6vw auto 0;border-radius:2vw}
-.gd-nav{max-width:1000px;padding-top:.7vw}.gd-nav button{font-size:clamp(14px,1.4vw,30px);border-radius:1.4vw}.gd-nav button i{font-size:clamp(24px,2.4vw,52px)}
-#gdSheet .bx{max-width:1000px;padding:2vw}#gdSheet h3{font-size:clamp(20px,2vw,44px)}#gdSheet input{font-size:clamp(16px,1.6vw,36px);padding:1vw 1.4vw}
-#gdSheet .it{font-size:clamp(16px,1.6vw,36px);padding:1vw 1.4vw}#gdSheet .em{font-size:clamp(14px,1.3vw,30px)}
-.app{padding-bottom:9vw!important}
+.gd-top{min-height:clamp(300px,calc(25*var(--hw)),560px);border-radius:0 0 calc(3*var(--hw)) calc(3*var(--hw));padding-top:calc(1.4*var(--hw))}
+.gd-ib{width:calc(4.2*var(--hw));height:calc(3.8*var(--hw));font-size:calc(1.9*var(--hw));border-radius:calc(1.2*var(--hw))}
+.gd-logo{width:calc(7.4*var(--hw));height:calc(7.4*var(--hw));margin-top:calc(-2.6*var(--hw));border-radius:calc(1.2*var(--hw))}
+.gd-sch{font-size:clamp(16px,calc(1.7*var(--hw)),40px)}
+.gd-h1{font-size:clamp(30px,calc(3.7*var(--hw)),84px)}
+.gd-gv{font-size:clamp(15px,calc(1.6*var(--hw)),36px);padding-right:calc(1.6*var(--hw))}.gd-gv img{width:calc(5*var(--hw));height:calc(5*var(--hw))}
+.gd-wrap{padding:0 calc(2.2*var(--hw))}
+.gd-hi{padding:calc(1.4*var(--hw)) calc(2*var(--hw));gap:calc(1.8*var(--hw));border-radius:calc(2*var(--hw));margin-bottom:calc(1.4*var(--hw))}
+.gd-hi .ic{font-size:calc(4.6*var(--hw))}.gd-hi h2{font-size:clamp(22px,calc(2.6*var(--hw)),60px)}.gd-hi p{font-size:clamp(15px,calc(1.6*var(--hw)),36px)}
+.gd-hi .tm{font-size:clamp(14px,calc(1.5*var(--hw)),32px);padding:0 calc(2*var(--hw))}.gd-hi .tm b{font-size:clamp(34px,calc(4.2*var(--hw)),96px)}
+html .gd-hi .hd{font-size:clamp(14px,calc(1.7*var(--hw)),38px)!important;padding-top:calc(.8*var(--hw))}
+.gd-grid{gap:calc(1.4*var(--hw))!important}
+html .gd-grid .gc{border-radius:calc(2*var(--hw))!important;padding:calc(1.6*var(--hw)) calc(1.5*var(--hw))!important;min-height:calc(11*var(--hw));gap:calc(.4*var(--hw)) calc(1.2*var(--hw))!important}
+html .gd-grid .gc .em{font-size:clamp(40px,calc(4.6*var(--hw)),110px)!important}
+html .gd-grid .gc b{font-size:clamp(18px,calc(2*var(--hw)),46px)!important;padding-right:calc(3*var(--hw))}
+html .gd-grid .gc small{font-size:clamp(14px,calc(1.55*var(--hw)),36px)!important}
+html .gd-grid .gc .go{width:calc(2.6*var(--hw));height:calc(2.6*var(--hw));font-size:calc(1.7*var(--hw));right:calc(1*var(--hw));top:calc(1*var(--hw))}
+html .gd-grid .gc .fv{font-size:clamp(20px,calc(2*var(--hw)),44px)!important}
+.gd-board{max-width:1150px;width:calc(100% - calc(4.4*var(--hw)));margin:calc(1.6*var(--hw)) auto 0;border-radius:calc(2*var(--hw))}
+.gd-nav{max-width:1000px;padding-top:calc(.7*var(--hw))}.gd-nav button{font-size:clamp(14px,calc(1.4*var(--hw)),30px);border-radius:calc(1.4*var(--hw))}.gd-nav button i{font-size:clamp(24px,calc(2.4*var(--hw)),52px)}
+#gdSheet .bx{max-width:1000px;padding:calc(2*var(--hw))}#gdSheet h3{font-size:clamp(20px,calc(2*var(--hw)),44px)}#gdSheet input{font-size:clamp(16px,calc(1.6*var(--hw)),36px);padding:calc(1*var(--hw)) calc(1.4*var(--hw))}
+#gdSheet .it{font-size:clamp(16px,calc(1.6*var(--hw)),36px);padding:calc(1*var(--hw)) calc(1.4*var(--hw))}#gdSheet .em{font-size:clamp(14px,calc(1.3*var(--hw)),30px)}
+.app{padding-bottom:calc(9*var(--hw))!important}
 }
 /* Nút trong các công cụ: chữ luôn rõ ở cả giao diện sáng và tối (gốc lỗi: style.css) */
 button.sec{background:#22304d;color:#fff!important;border:1px solid rgba(125,211,252,.35)}
@@ -479,6 +479,14 @@ html[data-theme=toi] .gd-cat .gs,html[data-theme=toi] .gd-cat .gf{filter:brightn
 .gd-cat .bf.rest .wl,.gd-cat .bf.rest .wr{animation-duration:1.9s}
 .gd-cat[data-m=walk][data-run] .tl{animation-duration:1.1s}
 @media(prefers-reduced-motion:reduce){.gd-cat .bf .wl,.gd-cat .bf .wr{animation:none!important}}
+</style>
+<style id="home-80">
+/* Máy tính: trang chủ chỉ rộng ~80% màn hình, căn giữa. Các cỡ tính theo vw ở trên dùng --hw (=0,8vw) để co theo khung 80%. */
+@media (min-width:900px){
+  html{--hw:.8vw}
+  html html .app:has(#t0.on),html[data-theme] .app:has(#t0.on){width:80%!important;max-width:80%!important;margin-left:auto!important;margin-right:auto!important}
+  html .app:has(#t0.on) .gd-top{border-radius:0 0 calc(3*var(--hw)) calc(3*var(--hw))}
+}
 </style>
 </head>
 <body>
@@ -1164,6 +1172,46 @@ w.addEventListener('click',function(e){
 cat.classList.toggle('l',false);
 cat.setAttribute('data-run','1');
 run();requestAnimationFrame(frame);
+})();
+</script>
+<script id="min-font-js">
+/* Máy tính: mọi chữ trong các công cụ (trừ Trang chủ) tối thiểu ~14px khi nhìn trên màn hình. Bù theo mức phóng to của desk-fit. */
+(function(){
+  var MIN=14,raf=0,SKIP={SCRIPT:1,STYLE:1,svg:1,SVG:1,CANVAS:1,BR:1,HR:1,IMG:1,PATH:1};
+  function z(){return parseFloat(document.documentElement.style.zoom)||1;}
+  function active(){
+    if((window.innerWidth||0)<900)return false;
+    if(document.fullscreenElement||document.webkitFullscreenElement)return false;
+    return true;
+  }
+  function fix(){
+    raf=0;
+    var panels=document.querySelectorAll('.panel:not(#t0)');
+    var on=active(),min=MIN/z();
+    for(var p=0;p<panels.length;p++){
+      var els=panels[p].querySelectorAll('*');
+      for(var i=0;i<els.length;i++){
+        var e=els[i];
+        if(SKIP[e.tagName]||e.closest('svg'))continue;
+        if(e.hasAttribute('data-mf')){e.style.removeProperty('font-size');e.removeAttribute('data-mf');}
+        if(!on)continue;
+        var fs=parseFloat(getComputedStyle(e).fontSize);
+        if(fs&&fs<min-.2){e.style.setProperty('font-size',min.toFixed(2)+'px','important');e.setAttribute('data-mf','1');}
+      }
+    }
+  }
+  function later(){if(!raf)raf=requestAnimationFrame(fix);}
+  function start(){
+    fix();
+    window.addEventListener('resize',later);
+    document.addEventListener('fullscreenchange',later);
+    if(window.MutationObserver){
+      new MutationObserver(function(m){
+        for(var i=0;i<m.length;i++){if(m[i].type==='childList'||m[i].attributeName==='class'||m[i].attributeName==='hidden'){later();return;}}
+      }).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
 </script>
 </body>
