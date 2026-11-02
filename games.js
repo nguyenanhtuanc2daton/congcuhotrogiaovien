@@ -1077,6 +1077,12 @@
     '.pk-stage{position:relative;background:linear-gradient(180deg,#101c33,#0b1322);border:2px solid #facc15;border-radius:12px;padding:8px}',
     '.pk-stage.pk-full{position:fixed;inset:0;z-index:2147483000;border-radius:0;border:0;padding:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));display:flex;flex-direction:column;background:#0b1220}',
     '.pk-stage:not(.pk-full) #pkFull{display:none}',
+    '.pk-stage.pk-full .pk-info,.pk-stage.pk-full #pkMenu{display:none}',
+    '.pk-stage.pk-full .pk-hud{margin:0 2px 4px}.pk-stage.pk-full .pk-time{margin:0 0 4px}.pk-stage.pk-full .pk-tools{margin-top:4px}.pk-stage.pk-full .pk-tools button{min-height:clamp(40px,6vmin,68px);font-size:clamp(14px,2.2vmin,24px)}',
+    '.pk-stage.pk-full .pk-hud{font-size:clamp(15px,2.4vmin,26px)}.pk-stage.pk-full .pk-hud button{min-height:clamp(36px,5.4vmin,60px);font-size:clamp(17px,2.8vmin,30px)}',
+    '.pk-stage.pk-full .pk-time{height:clamp(20px,3vmin,34px);border-radius:999px}.pk-stage.pk-full .pk-time b{font-size:clamp(12px,1.9vmin,20px)}',
+    '.pk-stage.pk-full .fr-overlay .box{font-size:clamp(15px,2.3vmin,26px)}.pk-stage.pk-full #pkMenuOv .box{max-width:min(900px,96%)!important}',
+    '.pk-stage.pk-full .pk-lvgrid{gap:clamp(6px,1vmin,14px)}.pk-stage.pk-full .pk-lv{min-height:clamp(54px,9vmin,100px);font-size:clamp(16px,2.6vmin,28px)}.pk-stage.pk-full .pk-lv small{font-size:clamp(11px,1.8vmin,20px)}.pk-stage.pk-full .pk-stars{font-size:clamp(36px,7vmin,72px)}',
     '.pk-hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:700;font-size:15px;margin:2px 2px 6px}',
     '.pk-hud .pk-sp{flex:1}.pk-hud button{padding:4px 12px;min-height:36px;font-size:17px}',
     '.pk-time{position:relative;height:20px;border-radius:10px;background:#1c2a47;overflow:hidden;margin:0 0 6px;border:1px solid var(--bd)}',
@@ -1110,9 +1116,27 @@
     '.gm-view.gm-fs .gm-fsbar{display:block;position:fixed;top:max(4px,env(safe-area-inset-top));right:max(4px,env(safe-area-inset-right));z-index:2147483100;margin:0}',
     '.gm-view.gm-fs .gm-fsb{width:32px;height:32px;min-height:0;padding:0;border-radius:50%;font-size:15px;line-height:1;opacity:.6;display:flex;align-items:center;justify-content:center}',
     '.gm-view.gm-fs .gm-fsb:active{opacity:1}',
-    '@media (orientation:portrait){.gm-view.gm-fs{padding-top:max(38px,calc(env(safe-area-inset-top) + 34px))}}',
-    '@media (orientation:landscape){.gm-view.gm-fs .gm-side{padding-top:30px}}',
-    '.gm-view.gm-fs .gm-wrap{justify-content:center;gap:8px}',
+    '.gm-view.gm-fs:not(.gm-land){padding-top:max(38px,calc(env(safe-area-inset-top) + 34px))}',
+    '.gm-view.gm-fs .gm-wrap{justify-content:center;gap:8px;flex-wrap:nowrap}',
+    '.gm-view.gm-fs:not(.gm-land) .gm-wrap{flex-direction:column;align-items:center}',
+    '.gm-view.gm-fs.gm-land .gm-wrap{flex-direction:row;align-items:stretch}',
+    /* ngang (máy tính): bàn chiếm tối đa, cột nút hẹp bên phải xếp dọc, căn giữa theo chiều cao */
+    '.gm-view.gm-fs.gm-land .gm-side{padding-top:30px;flex-direction:column;flex-wrap:nowrap;justify-content:center}',
+    '.gm-view.gm-fs.gm-land .gm-side button{flex:0 0 auto;width:100%}',
+    '#gvSd.gm-fs:not(.gm-land) .sd-pad button{min-height:clamp(46px,7vmin,70px);font-size:clamp(18px,3.4vmin,32px)}',
+    '#gvSd .sd-pad.in-side{grid-template-columns:repeat(3,1fr);margin:0 0 6px;width:100%;flex:0 0 auto}',
+    '#gvSd .sd-pad.in-side button{min-height:clamp(56px,9vmin,100px);font-size:clamp(22px,4vmin,44px)}',
+    '@media (max-height:520px){.gm-view.gm-fs.gm-land .gm-side{flex-direction:row;flex-wrap:wrap;justify-content:flex-start}.gm-view.gm-fs.gm-land .gm-side button{flex:1 1 auto;width:auto;min-height:36px}#gvSd .sd-pad.in-side{flex:1 1 100%}#gvSd .sd-pad.in-side button{min-height:34px;font-size:18px}}',
+    '.gm-view.gm-fs:not(.gm-land) .gm-side{flex:none;width:100%}',
+    /* chỉ giữ nút điều khiển ván đang chơi: ẩn chọn chế độ/mức độ, luật, tỉ số, lịch sử nước đi, hướng dẫn, thống kê */
+    '.gm-view.gm-fs .gm-side{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}',
+    '.gm-view.gm-fs .gm-side .bar{display:contents}',
+    '.gm-view.gm-fs .gm-side label.note,.gm-view.gm-fs .gm-side .note,.gm-view.gm-fs .gm-side .gm-tally,.gm-view.gm-fs .gm-side .bg-moves,#gvSd.gm-fs .gm-side .gm-line,#gvSd.gm-fs #sdCheck{display:none!important}',
+    '.gm-view.gm-fs .gm-side button{flex:1 1 auto;margin:0;min-height:clamp(40px,6vmin,68px);padding:6px 10px;font-size:clamp(13px,2.1vmin,22px)}',
+    '.gm-view.gm-fs .gm-side .gm-line,.gm-view.gm-fs .gm-side .status{flex:1 1 100%;margin:0;font-size:clamp(14px,2.2vmin,24px);line-height:1.4}',
+    '.gm-view.gm-fs .gm-side .status:empty,.gm-view.gm-fs .gm-side .gm-line:empty{display:none}',
+    '#gvFr.gm-fs .fr-hud{margin:0;flex:1 1 100%;font-size:clamp(15px,2.6vmin,28px);gap:clamp(10px,2vmin,24px)}#gvFr.gm-fs .fr-hud button{min-height:clamp(36px,5.4vmin,60px);font-size:clamp(16px,2.8vmin,30px)}',
+    '#gvFr.gm-fs .fr-overlay .box{font-size:clamp(15px,2.4vmin,28px)}#gvFr.gm-fs .fr-overlay button,#gvFr.gm-fs .fr-overlay select{min-height:clamp(42px,6vmin,68px);font-size:clamp(15px,2.4vmin,26px)}',
     '.gm-view.gm-fs #frCv{min-height:0}',
     /* --- Điện thoại: bàn cờ/Sudoku rộng gần hết màn hình --- */
     '@media (max-width:639px){',
@@ -1373,8 +1397,8 @@
 
     /* ---- Vùng hiển thị (toạ độ ô, gồm cả hai đầu). Chỉ lớn dần trong một ván. ---- */
     function cellSize(w) { return Math.max(26, Math.floor(w / 15)); }
-    function initView(w) {
-      var cols = Math.max(15, Math.ceil(w / cellSize(w))); if (cols % 2 === 0) cols++;
+    function initView(w, hgt) {
+      var cols = Math.max(15, Math.ceil(w / cellSize(Math.min(w, hgt || w)))); if (cols % 2 === 0) cols++;
       var h = cols >> 1; view = { x0: -h, y0: -h, x1: h, y1: h };
     }
     // Quân ở ô k cách mép < EDGE ô thì mở rộng thêm về phía đó
@@ -1394,9 +1418,10 @@
 
     function draw() {
       if (!eng) return; var W = box.clientWidth; if (!W) return;
-      box.style.height = box.offsetWidth + 'px';             // khung nhìn hình vuông, bàn cờ cuộn bên trong
-      var H = box.clientHeight, c = cellSize(W), fresh = false, k;
-      if (!view) { initView(W); eng.M.forEach(function (v, kk) { expand(kk); }); pendX = pendY = 0; fresh = true; }
+      var fh = box.getAttribute('data-fh');                  // toàn màn hình: khung chiếm trọn vùng còn lại (chữ nhật)
+      box.style.height = (fh ? fh : box.offsetWidth) + 'px';  // thường: khung nhìn hình vuông, bàn cờ cuộn bên trong
+      var H = box.clientHeight, c = cellSize(Math.min(W, H)), fresh = false, k;
+      if (!view) { initView(W, H); eng.M.forEach(function (v, kk) { expand(kk); }); pendX = pendY = 0; fresh = true; }
       CELL = c;
       var cols = view.x1 - view.x0 + 1, rows = view.y1 - view.y0 + 1;
       while (cols * c < W) { view.x1++; cols++; }
@@ -1826,7 +1851,7 @@
       if (ah < 120) ah = 320;
       var w0 = Math.floor(aw / (C + 1)), h0 = Math.floor(ah / (R + 1));
       var hh = Math.min(h0, Math.round(w0 * 1.25)), ww = Math.min(w0, Math.round(hh * 1.15));
-      w = Math.max(24, Math.min(84, ww)); h = Math.max(28, Math.min(100, hh));
+      w = Math.max(24, Math.min(full ? 400 : 84, ww)); h = Math.max(28, Math.min(full ? 460 : 100, hh));
       padX = w / 2; padY = h / 2;
       var nw = w * (C + 1), nh = h * (R + 1);
       dpr = Math.min(2.5, window.devicePixelRatio || 1);
@@ -2061,9 +2086,10 @@
       var prog = Math.min(1, score / 80);
       return { spawn: base.spawn * (1 - prog * 0.28), bomb: Math.min(0.32, base.bomb + prog * 0.07), grav: base.grav, speed: base.speed * (1 + prog * 0.18) };
     }
+    function fruitR() { var m = Math.min(LW, LH); return m * Math.min(0.1, 0.078 + Math.max(0, m - 480) * 0.00004); }   // màn hình càng lớn quả càng to
     function spawn() {
       if (items.length >= 10) return;
-      var L = lvl(), isBomb = Math.random() < L.bomb, f = pick(FRUITS), r = Math.min(LW, LH) * 0.078;
+      var L = lvl(), isBomb = Math.random() < L.bomb, f = pick(FRUITS), r = fruitR();
       // Bay gần hết chiều cao canvas (đỉnh ~8–18% từ mép trên) rồi mới rơi
       var peakY = LH * (0.08 + Math.random() * 0.10);
       var climb = Math.max(80, (LH + r) - peakY);
@@ -2174,7 +2200,7 @@
         }
         ctx.globalAlpha = 1;
       }
-      fontFruit = Math.round((items[0] ? items[0].r : Math.min(LW, LH) * 0.078) * 2) + 'px serif';
+      fontFruit = Math.round((items[0] ? items[0].r : fruitR()) * 2) + 'px serif';
       for (i = 0; i < items.length; i++) {
         it = items[i];
         fontFruit = Math.round(it.r * 2) + 'px serif';
@@ -2191,7 +2217,7 @@
         ctx.globalAlpha = 1;
       }
       if (comboFlash > 0) {
-        ctx.font = 'bold 30px sans-serif';
+        ctx.font = 'bold ' + Math.round(Math.max(30, Math.min(LW, LH) * 0.07)) + 'px sans-serif';
         ctx.fillStyle = 'rgba(250,204,21,' + (comboFlash > 40 ? 1 : comboFlash / 40) + ')';
         ctx.textAlign = 'center'; ctx.fillText('Combo!', LW / 2, LH * 0.25);
       }
@@ -2305,27 +2331,46 @@
   })();
 
   var fsView = null, fsLastW = 0;
+  var sideRO = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(function () { if (fsView) fitSoon(); }) : null;
   function resetBoard(v) {
     var b = v.querySelector('.gm-board'), w = v.querySelector('.gm-wrap'), sd = v.querySelector('.gm-side');
-    if (b) { b.style.flex = ''; b.style.width = ''; b.style.maxWidth = ''; b.style.margin = ''; b.style.position = ''; b.style.top = ''; }
+    if (b) { b.style.flex = ''; b.style.width = ''; b.style.maxWidth = ''; b.style.margin = ''; b.style.position = ''; b.style.top = ''; b.removeAttribute('data-fh'); }
     if (w) w.style.flexWrap = '';
-    if (sd) sd.style.flex = '';
+    if (sd) { sd.style.flex = ''; sd.style.width = ''; }
+    var fc = v.querySelector('#frCv'); if (fc) { fc.style.aspectRatio = ''; fc.style.height = ''; }
+    var pad = v.querySelector('#sdPad'); if (pad && b && pad.parentNode !== b) { b.appendChild(pad); pad.classList.remove('in-side'); }
   }
   /* Toàn màn hình: bàn chơi to nhất có thể mà vẫn nằm gọn trong màn hình (ngang: bảng điều khiển bên phải; dọc: bảng điều khiển bên dưới, cuộn xuống để xem) */
   function fitFull() {
     var v = fsView; if (!v) return;
     var b = v.querySelector('.gm-board'); if (!b) return;
+    var land = v.clientWidth > v.clientHeight * 1.1 && v.clientWidth >= 560;
+    v.classList.toggle('gm-land', land);
+    var id = v.id, sdEl = v.querySelector('.gm-side');
+    if (id === 'gvSd' && sdEl) {                                // Sudoku: bàn phím số nằm cạnh bàn khi ngang (bàn cao tối đa), nằm dưới bàn khi dọc
+      var pad = v.querySelector('#sdPad');
+      if (pad) {
+        if (land && pad.parentNode !== sdEl) { sdEl.insertBefore(pad, sdEl.firstChild); pad.classList.add('in-side'); }
+        else if (!land && pad.parentNode !== b) { b.appendChild(pad); pad.classList.remove('in-side'); }
+      }
+    }
     var cs = getComputedStyle(v), aw = v.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ah = v.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-    var bh = 0, id = v.id;
-    var asp = id === 'gvXq' ? 0.9 : id === 'gvFr' ? (window.innerWidth <= 639 ? 0.8 : 1.25) : 1, extra = id === 'gvSd' ? 72 : 0;
-    var land = aw > ah * 1.1 && aw >= 560, gap = 8, sideW = land ? Math.min(360, Math.max(250, Math.round(aw * 0.3))) : 0;
-    var w = land ? Math.min(aw - sideW - gap, (ah - bh - extra) * asp) : Math.min(aw, (ah - bh - extra) * asp);
+    var bh = (!land && sdEl) ? sdEl.offsetHeight + 8 : 0;       // dọc: trừ chiều cao hàng nút bên dưới bàn
+    var asp = id === 'gvXq' ? 0.9 : 1, extra = (id === 'gvSd' && !land) ? 72 : 0;
+    var gap = 8, sideW = land ? Math.min(300, Math.max(200, Math.round(aw * 0.2))) : 0;
+    var free = id === 'gvCaro' || id === 'gvFr';                // Caro / Chém hoa quả: khung chiếm trọn vùng còn lại, không cần tỉ lệ cố định
+    var w, hh = 0;
+    if (free) { w = land ? aw - sideW - gap : aw; hh = Math.max(200, Math.floor(ah - bh)); }
+    else w = land ? Math.min(aw - sideW - gap, (ah - extra) * asp) : Math.min(aw, (ah - bh - extra) * asp);
     w = Math.max(240, Math.floor(w));
-    var wrap = v.querySelector('.gm-wrap'), sd = v.querySelector('.gm-side');
-    if (wrap) wrap.style.flexWrap = land ? 'nowrap' : '';
-    if (sd) sd.style.flex = land ? '1 1 0' : '';
+    var wrap = v.querySelector('.gm-wrap');
+    if (wrap) wrap.style.flexWrap = '';
+    if (sdEl) { sdEl.style.flex = land ? '0 0 ' + sideW + 'px' : ''; sdEl.style.width = land ? sideW + 'px' : ''; }
     b.style.flex = '0 0 auto'; b.style.maxWidth = 'none'; b.style.width = w + 'px'; b.style.margin = '0'; b.style.position = ''; b.style.top = '';
-    if (w !== fsLastW) { fsLastW = w; setTimeout(function () { try { window.dispatchEvent(new Event('resize')); } catch (e) { } }, 0); }   // để canvas vẽ lại đúng kích thước mới
+    if (id === 'gvCaro') b.setAttribute('data-fh', hh);
+    if (id === 'gvFr') { var fc = v.querySelector('#frCv'); if (fc) { fc.style.aspectRatio = 'auto'; fc.style.height = hh + 'px'; } }
+    var key = w + 'x' + hh;
+    if (key !== fsLastW) { fsLastW = key; setTimeout(function () { try { window.dispatchEvent(new Event('resize')); } catch (e) { } }, 0); }   // để canvas vẽ lại đúng kích thước mới
   }
   function setFsLabel(btn) { btn.textContent = '✕'; btn.title = 'Thoát toàn màn hình'; }
   function addFsBar(id) {
@@ -2338,8 +2383,10 @@
   }
   function hostFsCb(host) {
     return function (on) {
-      var btn = host.querySelector('.gm-fsb');
+      var btn = host.querySelector('.gm-fsb'), sd = host.querySelector('.gm-side');
       fsView = on ? host : null; fsLastW = 0; if (btn) setFsLabel(btn);
+      if (sideRO) { sideRO.disconnect(); if (on && sd) sideRO.observe(sd); }
+      if (!on) host.classList.remove('gm-land');
       if (on) { resetBoard(host); host.scrollTop = 0; fitFull(); } else { resetBoard(host); fitBleed(); }
     };
   }
