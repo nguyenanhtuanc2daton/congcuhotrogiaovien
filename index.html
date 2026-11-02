@@ -35,11 +35,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-<link rel="stylesheet" href="style.css?v=20261017">
+<link rel="stylesheet" href="style.css?v=20261102">
 
 
 
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <script id="am-lich-lib">
 /* Âm lịch Việt Nam (múi giờ GMT+7) – thuật toán Hồ Ngọc Đức. window.AmLich.solar2lunar(d,m,y) → {d,m,y,leap}; .lunar2solar(d,m,y,leap) → Date (hoặc null) */
 (function(){
@@ -113,8 +113,22 @@ html #tod-greet .g-time,html[data-tod] #tod-greet .g-time{white-space:nowrap;fon
 html #tod-greet .g-hl b{white-space:nowrap}
 html #tod-greet .g-hl{text-wrap:balance;font-size:clamp(11px,3vw,12.5px)}
 </style>
+<style id="inter-font">
+/* FONT INTER cho toàn bộ chữ hiển thị (Google Fonts, có subset "vietnamese" đầy đủ dấu).
+   Dự phòng khi chưa tải được Inter: system-ui / Segoe UI / Roboto / Noto Sans (đều có tiếng Việt).
+   Ngoại lệ: khung xem trước văn bản Word (Times New Roman) và ký hiệu trang trí. */
+:root{--ui-font:"Inter","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue","Noto Sans",Arial,sans-serif}
+html{font-family:var(--ui-font)}
+html body,html body *,html body input,html body select,html body textarea,html body button{font-family:var(--ui-font)!important;font-synthesis:style}
+html body .doc,html body .doc *,html body #preview.paper,html body #preview.paper *,html body [style*="Times New Roman"],html body [style*="Times New Roman"] *,html body [style*="Tinos"],html body [style*="Tinos"] *{font-family:"Times New Roman",Tinos,Times,"Noto Serif",serif!important}
+html body .lp-sym{font-family:Georgia,"Times New Roman",serif!important}
+/* Không dùng calt/ligature gây lệch dấu; giữ dấu thanh đúng vị trí; chữ HOA tiếng Việt không bị cắt dấu */
+html body{font-feature-settings:"ccmp" 1,"locl" 1,"kern" 1;font-variant-ligatures:none;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+html body h1,html body h2,html body h3,html body .hero h1,html body .tab,html body button{line-height:1.35}
+html body input,html body textarea,html body select{line-height:1.5}
+</style>
 <style id="desk-fit">
-/* Màn máy tính: khung nội dung rộng gần hết màn, bớt thừa hai bên. Cỡ chữ do script "desk-fit" phóng to theo độ rộng màn. */
+/* Màn máy tính: khung nội dung rộng gần hết màn, bớt thừa hai bên. Cỡ chữ (kể cả chữ nhỏ nhất, tối thiểu 14px) tự to theo độ rộng màn nhờ script "desk-fit". */
 @media (min-width:1100px){
   html body{padding-left:clamp(10px,1.2vw,28px);padding-right:clamp(10px,1.2vw,28px)}
   html .app{max-width:1640px}
@@ -132,9 +146,9 @@ html #tod-greet .g-hl{text-wrap:balance;font-size:clamp(11px,3vw,12.5px)}
 }
 #dfBox{position:fixed;right:14px;bottom:64px;z-index:9998;display:none;align-items:center;gap:2px;padding:3px;border-radius:99px;background:rgba(20,26,46,.82);border:1px solid rgba(255,255,255,.22);box-shadow:0 4px 14px -4px rgba(0,0,0,.5);opacity:.75;transition:opacity .15s}
 #dfBox:hover{opacity:1}
-#dfBox button{min-width:0;width:30px;height:30px;padding:0;border-radius:50%;font:700 14px 'Segoe UI',Arial,sans-serif;line-height:1;background:transparent;color:#fff;box-shadow:none}
+#dfBox button{min-width:0;width:32px;height:32px;padding:0;border-radius:50%;font:700 14px var(--ui-font);line-height:1;background:transparent;color:#fff;box-shadow:none}
 #dfBox button:hover{background:rgba(255,255,255,.18)}
-#dfBox #dfV{width:auto;min-width:46px;padding:0 6px;border-radius:99px;font-size:12px;font-weight:600}
+#dfBox #dfV{width:auto;min-width:52px;padding:0 6px;border-radius:99px;font-size:14px;font-weight:600}
 @media print{#dfBox{display:none!important}}
 </style>
 <script id="desk-fit-js">
@@ -142,26 +156,30 @@ html #tod-greet .g-hl{text-wrap:balance;font-size:clamp(11px,3vw,12.5px)}
    Có nút A− / A+ ở góc phải dưới để chỉnh tay; bấm vào số % để quay về tự động. Giá trị chỉnh tay được nhớ trên máy. */
 (function(){
   var KEY='cd_zoom_adj', de=document.documentElement, adj=1, raf=0;
-  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=.6&&s<=1.8)adj=s;}catch(e){}
+  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=.6&&s<=2)adj=s;}catch(e){}
+  /* Tivi thông minh / hộp Android TV: xem từ xa nên chữ cần to hơn ~20% so với máy tính cùng độ phân giải */
+  var TV=/SMART-?TV|SmartTV|Tizen|Web0S|WebOS|NetCast|HbbTV|BRAVIA|VIDAA|GoogleTV|Android ?TV|AFT[A-Z]+|CrKey|Roku|TV Safari|Large Screen/i.test(navigator.userAgent||'');
+  function minW(){return TV?900:1100;}
   function base(){
     var w=window.innerWidth||de.clientWidth;
-    if(w<1100)return 1;                       /* điện thoại, máy tính bảng */
-    var h=window.innerHeight||de.clientHeight, z=Math.max(1.05,w/1440);   /* 1366px→1.05 · 1536px≈1.07 · 1920px≈1.33 · 2560px≈1.78 */
-    return Math.min(3,z,Math.max(1.05,h/620));  /* màn rộng nhưng thấp: không phóng quá để khỏi mất chiều cao */
+    if(w<minW())return 1;                     /* điện thoại, máy tính bảng */
+    var h=window.innerHeight||de.clientHeight, k=TV?1.2:1;
+    var z=Math.max(1.05,w/1440)*k;            /* laptop 1366px→1.05 · 1536px≈1.07 · Full HD 1920px≈1.33 (tivi ≈1.6) · 2K≈1.78 · 4K≈2.67 */
+    return Math.min(3.2,z,Math.max(1.05,h/620)*k);  /* màn rộng nhưng thấp: không phóng quá để khỏi mất chiều cao */
   }
   function isFull(){
     return !!(document.fullscreenElement||document.webkitFullscreenElement||document.querySelector('#ufo-bat-tra-bai-host.on,.kc-stage.on.fs,.tx-fs,.tx-clock:fullscreen,.bg-stage.fs'));
   }
   function apply(){
     raf=0;
-    var z=isFull()?1:base()*adj;               /* toàn màn hình: bỏ phóng to để khỏi tràn */
+    var z=isFull()?1:Math.min(4,Math.max(1,base()*adj));   /* toàn màn hình: bỏ phóng to để khỏi tràn · không bao giờ nhỏ hơn 100% để chữ nhỏ nhất luôn ≥14px */
     z=Math.round(z*100)/100;
     de.style.zoom=String(z);de.style.setProperty('--z',z);
-    var v=document.getElementById('dfV'); if(v)v.textContent=Math.round(adj*100)+'%';
-    var b=document.getElementById('dfBox'); if(b)b.style.display=(window.innerWidth>=1100&&!isFull())?'flex':'none';
+    var v=document.getElementById('dfV'); if(v)v.textContent=Math.round(z*100)+'%';
+    var b=document.getElementById('dfBox'); if(b)b.style.display=(window.innerWidth>=minW()&&!isFull())?'flex':'none';
   }
   function later(){if(!raf)raf=requestAnimationFrame(apply);}
-  function set(a){adj=Math.min(1.8,Math.max(.6,Math.round(a*100)/100));try{localStorage.setItem(KEY,adj);}catch(e){}later();}
+  function set(a){adj=Math.min(2,Math.max(.6,Math.round(a*100)/100));try{localStorage.setItem(KEY,adj);}catch(e){}later();}
   function build(){
     if(document.getElementById('dfBox'))return;
     var d=document.createElement('div');d.id='dfBox';d.setAttribute('role','group');d.setAttribute('aria-label','Cỡ giao diện');
@@ -208,7 +226,7 @@ html:not([data-theme=toi]) .an,html[data-theme=toi] .ad{display:none}
 .gd-logo{display:block;width:76px;height:76px;margin:-34px auto 4px;border-radius:14px;background:#fff;padding:3px;box-shadow:var(--sh);object-fit:contain}
 .gd-sch{display:flex;align-items:center;gap:10px;justify-content:center;font-weight:700;letter-spacing:.06em;font-size:15px;color:#1b3a8a;text-transform:uppercase}
 .gd-sch:before,.gd-sch:after{content:"";height:1.5px;width:15%;background:currentColor;opacity:.6}
-.gd-h1{margin:2px 0 8px;font-size:clamp(21px,6vw,31px);font-weight:800;color:#12296b;text-transform:uppercase;line-height:1.15}
+.gd-h1{margin:2px 0 8px;font-size:clamp(21px,6vw,31px);font-weight:800;color:#12296b;text-transform:uppercase;line-height:1.4}
 html[data-theme=toi] .gd-sch,html[data-theme=toi] .gd-h1{color:#f1f5ff;text-shadow:0 2px 8px rgba(0,0,0,.6)}
 .gd-gv{display:inline-flex;align-items:center;gap:0;background:var(--chip);border-radius:30px;padding:0 18px 0 0;box-shadow:var(--sh);border:1px solid var(--bd);font-weight:700;font-size:14px;color:var(--ink)}
 .gd-gv img{width:58px;height:58px;border-radius:50%;border:3px solid #fff;object-fit:cover;margin:-6px 10px -6px -6px;background:#fff}
@@ -216,9 +234,9 @@ html[data-theme=toi] .gd-gv img{border-color:#9fc4ff;box-shadow:0 0 14px rgba(12
 .gd-wrap{padding:0 12px}
 .gd-hi{display:flex;align-items:center;gap:12px;margin:-8px 0 14px;padding:10px 14px;border-radius:22px;background:var(--card);border:1px solid var(--bd);box-shadow:var(--sh);backdrop-filter:blur(10px);position:relative;z-index:2}
 .gd-hi .ic{font-size:40px;line-height:1}
-.gd-hi .tx{flex:1 1 0;min-width:0}.gd-hi h2{margin:0;font-size:21px;font-weight:800;color:var(--ink);line-height:1.15}.gd-hi p{margin:1px 0 0;font-size:12.5px;color:var(--mut);line-height:1.2;white-space:nowrap;overflow:hidden}
+.gd-hi .tx{flex:1 1 0;min-width:0}.gd-hi h2{margin:0;font-size:21px;font-weight:800;color:var(--ink);line-height:1.35}.gd-hi p{margin:1px 0 0;font-size:12.5px;color:var(--mut);line-height:1.5;padding:.15em 0;white-space:nowrap;overflow:hidden}
 .gd-hi .tm{text-align:center;padding:0 10px;border-left:1.5px solid var(--bd);border-right:1.5px solid var(--bd);font-size:12px;color:var(--ink)}
-.gd-hi .tm b{display:block;font-size:30px;font-weight:800;color:var(--time);line-height:1.15;font-variant-numeric:tabular-nums}
+.gd-hi .tm b{display:block;font-size:30px;font-weight:800;color:var(--time);line-height:1.25;font-variant-numeric:tabular-nums}
 .gd-hi .hd{font-size:12px;line-height:1.35;text-align:center;color:var(--ink);max-width:104px}.gd-hi .hd:empty{display:none}
 .gd-hi .hd b{font-size:13px}
 @media(max-width:520px){.gd-hi{flex-wrap:wrap;row-gap:4px}.gd-hi .tx{flex:1 1 60%}.gd-hi .hd{max-width:none;flex:1 1 100%;border-top:1px solid var(--bd);padding-top:8px}.gd-hi .tm{border-right:0;padding-right:0}}
@@ -228,7 +246,7 @@ html[data-theme=toi] .gd-gv img{border-color:#9fc4ff;box-shadow:0 0 14px rgba(12
 .gc:active{transform:scale(.97)}
 html[data-theme=toi] .gc{background:var(--td)}
 .gc .em{font-size:30px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.25))}
-.gc b{font-size:14px;line-height:1.2;padding-right:18px}
+.gc b{font-size:14px;line-height:1.35;padding-right:18px}
 .gc small{grid-column:1/-1;font-size:11.5px;line-height:1.35;color:var(--mut);margin-top:4px}
 .gc .go{position:absolute;right:8px;top:8px;width:22px;height:22px;border-radius:50%;background:var(--ac);color:#fff;font-size:13px;display:grid;place-items:center}
 .gc .fv{position:absolute;right:6px;bottom:4px;border:0;background:none;font-size:15px;color:var(--ac);cursor:pointer;padding:2px 4px}
@@ -236,7 +254,7 @@ html[data-theme=toi] .gc{background:var(--td)}
 .c4{--t:#dcf6ea;--td:rgba(20,150,110,.28);--ac:#047857}.c5{--t:#fde7c8;--td:rgba(146,64,14,.26);--ac:#92400e}.c6{--t:#fae8ff;--td:rgba(162,28,175,.28);--ac:#a21caf}
 .gd-board{display:block;width:calc(100% - 24px);margin:14px 12px 0;border-radius:24px;overflow:hidden;box-shadow:var(--sh)}
 .gd-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:640px;z-index:50;display:flex;justify-content:space-around;padding:8px 6px calc(env(safe-area-inset-bottom,0px) + 8px);background:var(--nav);border-radius:24px 24px 0 0;box-shadow:0 -6px 22px rgba(30,60,130,.2);border-top:1px solid var(--bd)}
-.gd-nav button{flex:1;border:0;background:none;color:var(--mut);font:600 12px/1.2 inherit;font-family:inherit;padding:7px 2px;border-radius:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.gd-nav button{flex:1;border:0;background:none;color:var(--mut);font-family:inherit;font-size:12px;font-weight:600;line-height:1.35;padding:7px 2px;border-radius:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
 .gd-nav button i{font-style:normal;font-size:22px}.gd-nav button.on{background:var(--navon);color:var(--navtx)}
 html[data-theme=toi] .gd-nav button.on{box-shadow:inset 0 -3px 0 var(--navtx)}
 #gdSheet{position:fixed;inset:0;z-index:90;background:rgba(5,10,30,.55);display:none;align-items:flex-end;justify-content:center}
@@ -1182,42 +1200,109 @@ cat.setAttribute('data-run','1');
 run();requestAnimationFrame(frame);
 })();
 </script>
+<style id="font-floor-css">
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* Cỡ chữ tối thiểu 14px. Trang chủ (có hệ cỡ chữ riêng theo màn hình) chỉ cần nâng vài dòng chữ nhỏ trên màn máy tính / tivi. */
+@media (min-width:900px){
+  html #tod-greet .g-time,html[data-tod] #tod-greet .g-time{font-size:14px!important}
+  html #tod-greet .g-hl{font-size:14px!important}
+  html .ct-r b{font-size:14px!important}
+}
+</style>
 <script id="min-font-js">
-/* Máy tính: mọi chữ trong các công cụ (trừ Trang chủ) tối thiểu ~14px khi nhìn trên màn hình. Bù theo mức phóng to của desk-fit. */
+/* CỠ CHỮ TỐI THIỂU 14px CHO MỌI CÔNG CỤ (trừ Trang chủ, đã có hệ cỡ chữ riêng).
+   - Chữ nào nhỏ hơn 14px (tính theo px của trang) sẽ được nâng lên 14px.
+   - Vì cả trang đã được phóng to theo màn hình (script desk-fit: laptop ≈105%, Full HD ≈133%, 2K ≈178%, 4K ≈ 267%; tivi thông minh được cộng thêm ≈20%),
+     nên chữ nhỏ nhất cũng tự to theo: 14px → ≈15 / 19 / 25 / 37px trên màn hình thật. Không còn chữ bé xíu trên màn lớn.
+   - Áp dụng cho mọi cỡ màn hình, kể cả khi bật toàn màn hình (lúc đó trang không phóng to nhưng vẫn không có chữ dưới 14px).
+   - Chỉ chạm vào phần tử thực sự chứa chữ; đọc hết rồi mới ghi (không làm giật trang); công cụ nào hiện thêm nội dung
+     (kết quả, hộp thoại, bảng...) cũng được xử lý tự động. */
 (function(){
-  var MIN=14,raf=0,SKIP={SCRIPT:1,STYLE:1,svg:1,SVG:1,CANVAS:1,BR:1,HR:1,IMG:1,PATH:1};
-  function z(){return parseFloat(document.documentElement.style.zoom)||1;}
-  function active(){
-    if((window.innerWidth||0)<900)return false;
-    if(document.fullscreenElement||document.webkitFullscreenElement)return false;
-    return true;
+  var MIN=14;
+  var SKIP={SCRIPT:1,STYLE:1,NOSCRIPT:1,TEMPLATE:1,CANVAS:1,IMG:1,VIDEO:1,AUDIO:1,IFRAME:1,BR:1,HR:1,OPTION:1,OPTGROUP:1,
+            svg:1,SVG:1,PATH:1,G:1,CIRCLE:1,RECT:1,LINE:1,POLYGON:1,TEXT:1,TSPAN:1,DEFS:1,USE:1};
+  var FORM={INPUT:1,SELECT:1,TEXTAREA:1,BUTTON:1};
+  var NOTEXT={checkbox:1,radio:1,range:1,color:1,hidden:1,image:1};
+  var obs=null,tid=0,full=false,roots=new Set();
+
+  function skipSubtree(e){
+    if(SKIP[e.tagName])return true;
+    if(e.id==='t0'||e.id==='dfBox'||e.id==='gdSheet')return true;          /* Trang chủ + nút A−/A+ */
+    if(e.classList&&(e.classList.contains('curtain-wrap')||e.hasAttribute('data-nofloor')))return true;
+    if(e.classList&&e.classList.contains('panel')&&!e.classList.contains('on'))return true;   /* công cụ đang ẩn: xử lý khi được mở */
+    return false;
   }
-  function fix(){
-    raf=0;
-    var panels=document.querySelectorAll('.panel:not(#t0)');
-    var on=active(),min=MIN/z();
-    for(var p=0;p<panels.length;p++){
-      var els=panels[p].querySelectorAll('*');
-      for(var i=0;i<els.length;i++){
-        var e=els[i];
-        if(SKIP[e.tagName]||e.closest('svg'))continue;
-        if(e.hasAttribute('data-mf')){e.style.removeProperty('font-size');e.removeAttribute('data-mf');}
-        if(!on)continue;
-        var fs=parseFloat(getComputedStyle(e).fontSize);
-        if(fs&&fs<min-.2){e.style.setProperty('font-size',min.toFixed(2)+'px','important');e.setAttribute('data-mf','1');}
-      }
+  function hasText(e){
+    if(FORM[e.tagName]){
+      if(e.tagName==='INPUT'&&NOTEXT[(e.type||'').toLowerCase()])return false;
+      return true;
     }
+    for(var n=e.firstChild;n;n=n.nextSibling){if(n.nodeType===3&&/\S/.test(n.nodeValue))return true;}
+    return false;
   }
-  function later(){if(!raf)raf=requestAnimationFrame(fix);}
+  function collect(root,out){
+    if(root.nodeType!==1||skipSubtree(root))return;
+    if(hasText(root))out.push(root);
+    var w=document.createTreeWalker(root,NodeFilter.SHOW_ELEMENT,{acceptNode:function(n){
+      return skipSubtree(n)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT;}});
+    var n;while((n=w.nextNode())){if(hasText(n))out.push(n);}
+  }
+  function inSkipped(e){return !!(e.closest&&e.closest('#t0,#dfBox,#gdSheet,svg,.curtain-wrap,[data-nofloor]'));}
+
+  function run(){
+    tid=0;
+    var list=Array.from(roots);roots.clear();
+    var all=full?[document.body]:list;full=false;
+    if(!all.length)return;
+    var els=[],i,e;
+    for(i=0;i<all.length;i++){
+      var r=all[i];
+      if(!r||!r.isConnected||inSkipped(r))continue;
+      /* 1) bỏ mức nâng cũ trong vùng này để đo lại đúng cỡ chữ gốc (CSS có thể đã đổi theo kích thước màn hình) */
+      var old=r.querySelectorAll?r.querySelectorAll('[data-mf]'):[];
+      for(var k=0;k<old.length;k++){old[k].style.removeProperty('font-size');old[k].removeAttribute('data-mf');}
+      if(r.hasAttribute&&r.hasAttribute('data-mf')){r.style.removeProperty('font-size');r.removeAttribute('data-mf');}
+      collect(r,els);
+    }
+    /* 2) ĐỌC tất cả trước */
+    var fix=[];
+    for(i=0;i<els.length;i++){
+      e=els[i];
+      var fs=parseFloat(getComputedStyle(e).fontSize);
+      if(fs&&fs<MIN-.05)fix.push(e);
+    }
+    /* 3) rồi mới GHI */
+    for(i=0;i<fix.length;i++){
+      fix[i].style.setProperty('font-size',MIN+'px','important');
+      fix[i].setAttribute('data-mf','1');
+    }
+    if(obs)obs.takeRecords();   /* bỏ qua các thay đổi do chính script này tạo ra */
+  }
+  function later(r){
+    if(r===true)full=true;else if(r)roots.add(r);
+    if(!tid){tid=setTimeout(run,50);}
+  }
   function start(){
-    fix();
-    window.addEventListener('resize',later);
-    document.addEventListener('fullscreenchange',later);
-    if(window.MutationObserver){
-      new MutationObserver(function(m){
-        for(var i=0;i<m.length;i++){if(m[i].type==='childList'||m[i].attributeName==='class'||m[i].attributeName==='hidden'){later();return;}}
-      }).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
-    }
+    full=true;run();
+    window.addEventListener('resize',function(){later(true);});
+    window.addEventListener('orientationchange',function(){later(true);});
+    document.addEventListener('fullscreenchange',function(){later(true);});
+    document.addEventListener('webkitfullscreenchange',function(){later(true);});
+    if(!window.MutationObserver)return;
+    obs=new MutationObserver(function(ms){
+      for(var i=0;i<ms.length;i++){
+        var m=ms[i],t=m.target;
+        if(!t||t.nodeType!==1||inSkipped(t))continue;
+        if(m.type==='childList'){
+          if(m.addedNodes.length){
+            for(var j=0;j<m.addedNodes.length;j++){var a=m.addedNodes[j];if(a.nodeType===1)later(a);else if(a.nodeType===3&&/\S/.test(a.nodeValue))later(t);}
+          }
+        }else if(m.type==='attributes'){
+          later(t.classList&&t.classList.contains('panel')?t:t);
+        }
+      }
+    });
+    obs.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();

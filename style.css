@@ -1,12 +1,12 @@
 #gkBar{margin:10px auto;max-width:1100px;padding:8px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--fg);font-size:14px}
 #gkBar .gkrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 #gkBar .gkst{font-weight:700}#gkBar .gkst.ok{color:var(--ok)}#gkBar .gkst.no{color:var(--warn)}
-#gkBar input[type=password]{flex:1 1 240px;min-width:180px;background:var(--card2);color:var(--fg);border:1px solid var(--bd);border-radius:10px;padding:9px;font:14px Consolas,'Segoe UI',monospace}
-#gkBar label{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--mut)}
-#gkBar a{color:var(--cy)}#gkBar #gkMsg{width:100%;font-size:13px;color:var(--mut)}
-:root{--bg:#0b1220;--card:#131c2e;--card2:#0f1626;--bd:#25324d;--fg:#e6ebf5;--mut:#93a0ba;--a1:#4f5bf0;--a2:#a02ee0;--cy:#38bdf8;--ok:#34d399;--warn:#fb923c;--bad:#f87171}
+#gkBar input[type=password]{flex:1 1 240px;min-width:180px;background:var(--card2);color:var(--fg);border:1px solid var(--bd);border-radius:10px;padding:9px;font:14px var(--ui-font)}
+#gkBar label{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--mut)}
+#gkBar a{color:var(--cy)}#gkBar #gkMsg{width:100%;font-size:14px;color:var(--mut)}
+:root{--ui-font:"Inter","Segoe UI",Roboto,"Helvetica Neue","Noto Sans",Arial,sans-serif;--bg:#0b1220;--card:#131c2e;--card2:#0f1626;--bd:#25324d;--fg:#e6ebf5;--mut:#93a0ba;--a1:#4f5bf0;--a2:#a02ee0;--cy:#38bdf8;--ok:#34d399;--warn:#fb923c;--bad:#f87171}
 *{box-sizing:border-box}
-body{margin:0;padding:14px;background:var(--bg);color:var(--fg);font-family:'Segoe UI',Roboto,Arial,sans-serif;min-height:100vh}
+body{margin:0;padding:14px;background:var(--bg);color:var(--fg);font-family:var(--ui-font);min-height:100vh}
 .app{max-width:1200px;margin:0 auto}
 .hero{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:clamp(12px,2.4vw,26px);text-align:left;padding:clamp(14px,2.4vw,24px) clamp(14px,3vw,32px);border-radius:18px;
  background:linear-gradient(120deg,#4f5bf0,#a02ee0,#ec4899,#f59e0b,#10b981,#06b6d4,#4f5bf0);background-size:400% 400%;animation:heroFlow 14s ease-in-out infinite;
@@ -32,7 +32,7 @@ body{margin:0;padding:14px;background:var(--bg);color:var(--fg);font-family:'Seg
 @media (max-width:560px){.hero{flex-direction:column;text-align:center}}
 @media (prefers-reduced-motion:reduce){.hero,.hero::before,.hero .logo{animation:none}}
 .tabs{display:flex;gap:6px;margin:14px 0;padding:6px;background:var(--card);border:1px solid var(--bd);border-radius:14px}
-.tab{flex:1 1 0;min-width:0;background:transparent;color:var(--mut);border:0;border-radius:10px;padding:11px 6px;font:600 clamp(11px,1.8vw,15px) inherit;font-family:inherit;cursor:pointer;box-shadow:none}
+.tab{flex:1 1 0;min-width:0;background:transparent;color:var(--mut);border:0;border-radius:10px;padding:11px 6px;font-family:inherit;font-weight:600;font-size:clamp(11px,1.8vw,15px);cursor:pointer;box-shadow:none}
 .tab.on{background:var(--a1);color:#fff}
 .tab:hover:not(.on){background:#1b2740;color:#fff}
 .panel{display:none;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px}
@@ -40,22 +40,22 @@ body{margin:0;padding:14px;background:var(--bg);color:var(--fg);font-family:'Seg
 h2{margin:0 0 12px;font-size:18px;color:var(--cy)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:800px){.grid2{grid-template-columns:1fr}}
-button{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;border:0;padding:10px 16px;border-radius:10px;font:600 14px 'Segoe UI',Arial,sans-serif;cursor:pointer;transition:transform .12s,filter .12s}
+button{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;border:0;padding:10px 16px;border-radius:10px;font:600 14px var(--ui-font);cursor:pointer;transition:transform .12s,filter .12s}
 button:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.1)}
 button:disabled{opacity:.5;cursor:not-allowed}
 button.ghost{background:transparent;border:1.5px solid var(--a1);color:#aab3ff}
 button.sec{background:#22304d;color:var(--fg)}
 button.red{background:#ef4444}button.green{background:#10b981}button.orange{background:#f97316}
-button.sm{padding:6px 10px;font-size:13px}
+button.sm{padding:6px 10px;font-size:14px}
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
-textarea,input[type=text],input[type=number]{background:var(--card2);color:var(--fg);border:1px solid var(--bd);border-radius:10px;padding:9px;font:14px Consolas,'Segoe UI',monospace;width:100%}
+textarea,input[type=text],input[type=number]{background:var(--card2);color:var(--fg);border:1px solid var(--bd);border-radius:10px;padding:9px;font:14px var(--ui-font);width:100%}
 textarea{resize:vertical;min-height:120px}
 textarea:focus,input:focus{outline:2px solid var(--a1);outline-offset:0}
-.status{font-size:13px;min-height:18px;margin-top:6px}.status.ok{color:var(--ok)}.status.err{color:var(--bad)}.status.info{color:var(--mut)}
-.note{font-size:12px;color:var(--mut);margin-top:8px;line-height:1.5}
-.modebadge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:99px;background:#26325a;color:#b9c2ff;margin-left:6px}
+.status{font-size:14px;min-height:18px;margin-top:6px}.status.ok{color:var(--ok)}.status.err{color:var(--bad)}.status.info{color:var(--mut)}
+.note{font-size:14px;color:var(--mut);margin-top:8px;line-height:1.5}
+.modebadge{display:inline-block;font-size:14px;padding:3px 10px;border-radius:99px;background:#26325a;color:#b9c2ff;margin-left:6px}
 #preview{min-height:200px;max-height:480px;overflow:auto;background:var(--card2);border:1px solid var(--bd);border-radius:10px;padding:12px;font-size:14px;line-height:1.7}
-#preview p{margin:0 0 8px}#preview table{border-collapse:collapse;width:100%;font-size:13px}#preview td{border:1px solid var(--bd);padding:6px;vertical-align:top}
+#preview p{margin:0 0 8px}#preview table{border-collapse:collapse;width:100%;font-size:14px}#preview td{border:1px solid var(--bd);padding:6px;vertical-align:top}
 .eqinline{color:#a5b4fc;font-style:italic;padding:0 2px}.eqdisplay{display:block;text-align:center;margin:8px 0;color:#a5b4fc;font-style:italic}
 /* Vòng quay */
 .wheelbox{display:flex;flex-direction:column;align-items:center;gap:10px}
@@ -67,7 +67,7 @@ textarea:focus,input:focus{outline:2px solid var(--a1);outline-offset:0}
 .ov.on{display:flex}
 .ovbox{background:linear-gradient(135deg,#4f5bf0,#a02ee0);border-radius:24px;padding:clamp(20px,5vw,54px);text-align:center;max-width:96vw;box-shadow:0 20px 60px #000}
 .ovbox .s{font-size:clamp(18px,3.5vw,38px);opacity:.92}
-.ovbox .n{font-size:clamp(34px,9vw,110px);font-weight:800;line-height:1.15;margin:10px 0;word-break:break-word}
+.ovbox .n{font-size:clamp(34px,9vw,110px);font-weight:800;line-height:1.3;margin:10px 0;word-break:break-word}
 /* Bảng điểm */
 .tw{overflow-x:auto;border:1px solid var(--bd);border-radius:10px}
 table.g{border-collapse:collapse;width:100%;min-width:1040px}
@@ -78,24 +78,24 @@ table.g td.nm input{text-align:left;min-width:150px}
 input.bad{outline:2px solid var(--bad);background:#3a1620}
 .cl-G{color:var(--ok);font-weight:700}.cl-K{color:var(--warn);font-weight:700}.cl-T{color:#facc15;font-weight:700}.cl-Y{color:var(--bad);font-weight:700}
 .cfg{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:8px 0}
-.cfg label{font-size:12px;color:var(--mut);display:block}.cfg input{width:72px}
+.cfg label{font-size:14px;color:var(--mut);display:block}.cfg input{width:72px}
 .mb.on{background:var(--a1)}
 table.g th{border-right:1px solid var(--bd)}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:12px 0}
 .stat{background:var(--card2);border:1px solid var(--bd);border-radius:10px;padding:8px;text-align:center}
-.stat b{display:block;font-size:20px}.stat span{font-size:12px;color:var(--mut)}
+.stat b{display:block;font-size:20px}.stat span{font-size:14px;color:var(--mut)}
 /* Đồ thị */
 .fr{display:flex;gap:6px;align-items:center;margin-bottom:6px}
 .fr i{width:14px;height:14px;border-radius:50%;flex:none}
 #gcv{width:100%;height:min(62vh,520px);display:block;background:#0a101d;border:1px solid var(--bd);border-radius:10px;touch-action:none;cursor:grab}
-#gres{font-size:13px;line-height:1.7;margin-top:8px}
+#gres{font-size:14px;line-height:1.7;margin-top:8px}
 
-select{background:var(--card2);color:var(--fg);border:1px solid var(--bd);border-radius:10px;padding:8px;font:14px 'Segoe UI',Arial,sans-serif}
+select{background:var(--card2);color:var(--fg);border:1px solid var(--bd);border-radius:10px;padding:8px;font:14px var(--ui-font)}
 #fileList{display:flex;flex-direction:column;gap:4px;max-height:170px;overflow:auto;margin:6px 0}
-.frow{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--bd);border-radius:8px;padding:4px 8px;font-size:13px}
-.frow .fnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.frow .fsz{color:var(--mut);font-size:12px}
-.frow .fx{padding:2px 8px;font-size:12px}
-.fhead{font-weight:700;font-size:13px;background:#26325a;color:#dbe1ff;border-radius:6px;padding:4px 8px;margin:10px 0 6px;font-family:'Segoe UI',Arial,sans-serif}.fhead.err{background:#5a2626;color:#ffd0d0}
+.frow{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--bd);border-radius:8px;padding:4px 8px;font-size:14px}
+.frow .fnm{flex:1;min-width:0;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.frow .fsz{color:var(--mut);font-size:14px}
+.frow .fx{padding:2px 8px;font-size:14px}
+.fhead{font-weight:700;font-size:14px;background:#26325a;color:#dbe1ff;border-radius:6px;padding:4px 8px;margin:10px 0 6px;font-family:var(--ui-font)}.fhead.err{background:#5a2626;color:#ffd0d0}
 /* Bản xem trước & PDF: giấy trắng, chữ đen, công thức dựng bằng HTML/CSS */
 .doc{font-family:'Times New Roman',Times,'Noto Serif',serif;font-size:13pt;line-height:1.5;color:#000}
 #preview.paper{background:#fff;color:#000;font-size:13pt;line-height:1.5}
@@ -133,11 +133,11 @@ table.g.imp{min-width:1320px}
 table.g.imp.notx{min-width:760px}
 table.g td.ix input{min-width:84px}
 table.g td.ix:last-of-type input{min-width:56px}
-select{background:var(--card2);color:var(--fg);border:1px solid var(--bd);border-radius:10px;padding:9px;font:14px 'Segoe UI',Arial,sans-serif}
+select{background:var(--card2);color:var(--fg);border:1px solid var(--bd);border-radius:10px;padding:9px;font:14px var(--ui-font)}
 .mt{display:none}.mt.on{display:block}
 .wtool{display:none}.wtool.on{display:block}
 .ut{display:none}.ut.on{display:block}
-.qchip{display:inline-flex;gap:4px;align-items:center;background:var(--card2);border:1px solid var(--bd);border-radius:99px;padding:5px 10px;font-size:13px}
+.qchip{display:inline-flex;gap:4px;align-items:center;background:var(--card2);border:1px solid var(--bd);border-radius:99px;padding:5px 10px;font-size:14px}
 /* ===== MÀN CHÀO (#t0) ===== */
 #t0{padding:10px;overflow:hidden}
 .lp-stage{position:relative;width:100%;height:clamp(215px,62vw,300px);border-radius:14px;overflow:hidden;background:#2b1b6b}
@@ -281,3 +281,5 @@ button#hcBtn{right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe
 .hero{flex-direction:column;text-align:center;gap:clamp(8px,1.6vw,14px)}
 .hero .logo{width:clamp(72px,10vw,110px);height:clamp(72px,10vw,110px)}
 @media (max-height:480px) and (orientation:landscape){.hero .logo{width:44px;height:44px}}   /* điện thoại xoay ngang (màn thấp): vẫn để logo phía trên nhưng thu nhỏ cho đỡ tốn chiều cao */
+
+/* Cỡ chữ tối thiểu 14px cho các công cụ; màn lớn/tivi được phóng thêm bởi script desk-fit trong index.html */
