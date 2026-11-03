@@ -730,11 +730,20 @@
       }).join('') + '</div>';
     fitSoon();
   }
+  /* Chiều cao khung nhìn ỔN ĐỊNH: trên điện thoại, thanh địa chỉ co/giãn khi cuộn làm window.innerHeight đổi liên tục
+     → ngưỡng "vừa khung" đổi → cỡ chữ đổi → trang cao/thấp hơn → thanh địa chỉ lại co/giãn… (vòng lặp gây rung).
+     Lấy giá trị lớn nhất đã thấy ở cùng chiều rộng; chỉ đặt lại khi cửa sổ thật sự thấp đi nhiều (đổi cỡ cửa sổ, xoay màn hình). */
+  var vhMax = 0, vhW = 0;
+  function stableVH() {
+    var w = window.innerWidth, h = window.innerHeight;
+    if (w !== vhW || h < vhMax - 160) { vhW = w; vhMax = h; } else if (h > vhMax) vhMax = h;
+    return vhMax;
+  }
   /* Tự co chữ câu hỏi / đáp án cho tới khi hiện TRỌN VẸN trong khung: không bị cắt, không tràn ngang, công thức không vỡ */
   function fit(box, fsOv) {
     var q = box.querySelector('.kc-q'), btns = box.querySelectorAll('.kc-opt');
     if (!q || !btns.length) return;
-    var qs = q.firstElementChild, fsMode = fsOv !== undefined ? fsOv : el.stage.classList.contains('fs'), maxH = Math.max(260, window.innerHeight * 0.92), i;
+    var qs = q.firstElementChild, fsMode = fsOv !== undefined ? fsOv : el.stage.classList.contains('fs'), maxH = Math.max(260, stableVH() * 0.92), i;
     box.classList.remove('tight'); q.style.fontSize = ''; q.style.overflowY = '';
     for (i = 0; i < btns.length; i++) btns[i].style.fontSize = '';
     /* Chỉ so sánh kích thước hộp thật (getBoundingClientRect), KHÔNG dùng scrollHeight của vùng chứa công thức:
@@ -774,10 +783,17 @@
     }
     q.style.overflowY = 'auto';                  /* hết cách: cho cuộn riêng phần câu hỏi, không bao giờ bị cắt cụt */
   }
-  function fitAll() { if (rvEl && rvEl.classList.contains('on')) { fit(rvBox, rvEl.classList.contains('fs')); return; } if (phase === 'setup' || !el.stage.classList.contains('on')) return; fit(el.tb); fit(el.tr); }
+  var lastFitAt = 0;
+  function fitAll() { fitAll0(); lastFitAt = Date.now(); }
+  function fitAll0() { if (rvEl && rvEl.classList.contains('on')) { fit(rvBox, rvEl.classList.contains('fs')); return; } if (phase === 'setup' || !el.stage.classList.contains('on')) return; fit(el.tb); fit(el.tr); }
   var fitTick = 0;
   function fitSoon() { cancelAnimationFrame(fitTick); fitTick = requestAnimationFrame(function () { fitTick = requestAnimationFrame(fitAll); }); fitLater(); }
-  window.addEventListener('resize', fitSoon);
+  var rsW = window.innerWidth, rsH = window.innerHeight;
+  window.addEventListener('resize', function () {
+    var w = window.innerWidth, h = window.innerHeight;
+    if (w === rsW && Math.abs(h - rsH) < 160) return;           /* chỉ thanh địa chỉ trình duyệt co/giãn → không cần co chữ lại */
+    rsW = w; rsH = h; fitSoon();
+  });
   var lateFit = 0;
   function fitLater() { clearTimeout(lateFit); lateFit = setTimeout(fitAll, 450); }       /* chạy lại sau khi font KaTeX tải xong */
   if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', fitSoon);
@@ -786,7 +802,7 @@
     var ro = new ResizeObserver(function (es) {
       var ch = false;
       es.forEach(function (e) { var d = Math.round(e.contentRect.width) + 'x' + Math.round(e.contentRect.height); if (roDims[e.target.id] !== d) { roDims[e.target.id] = d; ch = true; } });
-      if (ch) fitSoon();
+      if (ch && Date.now() - lastFitAt > 150) fitSoon();       /* thay đổi do chính fit() vừa gây ra thì không co chữ lại nữa */
     });
     ro.observe(el.tb); ro.observe(el.tr); ro.observe($('kcRvBox'));
   }
