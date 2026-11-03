@@ -115,6 +115,9 @@
     '.kc-q .katex{font-size:1.15em}.kc-opt .katex{font-size:1.15em}',
     '.kc-opt{line-height:1.25;overflow-wrap:anywhere;font-family:inherit}',
     '.kc-q>span{display:block;min-width:0;max-width:100%}.kc-opt>span{display:block;max-width:100%}',
+    '.kc-q,.kc-opt{text-wrap:balance;hyphens:manual;word-break:normal;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;font-kerning:normal}',
+    '.kc-fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .12em;font-size:.92em;line-height:1.15}',
+    '.kc-fr>span:first-child{border-bottom:.07em solid currentColor;padding:0 .2em}.kc-fr>span:last-child{padding:0 .2em}',
     '.kc-tn{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto}',
     '.kc-em{font-size:1.3em;line-height:1}',
     '.kc-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
@@ -211,6 +214,7 @@
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function pctTxt(x) { var v = x * 100; return v >= 1 ? String(Math.round(v)) : String(Math.round(v * 10) / 10); }
   function fmt(ms) { var s = Math.ceil(ms / 1000); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
 
   /* ---------- Màu đội, biểu tượng, huy hiệu, thành viên ---------- */
@@ -275,7 +279,7 @@
   /* dự phòng khi chưa tải được KaTeX (mất mạng): vẫn đọc được, không hiện mã LaTeX thô */
   function texFallback(t) {
     t = String(t);
-    for (var i = 0; i < 4; i++) t = t.replace(/\\d?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '($1)/($2)');
+    for (var i = 0; i < 4; i++) t = t.replace(/\\d?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '\u0005$1\u0006$2\u0007');
     t = t.replace(/\\sqrt\s*\[([^\]]*)\]\s*\{([^{}]*)\}/g, '$1√($2)').replace(/\\sqrt\s*\{([^{}]*)\}/g, '√($1)').replace(/\\sqrt\s*(\w)/g, '√$1');
     t = t.replace(/\\(?:left|right)\s*/g, '').replace(/\\(?:text|mathrm|mathbf|operatorname)\s*\{([^{}]*)\}/g, '$1');
     t = t.replace(/\\[a-zA-Z]+/g, function (m) { return TEX_SYM[m] !== undefined ? TEX_SYM[m] : m.slice(1); });
@@ -284,7 +288,8 @@
     });
     t = t.replace(/_\{([^{}]*)\}|_(\w)/g, function (_, a, b) { return '\u0003' + (a !== undefined ? a : b) + '\u0004'; });
     t = t.replace(/[{}]/g, '').replace(/\\,|\\;|\\!/g, ' ').replace(/\\\\/g, ' ');
-    return esc(t).replace(/\u0001/g, '<span class="kc-sup">').replace(/\u0002/g, '</span>').replace(/\u0003/g, '<span class="kc-sub">').replace(/\u0004/g, '</span>');
+    return esc(t).replace(/\u0001/g, '<span class="kc-sup">').replace(/\u0002/g, '</span>').replace(/\u0003/g, '<span class="kc-sub">').replace(/\u0004/g, '</span>')
+      .replace(/\u0005/g, '<span class="kc-fr"><span>').replace(/\u0006/g, '</span><span>').replace(/\u0007/g, '</span></span>');
   }
   /* Sửa lỗi LaTeX thường gặp (AI viết thừa dấu \, ký tự Unicode, thiếu ngoặc) để công thức vẫn hiển thị đúng, không hiện mã đỏ */
   function texFix(t) {
@@ -395,7 +400,7 @@
       if (p.length >= 7 && TOK.test(p[5]) && !TOK.test(p[p.length - 1])) { ans = p[5]; opts = p.slice(1, 5); ex = p.slice(6).join(' | '); }
       else { ans = p[p.length - 1]; opts = p.slice(1, -1); }
       if (/^[A-Fa-f]$/.test(ans)) idx = ans.toUpperCase().charCodeAt(0) - 65;
-      else if (/^[1-6]$/.test(ans)) idx = +ans - 1;
+      else if (/^[1-6]$/.test(ans)) idx = opts.indexOf(ans) >= 0 ? opts.indexOf(ans) : +ans - 1;
       else idx = opts.indexOf(ans);
       if (!q || idx < 0 || idx >= opts.length) return;
       out.push({ q: q, opts: opts, ans: opts[idx], exp: ex });
@@ -601,6 +606,11 @@
     return (best || []).map(function (r) { return r.map(function (x) { return String(x).replace(/\s+/g, ' ').trim().replace(/\|/g, '/'); }).join(' | '); }).join('\n');
   }
 
+  /* Ô Excel: gộp xuống dòng, đổi | (dấu ngăn cột) thành / ngoài công thức, \vert trong công thức */
+  function xlsCell(v) {
+    v = String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
+    return v.split('$').map(function (seg, i) { return seg.replace(/\|/g, i % 2 ? '\\vert ' : '/'); }).join('$');
+  }
   $('kcFileBtn').onclick = function () { el.file.click(); };
   $('kcSample').onclick = function () { el.bank.value = SAMPLE; updCount(); };
   function dlXlsx(qRows, fname, msg) {
@@ -647,7 +657,7 @@
         try {
           var wb = XLSX.read(rd.result, { type: 'array' });
           var rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, blankrows: false });
-          el.bank.value = rows.map(function (r) { return r.join(' | '); }).join('\n');
+          el.bank.value = rows.map(function (r) { return Array.from(r, xlsCell).join(' | '); }).join('\n');
           updCount(); el.msg.textContent = 'Đã nhập từ ' + f.name;
         } catch (e) { el.msg.textContent = 'Không đọc được file Excel.'; }
       };
@@ -754,32 +764,37 @@
       if (qs && (wideClip(qs) || wideClip(q) || qs.getBoundingClientRect().height > q.clientHeight - padV + 1)) return false;
       if (box.scrollHeight > box.clientHeight + 6 || box.scrollWidth > box.clientWidth + 2) return false;
       if (!fsMode && box.offsetHeight > maxH) return false;
-      for (var k = 0; k < btns.length; k++) { var sp = btns[k].firstElementChild; if (sp && wideClip(sp)) return false; }
+      for (var k = 0; k < btns.length; k++) { var sp = btns[k].querySelector('span'); if (sp && wideClip(sp)) return false; }
       return true;
     }
-    if (ok()) return;
     var q0 = parseFloat(getComputedStyle(q).fontSize) || 20, o0 = parseFloat(getComputedStyle(btns[0]).fontSize) || 16;
+    var QMAX = 2.4, OMAX = 1.9;                  /* tối đa so với cỡ gốc (đã gồm nút A− / A+); thêm trần tuyệt đối cho màn rất lớn */
     function apply(sq, so, tight) {
       box.classList.toggle('tight', !!tight);
-      q.style.fontSize = Math.max(10, q0 * sq) + 'px';
-      var of = Math.max(10, o0 * so) + 'px';
+      q.style.fontSize = Math.min(260, Math.max(10, q0 * sq)) + 'px';
+      var of = Math.min(170, Math.max(10, o0 * so)) + 'px';
       for (var k = 0; k < btns.length; k++) btns[k].style.fontSize = of;
     }
+    /* giá trị LỚN NHẤT trong [lo, hi] mà vẫn vừa khung (lo đã biết là vừa) */
+    function best(lo, hi, test) {
+      test(hi); if (ok()) return hi;
+      for (var n = 0; n < 10; n++) { var mid = (lo + hi) / 2; test(mid); if (ok()) lo = mid; else hi = mid; }
+      return lo;
+    }
     for (var pass = 0; pass < 2; pass++) {
-      var tight = pass === 1, n, lo, hi, mid, so;
-      /* Bước 1: chữ câu hỏi ở cỡ nhỏ nhất, tìm cỡ chữ đáp án LỚN NHẤT còn vừa */
+      var tight = pass === 1, t, sq, so, oCap;
       apply(0.2, 0.3, tight);
-      if (!ok()) continue;                       /* vẫn chưa vừa: thử chế độ gọn */
-      lo = 0.3; hi = box.closest('.far') ? 0.7 : 0.8;
-      apply(0.2, hi, tight);
-      if (ok()) lo = hi; else for (n = 0; n < 8; n++) { mid = (lo + hi) / 2; apply(0.2, mid, tight); if (ok()) lo = mid; else hi = mid; }
-      so = lo;
-      /* Bước 2: giữ cỡ đáp án, tìm cỡ chữ câu hỏi LỚN NHẤT còn vừa (phần còn lại của khung dành cho câu hỏi) */
-      lo = 0.2; hi = 1;
-      apply(hi, so, tight);
+      if (!ok()) continue;                       /* chưa vừa ở cỡ nhỏ nhất: thử chế độ gọn */
+      /* 1) phóng chung câu hỏi và đáp án cho cân đối; 2) đáp án to thêm (không lớn hơn 90% chữ câu hỏi); 3) câu hỏi to thêm */
+      t = best(0.3, QMAX, function (v) { apply(v, v, tight); });
+      sq = t; so = t;
+      oCap = Math.min(OMAX, sq * q0 * 0.9 / o0);
+      if (oCap > so) so = best(so, oCap, function (v) { apply(sq, v, tight); });
+      sq = best(sq, QMAX, function (v) { apply(v, so, tight); });
+      apply(sq, so, tight);
       if (ok()) return;
-      for (n = 0; n < 9; n++) { mid = (lo + hi) / 2; apply(mid, so, tight); if (ok()) lo = mid; else hi = mid; }
-      apply(lo, so, tight); return;
+      apply(0.2, 0.3, tight);                    /* an toàn: nếu phép đo lệch thì lùi về cỡ chắc chắn vừa */
+      if (ok()) return;
     }
     q.style.overflowY = 'auto';                  /* hết cách: cho cuộn riêng phần câu hỏi, không bao giờ bị cắt cụt */
   }
@@ -813,7 +828,7 @@
     var pct = Math.round(Math.abs(pos) * 100);
     var lead = pos === 0 ? '⚖ Cân bằng' : (pos < 0 ? em(0) + ' ' + teams[0].name : em(1) + ' ' + teams[1].name) + ' dẫn ' + pct + '%';
     el.info.textContent = goldOn ? '⚡ GIỜ VÀNG: kéo gấp đôi · ' + lead
-      : lead + ' · mỗi câu đúng kéo ' + (step * 100).toFixed(0) + '% · kéo tới đích để thắng';
+      : lead + ' · mỗi câu đúng kéo ' + pctTxt(step) + '% · kéo tới đích để thắng';
   }
   function renderScore() {
     el.sb.textContent = em(0) + ' ' + teams[0].name + ': ' + teams[0].ok + ' đúng';
@@ -843,13 +858,13 @@
       var m = pull(T), d = step * m;
       pos = Math.max(-1, Math.min(1, pos + dir * d)); beep(880, 0.15);
       if (T.streak === 3 && cfg.combo) setTimeout(function () { beep(1175, 0.12); }, 120);
-      popup(T.cls, '+' + Math.round(d * 100) + '%' + (m > 1 ? ' 🔥' : ''));
+      popup(T.cls, '+' + pctTxt(d) + '%' + (m > 1 ? ' 🔥' : ''));
     } else {
       T.bad++; T.streak = 0; beep(200, 0.3, 'square');
-      if (cfg.penalty) { pos = Math.max(-1, Math.min(1, pos - dir * step * 0.5)); popup('x', '−' + Math.round(step * 50) + '%'); }
+      if (cfg.penalty) { pos = Math.max(-1, Math.min(1, pos - dir * step * 0.5)); popup('x', '−' + pctTxt(step * 0.5) + '%'); }
     }
     renderTeam(t); renderRope(); renderScore();
-    if (Math.abs(pos) >= 1 - 1e-9) { pos = pos < 0 ? -1 : 1; renderRope(); setTimeout(function () { finish(); }, 500); return; }
+    if (Math.abs(pos) >= 1 - 1e-9) { pos = pos < 0 ? -1 : 1; renderRope(); phase = 'ending'; setTimeout(function () { if (phase === 'ending') finish(); }, 500); return; }
     setTimeout(function () {
       if (phase !== 'play') return;
       T.idx++; if (cfg.cap) T.turn++; loadQ(T); renderTeam(t);
@@ -897,7 +912,7 @@
     save(); return out;
   }
   function finish() {
-    if (phase !== 'play') return;
+    if (phase !== 'play' && phase !== 'ending') return;
     phase = 'done'; clearInterval(timer); goldOn = false; el.time.classList.remove('gold'); el.field.classList.remove('gold');
     var w = pos < -1e-9 ? 0 : pos > 1e-9 ? 1 : -1;
     var newB = cfg.badges ? updateRecords(w) : [];
@@ -927,7 +942,7 @@
 
   /* ---------- Sự kiện ---------- */
   $('kcStart').onclick = function () { if (cfg.mode === 'on') rvStart(); else start(); };
-  function midGame() { return phase === 'play' || phase === 'count'; }
+  function midGame() { return phase === 'play' || phase === 'count' || phase === 'ending'; }
   $('kcRestart').onclick = function () { if (midGame() && !confirm('Đang giữa ván. Chơi lại từ đầu và bỏ kết quả hiện tại?')) return; start(); };
   $('kcAgain').onclick = start;
   $('kcBack').onclick = function () { if (midGame() && !confirm('Đang giữa ván. Thoát về cài đặt và bỏ kết quả hiện tại?')) return; toSetup(); };
@@ -966,7 +981,8 @@
     if (phase !== 'play' || !el.stage.classList.contains('on') || !el.stage.getClientRects().length) return;
     if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     var tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
-    var k = e.key.toLowerCase(), b = ['a', 's', 'd', 'f'].indexOf(k), r = ['j', 'k', 'l', ';'].indexOf(k);
+    var b = ['KeyA', 'KeyS', 'KeyD', 'KeyF'].indexOf(e.code), r = ['KeyJ', 'KeyK', 'KeyL', 'Semicolon'].indexOf(e.code);
+    if (b < 0 && r < 0) { var k = String(e.key).toLowerCase(); b = ['a', 's', 'd', 'f'].indexOf(k); r = ['j', 'k', 'l', ';'].indexOf(k); }
     if (b >= 0) answer(0, b); else if (r >= 0) answer(1, r);
   });
 
