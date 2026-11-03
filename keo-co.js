@@ -118,6 +118,8 @@
     '.kc-q .katex,.kc-opt .katex,.kc-q .katex-html,.kc-opt .katex-html{white-space:nowrap}',
     '.kc-opt{padding:.3em .6em}',
     '.kc-team,.kc-q,.kc-opt{min-width:0;max-width:100%}',
+    '.kc-grid>.kc-team,.kc-grid>.kc-field{min-width:0!important;max-width:100%!important;box-sizing:border-box}',
+    '@media(min-width:701px){.kc-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}}',
     '.kc-q>span{display:block;min-width:0;max-width:100%}.kc-opt>span{display:block;max-width:100%}',
     '.kc-q,.kc-opt{text-wrap:balance;hyphens:manual;word-break:normal;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;font-kerning:normal}',
     '.kc-fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .12em;font-size:.92em;line-height:1.15}',
