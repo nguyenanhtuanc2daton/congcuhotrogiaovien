@@ -114,6 +114,9 @@
     /* Công thức KaTeX trong câu hỏi / đáp án */
     '.kc-q .katex{font-size:1.15em}.kc-opt .katex{font-size:1.15em}',
     '.kc-opt{line-height:1.25;overflow-wrap:anywhere;font-family:inherit}',
+    /* Công thức không bị ngắt dòng giữa chừng; chữ trong ô đáp án cách mép theo cỡ chữ */
+    '.kc-q .katex,.kc-opt .katex,.kc-q .katex-html,.kc-opt .katex-html{white-space:nowrap}',
+    '.kc-opt{padding:.3em .6em}',
     '.kc-q>span{display:block;min-width:0;max-width:100%}.kc-opt>span{display:block;max-width:100%}',
     '.kc-q,.kc-opt{text-wrap:balance;hyphens:manual;word-break:normal;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;font-kerning:normal}',
     '.kc-fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .12em;font-size:.92em;line-height:1.15}',
@@ -127,7 +130,7 @@
     '.kc-cap b{background:#fff;color:#111;border-radius:8px;padding:1px 10px}',
     '.kc-capn{opacity:.7;font-size:.85em}',
     '.kc-skip{margin-left:auto;background:#ffffff22;color:#fff;border:1px solid #ffffff55;border-radius:8px;padding:2px 8px;font-size:.85em;cursor:pointer}',
-    '.kc-team.tight{gap:4px;padding:6px}.kc-team.tight .kc-q{padding:4px;min-height:0}.kc-team.tight .kc-opts{gap:4px}.kc-team.tight .kc-opt{min-height:34px!important;padding:3px 4px!important}.kc-team.tight .kc-cap{padding:1px 8px}',
+    '.kc-team.tight{gap:4px;padding:6px}.kc-team.tight .kc-q{padding:4px;min-height:0}.kc-team.tight .kc-opts{gap:4px}.kc-team.tight .kc-opt{min-height:34px!important;padding:.2em .4em!important}.kc-team.tight .kc-cap{padding:1px 8px}',
     '.kc-bm{display:flex;flex-direction:column;gap:6px;margin:8px 0}',
     '.kc-bnew{background:#fef3c7;border:2px solid #f59e0b;border-radius:12px;padding:6px 12px;font-weight:700;animation:kcBdg .7s ease-out}',
     '.kc-bi{font-size:1.6em;vertical-align:middle}',
