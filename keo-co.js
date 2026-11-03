@@ -59,7 +59,7 @@
     '.kc-chip.r{background:var(--kr4);border-color:var(--kr1);color:var(--kr5)}',
     '.kc-btn{background:#1b2347;color:#fff;border:1px solid #333f77;border-radius:10px;padding:7px 12px;font-size:14px;cursor:pointer}',
     '.kc-btn:hover{background:#26305f}',
-    '.kc-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"f f" "b r";gap:10px}',
+    '.kc-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"f f" "b r";gap:10px}',
     '.kc-team{border-radius:14px;padding:10px;border:2px solid;display:flex;flex-direction:column;gap:8px;min-height:300px;box-sizing:border-box}',
     '.kc-team.b{grid-area:b}.kc-team.r{grid-area:r}',
     '.kc-team.b{border-color:var(--kb1);background:var(--kb2)}',
@@ -69,7 +69,7 @@
     '.kc-q{flex:1;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;font-weight:800;font-size:calc(clamp(22px,3.4vw,52px)*var(--kc-fs,1));line-height:1.4;min-height:110px;overflow-wrap:anywhere}',
     '.b .kc-q{background:linear-gradient(160deg,var(--kb3),var(--kb1))}',
     '.r .kc-q{background:linear-gradient(160deg,var(--kr3),var(--kr1))}',
-    '.kc-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}',
+    '.kc-opts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}',
     '.kc-opt{background:#fff;color:#111;border:0;border-radius:12px;padding:12px 6px;font-weight:800;font-size:calc(clamp(18px,2.4vw,34px)*var(--kc-fs,1));cursor:pointer;min-height:64px;position:relative}',
     '.kc-opt:active{transform:scale(.97)}',
     '.kc-opt i{position:absolute;left:8px;top:5px;font-size:11px;font-style:normal;opacity:.45}',
@@ -117,6 +117,7 @@
     /* Công thức không bị ngắt dòng giữa chừng; chữ trong ô đáp án cách mép theo cỡ chữ */
     '.kc-q .katex,.kc-opt .katex,.kc-q .katex-html,.kc-opt .katex-html{white-space:nowrap}',
     '.kc-opt{padding:.3em .6em}',
+    '.kc-team,.kc-q,.kc-opt{min-width:0;max-width:100%}',
     '.kc-q>span{display:block;min-width:0;max-width:100%}.kc-opt>span{display:block;max-width:100%}',
     '.kc-q,.kc-opt{text-wrap:balance;hyphens:manual;word-break:normal;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;font-kerning:normal}',
     '.kc-fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .12em;font-size:.92em;line-height:1.15}',
@@ -191,7 +192,7 @@
     '.kc-rv.on.fs .kc-awb{font-size:calc(clamp(16px,2.8vh,34px)*var(--kc-fs,1))}',
     /* Chế độ Nhìn xa: đáp án 1 cột, chữ đáp án thẳng hàng, nền câu hỏi đặc, sân kéo co thấp hơn */
     '.kc-btn.on{background:#f59e0b;border-color:#fbbf24;color:#111;font-weight:800}',
-    '.kc-stage.far .kc-opts{grid-template-columns:1fr}',
+    '.kc-stage.far .kc-opts{grid-template-columns:minmax(0,1fr)}',
     '.kc-stage.far .kc-opt{display:flex;align-items:center;justify-content:flex-start;gap:.45em;text-align:left;padding:.3em .6em!important;min-height:0!important;font-weight:800;color:#000}',
     '.kc-stage.far .kc-opt i{position:static!important;flex:none;font-size:1em!important;opacity:1!important;color:#1d4ed8!important;font-weight:900;left:auto;top:auto}',
     '.kc-stage.far .kc-opt i::after{content:"."}',
@@ -200,7 +201,7 @@
     '.kc-stage.far .kc-field,.kc-stage.on.fs.far .kc-field{height:clamp(72px,11vh,120px)}',
     '.kc-stage.far .kc-grp{font-size:clamp(16px,min(3vw,5vh),40px)}',
     '.kc-rv.on.fs .kc-rvbar .kc-btn{font-size:clamp(16px,2.6vh,30px);padding:10px 26px}',
-    '@media(max-width:700px){.kc-grid{grid-template-columns:1fr;grid-template-areas:"f" "b" "r"}.kc-team{min-height:0}}'
+    '@media(max-width:700px){.kc-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"f" "b" "r"}.kc-team{min-height:0}}'
   ].join('\n');
   document.head.appendChild(st);
 
