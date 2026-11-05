@@ -1145,7 +1145,8 @@
 
   /* ---------- Gọi Gemini ---------- */
   /* gọi 1 model; nếu quá tải / hết hạn mức / không có model thì thử model kế tiếp */
-  function callGemini(models, i, parts, m) {
+  function callGemini(models, i, parts, m, errs) {
+    errs = errs || [];
     var model = models[i];
     return fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
       method: 'POST',
@@ -1153,13 +1154,18 @@
       body: JSON.stringify({ contents: [{ parts: parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.6, maxOutputTokens: 65536 } })
     }).then(function (r) {
       if (r.ok) return r.json();
-      if ((r.status === 429 || r.status === 404 || r.status >= 500) && i + 1 < models.length) {
-        m.textContent = '⏳ ' + model + ' đang bận, thử ' + models[i + 1] + '...';
-        return callGemini(models, i + 1, parts, m);
-      }
-      throw new Error(r.status === 400 || r.status === 403 ? 'Key không hợp lệ, chưa được phép dùng, hoặc tài liệu không đọc được. Hãy kiểm tra lại key / file.' :
-                      r.status === 413 ? 'Tài liệu quá lớn, hãy chọn file nhỏ hơn.' :
-                      r.status === 429 ? 'Các model đều đã hết hạn mức, hãy thử lại sau ít phút.' : 'Lỗi từ Gemini (mã ' + r.status + ').');
+      return r.text().then(function (txt) {
+        var msg = txt; try { var j = JSON.parse(txt); msg = (j.error && j.error.message) || txt; } catch (e) {}
+        errs.push(model + ' → ' + r.status + ': ' + String(msg).replace(/\s+/g, ' ').slice(0, 220));
+        if (window.console) console.warn('Gemini lỗi', model, r.status, txt);
+        if ((r.status === 429 || r.status === 404 || r.status >= 500) && i + 1 < models.length) {
+          m.textContent = '⏳ ' + model + ' lỗi ' + r.status + ', thử ' + models[i + 1] + '...';
+          return callGemini(models, i + 1, parts, m, errs);
+        }
+        var e = new Error((r.status === 400 || r.status === 403 ? 'Key không hợp lệ / chưa được phép / tài liệu không đọc được.' :
+                           r.status === 413 ? 'Tài liệu quá lớn.' : 'Không gọi được Gemini.') + '\nChi tiết:\n' + errs.join('\n'));
+        throw e;
+      });
     });
   }
 
@@ -1174,7 +1180,7 @@
   }
 
   $('kcAiBtn').onclick = function () {
-    var m = $('kcAiMsg'), btn = $('kcAiBtn');
+    var m = $('kcAiMsg'), btn = $('kcAiBtn'); m.style.whiteSpace = 'pre-line';
     var topic = '', n = Math.max(3, Math.min(100, +$('kcAiN').value || 10));
     if (!aiDoc && !topic) { m.textContent = 'Hãy chọn giáo án / tài liệu trước khi tạo câu hỏi.'; return; }
     if (!window.GKEY || !GKEY.has()) {
