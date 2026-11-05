@@ -127,6 +127,38 @@ html body{font-feature-settings:"ccmp" 1,"locl" 1,"kern" 1;font-variant-ligature
 html body h1,html body h2,html body h3,html body .hero h1,html body .tab,html body button{line-height:1.35}
 html body input,html body textarea,html body select{line-height:1.5}
 </style>
+<style id="katex-font-fix">
+/* SỬA LỖI công thức Toán (≠, phân số, chữ nghiêng…) hiển thị sai: quy tắc "html body *{font-family:...!important}" ở trên đè mất font KaTeX
+   → ký tự đặc biệt của KaTeX (vd. dấu ≠ nằm ở vùng Private Use) hiện thành ô vuông. Các quy tắc dưới đây trả lại đúng font cho mọi công thức KaTeX. */
+html:root body .katex{font-family:KaTeX_Main,"Times New Roman",serif!important}
+html:root body .katex *{font-family:inherit!important}
+html:root body .katex .textrm{font-family:KaTeX_Main!important}
+html:root body .katex .textsf{font-family:KaTeX_SansSerif!important}
+html:root body .katex .texttt{font-family:KaTeX_Typewriter!important}
+html:root body .katex .mathnormal{font-family:KaTeX_Math!important}
+html:root body .katex .mathit{font-family:KaTeX_Main!important}
+html:root body .katex .mathbf{font-family:KaTeX_Main!important}
+html:root body .katex .boldsymbol{font-family:KaTeX_Math!important}
+html:root body .katex .amsrm,html:root body .katex .mathbb,html:root body .katex .textbb{font-family:KaTeX_AMS!important}
+html:root body .katex .mathcal{font-family:KaTeX_Caligraphic!important}
+html:root body .katex .mathfrak,html:root body .katex .textfrak{font-family:KaTeX_Fraktur!important}
+html:root body .katex .mathboldfrak,html:root body .katex .textboldfrak{font-family:KaTeX_Fraktur!important}
+html:root body .katex .mathtt{font-family:KaTeX_Typewriter!important}
+html:root body .katex .mathscr,html:root body .katex .textscr{font-family:KaTeX_Script!important}
+html:root body .katex .mathsf,html:root body .katex .textsf{font-family:KaTeX_SansSerif!important}
+html:root body .katex .mathboldsf,html:root body .katex .textboldsf{font-family:KaTeX_SansSerif!important}
+html:root body .katex .mathitsf,html:root body .katex .textitsf{font-family:KaTeX_SansSerif!important}
+html:root body .katex .mainrm{font-family:KaTeX_Main!important}
+html:root body .katex .delimsizing.size1{font-family:KaTeX_Size1!important}
+html:root body .katex .delimsizing.size2{font-family:KaTeX_Size2!important}
+html:root body .katex .delimsizing.size3{font-family:KaTeX_Size3!important}
+html:root body .katex .delimsizing.size4{font-family:KaTeX_Size4!important}
+html:root body .katex .delimsizing.mult .delim-size1>span{font-family:KaTeX_Size1!important}
+html:root body .katex .delimsizing.mult .delim-size4>span{font-family:KaTeX_Size4!important}
+html:root body .katex .op-symbol.small-op{font-family:KaTeX_Size1!important}
+html:root body .katex .op-symbol.large-op{font-family:KaTeX_Size2!important}
+</style>
+
 <style id="desk-fit">
 /* Màn máy tính: khung nội dung rộng gần hết màn, bớt thừa hai bên. Cỡ chữ (kể cả chữ nhỏ nhất, tối thiểu 14px) tự to theo độ rộng màn nhờ script "desk-fit". */
 @media (min-width:1100px){
