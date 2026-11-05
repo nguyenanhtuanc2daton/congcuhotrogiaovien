@@ -1,8 +1,10 @@
 /* ===== Khóa Gemini API DÙNG CHUNG: nhập 1 lần – mọi tính năng AI trong trang đều dùng khóa này =====
    Lưu ở localStorage (khóa 'ph_gemini_key_v2') nếu bật "Ghi nhớ trên máy này"; nếu tắt thì chỉ lưu trong phiên (sessionStorage).
-   Đồng thời ghi vào 'ph_gemini_key_s' để tương thích mã cũ. Khóa KHÔNG nằm trong file sao lưu. */
+   Đồng thời ghi vào 'ph_gemini_key_s' để tương thích mã cũ. Khóa KHÔNG nằm trong file sao lưu.
+   KEY 2 (tùy chọn, dự phòng): lưu ở 'ph_gemini_key2_v2' / 'ph_gemini_key2_s'. GKEY.all() trả về danh sách key đang có ([key1, key2]);
+   GKEY.get() vẫn trả về 1 key (key 1, hoặc key 2 nếu chỉ có key 2) nên các tính năng cũ không cần sửa. */
 (function(){
-  var K='ph_gemini_key_v2',SK='ph_gemini_key_s',OLD='tc_gemini_key_v1',R='ph_gemini_remember';
+  var K='ph_gemini_key_v2',SK='ph_gemini_key_s',OLD='tc_gemini_key_v1',R='ph_gemini_remember',K2='ph_gemini_key2_v2',SK2='ph_gemini_key2_s';
   function rd(st,k){try{return String(window[st].getItem(k)||'').trim();}catch(e){return '';}}
   function wr(st,k,v){try{window[st].setItem(k,v);}catch(e){}}
   function rm(st,k){try{window[st].removeItem(k);}catch(e){}}
@@ -14,7 +16,11 @@
   function rawKey(){return rd('sessionStorage',SK)||rd('localStorage',K);}
   (function(){var k=rawKey();
     if(k&&k.indexOf(OLD_TRIAL_PREFIX)===0){rm('localStorage',K);rm('localStorage',OLD);rm('sessionStorage',SK);}})();
-  function get(){return rawKey();}
+  function rawKey2(){return rd('sessionStorage',SK2)||rd('localStorage',K2);}
+  function get2(){return rawKey2();}
+  function get(){return rawKey()||rawKey2();}
+  /* danh sách key đang có, không trùng nhau: [key1, key2] */
+  function all(){var a=[],k1=rawKey(),k2=rawKey2();if(k1)a.push(k1);if(k2&&k2!==k1)a.push(k2);return a;}
   function set(v,keep){
     v=String(v||'').trim(); if(!v) return false;
     if(keep===undefined) keep=remember();
@@ -22,7 +28,16 @@
     if(keep) wr('localStorage',K,v); else rm('localStorage',K);
     rm('localStorage',OLD); fire(); return true;
   }
-  function clear(){rm('localStorage',K);rm('localStorage',OLD);rm('sessionStorage',SK);fire();}
+  function set2(v,keep){
+    v=String(v||'').trim(); if(!v) return false;
+    if(keep===undefined) keep=remember();
+    wr('localStorage',R,keep?'1':'0'); wr('sessionStorage',SK2,v);
+    if(keep) wr('localStorage',K2,v); else rm('localStorage',K2);
+    fire(); return true;
+  }
+  function clear1(){rm('localStorage',K);rm('localStorage',OLD);rm('sessionStorage',SK);fire();}
+  function clear2(){rm('localStorage',K2);rm('sessionStorage',SK2);fire();}
+  function clear(){rm('localStorage',K);rm('localStorage',OLD);rm('sessionStorage',SK);rm('localStorage',K2);rm('sessionStorage',SK2);fire();}
   function copyText(t){
     if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t);
     return new Promise(function(res,rej){try{var a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';
@@ -30,11 +45,15 @@
   /* chuyển khóa cũ (Chụp bài) sang khóa chung; đưa khóa đã lưu vào phiên */
   (function(){var cur=get(),old=rd('localStorage',OLD);
     if(!cur&&old){wr('localStorage',K,old);wr('sessionStorage',SK,old);rm('localStorage',OLD);}
-    else if(cur){wr('sessionStorage',SK,cur);}})();
+    else if(cur){wr('sessionStorage',SK,cur);}
+    var c2=rawKey2();if(c2)wr('sessionStorage',SK2,c2);})();
   /* nếu nơi khác (vd. tab Prompt AI) ghi khóa vào phiên thì đồng bộ sang bộ nhớ lâu dài */
   window.addEventListener('ph-key',function(){var ss=rd('sessionStorage',SK);
-    if(ss&&remember()&&rd('localStorage',K)!==ss) wr('localStorage',K,ss); refresh();});
+    if(ss&&remember()&&rd('localStorage',K)!==ss) wr('localStorage',K,ss);
+    var s2=rd('sessionStorage',SK2);if(s2&&remember()&&rd('localStorage',K2)!==s2) wr('localStorage',K2,s2);
+    warned={}; refresh();});
   var $=function(i){return document.getElementById(i);};
+  var warned={};   /* mỗi key lỗi chỉ tự bật khung báo 1 lần */
   var forced=false;   /* true = người dùng đang chủ động mở khung (xem/đổi key) */
   /* Đã có key → ẩn khung, chỉ còn nút tròn 🔑 nhỏ; chưa có key → hiện khung để nhập */
   function apply(){var bar=$('gkBar'),fab=$('gkFab');if(!bar)return;
@@ -43,9 +62,10 @@
     bar.classList.toggle('gk-float',forced);
     if(fab)fab.style.display=hide?'flex':'none';
     var c=$('gkClose');if(c)c.style.display=(get()||forced)?'':'none';}
-  function refresh(){var st=$('gkSt');if(!st)return;var k=get();
-    st.textContent=k?'đã nhập ✓ (dùng cho mọi tính năng AI)':'chưa nhập';st.className='gkst '+(k?'ok':'no');
-    $('gkDel').style.display=k?'':'none';$('gkBtn').textContent=k?'🔑 Đổi / xem key':'🔑 Nhập key';apply();}
+  function refresh(){var st=$('gkSt');if(!st)return;var n=all().length,k=n>0;
+    st.textContent=n>1?'đã nhập 2 key ✓ (tự đổi key khi hết hạn mức)':(k?'đã nhập 1 key ✓ (dùng cho mọi tính năng AI)':'chưa nhập');st.className='gkst '+(k?'ok':'no');
+    $('gkDel').style.display=rawKey()?'':'none';$('gkDel2').style.display=rawKey2()?'':'none';
+    $('gkBtn').textContent=k?'🔑 Đổi / xem key':'🔑 Nhập key';apply();}
   function open(msg,quiet){var b=$('gkBox');if(!b)return;forced=true;apply();b.hidden=false;
     $('gkMsg').textContent=msg||'';
     if(!quiet){$('gkIn').focus();try{$('gkBar').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
@@ -56,12 +76,17 @@
       +'<button type="button" id="gkBtn" class="sm sec" style="flex:0 0 auto">🔑 Nhập key</button>'
       +'<button type="button" id="gkClose" class="sm sec" style="flex:0 0 auto;display:none" title="Thu gọn khung này">▲ Thu gọn</button></div>'
       +'<div id="gkBox" hidden style="margin-top:8px"><div class="gkrow">'
-      +'<input type="password" id="gkIn" placeholder="Dán API key Gemini (nhập 1 lần, dùng cho mọi tính năng AI)" autocomplete="off" spellcheck="false">'
-      +'<button type="button" id="gkSave" class="sm" style="flex:0 0 auto">Lưu</button>'
-      +'<button type="button" id="gkDel" class="sm sec" style="flex:0 0 auto">Xóa key</button>'
+      +'<input type="password" id="gkIn" placeholder="Key 1 (bắt buộc) — dán API key Gemini, dùng cho mọi tính năng AI" autocomplete="off" spellcheck="false">'
+      +'<button type="button" id="gkDel" class="sm sec" style="flex:0 0 auto" title="Xóa key 1">Xóa key 1</button>'
       +'</div>'
-      +'<div class="gkrow" style="margin-top:6px"><label><input type="checkbox" id="gkRem"> Ghi nhớ trên máy này (bỏ chọn nếu dùng máy chung)</label>'
+      +'<div class="gkrow" style="margin-top:6px">'
+      +'<input type="password" id="gkIn2" placeholder="Key 2 (tùy chọn) — dự phòng, tự dùng khi key 1 hết hạn mức" autocomplete="off" spellcheck="false">'
+      +'<button type="button" id="gkDel2" class="sm sec" style="flex:0 0 auto" title="Xóa key 2">Xóa key 2</button>'
+      +'</div>'
+      +'<div class="gkrow" style="margin-top:6px"><button type="button" id="gkSave" class="sm" style="flex:0 0 auto">Lưu</button>'
+      +'<label><input type="checkbox" id="gkRem"> Ghi nhớ trên máy này (bỏ chọn nếu dùng máy chung)</label>'
       +'<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Lấy key miễn phí tại Google AI Studio</a></div>'
+      +'<div class="gkrow" style="margin-top:6px;font-size:.88em;opacity:.85">Lưu ý: hạn mức tính theo <b>project Google Cloud</b> chứa key, không theo từng key. Key 2 chỉ có tác dụng nếu tạo từ <b>project / tài khoản Google khác</b> với key 1 (hai key cùng project dùng chung hạn mức).</div>'
       +'<div id="gkMsg"></div></div>';
     hero.insertAdjacentElement('afterend',d);
     var st=document.createElement('style');
@@ -81,32 +106,44 @@
     $('gkClose').onclick=function(){forced=false;$('gkBox').hidden=true;apply();};
     $('gkRem').checked=remember();
     $('gkBtn').onclick=function(){var b=$('gkBox');b.hidden=!b.hidden;if(!b.hidden)$('gkIn').focus();};
-    function save(){var v=$('gkIn').value.trim();
-      if(v.length<20||/\s/.test(v)){$('gkMsg').textContent='⚠ Key không hợp lệ — hãy dán đầy đủ key lấy từ Google AI Studio.';return;}
-      forced=true;set(v,$('gkRem').checked);$('gkIn').value='';$('gkMsg').textContent='✓ Đã lưu. Từ giờ không cần nhập lại cho các tính năng AI khác.';
+    function bad(v){return v.length<20||/\s/.test(v);}
+    function save(){var v1=$('gkIn').value.trim(),v2=$('gkIn2').value.trim(),msg=$('gkMsg');
+      if(!v1&&!v2){msg.textContent='⚠ Hãy dán key vào ô Key 1 (và Key 2 nếu có).';return;}
+      if((v1&&bad(v1))||(v2&&bad(v2))){msg.textContent='⚠ Key không hợp lệ — hãy dán đầy đủ key lấy từ Google AI Studio.';return;}
+      var eff1=v1||rawKey();
+      if(!eff1){msg.textContent='⚠ Key 1 là bắt buộc — hãy dán key vào ô Key 1 trước.';return;}
+      if(v2&&v2===eff1){msg.textContent='⚠ Key 2 đang trùng với Key 1 — hãy dán một key khác (từ project / tài khoản Google khác).';return;}
+      forced=true;var keep=$('gkRem').checked;
+      if(v1)set(v1,keep);if(v2)set2(v2,keep);
+      $('gkIn').value='';$('gkIn2').value='';
+      msg.textContent='✓ Đã lưu'+(all().length>1?' 2 key. Khi key 1 hết hạn mức, hệ thống tự chuyển sang key 2.':'. Từ giờ không cần nhập lại cho các tính năng AI khác.');
       setTimeout(function(){$('gkBox').hidden=true;forced=false;apply();},1200);}
     $('gkSave').onclick=save;
-    $('gkIn').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();save();}});
-    $('gkDel').onclick=function(){clear();$('gkMsg').textContent='Đã xóa key khỏi trình duyệt này.';};
+    ['gkIn','gkIn2'].forEach(function(id){$(id).addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();save();}});});
+    $('gkDel').onclick=function(){clear1();$('gkMsg').textContent='Đã xóa key 1 khỏi trình duyệt này.';};
+    $('gkDel2').onclick=function(){clear2();$('gkMsg').textContent='Đã xóa key 2 khỏi trình duyệt này.';};
     refresh();
   }
   /* Mọi lời gọi tới Gemini (ở bất kỳ tính năng nào) trả lỗi do key (sai/hết hạn/bị khóa) → khung key tự nổi lên */
-  function keyProblem(byUser){var b=$('gkBar');if(!byUser||!b||b.classList.contains('gk-float'))return;
-    open('⚠ Key Gemini đang gặp lỗi (sai, hết hạn hoặc bị khóa). Hãy dán key mới rồi bấm Lưu — khung sẽ tự đóng.');}
+  function keyProblem(byUser,used){var b=$('gkBar');if(!byUser||!b||b.classList.contains('gk-float'))return;
+    if(used){if(warned[used])return;warned[used]=1;}
+    var n=all().length,tag=(n>1&&used)?(used===rawKey()?' 1':(used===rawKey2()?' 2':'')):'';
+    open('⚠ Key Gemini'+tag+' đang gặp lỗi (sai, hết hạn hoặc bị khóa). Hãy dán key mới vào ô tương ứng rồi bấm Lưu — khung sẽ tự đóng.');}
   var lastUI=0;
   ['pointerdown','touchstart','keydown','click'].forEach(function(ev){window.addEventListener(ev,function(){lastUI=Date.now();},true);});
   var _f=window.fetch;
   if(typeof _f==='function'){window.fetch=function(){
-    var a=arguments,u='';try{u=String((a[0]&&a[0].url)||a[0]);}catch(e){}
+    var a=arguments,u='',usedKey='';try{u=String((a[0]&&a[0].url)||a[0]);}catch(e){}
+    try{var h=a[1]&&a[1].headers;usedKey=String((h&&(h['x-goog-api-key']||(h.get&&h.get('x-goog-api-key'))))||'');}catch(e){}
     var p=_f.apply(this,a),byUser=(Date.now()-lastUI)<20000;  /* lệnh gọi do người dùng vừa thao tác */
     if(u.indexOf('generativelanguage.googleapis.com')<0)return p;
     return p.then(function(r){
       try{if(r&&!r.ok&&(r.status===400||r.status===401||r.status===403)){
         r.clone().text().then(function(t){
-          if(r.status!==400||/API_KEY_INVALID|API key not valid|API key expired|key (is )?(invalid|expired)/i.test(t))keyProblem(byUser);
+          if(r.status!==400||/API_KEY_INVALID|API key not valid|API key expired|key (is )?(invalid|expired)/i.test(t))keyProblem(byUser,usedKey);
         }).catch(function(){});}}catch(e){}
       return r;});
   };}
-  window.GKEY={get:get,set:set,clear:clear,has:function(){return !!get();},open:open};
+  window.GKEY={get:get,get2:get2,all:all,set:set,set2:set2,clear:clear,clear1:clear1,clear2:clear2,has:function(){return !!get();},open:open};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
 })();

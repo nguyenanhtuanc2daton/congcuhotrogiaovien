@@ -436,7 +436,7 @@
     '<input type="file" id="kcAiDoc" accept=".docx,.pdf,.pptx,.txt,.md,image/*" hidden></div>' +
     '<div class="bar">' +
     '<label>Số câu <input type="number" id="kcAiN" value="10" min="3" max="100" style="width:72px"></label></div>' +
-    '<div class="bar"><label>Model <select id="kcAiModel"><option value="gemini-flash-lite-latest">Gemini Flash-Lite (mới nhất)</option><option value="gemini-flash-latest">Gemini Flash (mới nhất)</option><option value="gemini-pro-latest">Gemini Pro (mới nhất)</option></select></label>' +
+    '<div class="bar"><label>Model <select id="kcAiModel"><option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite</option><option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite</option><option value="gemini-flash-lite-latest">Gemini Flash-Lite (mới nhất)</option><option value="gemini-3.6-flash">Gemini 3.6 Flash</option><option value="gemini-flash-latest">Gemini Flash (mới nhất)</option><option value="gemini-pro-latest">Gemini Pro (mới nhất)</option></select></label>' +
     '<button class="sm" id="kcAiBtn" type="button">✨ Tạo câu hỏi</button>' +
     '<label class="note"><input type="checkbox" id="kcAiAdd"> Nối thêm vào bộ hiện tại</label></div>' +
     '<div id="kcAiMsg" class="note"></div>' +
@@ -993,9 +993,10 @@
   });
 
   /* ---------- Tạo câu hỏi bằng Gemini (dùng khóa chung GKEY từ gkey.js) ---------- */
-  var AI_MODELS = ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-pro-latest'];
-  try { var sm = localStorage.getItem('kc_ai_model'); if (sm && AI_MODELS.indexOf(sm) >= 0) $('kcAiModel').value = sm; } catch (e) {}
-  $('kcAiModel').addEventListener('change', function () { try { localStorage.setItem('kc_ai_model', this.value); } catch (e) {} });
+  /* model Stable xếp trước, alias (-latest) xếp cuối vì alias trỏ về cùng model gốc, không thêm độ an toàn */
+  var AI_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.6-flash', 'gemini-flash-lite-latest', 'gemini-flash-latest'];
+  try { var sm = localStorage.getItem('kc_ai_model2'); if (sm && AI_MODELS.indexOf(sm) >= 0) $('kcAiModel').value = sm; } catch (e) {}
+  $('kcAiModel').addEventListener('change', function () { try { localStorage.setItem('kc_ai_model2', this.value); } catch (e) {} });
 
   /* ---------- Đọc giáo án / tài liệu ---------- */
   var aiDoc = null;               /* {name, text} hoặc {name, mime, b64} */
@@ -1144,28 +1145,147 @@
   $('kcAiDocClear').onclick = function () { aiDoc = null; $('kcAiDocName').textContent = ''; this.style.display = 'none'; $('kcAiMsg').textContent = ''; };
 
   /* ---------- Gọi Gemini ---------- */
-  /* gọi 1 model; nếu quá tải / hết hạn mức / không có model thì thử model kế tiếp */
-  function callGemini(models, i, parts, m, errs) {
-    errs = errs || [];
-    var model = models[i];
-    return fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GKEY.get() },
-      body: JSON.stringify({ contents: [{ parts: parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.6, maxOutputTokens: 65536 } })
-    }).then(function (r) {
-      if (r.ok) return r.json();
-      return r.text().then(function (txt) {
-        var msg = txt; try { var j = JSON.parse(txt); msg = (j.error && j.error.message) || txt; } catch (e) {}
-        errs.push(model + ' → ' + r.status + ': ' + String(msg).replace(/\s+/g, ' ').slice(0, 220));
-        if (window.console) console.warn('Gemini lỗi', model, r.status, txt);
-        if ((r.status === 429 || r.status === 404 || r.status >= 500) && i + 1 < models.length) {
-          m.textContent = '⏳ ' + model + ' lỗi ' + r.status + ', thử ' + models[i + 1] + '...';
-          return callGemini(models, i + 1, parts, m, errs);
-        }
-        var e = new Error((r.status === 400 || r.status === 403 ? 'Key không hợp lệ / chưa được phép / tài liệu không đọc được.' :
-                           r.status === 413 ? 'Tài liệu quá lớn.' : 'Không gọi được Gemini.') + '\nChi tiết:\n' + errs.join('\n'));
+  /* Mô hình vừa lỗi được ghi nhớ ~5 phút (localStorage) và tạm xếp xuống cuối chuỗi dự phòng */
+  var COOL_KEY = 'kc_ai_cool';
+  function coolGet() {
+    try { var o = JSON.parse(localStorage.getItem(COOL_KEY) || '{}'), now = Date.now(); Object.keys(o).forEach(function (k) { if (!(o[k] > now)) delete o[k]; }); return o; } catch (e) { return {}; }
+  }
+  function coolSet(model, ms) { try { var o = coolGet(); o[model] = Date.now() + ms; localStorage.setItem(COOL_KEY, JSON.stringify(o)); } catch (e) {} }
+  function jitter(sec) { return sec * (0.8 + Math.random() * 0.4); }
+  /* ---- Nhiều key: hạn mức tính theo project (key) + model, nên ghi nhớ giới hạn theo cặp "key|model" ---- */
+  function kid(k) { var h = 5381; for (var i = 0; i < k.length; i++) h = ((h << 5) + h + k.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }   /* chỉ lưu mã băm, không lưu key thật */
+  function ck(k, model) { return kid(k) + '|' + model; }
+  var badKeys = {};   /* key bị báo sai/hết hạn trong phiên này → bỏ qua */
+  var rot = 0;        /* xoay điểm bắt đầu để 2 key xen kẽ giữa các lô */
+  window.addEventListener('ph-key', function () { badKeys = {}; });
+  function keyList() { return (window.GKEY && GKEY.all) ? GKEY.all() : ((window.GKEY && GKEY.has()) ? [GKEY.get()] : []); }
+  function usableKeys() { return keyList().filter(function (k) { return !badKeys[k]; }); }
+  function keyLabel(k) { var a = keyList(); return a.length > 1 ? 'Key ' + (a.indexOf(k) + 1) : 'Key'; }
+  /* key chưa bị giới hạn đứng trước (xoay vòng), key đang bị giới hạn xếp xuống cuối */
+  function orderKeys(model) {
+    var c = coolGet(), ks = usableKeys();
+    var fresh = ks.filter(function (k) { return !c[ck(k, model)]; }), cooled = ks.filter(function (k) { return c[ck(k, model)]; });
+    if (fresh.length > 1) { var st = rot % fresh.length; fresh = fresh.slice(st).concat(fresh.slice(0, st)); }
+    return fresh.concat(cooled);
+  }
+  /* model coi là "đang bận" khi bị lỗi chung, hoặc khi mọi key đều đang bị giới hạn với model đó */
+  function modelCooled(model, c) {
+    if (c[model]) return true;
+    var ks = usableKeys();
+    return ks.length > 0 && ks.every(function (k) { return c[ck(k, model)]; });
+  }
+  /* chờ sec giây, vừa chờ vừa đếm ngược trên dòng thông báo; {s} được thay bằng số giây còn lại */
+  function waitMsg(sec, m, text) {
+    return new Promise(function (ok) {
+      var left = Math.ceil(sec);
+      (function tick() { if (left <= 0) return ok(); m.textContent = text.replace('{s}', left); left--; setTimeout(tick, 1000); })();
+    });
+  }
+  /* đọc thời gian chờ Google gợi ý (retryDelay trong lỗi 429) và loại lỗi */
+  function parseErr(status, txt) {
+    var msg = txt, sec = 0, j = null;
+    try { j = JSON.parse(txt); msg = (j.error && j.error.message) || txt; } catch (e) {}
+    try {
+      ((j && j.error && j.error.details) || []).forEach(function (d) {
+        if (d && d.retryDelay) { var v = parseFloat(String(d.retryDelay)); if (v > 0) sec = v; }
+      });
+    } catch (e) {}
+    if (!sec) { var mm = /retry in ([\d.]+)\s*s/i.exec(String(msg)); if (mm) sec = parseFloat(mm[1]); }
+    return { status: status, msg: String(msg).replace(/\s+/g, ' ').slice(0, 220), retrySec: sec,
+             daily: /PerDay|per day|daily/i.test(txt),
+             keyBad: (status === 401 || status === 403 || (status === 400 && /API_KEY_INVALID|API key not valid|API key expired|key (is )?(invalid|expired)/i.test(txt))) };
+  }
+  /* gọi 1 model, tự thử lại khi quá tải; gặp 429 thì đổi sang key kế tiếp rồi thử lại ngay.
+     Reject {fatal:true,...} nếu không nên thử model khác (mọi key sai, tài liệu quá lớn) */
+  function callOne(model, parts, m, errs) {
+    var delays = [2, 5, 12], tries = 0, keys = orderKeys(model), ki = 0;
+    if (!keys.length) return Promise.reject({ fatal: true, kind: 'key' });
+    function nextKey() { if (ki + 1 < keys.length) { ki++; return true; } return false; }
+    function attempt() {
+      var key = keys[ki];
+      return fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        body: JSON.stringify({ contents: [{ parts: parts }], generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 16384 } })
+      }).then(function (r) {
+        if (r.ok) return r.json();
+        return r.text().then(function (txt) {
+          var e = parseErr(r.status, txt); e.model = model; e.keyNo = keyLabel(key); errs.push(e);
+          if (window.console) console.warn('Gemini lỗi', model, e.keyNo, r.status, txt);
+          if (e.keyBad) {
+            badKeys[key] = true;   /* key này sai/hết hạn: bỏ qua, dùng key còn lại */
+            if (nextKey()) { tries = 0; m.textContent = '⚠ ' + e.keyNo + ' không hợp lệ, đang dùng ' + keyLabel(keys[ki]) + '...'; return attempt(); }
+            if (!usableKeys().length) throw { fatal: true, kind: 'key' };
+            throw { next: true };
+          }
+          if (r.status === 413) throw { fatal: true, kind: 'big' };
+          if (r.status === 429) {
+            var cool = e.daily ? 30 * 60000 : 5 * 60000;
+            /* còn key khác: ghi nhớ key này đang bị giới hạn, đổi sang key kia và thử lại ngay */
+            if (nextKey()) {
+              coolSet(ck(key, model), cool); tries = 0;
+              m.textContent = '⏳ ' + keyLabel(key) + ' hết hạn mức, đang chuyển sang ' + keyLabel(keys[ki]) + '...';
+              return attempt();
+            }
+            /* hết key để đổi: nếu chỉ phải chờ ngắn thì chờ rồi thử lại 1 lần; còn lại đổi model */
+            if (!e.daily && e.retrySec > 0 && e.retrySec <= 30 && tries < 1) {
+              tries++;
+              return waitMsg(e.retrySec + 1, m, '⏳ Google đang giới hạn lượt dùng, tự thử lại sau {s} giây...').then(attempt);
+            }
+            coolSet(ck(key, model), cool);
+            throw { next: true };
+          }
+          if (r.status >= 500 && tries < delays.length) {
+            var w = jitter(Math.max(delays[tries], e.retrySec || 0)); tries++;
+            return waitMsg(w, m, '⏳ Google đang quá tải, hệ thống tự thử lại sau {s} giây...').then(attempt);
+          }
+          if (r.status >= 500) coolSet(model, 5 * 60000);
+          throw { next: true };   /* 404, 400 khác, 5xx đã hết lượt thử */
+        });
+      }, function (netErr) {
+        if (netErr && (netErr.fatal || netErr.next)) throw netErr;
+        errs.push({ model: model, status: 0, msg: String(netErr && netErr.message || netErr) });
+        if (tries < delays.length) { var w = jitter(delays[tries]); tries++; return waitMsg(w, m, '⏳ Mất kết nối, thử lại sau {s} giây...').then(attempt); }
+        throw { next: true };
+      });
+    }
+    return attempt();
+  }
+  function friendly(kind, errs) {
+    if (kind === 'key') {
+      var bads = []; errs.forEach(function (e) { if (e.keyBad && e.keyNo && bads.indexOf(e.keyNo) < 0) bads.push(e.keyNo); });
+      return 'Key Gemini' + (keyList().length > 1 && bads.length ? ' (' + bads.join(', ') + ')' : '') + ' không hợp lệ hoặc chưa được phép dùng. Hãy kiểm tra / nhập lại key ở thanh phía trên trang.';
+    }
+    if (kind === 'big') return 'Tài liệu quá lớn so với giới hạn của Google. Hãy dùng file ngắn hơn (hoặc tách thành nhiều phần).';
+    var has = function (f) { return errs.some(f); };
+    if (has(function (e) { return e.status === 429; })) return (keyList().length > 1 ? 'Cả hai key đều đang bị Google giới hạn lượt dùng (hết hạn mức tạm thời; nếu 2 key cùng một project Google Cloud thì dùng chung hạn mức). ' : 'Google đang giới hạn lượt dùng (hết hạn mức tạm thời). ') + 'Hãy đợi 1–2 phút rồi bấm “Tạo câu hỏi” lại.';
+    if (has(function (e) { return e.status >= 500; })) return 'Máy chủ Google đang quá tải. Hãy đợi vài phút rồi bấm “Tạo câu hỏi” lại.';
+    if (has(function (e) { return e.status === 0; })) return 'Không kết nối được tới Google. Hãy kiểm tra mạng rồi thử lại.';
+    return 'Không gọi được Gemini. Hãy thử lại sau.';
+  }
+  function detailText(errs) { return errs.map(function (e) { return e.model + (e.keyNo && keyList().length > 1 ? ' [' + e.keyNo + ']' : '') + ' → ' + e.status + ': ' + e.msg; }).join('\n'); }
+  /* gọi lần lượt từng model trong chuỗi dự phòng; nếu tất cả đều bận do hạn mức/quá tải thì chờ rồi quét lại 1 vòng */
+  function callGemini(models, parts, m) {
+    var errs = [], round = 0;
+    rot++;   /* lô sau bắt đầu bằng key kia → 2 key xen kẽ, tải chia đều */
+    function pass() {
+      var cool = coolGet();
+      var order = models.filter(function (x) { return !modelCooled(x, cool); }).concat(models.filter(function (x) { return modelCooled(x, cool); }));
+      function at(k) {
+        if (k >= order.length) return Promise.reject({ next: true });
+        if (k > 0) m.textContent = '⏳ Đang chuyển sang mô hình dự phòng (' + order[k] + ')...';
+        return callOne(order[k], parts, m, errs).catch(function (e) { if (e && e.fatal) throw e; return at(k + 1); });
+      }
+      return at(0).catch(function (e) {
+        if (e && e.fatal) throw e;
+        var transient = errs.some(function (x) { return x.status === 429 || x.status >= 500 || x.status === 0; });
+        if (round < 1 && transient) { round++; return waitMsg(jitter(20), m, '⏳ Tất cả mô hình đang bận, chờ {s} giây rồi thử lại...').then(pass); }
         throw e;
       });
+    }
+    return pass().catch(function (e) {
+      var kind = e && e.fatal ? e.kind : 'other';
+      var er = new Error(friendly(kind, errs)); er.details = detailText(errs); throw er;
     });
   }
 
@@ -1179,17 +1299,8 @@
     return v.split('$').map(function (seg, i) { return seg.replace(/\|/g, i % 2 ? '\\vert ' : '/'); }).join('$');
   }
 
-  $('kcAiBtn').onclick = function () {
-    var m = $('kcAiMsg'), btn = $('kcAiBtn'); m.style.whiteSpace = 'pre-line';
-    var topic = '', n = Math.max(3, Math.min(100, +$('kcAiN').value || 10));
-    if (!aiDoc && !topic) { m.textContent = 'Hãy chọn giáo án / tài liệu trước khi tạo câu hỏi.'; return; }
-    if (!window.GKEY || !GKEY.has()) {
-      m.textContent = 'Chưa có API key Gemini. Hãy nhập key ở thanh phía trên trang.';
-      if (window.GKEY) GKEY.open('Nhập key Gemini để tạo câu hỏi bằng AI.');
-      return;
-    }
-    var first = $('kcAiModel').value;
-    var models = [first].concat(AI_MODELS.filter(function (x) { return x !== first; }));
+  /* ---------- Soạn lời nhắc cho 1 lô ---------- */
+  function buildPrompt(n, topic, avoid) {
     var prompt = 'Bạn là giáo viên Việt Nam giàu kinh nghiệm. Hãy soạn đúng ' + n + ' câu hỏi trắc nghiệm ' +
       (aiDoc ? 'để ôn tập KIẾN THỨC TRỌNG TÂM của giáo án / tài liệu được cung cấp' + (topic ? ' (ưu tiên: "' + topic + '")' : '') + '. ' +
                'Trước hết tự xác định mục tiêu bài học và các kiến thức cốt lõi: khái niệm, định nghĩa, tính chất, công thức, quy tắc, định lí, phương pháp giải, dạng bài tiêu biểu. ' +
@@ -1211,35 +1322,97 @@
       'GIẢI THÍCH: mỗi câu kèm trường "exp" là lời giải thích ngắn 1-2 câu (khoảng 35 từ trở xuống) cho biết vì sao đáp án đúng là đúng, có thể nêu thêm lỗi sai hay gặp ở một đáp án nhiễu. Giải thích dựa trên kiến thức của bài, tự đủ ý, KHÔNG nhắc "đáp án A/B/C/D" hay "như trên" mà nêu thẳng nội dung; công thức toán trong giải thích cũng đặt trong $...$. ' +
       'Vì kết quả là JSON nên mọi dấu gạch chéo ngược phải viết đôi (\\\\frac, \\\\sqrt, \\\\leq). ' +
       'Chỉ trả về một mảng JSON, mỗi phần tử có dạng {"q":"...","options":["...","...","...","..."],"answer":0} với answer là chỉ số (0-3) của đáp án đúng. Mỗi phần tử có thêm trường "exp" (chuỗi) là lời giải thích theo quy tắc GIẢI THÍCH ở trên.';
-    var parts;
-    if (aiDoc && aiDoc.text !== undefined) parts = [{ text: prompt + '\n\n===== NỘI DUNG TÀI LIỆU (' + aiDoc.name + ') =====\n' + aiDoc.text }];
-    else if (aiDoc) parts = [{ text: prompt + '\n\nTài liệu được đính kèm (' + aiDoc.name + ').' }, { inlineData: { mimeType: aiDoc.mime, data: aiDoc.b64 } }];
-    else parts = [{ text: prompt }];
-    btn.disabled = true; m.textContent = '⏳ Đang ' + (aiDoc ? 'đọc tài liệu và ' : '') + 'tạo câu hỏi bằng ' + first + '...';
-    callGemini(models, 0, parts, m).then(function (d) {
-      var ps = d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts || [];
-      var t = ps.filter(function (x) { return !x.thought; }).map(function (x) { return x.text || ''; }).join('');
-      if (!t) throw new Error('AI không trả về nội dung. Hãy thử lại.');
-      t = t.replace(/^\s*```(?:json)?|```\s*$/g, '').trim();
-      var arr; try { arr = JSON.parse(fixJson(t)); } catch (e1) { arr = JSON.parse(t); }
-      if (arr && !Array.isArray(arr)) arr = arr.questions || arr.items || arr.data || [];
-      var lines = [];
-      arr.forEach(function (x) {
-        if (!x || !x.q || !Array.isArray(x.options) || x.options.length < 2 || x.answer == null) return;
-        if (aiDoc && /năm học\s*\d{4}|khảo sát tháng|theo (tài liệu|đề bài|đoạn văn|văn bản|bài đọc|bảng|hình)|(ở|trong) (ví dụ|đề|bài|bảng|hình|đoạn) (trên|này|sau)|(bài toán|ví dụ|bảng|hình vẽ|đoạn văn|đề bài) (trên|nêu trên)|tên (trường|giáo viên)/i.test(x.q)) return;
-        var opts = x.options.slice(0, 4).map(cleanCell);
-        var a = typeof x.answer === 'number' ? x.answer : (/^\d$/.test(String(x.answer).trim()) ? +String(x.answer).trim() : 'ABCD'.indexOf(String(x.answer).trim().toUpperCase()));
-        if (!(a >= 0 && a < opts.length)) return;
-        lines.push(cleanCell(x.q) + ' | ' + opts.join(' | ') + ' | ' + 'ABCD'.charAt(a) + (x.exp && opts.length === 4 ? ' | ' + cleanCell(x.exp) : ''));
+    if (avoid && avoid.length) prompt += ' CÁC CÂU ĐÃ CÓ (không được lặp lại ý, nội dung hay dạng bài của chúng; hãy chọn kiến thức / dạng bài KHÁC): ' + avoid.map(function (q, i) { return (i + 1) + '. ' + q; }).join(' ');
+    return prompt;
+  }
+  function buildParts(prompt) {
+    if (aiDoc && aiDoc.text !== undefined) return [{ text: prompt + '\n\n===== NỘI DUNG TÀI LIỆU (' + aiDoc.name + ') =====\n' + aiDoc.text }];
+    if (aiDoc) return [{ text: prompt + '\n\nTài liệu được đính kèm (' + aiDoc.name + ').' }, { inlineData: { mimeType: aiDoc.mime, data: aiDoc.b64 } }];
+    return [{ text: prompt }];
+  }
+  /* kết quả AI → mảng dòng "câu | A | B | C | D | đáp án | giải thích"; bỏ câu lỗi và câu phụ thuộc ngữ cảnh */
+  function parseBatch(d) {
+    var ps = d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts || [];
+    var t = ps.filter(function (x) { return !x.thought; }).map(function (x) { return x.text || ''; }).join('');
+    if (!t) throw new Error('AI không trả về nội dung.');
+    t = t.replace(/^\s*```(?:json)?|```\s*$/g, '').trim();
+    var arr; try { arr = JSON.parse(fixJson(t)); } catch (e1) { arr = JSON.parse(t); }
+    if (arr && !Array.isArray(arr)) arr = arr.questions || arr.items || arr.data || [];
+    var out = [];
+    arr.forEach(function (x) {
+      if (!x || !x.q || !Array.isArray(x.options) || x.options.length < 2 || x.answer == null) return;
+      if (aiDoc && /năm học\s*\d{4}|khảo sát tháng|theo (tài liệu|đề bài|đoạn văn|văn bản|bài đọc|bảng|hình)|(ở|trong) (ví dụ|đề|bài|bảng|hình|đoạn) (trên|này|sau)|(bài toán|ví dụ|bảng|hình vẽ|đoạn văn|đề bài) (trên|nêu trên)|tên (trường|giáo viên)/i.test(x.q)) return;
+      var opts = x.options.slice(0, 4).map(cleanCell);
+      var a = typeof x.answer === 'number' ? x.answer : (/^\d$/.test(String(x.answer).trim()) ? +String(x.answer).trim() : 'ABCD'.indexOf(String(x.answer).trim().toUpperCase()));
+      if (!(a >= 0 && a < opts.length)) return;
+      out.push({ q: cleanCell(x.q), line: cleanCell(x.q) + ' | ' + opts.join(' | ') + ' | ' + 'ABCD'.charAt(a) + (x.exp && opts.length === 4 ? ' | ' + cleanCell(x.exp) : '') });
+    });
+    return out;
+  }
+  function normQ(q) { return String(q).toLowerCase().replace(/\$/g, '').replace(/[^a-z0-9\u00c0-\u1ef9]+/g, ' ').trim(); }
+
+  /* ---------- Tạo câu hỏi theo từng lô ---------- */
+  var BATCH = 10;   /* mỗi lần gọi chỉ sinh ~10 câu: nhanh, nhẹ, lô nào lỗi chỉ chạy lại lô đó */
+  var aiRunning = false;
+  $('kcAiBtn').onclick = function () {
+    if (aiRunning) return;
+    var m = $('kcAiMsg'), btn = $('kcAiBtn'); m.style.whiteSpace = 'pre-line';
+    function say(text, det) { m.innerHTML = esc(text) + (det ? '<details style="margin-top:4px"><summary>Chi tiết kỹ thuật</summary><div style="white-space:pre-wrap;font-size:.85em;opacity:.85">' + esc(det) + '</div></details>' : ''); }
+    var topic = '', n = Math.max(3, Math.min(100, +$('kcAiN').value || 10));
+    if (!aiDoc && !topic) { say('Hãy chọn giáo án / tài liệu trước khi tạo câu hỏi.'); return; }
+    if (!window.GKEY || !GKEY.has()) {
+      say('Chưa có API key Gemini. Hãy nhập key (Key 1, và Key 2 nếu có) ở thanh phía trên trang.');
+      if (window.GKEY) GKEY.open('Nhập key Gemini để tạo câu hỏi bằng AI.');
+      return;
+    }
+    var first = $('kcAiModel').value;
+    var models = [first].concat(AI_MODELS.filter(function (x) { return x !== first; }));
+    var cur = el.bank.value.trim(), keep = $('kcAiAdd').checked && !!cur;
+    var seen = {}, recent = [], acc = [], made = 0;
+    if (keep) cur.split('\n').forEach(function (ln) { var q = ln.split(' | ')[0]; if (q) { seen[normQ(q)] = 1; recent.push(q.slice(0, 90)); } });
+    var nb = Math.ceil(n / BATCH), batchNo = 0, empty = 0;
+    aiRunning = true; btn.disabled = true;
+
+    function runBatch() {
+      if (made >= n || batchNo >= nb + 2 || empty >= 2) return Promise.resolve();
+      batchNo++;
+      var k = Math.min(BATCH, n - made);
+      say('⏳ Lô ' + batchNo + (batchNo <= nb ? '/' + nb : '') + ': đang ' + (aiDoc ? 'đọc tài liệu và ' : '') + 'tạo ' + k + ' câu (đã có ' + made + '/' + n + ')...');
+      var tries = 0;
+      function go() {
+        return callGemini(models, buildParts(buildPrompt(k, topic, recent.slice(-40))), m).then(function (d) {
+          try { return parseBatch(d); } catch (pe) {
+            if (++tries < 2) { say('⏳ Lô ' + batchNo + ': kết quả bị lỗi định dạng, đang tạo lại...'); return go(); }
+            var er = new Error('AI trả về kết quả không đọc được. Hãy bấm “Tạo câu hỏi” lại.'); er.details = String(pe && pe.message || pe); throw er;
+          }
+        });
+      }
+      return go().then(function (items) {
+        var added = 0;
+        items.forEach(function (it) {
+          var key = normQ(it.q); if (seen[key] || made >= n) return;
+          seen[key] = 1; recent.push(it.q.slice(0, 90)); acc.push(it.line); made++; added++;
+        });
+        empty = added ? 0 : empty + 1;
+        /* lưu ngay vào ngân hàng câu hỏi — lô sau lỗi cũng không mất phần đã có */
+        if (added) { el.bank.value = (keep ? cur + '\n' : '') + acc.join('\n'); updCount(); }
+        if (made >= n || batchNo >= nb + 2) return;
+        return waitMsg(2, m, '✓ Lô ' + batchNo + ' xong (' + made + '/' + n + ' câu). Nghỉ ngắn rồi làm lô tiếp...').then(runBatch);
       });
-      if (!lines.length) throw new Error('Không đọc được kết quả của AI. Hãy thử lại.');
-      var cur = el.bank.value.trim();
-      el.bank.value = ($('kcAiAdd').checked && cur ? cur + '\n' : '') + lines.join('\n');
-      updCount();
-      m.textContent = '✓ Đã tạo ' + lines.length + ' câu' + (aiDoc ? ' từ “' + aiDoc.name + '”' : '') + '. Hãy xem lại đáp án đúng trước khi chơi.';
+    }
+
+    runBatch().then(function () {
+      if (!made) throw new Error('Không đọc được kết quả của AI. Hãy thử lại.');
+      say('✓ Đã tạo ' + made + (made < n ? '/' + n : '') + ' câu' + (aiDoc ? ' từ “' + aiDoc.name + '”' : '') + '. Hãy xem lại đáp án đúng trước khi chơi.' + (made < n ? '\nCó vài câu bị loại vì trùng ý hoặc phụ thuộc ngữ cảnh; bấm tạo thêm nếu cần.' : ''));
     }).catch(function (e) {
-      m.textContent = '⚠ ' + (e && e.message ? e.message : 'Không tạo được câu hỏi.');
-    }).then(function () { btn.disabled = false; });
+      var text = '⚠ ' + (e && e.message ? e.message : 'Không tạo được câu hỏi.');
+      if (made) {
+        var left = Math.max(3, n - made);
+        $('kcAiAdd').checked = true; $('kcAiN').value = left;
+        text = '⚠ Đã lưu ' + made + '/' + n + ' câu vào bộ câu hỏi, các lô còn lại bị lỗi.\n' + text.slice(2) + '\nBấm “Tạo câu hỏi” để làm tiếp phần còn thiếu (đã tự bật “Nối thêm”, số câu = ' + left + ').';
+      }
+      say(text, e && e.details);
+    }).then(function () { aiRunning = false; btn.disabled = false; });
   };
 
   /* ================= CHẾ ĐỘ ÔN TẬP ================= */
