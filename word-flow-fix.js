@@ -366,20 +366,32 @@ function hoistBoxes(d,body,rep,IND){
   if(pics)rep.warn.push(pics+' khung nổi chưa xử lý được: kiểm tra vị trí');
   void left}
 
-/* đáp án bị "treo" sang dòng khác: "D. Cả" + "A, B, C." */
+/* đáp án bị "treo" sang dòng khác: "D. Cả" + "A, B, C." — [v2] đoạn treo có thể nằm cách bảng vài phần tử
+   (sau câu kế tiếp, kèm ngắt section/đoạn trống), không chỉ ngay sát bảng */
 function orphanTails(body,rep){let n=0;
+  const TAIL=/^[A-D](?:\s*(?:,|và)\s*[A-D])+\s*\.?$/,LOOK=14;
   Array.from(body.getElementsByTagNameNS(W,'tbl')).forEach(t=>{
     if(anc(t,'tbl'))return;const ps=all(t,'p');const lp=ps[ps.length-1];if(!lp)return;
     if(!/^A\s*[.)]/.test(squash(fullText(t)))||!/(?:^|\s)Cả\s*$/i.test(squash(fullText(lp))))return;
-    let q=t.nextElementSibling;const trash=[];
-    while(q&&isP(q)&&!fullText(q).trim()&&!q.getElementsByTagNameNS(W,'sectPr').length){trash.push(q);q=q.nextElementSibling}
-    if(!isP(q)||!/^[A-D](?:\s*(?:,|và)\s*[A-D])+\s*\.?$/.test(squash(ownText(q))))return;
-    const tx=squash(ownText(q));const rs=Array.from(q.children).filter(c=>c.localName==='r').map(r=>r.cloneNode(true));
+    /* tìm đoạn treo: đi tới tối đa LOOK phần tử, dừng nếu gặp bảng đáp án khác "A." kế tiếp sau một câu hỏi thứ 2 */
+    let q=t.nextElementSibling,steps=0,stems=0,hit=null;
+    while(q&&steps<LOOK){
+      if(isP(q)){const tx=squash(ownText(q));
+        if(TAIL.test(tx)){hit=q;break}
+        if(STEM.test(tx)){if(++stems>2)break}}
+      q=q.nextElementSibling;steps++}
+    if(!hit)return;q=hit;
+    const rs=Array.from(q.children).filter(c=>c.localName==='r').map(r=>r.cloneNode(true));
     const sp=mk(lp.ownerDocument,'r'),st=mk(lp.ownerDocument,'t');st.textContent=' ';st.setAttributeNS(XMLNS,'xml:space','preserve');sp.appendChild(st);lp.appendChild(sp);
     rs.forEach(r=>{cleanRun(r);lp.appendChild(r)});
     const lr=Array.from(lp.children).filter(c=>c.localName==='r'),lrp=one(lr[0],'rPr');
     rs.forEach(r=>{if(!one(r,'rPr')&&lrp)r.insertBefore(lrp.cloneNode(true),r.firstChild)});
-    q.parentNode.removeChild(q);trash.forEach(x=>{if(x.parentNode)x.parentNode.removeChild(x)});void tx;n++});
+    /* đoạn treo có chứa ngắt section thì giữ lại đoạn (chỉ xóa chữ), tránh làm mất ngắt trang/section */
+    if(q.getElementsByTagNameNS(W,'sectPr').length){Array.from(q.children).forEach(c=>{if(c.localName!=='pPr')q.removeChild(c)})}
+    else{const prev=q.previousElementSibling;q.parentNode.removeChild(q);
+      /* dọn đoạn trống ngay trước đoạn treo (nếu có) */
+      if(prev&&isP(prev)&&!fullText(prev).trim()&&!prev.getElementsByTagNameNS(W,'sectPr').length&&!prev.getElementsByTagNameNS(W,'drawing').length)prev.parentNode.removeChild(prev)}
+    n++});
   if(n)rep.fix['phần đáp án “treo” (D. Cả / A, B, C.) đã ghép lại']=n}
 
 /* ===================================================================

@@ -13,7 +13,7 @@
 'use strict';
 const W='http://schemas.openxmlformats.org/wordprocessingml/2006/main',XNS='http://www.w3.org/XML/1998/namespace';
 const ln=(e,n)=>!!e&&e.nodeType===1&&e.namespaceURI===W&&e.localName===n;
-const kids=(e,n)=>Array.from(e.childNodes).filter(c=>c.nodeType===1&&(!n||ln(c,n)));
+const kids=(e,n)=>e?Array.from(e.childNodes).filter(c=>c.nodeType===1&&(!n||ln(c,n))):[];
 const kid=(e,n)=>kids(e,n)[0]||null;
 const all=(e,n)=>Array.from(e.getElementsByTagNameNS(W,n));
 const wa=(e,a)=>e.getAttributeNS(W,a);
@@ -174,13 +174,15 @@ function questionPass(doc,body,rep,info){
   const dotMajor=nt0>0&&nd/nt0>=.5;
   /* tách thành các "đoạn" giữa các điểm chặn */
   const runs=[];let cur=[];toks.forEach(tk=>{if(tk.k==='B'){if(cur.length)runs.push(cur);cur=[]}else cur.push(tk)});if(cur.length)runs.push(cur);
-  let nMis=0,nStray=0,nBlank=0,nNorm=0,nTxt=0;
+  let nMis=0,nStray=0,nBlank=0,nNorm=0,nTxt=0,nTail=0;const strayLeft=[];
   const isQ=k=>k==='S'||k==='O'||k==='Op';
   runs.forEach(run=>{
     const real=run.filter(x=>isQ(x.k)),S=real.filter(x=>x.k==='S'),O=real.filter(x=>x.k!=='S');
     if(!S.length||!O.length)return;
     /* bỏ dòng thừa */
-    run.filter(x=>x.k==='X').forEach(x=>{x.els.forEach(e=>e.parentNode.removeChild(e));nStray++});
+    /* [v2] dòng thừa “A, B, C.” thường là phần đuôi của phương án “D. Cả” bị tách rời → giữ lại chữ để ghép vào D, không xóa mất */
+    const strayTxt=[];
+    run.filter(x=>x.k==='X').forEach(x=>{x.els.forEach(e=>{strayTxt.push(ptext(e).replace(/\s+/g,' ').trim());e.parentNode.removeChild(e)});nStray++});
     const ok=S.length===O.length;
     if(!ok){const q0=STEM.exec(ptext(S[0].els[0]).trim());
       rep.warn('Đề thi: quanh Câu '+(q0?q0[1]:'?')+' có '+S.length+' câu hỏi nhưng '+O.length+' khối đáp án — không tự ghép lại được, cần kiểm tra tay.')}
@@ -200,7 +202,10 @@ function questionPass(doc,body,rep,info){
       const sEl=ok?S[O.indexOf(tk)]:null;
       const qn=sEl?(STEM.exec(ptext(sEl.els[0]).trim())||[0,'?'])[1]:'?';
       if(!blk){rep.warn('Câu '+qn+': không đọc được đủ 4 phương án A–D để chuẩn hóa — cần kiểm tra tay.');return}
-      const nt=fixOptText(blk,m=>rep.warn(m),qn,dotMajor);if(nt)nTxt+=nt;
+      let mergedTail=0;
+      if(strayTxt.length)blk.opts.forEach((x,i)=>{if(/^(Cả|Tất cả)\.?$/.test(x)&&strayTxt.length){blk.opts[i]=x.replace(/\.$/,'')+' '+strayTxt.shift();mergedTail++}});
+      if(mergedTail){nTail+=mergedTail}
+      const nt=fixOptText(blk,m=>rep.warn(m),qn,dotMajor)+mergedTail;if(nt)nTxt+=nt;
       const need=tk.k==='Op'||!tk.els[0]||!shapeOK(tk.els[0],blk)||nt>0;
       if(!need)return;
       const L=Math.max.apply(null,blk.opts.map(s=>s.length+3));
@@ -209,7 +214,10 @@ function questionPass(doc,body,rep,info){
       const parent=tk.els[0].parentNode,anchor=tk.els[0];
       if(blk.pre.length){const pr=buildTable(doc,tpl,[blk.pre],aw,blk.rpr);parent.insertBefore(pr,anchor)}
       parent.insertBefore(buildTable(doc,tpl,rows,aw,blk.rpr),anchor);
-      tk.els.forEach(e=>{if(e.parentNode)e.parentNode.removeChild(e)});nNorm++})});
+      tk.els.forEach(e=>{if(e.parentNode)e.parentNode.removeChild(e)});nNorm++});
+    strayTxt.forEach(t=>strayLeft.push('Đề thi: đã xóa dòng thừa “'+t+'” không ghép được vào phương án nào — kiểm tra lại câu hỏi gần đó.'))});
+  strayLeft.forEach(m=>rep.warn(m));
+  if(nTail)rep.fix('Đề thi: ghép phần đuôi “A, B, C.” vào phương án “Cả” (D. Cả A, B, C.)',nTail);
   if(nMis)rep.fix('Đề thi: ghép lại đáp án đang lệch câu hỏi (đoạn câu)',nMis);
   if(nStray)rep.fix('Đề thi: xóa dòng thừa dạng “A, B, C.”',nStray);
   if(nNorm)rep.fix('Đề thi: chuẩn hóa bảng đáp án A–D (đúng thứ tự, vừa khổ giấy)',nNorm);
@@ -285,7 +293,7 @@ function sheetPass(doc,body,rep,info){
     const region=ch.slice(H+1,end),sects=region.filter(hasSect);
     const keep=sects.length?sects[sects.length-1]:null;
     const sp=keep?kid(kid(keep,'pPr'),'sectPr'):kid(body,'sectPr');
-    const aw=textWidth(sp),ind=1004,tw=Math.max(6000,aw-ind);
+    const aw=textWidth(sp),ind=0,tw=Math.max(6000,aw-ind);
     region.forEach(e=>e.parentNode.removeChild(e));
     const out=[];
     /* lưới tô A-B-C-D */
@@ -306,7 +314,9 @@ function sheetPass(doc,body,rep,info){
     for(let i=0;i<nTF;i++)tf.push([cell('abcdefgh'[i],c0,{center:false,bold:true}),cell(B,1200,{font:'Arial'}),cell(B,1200,{font:'Arial'})]);
     out.push(table(tf,[c0,1200,1200],ind));
     out.push(paraW(doc,'Phần II: TỰ LUẬN (3 điểm)',{bold:true,keep:true,pb:true,ind:ind}));
-    for(let i=0;i<30;i++)out.push(paraW(doc,'',{dot:aw-60,ind:ind,after:100}));
+    /* [v2] số dòng chấm tự tính theo chiều cao trang (trước: cố định 30 dòng → khổ/cỡ chữ khác là tràn sang trang thừa) */
+    const bx=pgBox(sp),dsz=info.def||12,lineH=dsz*1.15+5,nDot=Math.max(10,Math.min(45,Math.floor((bx.ah/20-dsz*1.15*2-14)/lineH)-1));
+    for(let i=0;i<nDot;i++)out.push(paraW(doc,'',{dot:aw-60,ind:ind,after:100}));
     const ref=keep||ch[end]||null;
     if(keep)region.length&&body.insertBefore(keep,ch[end]||null);
     const anchor=keep||(end<ch.length?ch[end]:null);
@@ -314,9 +324,240 @@ function sheetPass(doc,body,rep,info){
     n++}
   if(n)rep.fix('Đề thi: dựng lại phiếu trả lời (lưới tô, trả lời ngắn, Đúng/Sai, tự luận) vừa khổ giấy, bỏ trang trống thừa',n)}
 
+/* ================== 9. ĐÁP ÁN: THỤT LỀ ĐỒNG NHẤT ==================
+   Phần đáp án (sau khi PDF→Word) lệch lề lung tung: “Phần I” thụt dòng đầu 1,27 cm, “Câu 1” sát lề, bảng thụt 1,77/1,84 cm,
+   mục 1./2./3. thụt 2,2 cm, ý a./b./c. thụt 2 cm... → quy về MỘT hệ thụt lề:
+     cấp 0 (Phần I/II, Câu n)  : sát lề
+     cấp 1 (1./2./3., •, bảng, đoạn giải thích) : số ở 1 cm, chữ ở 1,63 cm
+     cấp 2 (a./b./c., ○)       : số ở 1,63 cm, chữ cách thêm 0,8 cm */
+function keyPass(doc,body,rep){
+  const ch=elems(body);let n=0;
+  const tx=e=>ln(e,'p')?ptext(e).replace(/\s+/g,' ').trim():ttext(e).replace(/\s+/g,' ').trim();
+  const B1=567,T1=B1+360,B2=T1,T2=B2+454;
+  const sec=e=>{const sp=ln(e,'p')?kid(kid(e,'pPr'),'sectPr'):null;return sp};
+  const setInd=(p,o)=>{const pp=kid(p,'pPr')||p.insertBefore(mk(doc,'pPr'),p.firstChild);
+    let ie=kid(pp,'ind');if(!ie){ie=mk(doc,'ind');
+      const sp=kid(pp,'spacing'),ref=sp?sp.nextSibling:null;
+      // ind đứng sau spacing theo thứ tự schema; nếu có jc/rPr... chèn trước phần tử đầu tiên đứng sau 'ind'
+      const after=['contextualSpacing','mirrorIndents','suppressOverlap','jc','textDirection','textAlignment','textboxTightWrap','outlineLvl','divId','cnfStyle','rPr','sectPr','pPrChange'];
+      let at=null;for(const c of kids(pp)){if(after.indexOf(c.localName)>=0){at=c;break}}
+      pp.insertBefore(ie,at)}
+    ['left','start','right','end','hanging','firstLine','leftChars','rightChars','hangingChars','firstLineChars'].forEach(a=>ie.removeAttributeNS(W,a));
+    sa(ie,'left',o.left);if(o.hanging)sa(ie,'hanging',o.hanging);sa(ie,'right',0)};
+  const setTbl=(t,ind,aw)=>{const pr=kid(t,'tblPr');if(!pr)return;
+    let ti=kid(pr,'tblInd');if(!ti){ti=mk(doc,'tblInd');
+      const order=['tblBorders','shd','tblLayout','tblCellMar','tblLook'];let at=null;for(const c of kids(pr)){if(order.indexOf(c.localName)>=0){at=c;break}}pr.insertBefore(ti,at)}
+    sa(ti,'w',ind);sa(ti,'type','dxa');
+    const g=kid(t,'tblGrid'),cols=g?kids(g,'gridCol'):[],tot=cols.reduce((a,c)=>a+(+wa(c,'w')||0),0);
+    if(tot&&Math.abs(tot+ind-aw)>20){const k=(aw-ind)/tot;cols.forEach(c=>sa(c,'w',Math.floor((+wa(c,'w')||0)*k)));
+      all(t,'tc').forEach(tc=>{const w=kid(kid(tc,'tcPr'),'tcW');if(w&&+wa(w,'w'))sa(w,'w',Math.floor(+wa(w,'w')*k))});
+      const tw2=kid(pr,'tblW');if(tw2){sa(tw2,'w',Math.floor(aw-ind));sa(tw2,'type','dxa')}}};
+  for(let i=0;i<ch.length;i++){
+    const e=ch[i];if(!/^ĐÁP ÁN\b/.test(tx(e).replace(/^.*?(ĐÁP ÁN)/,'$1').slice(0,40))||!/ĐÁP ÁN\s+MÔN/.test(tx(e)))continue;
+    if(ln(e,'tbl')&&tx(e).length>200)continue;
+    /* điểm đầu: dòng “Phần I” đầu tiên sau tiêu đề; điểm cuối: trước tiêu đề UBND kế tiếp (đề/đáp án khác) hoặc hết tài liệu */
+    let a=-1;for(let k=i+1;k<Math.min(ch.length,i+14);k++){if(ln(ch[k],'p')&&/^Phần\s*I\b/i.test(tx(ch[k]))){a=k;break}}
+    if(a<0)continue;
+    let z=ch.length;for(let k=a+1;k<ch.length;k++){const t=tx(ch[k]);if(/^UBND\b/.test(t)||(ln(ch[k],'tbl')&&/^UBND/.test(t)&&/ĐỀ KIỂM TRA|ĐÁP ÁN|PHIẾU/.test(t))){z=k;break}}
+    let sp=null;for(let k=a;k<ch.length&&!sp;k++){sp=ln(ch[k],'sectPr')?ch[k]:sec(ch[k])}
+    const aw=textWidth(sp||kid(body,'sectPr'));
+    let inII=false;
+    for(let k=a;k<z;k++){const e2=ch[k];
+      if(ln(e2,'tbl')){setTbl(e2,0,aw);n++;continue}
+      if(!ln(e2,'p')||sec(e2))continue;
+      const t=tx(e2);if(!t)continue;
+      const pp=kid(e2,'pPr'),jc=pp&&kid(pp,'jc'),np=pp&&kid(pp,'numPr');
+      if(jc&&wa(jc,'val')==='center'&&!np)continue;
+      if(/^Phần\s*II\b/i.test(t))inII=true;else if(/^Phần\s*I\b/i.test(t))inII=false;
+      if(/^Phần\s*(I|II)\b/i.test(t)||/^Câu\s*\d+/.test(t)){setInd(e2,{left:0});n++;continue}
+      if(np){const il=kid(np,'ilvl'),lv=il?+wa(il,'val')||0:0;
+        if(lv<=0)setInd(e2,{left:inII?B1+283:T1,hanging:inII?283:360});
+        else setInd(e2,{left:(inII?B1+283:T1)+454*lv,hanging:454});
+        n++;continue}
+      setInd(e2,{left:inII?B1:T1});n++}
+    i=z-1}
+  if(n)rep.fix('Đề thi: phần ĐÁP ÁN — thụt lề đồng nhất (Phần/Câu sát lề, mục 1./2./3. và bảng cùng 1 mức, ý a./b./c. lùi tiếp)',n)}
+
+/* ================== 10. BẢNG ĐỀU VÀ CÂN ĐỐI ==================
+   a) Bảng bị PDF/Word chia thành nhiều mảnh liền nhau (vd. bản đặc tả 6 mảnh) có cột rộng/hẹp mỗi mảnh một kiểu
+      (cột số chỉ 0,3 cm ở mảnh này, 1,2 cm ở mảnh kia) → dùng chung MỘT bộ độ rộng cột cân đối cho cả cụm.
+   b) Bảng quá hẹp so với vùng chữ (khung tiêu đề khổ ngang chiếm 64%, bảng chữ ký 89%...) → giãn cho vừa bề rộng, tỉ lệ cột giữ nguyên. */
+function sectWidthAt(body,e){let top=e;while(top&&top.parentNode!==body)top=top.parentNode;
+  for(let n=top;n;n=n.nextSibling){if(n.nodeType!==1)continue;const sp=ln(n,'sectPr')?n:(ln(n,'p')?kid(kid(n,'pPr'),'sectPr'):null);if(sp)return textWidth(sp)}
+  return textWidth(kid(body,'sectPr'))}
+function gridOf(t){const g=kid(t,'tblGrid');return g?kids(g,'gridCol').map(c=>tw(wa(c,'w'))):[]}
+function applyGrid(doc,t,w,ind){
+  const g=kid(t,'tblGrid');if(!g)return;kids(g,'gridCol').forEach((c,i)=>sa(c,'w',w[i]));
+  const pr=kid(t,'tblPr');
+  if(pr){let tww=kid(pr,'tblW');if(!tww){tww=mk(doc,'tblW');pr.insertBefore(tww,kid(pr,'jc')||kid(pr,'tblInd')||kid(pr,'tblBorders')||kid(pr,'tblLayout')||kid(pr,'tblCellMar')||kid(pr,'tblLook')||null)}
+    sa(tww,'w',w.reduce((a,b)=>a+b,0));sa(tww,'type','dxa');
+    let ti=kid(pr,'tblInd');if(ti){sa(ti,'w',ind);sa(ti,'type','dxa')}
+    let lay=kid(pr,'tblLayout');if(!lay){lay=mk(doc,'tblLayout');pr.insertBefore(lay,kid(pr,'tblCellMar')||kid(pr,'tblLook')||null)}sa(lay,'type','fixed')}
+  kids(t,'tr').forEach(tr=>{let col=0;const tp=kid(tr,'trPr'),gb=tp&&kid(tp,'gridBefore');if(gb)col+=tw(wa(gb,'val'));
+    kids(tr,'tc').forEach(tc=>{const cp=kid(tc,'tcPr'),gs=cp&&kid(cp,'gridSpan'),k=gs?tw(wa(gs,'val'))||1:1;
+      let sum=0;for(let j=col;j<col+k&&j<w.length;j++)sum+=w[j];col+=k;
+      const cw=cp&&kid(cp,'tcW');if(cw){sa(cw,'w',sum);sa(cw,'type','dxa')}})})}
+function scaleTo(w,total,minW){const s0=w.reduce((a,b)=>a+b,0)||1;let r=w.map(x=>Math.max(minW||0,Math.floor(x*total/s0)));
+  let d=total-r.reduce((a,b)=>a+b,0);let big=0;r.forEach((x,i)=>{if(x>r[big])big=i});r[big]+=d;return r}
+function tablePass(doc,body,rep){
+  const ch=elems(body);let nUni=0,nStr=0;
+  /* a) cụm bảng liền nhau cùng số cột */
+  let i=0;
+  while(i<ch.length){
+    if(!ln(ch[i],'tbl')){i++;continue}
+    const grp=[ch[i]];let j=i+1;
+    while(j<ch.length){
+      if(ln(ch[j],'p')&&!ptext(ch[j]).trim()&&!all(ch[j],'drawing').length){j++;continue}
+      if(ln(ch[j],'tbl')&&gridOf(ch[j]).length===gridOf(grp[0]).length)grp.push(ch[j]);else break;j++}
+    const n=gridOf(grp[0]).length;
+    if(grp.length>=2&&n>=6){
+      const aw=sectWidthAt(body,grp[0]);
+      /* bảng mẫu: mảnh có cột hẹp nhất rộng nhất (cân đối nhất) */
+      let ref=grp[0],rm=-1;grp.forEach(t=>{const g=gridOf(t),m=Math.min.apply(null,g);if(m>rm){rm=m;ref=t}});
+      const ti=kid(kid(ref,'tblPr'),'tblInd'),ind=ti?tw(wa(ti,'w')):0;
+      /* cột số (hẹp) chỉ cần ~1 cm; phần còn lại dành cho các cột chữ theo tỉ lệ gốc của mảnh mẫu */
+      const rg=gridOf(ref),NUM=560,isN=rg.map(x=>x<1000),nN=isN.filter(Boolean).length,rest=aw-ind-nN*NUM;
+      const tsum=rg.reduce((a,x,k)=>a+(isN[k]?0:x),0)||1;
+      let w=nN&&nN<n&&rest>0?rg.map((x,k)=>isN[k]?NUM:Math.floor(x*rest/tsum)):scaleTo(rg,aw-ind,0);
+      {const d=aw-ind-w.reduce((a,b)=>a+b,0);let big=0;w.forEach((x,k)=>{if(x>w[big])big=k});w[big]+=d}
+      grp.forEach(t=>{const old=gridOf(t).join();applyGrid(doc,t,w,ind);if(old!==w.join())nUni++})}
+    i=j>i+1?j:i+1}
+  /* b) bảng hẹp so với vùng chữ */
+  Array.from(body.childNodes).filter(e=>ln(e,'tbl')).forEach(t=>{
+    const g=gridOf(t);if(g.length<2)return;
+    const ti=kid(kid(t,'tblPr'),'tblInd'),ind=ti?tw(wa(ti,'w')):0,tot=g.reduce((a,b)=>a+b,0),aw=sectWidthAt(body,t);
+    if((tot+ind)/aw>=0.97)return;
+    /* chỉ giãn bảng khung tiêu đề, chữ ký, bảng nội dung; bỏ qua bảng 1 hàng nhỏ (đáp án A–D thụt lề có chủ đích) */
+    const tx=ttext(t);if(/^\s*A\.\s/.test(tx)&&kids(t,'tr').length<=2)return;
+    const nw=scaleTo(g,aw-ind,0);applyGrid(doc,t,nw,ind);nStr++});
+  if(nUni)rep.fix('Đề thi: bảng bị chia nhiều mảnh (ma trận/đặc tả) — dùng chung một bộ độ rộng cột cân đối cho cả cụm',nUni);
+  if(nStr)rep.fix('Đề thi: bảng quá hẹp so với vùng chữ đã giãn cho vừa bề rộng (khung tiêu đề, chữ ký...)',nStr)}
+
+/* ================== 8. GIỮ SỐ TRANG ĐỀ THI ==================
+   Đề ghi "(Đề kiểm tra gồm N trang)" nhưng sau khi chuẩn hóa (chữ 14, giãn dòng 1.15, cách đoạn 6pt) lại dài hơn N trang.
+   Ước lượng chiều cao nội dung từng đề (đo bề rộng chữ, tự xuống dòng, bảng, ngắt trang) rồi THU GỌN DẦN chỉ trong đề đó:
+   cách đoạn → giãn dòng → cỡ chữ (từng 0,5pt, không nhỏ hơn 12pt) cho đến khi vừa N trang (chừa ~4% dự phòng).
+   Không thu gọn nếu đề đã vừa N trang. Không động tới ma trận, đặc tả, đáp án, phiếu trả lời. */
+const CW=c=>/\d/.test(c)?.5:/\p{Lu}/u.test(c)?.68:/\s/.test(c)?.25:/[.,;:'"!()\-]/.test(c)?.32:.47;
+const tw=n=>+n||0;
+function pgBox(sp){const z=sp&&kid(sp,'pgSz'),m=sp&&kid(sp,'pgMar');
+  const w=z?tw(wa(z,'w')):11906,h=z?tw(wa(z,'h')):16838;
+  const L=m?tw(wa(m,'left')):1134,R=m?tw(wa(m,'right')):1134,T=m?tw(wa(m,'top')):1134,B=m?tw(wa(m,'bottom')):1134;
+  return{aw:Math.max(2000,w-L-R),ah:Math.max(3000,h-T-B)}}
+function szOf(r,p,def){const g=n=>{const e=n&&kid(n,'sz');return e?tw(wa(e,'val'))/2:0};
+  return g(kid(r,'rPr'))||g(kid(kid(p,'pPr'),'rPr'))||def}
+/* chiều cao (pt) của một đoạn, với hệ số điều chỉnh m={d:giảm cỡ chữ(pt), l:hệ số giãn dòng tối đa, a:hệ số cách đoạn} */
+function paraH(p,aw,def,m){
+  const pp=kid(p,'pPr'),sp=pp&&kid(pp,'spacing'),ind=pp&&kid(pp,'ind');
+  let before=sp?tw(wa(sp,'before'))/20:0,after=sp?tw(wa(sp,'after'))/20:0;
+  const line=sp&&wa(sp,'line')?tw(wa(sp,'line')):240,rule=sp&&wa(sp,'lineRule')||'auto';
+  const left=ind?tw(wa(ind,'left')||wa(ind,'start')):0,right=ind?tw(wa(ind,'right')||wa(ind,'end')):0,hang=ind?tw(wa(ind,'hanging')):0;
+  const avail=Math.max(1200,aw-left-right)/20;
+  let maxsz=0,x=0,lines=1;
+  const items=[];                                  // [chiều rộng chữ (pt), có thể ngắt sau không, cỡ chữ]
+  all(p,'r').forEach(r=>{const sz0=szOf(r,p,def),sz=sz0>=10?Math.max(12,sz0-m.d):sz0,bold=!!kid(kid(r,'rPr'),'b');
+    Array.from(r.childNodes).forEach(c=>{if(c.nodeType!==1||c.namespaceURI!==W)return;
+      if(c.localName==='t'){maxsz=Math.max(maxsz,sz);
+        (c.textContent.match(/\S+\s*|\s+/g)||[]).forEach(w=>{let ww=0;for(const ch of w)ww+=CW(ch)*sz*(bold?1.05:1);items.push([ww,0,sz])})}
+      else if(c.localName==='tab'){maxsz=Math.max(maxsz,sz);items.push([sz*2,0,sz])}
+      else if(c.localName==='br'&&wa(c,'type')!=='page')items.push([0,1,sz])})});
+  if(!maxsz)maxsz=def>=10?Math.max(12,def-m.d):def;
+  x=0;items.forEach(it=>{if(it[1]){lines++;x=0;return}
+    if(x+it[0]>avail+0.5&&x>0){lines++;x=it[0]}else x+=it[0]});
+  if(!/^auto$/.test(rule)){var lh=line/20}
+  else{var f=Math.min(line,Math.round(240*m.l))/240;lh=maxsz*1.15*f}
+  if(/^auto$/.test(rule)&&line<240)lh=maxsz*1.15*line/240;
+  return lines*lh+before+after*m.a}
+function tblH(t,aw,def,m){
+  const g=kid(t,'tblGrid'),cols=g?kids(g,'gridCol').map(c=>tw(wa(c,'w'))):[];let tot=0;
+  kids(t,'tr').forEach(tr=>{let mh=0,ci=0;
+    kids(tr,'tc').forEach(tc=>{const pr=kid(tc,'tcPr'),w=pr&&kid(pr,'tcW'),span=pr&&kid(pr,'gridSpan');
+      const n=span?tw(wa(span,'val'))||1:1;let cw=w&&tw(wa(w,'w'))?tw(wa(w,'w')):cols.slice(ci,ci+n).reduce((a,b)=>a+b,0)||aw/(cols.length||1);ci+=n;
+      let h=0;kids(tc).forEach(e=>{if(ln(e,'p'))h+=paraH(e,Math.max(600,cw-216),def,m);else if(ln(e,'tbl'))h+=tblH(e,cw-216,def,m)});
+      mh=Math.max(mh,h+2)});
+    const trp=kid(tr,'trPr'),th=trp&&kid(trp,'trHeight');const hv=th?tw(wa(th,'val'))/20:0;
+    tot+=Math.max(mh,hv)});
+  return tot}
+/* số trang ước lượng của một dãy phần tử (bắt đầu ở đầu trang) */
+function estPages(els,box,def,m){
+  const H=box.ah/20;let page=1,used=0;
+  els.forEach(e=>{let h=0;
+    if(ln(e,'p')){
+      const pp=kid(e,'pPr');
+      if(pp&&kid(pp,'pageBreakBefore')&&used>0){page++;used=0}
+      h=paraH(e,box.aw,def,m);
+      const room=H-used;
+      if(h>room&&used>0&&h<=H*0.5){ if(room<h*0.5||h<=40){page++;used=0} }   // đoạn ngắn không chẻ đôi trang
+      used+=h;while(used>H){used-=H;page++}
+      if(Array.from(e.getElementsByTagNameNS(W,'br')).some(b=>wa(b,'type')==='page')){page++;used=0}
+    }else if(ln(e,'tbl')){
+      h=tblH(e,box.aw,def,m);
+      if(h<=H*0.5&&h>H-used){page++;used=0}
+      used+=h;while(used>H){used-=H;page++}}});
+  return page-1+used/H}
+function fitPass(doc,body,rep,opt,def){
+  const ch=elems(body);let nFit=0;const warn=[];
+  for(let i=0;i<ch.length;i++){
+    const m=/Đề kiểm tra gồm\s*(\d+)\s*trang/i.exec(ln(ch[i],'tbl')||ln(ch[i],'p')?ttext(ch[i]):'');if(!m)continue;
+    if(ln(ch[i],'tbl')&&all(ch[i],'tbl').length>1)continue;
+    const N=+m[1];if(!N||N>6)continue;
+    /* điểm đầu: phần tử đầu của đề (bảng khung tiêu đề ngay trước hoặc chính nó); điểm cuối: "- Hết -" đầu tiên sau đó */
+    let a=i;while(a>0&&!(ln(ch[a],'tbl')&&/UBND|TRƯỜNG|SỞ GD|PHÒNG GD/.test(ttext(ch[a]).slice(0,120)))&&i-a<3)a--;
+    let b=-1;for(let k=i;k<ch.length;k++){if(ln(ch[k],'p')&&/^[-–—\s]*Hết[-–—\s]*$/i.test(ptext(ch[k]).trim())){b=k;break}
+      if(k>i&&ln(ch[k],'tbl')&&/Đề kiểm tra gồm/i.test(ttext(ch[k])))break}
+    if(b<0)continue;
+    const els=ch.slice(a,b+1);
+    /* hộp trang của section chứa đề */
+    let sp=null;for(let k=b;k<ch.length&&!sp;k++){const e=ch[k];sp=ln(e,'sectPr')?e:(ln(e,'p')?kid(kid(e,'pPr')||e,'sectPr'):null)}
+    const box=pgBox(sp||kid(body,'sectPr'));
+    const M0={d:0,l:9,a:1},cap=N*0.96;
+    const e0=estPages(els,box,def,M0);
+    if(e0<=cap)continue;
+    /* thang thu gọn: [giảm cỡ chữ pt, giãn dòng tối đa, hệ số cách đoạn] */
+    const ladder=[];
+    [[0,1.15,.5],[0,1.08,.3],[0,1,0]].forEach(x=>ladder.push({d:x[0],l:x[1],a:x[2]}));
+    for(let d=.5;d<=2;d+=.5)ladder.push({d:d,l:1,a:0});
+    let pick=null;for(const L of ladder){if(estPages(els,box,def,L)<=cap){pick=L;break}}
+    if(!pick){pick=ladder[ladder.length-1];warn.push('Đề ghi '+N+' trang nhưng sau khi thu nhỏ tối đa (chữ '+(def-2)+'pt) vẫn ước lượng khoảng '+estPages(els,box,def,pick).toFixed(1)+' trang — hãy xem lại tay.')}
+    /* áp dụng */
+    els.forEach(e=>{
+      (ln(e,'p')?[e]:all(e,'p')).forEach(p=>{
+        const pp=kid(p,'pPr')||p.insertBefore(mk(doc,'pPr'),p.firstChild);
+        let sp2=kid(pp,'spacing');
+        if(sp2){const af=tw(wa(sp2,'after'));if(af)sa(sp2,'after',Math.round(af*pick.a));
+          if(wa(sp2,'line')&&(wa(sp2,'lineRule')||'auto')==='auto'&&tw(wa(sp2,'line'))>240)sa(sp2,'line',Math.min(tw(wa(sp2,'line')),Math.round(240*pick.l)))}
+      });
+      if(pick.d)all(e,'sz').concat(all(e,'szCs')).forEach(z=>{const v=tw(wa(z,'val'));if(v>=20)sa(z,'val',Math.min(v,Math.max(24,v-Math.round(pick.d*2))))});
+    });
+    nFit++;
+    rep.fix('Đề thi: giữ đúng '+N+' trang cho đề ở “'+ttext(els[0]).slice(0,30).trim()+'…” (ước lượng '+e0.toFixed(2)+' → '+estPages(els,box,def,{d:0,l:9,a:1}).toFixed(2)+' trang; thu gọn cách đoạn'+(pick.l<1.15?'/giãn dòng':'')+(pick.d?'/chữ −'+pick.d+'pt':'')+')',1);
+  }
+  warn.forEach(w=>rep.warn('Đề thi: '+w));
+  return nFit}
+
+/* ================== ĐỐI CHIẾU CHỮ TRƯỚC/SAU ==================
+   Đếm từng "từ" (chữ/số) trong toàn bộ nội dung trước và sau khi sửa. Từ nào bị MẤT (ít đi so với trước) thì báo cảnh báo,
+   để bắt các trường hợp như mất "A, B, C." ở phương án D. Cả. Chữ chỉ được SỬA có chủ đích (năm học, chính tả) thì bỏ qua. */
+function wordBag(body){const m=new Map();
+  all(body,'p').forEach(p=>{const s=ptext(p).replace(/\t/g,' ');
+    (s.match(/[\p{L}\p{N}]+/gu)||[]).forEach(w=>{w=w.toLowerCase();m.set(w,(m.get(w)||0)+1)})});
+  return m}
+function checkLoss(a,b,rep){
+  const lost=[];
+  a.forEach((n,w)=>{const k=b.get(w)||0;if(k<n)lost.push([w,n-k])});
+  /* bỏ qua phần chữ thay đổi có chủ đích: số năm học và dạng chữ cũ */
+  const ign=/^(20\d\d\d?|cáng|dạng|nan)$/;
+  const real=lost.filter(([w])=>!ign.test(w));
+  if(!real.length)return;
+  const tot=real.reduce((t,x)=>t+x[1],0);
+  /* các chữ cái đơn A-D hay bị lặp rồi xóa hợp lệ (nhãn đáp án dựng lại) → chỉ cảnh báo khi mất NHIỀU hơn số nhãn dựng lại */
+  const sh=real.slice(0,12).map(([w,n])=>'“'+w+'”'+(n>1?'×'+n:'')).join(', ');
+  if(rep.warn)rep.warn('Đề thi: đối chiếu chữ trước/sau sửa thấy '+tot+' từ ít đi ('+sh+(real.length>12?'…':'')+') — hãy kiểm tra các câu liên quan trong file kết quả');
+}
+
 /* ================== API ================== */
-async function apply(buf,rep){
-  rep=rep||{fix(){},warn(){}};
+async function apply(buf,rep,opt){
+  rep=rep||{fix(){},warn(){}};opt=opt||{};
   if(typeof JSZip==='undefined')throw new Error('thiếu JSZip');
   const zip=await JSZip.loadAsync(buf),f=zip.file('word/document.xml');if(!f)return buf;
   const xml=await f.async('string');
@@ -324,12 +565,21 @@ async function apply(buf,rep){
   if(doc.getElementsByTagName('parsererror').length)return buf;
   const body=doc.getElementsByTagNameNS(W,'body')[0];if(!body)return buf;
   const info={maxQ:0};
+  let def=12;{const sf=zip.file('word/styles.xml');
+    if(sf){try{const sd=new DOMParser().parseFromString(await sf.async('string'),'application/xml'),dz=sd.getElementsByTagNameNS(W,'docDefaults')[0],z=dz&&dz.getElementsByTagNameNS(W,'sz')[0];if(z&&tw(wa(z,'val')))def=tw(wa(z,'val'))/2}catch(e){}}}
+  info.def=def;
+  const before=wordBag(body);
   fixYears(doc,body,rep);
   const isExam=questionPass(doc,body,rep,info);
   if(!isExam)return buf;
   groupPass(doc,body,rep,info);
   sectPass(doc,body,rep);
   sheetPass(doc,body,rep,info);
+  if(opt.balanceTables!==false){try{tablePass(doc,body,rep)}catch(e){rep.warn('Đề thi: bước cân đối bảng gặp lỗi và đã bỏ qua: '+e.message)}}
+  if(opt.keyIndent!==false){try{keyPass(doc,body,rep)}catch(e){rep.warn('Đề thi: bước đồng nhất thụt lề đáp án gặp lỗi và đã bỏ qua: '+e.message)}}
+  if(opt.fitPages!==false){
+    try{fitPass(doc,body,rep,opt,def)}catch(e){rep.warn('Đề thi: bước giữ số trang gặp lỗi và đã bỏ qua: '+e.message)}}
+  checkLoss(before,wordBag(body),rep);
   let out=new XMLSerializer().serializeToString(doc);
   if(!/^<\?xml/.test(out))out='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+out;
   zip.file('word/document.xml',out);
