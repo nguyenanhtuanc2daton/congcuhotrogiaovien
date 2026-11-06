@@ -116,8 +116,9 @@ function docNorm(d,cfg,rep){
     sa(z,'w',land?16838:11906);sa(z,'h',land?11906:16838);
     if(land)sa(z,'orient','landscape');else z.removeAttributeNS(W,'orient');
     const created=!one(sp,'pgMar'),m=sc(d,sp,'pgMar',ORD.sectPr),L=mm2tw(cfg.l),Rr=mm2tw(cfg.r);
-    sa(m,'top',mm2tw(cfg.t));sa(m,'bottom',mm2tw(cfg.b));sa(m,'left',L);sa(m,'right',Rr);
-    if(created){sa(m,'header',709);sa(m,'footer',709);sa(m,'gutter',0)}
+    sa(m,'top',mm2tw(cfg.t));sa(m,'bottom',mm2tw(cfg.b));sa(m,'left',L);sa(m,'right',Rr);sa(m,'gutter',0);   /* gutter cũ của file làm lề trái rộng thêm */
+    if(created){sa(m,'header',709);sa(m,'footer',709)}
+    sa(m,'header',Math.min(+ga(m,'header')||709,Math.max(170,Math.floor(mm2tw(cfg.t)*0.5))));sa(m,'footer',Math.min(+ga(m,'footer')||709,Math.max(170,Math.floor(mm2tw(cfg.b)*0.5))));
     s.aw=(land?16838:11906)-L-Rr});
   all(body,'p').forEach(p=>{
     if(anc(p,'txbxContent'))return;
@@ -372,7 +373,7 @@ function fixPara(items,info,pv,cnt,cfg,notes,lb){
   const s=str(),s2=s.replace(PROT,' ');
   items.broken=broken;
   if(broken)note('Dòng có vẻ bị ngắt giữa câu (đoạn trước chưa kết thúc)',s);
-  if(/Ã.|Ä‘|áº|á»|ï¿½|\uFFFD/.test(s))note('Lỗi mã hóa/font (ký tự lạ)',s);
+  if(/Ã[\u0080-\u00BF\u0152\u0153\u0160\u0161\u0178\u017D\u017E\u0192\u02C6\u02DC\u2013-\u203A\u20AC]|Ä‘|áº|á»|ï¿½|\uFFFD/.test(s))note('Lỗi mã hóa/font (ký tự lạ)',s);
   const bal=(a,b)=>(s.split(a).length-1)!==(s.split(b).length-1);
   if(bal('(',')')||bal('[',']')||bal('“','”'))note('Ngoặc/nháy không khớp cặp',s);
   if(/lorem ipsum|\bx{3,}\b|\?{3,}|\bTBD\b/i.test(s))note('Còn nội dung giữ chỗ (xxx, ???, lorem…)',s);
@@ -483,14 +484,21 @@ function renumber(d){let n=0;
   return n}
 const JUNK=/^\s*(?:xem thêm|đọc thêm|tin liên quan|bài liên quan|bài viết liên quan|quảng cáo|chia sẻ|bình luận|theo dõi|từ khóa|tags?|in bài|gửi email|đọc tiếp|xem tất cả|tải thêm|lượt xem|sao chép liên kết|copy link|advertisement|share|print)\s*:?\s*$/giu;
 
-const NDEF={t:20,b:20,l:30,r:15,txt:true,tbl:true,ind:true,dot:true,clean:true,join:true,img:true,lang:true,emoji:true,ref:true,tone:false,head:true,num:true,hid:true,junk:true};
+const NDEF={flow:true,t:12,b:12,l:20,r:12,txt:true,tbl:true,ind:true,dot:true,clean:true,join:true,img:true,lang:true,emoji:true,ref:true,tone:false,head:true,num:true,hid:true,junk:true};
 async function norm(zip,cfg){
   cfg=Object.assign({},NDEF,cfg||{});CLEAN=cfg.clean!==false;LANGVI=cfg.lang!==false;HEADON=cfg.head!==false;
   const rep={paras:0,tables:0,warn:[],info:[]},cnt={},notes=[];
   const NM=zip.file('word/numbering.xml')?numMap(pX(await zip.file('word/numbering.xml').async('string'),'numbering.xml')):null;
   for(const n of Object.keys(zip.files).filter(n=>/^word\/(document|styles|numbering|footnotes|endnotes|header\d*|footer\d*)\.xml$/.test(n))){
     const d=pX(await zip.file(n).async('string'),n);
+    /* Gỡ bố cục giả của file Word chuyển từ PDF (hộp nổi, cột giả, bảng đáp án…) — chạy TRƯỚC mọi bước khác; cần word-flow-fix.js */
+    if(n==='word/document.xml'&&cfg.flow!==false&&typeof window.WordFlowFix==='function'){
+      try{const fr=window.WordFlowFix(d,{flatCols:true,dots:cfg.dot!==false,aw:Math.round(11906-(cfg.l+cfg.r)*56.6929)});
+        Object.keys(fr.fix).forEach(k=>{const v=fr.fix[k];cnt[k]=(typeof v==='number'&&typeof cnt[k]==='number')?cnt[k]+v:(typeof v==='number'&&cnt[k]===undefined?v:v)});
+        fr.warn.forEach(w=>rep.warn.push(w))}
+      catch(e){rep.warn.push('Bước gỡ bố cục PDF bị bỏ qua do lỗi: '+(e&&e.message||e))}}
     if(/styles\.xml$/.test(n))fixStyles(d);
+    if(/numbering\.xml$/.test(n)&&cfg.flow!==false&&window.WordFlowFix&&window.WordFlowFix.clampNumbering){const k=window.WordFlowFix.clampNumbering(d);if(k)cnt['thụt lề cấp danh sách quá lớn (bullet/số) đã thu lại']=k}
     {const lg=legacyFonts(d);if(lg)cnt['chữ font cũ (TCVN3/VNI) đã đổi sang Unicode']=(cnt['chữ font cũ (TCVN3/VNI) đã đổi sang Unicode']||0)+lg}
     if(cfg.hid!==false&&/^word\/(document|footnotes|endnotes|header\d*|footer\d*)\.xml$/.test(n)){const hd=dropHidden(d);if(hd)cnt['đoạn chữ ẩn của web đã xóa']=(cnt['đoạn chữ ẩn của web đã xóa']||0)+hd}
     all(d,'rPr').forEach(r=>fixR(d,r));

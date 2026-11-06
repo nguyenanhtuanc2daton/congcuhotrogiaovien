@@ -629,7 +629,7 @@ html[data-theme=toi] .gd-cat .gs,html[data-theme=toi] .gd-cat .gf{filter:brightn
 <div class="bar"><input type="file" id="wtMIn" multiple style="display:none"><button class="ghost" id="wtMPick" type="button">📁 Thêm file .docx (thêm dần / kéo thả vào đây)</button><button class="sec sm" id="wtMClear" type="button">🗑 Xóa tất cả</button></div>
 <div id="wtMList"></div>
 <div class="bar"><label class="note" style="margin:0"><input type="checkbox" id="wtMBrk" checked> Ngắt trang giữa các file</label><label class="note" style="margin:0"><input type="checkbox" id="wtMNorm" checked> Chuẩn hóa font/lề khi ghép</label><label class="note" style="margin:0">Tên file <input type="text" id="wtMName" value="ghep.docx" style="width:150px"></label><label class="note" style="margin:0">Xuất ra: <select id="wtMFmt"><option value="docx">Word (.docx)</option><option value="pdf">PDF (.pdf)</option><option value="both">Cả Word và PDF</option></select></label></div>
-<div class="bar"><span class="note" style="margin:0">Lề (mm):</span><label class="note" style="margin:0">Trên <input type="number" id="wtMTop" value="20" min="0" max="100" step="1" style="width:64px"></label><label class="note" style="margin:0">Dưới <input type="number" id="wtMBot" value="20" min="0" max="100" step="1" style="width:64px"></label><label class="note" style="margin:0">Trái <input type="number" id="wtMLeft" value="30" min="0" max="100" step="1" style="width:64px"></label><label class="note" style="margin:0">Phải <input type="number" id="wtMRight" value="15" min="0" max="100" step="1" style="width:64px"></label></div>
+<div class="bar"><span class="note" style="margin:0">Lề (mm):</span><label class="note" style="margin:0">Trên <input type="number" id="wtMTop" value="12" min="0" max="100" step="1" style="width:64px"></label><label class="note" style="margin:0">Dưới <input type="number" id="wtMBot" value="12" min="0" max="100" step="1" style="width:64px"></label><label class="note" style="margin:0">Trái <input type="number" id="wtMLeft" value="20" min="0" max="100" step="1" style="width:64px"></label><label class="note" style="margin:0">Phải <input type="number" id="wtMRight" value="12" min="0" max="100" step="1" style="width:64px"></label></div>
 <div class="bar"><button class="green" id="wtMRun" type="button">🔗 Ghép &amp; Xuất File</button></div>
 <div id="wtMSt" class="status"></div>
 <div id="wtMOut"></div>
@@ -829,8 +829,9 @@ window.addEventListener('luufiletam:close',function(){if(s.value==='utFile'){s.v
 <script src="cham-trac-nghiem.js?v=20261005"></script>
 <script src="word-matran.js?v=20261005"></script>
 <script src="tron-de.js?v=20261005"></script>
-<script src="word-chuan-hoa.js?v=20261015"></script>
-<script src="word-ra-soat.js?v=20261123"></script>
+<script src="word-flow-fix.js?v=20261106"></script>
+<script src="word-chuan-hoa.js?v=20261106"></script>
+<script src="word-ra-soat.js?v=20261106b"></script>
 <script src="word-tach-file.js?v=20261121"></script>
 <script src="word-chuyen-doi.js?v=20261030a"></script>
 <script src="word-doi-ten.js?v=20261102"></script>

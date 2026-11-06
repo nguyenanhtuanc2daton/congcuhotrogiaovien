@@ -879,7 +879,7 @@ function sections(doc,body,o,rep){
       const was=[+ga(z,'w'),+ga(z,'h'),+ga(m,'top'),+ga(m,'bottom'),+ga(m,'left'),+ga(m,'right')].join();
       sa(z,'w',w);sa(z,'h',h);if(land)sa(z,'orient','landscape');else z.removeAttributeNS(W,'orient');
       sa(m,'top',want[0]);sa(m,'bottom',want[1]);sa(m,'left',want[2]);sa(m,'right',want[3]);
-      if(!ga(m,'header'))sa(m,'header',709);if(!ga(m,'footer'))sa(m,'footer',709);if(!ga(m,'gutter'))sa(m,'gutter',0);
+      if(!ga(m,'header'))sa(m,'header',709);if(!ga(m,'footer'))sa(m,'footer',709);sa(m,'gutter',0);   /* gutter cũ làm lề trái rộng thêm */
       /* khoảng cách header/footer không được lớn hơn nửa lề (nếu không Word sẽ tự đẩy nội dung xuống, lề thực tế lại rộng ra) */
       sa(m,'header',Math.min(+ga(m,'header')||709,Math.max(170,Math.floor(want[0]*0.5))));sa(m,'footer',Math.min(+ga(m,'footer')||709,Math.max(170,Math.floor(want[1]*0.5))));
       if(was!==[w,h].concat(want).join())pg++}
@@ -1181,6 +1181,7 @@ function settingsPass(sd,o,ctx,rep){
       else if((+ga(cs,'val')||0)<15){sa(cs,'val','15');rep.fix('Tắt chế độ Compatibility Mode (nâng lên Word 2013+)')}}}
   if(ctx.hasToc&&o.fields&&!one(root,'updateFields')){const u=mk(sd,'updateFields');sa(u,'val','true');insBeforeAny(root,u,['hdrShapeDefaults','footnotePr','endnotePr','compat','docVars','rsids','mathPr','attachedSchema','themeFontLang','clrSchemeMapping']);
     rep.fix('Mục lục/trường: tự cập nhật khi mở file (Word sẽ hỏi 1 lần, bấm Yes)')}
+  if(o.page){['mirrorMargins','gutterAtTop','bookFoldPrinting'].forEach(n=>{const e=one(root,n);if(e){rm(e);rep.fix('Bỏ lề đối xứng/gáy sách (làm lề trái–phải lệch, rộng thêm)')}})}
   if(one(root,'evenAndOddHeaders'))rep.warn('Tài liệu bật header/footer trang chẵn–lẻ khác nhau (nếu không chủ ý: Layout → Page Setup → Layout → bỏ "Different odd and even").');
   if(o.accept){const t=one(root,'trackRevisions');if(t)rm(t)}}
 
@@ -1743,6 +1744,9 @@ async function auditOnce(buf,o,hooks){
           if(t.t>0)rep.notes.push('Giữ trong 1 trang: để vừa 1 trang, đã thu gọn '+(t.t>=3?'cỡ chữ còn '+t.size/2+' pt, ':'')+'giãn dòng '+t.line+', khoảng cách sau đoạn '+t.after+' pt.');
           if(!pl.fit)rep.warn('Ước tính nội dung vẫn có thể hơi tràn 1 trang dù đã thu gọn tối đa (chữ '+t.size/2+' pt) — hãy mở file kiểm tra, nếu tràn thì bớt dòng ghi chú hoặc giảm cỡ chữ.')}}}}
   hooks.progress('Đang rà soát...');await tick();
+  if(o.flow!==false&&!o.dry&&typeof window!=='undefined'&&typeof window.WordFlowFix==='function')step('gỡ bố cục giả của file chuyển từ PDF',()=>{
+    const fr=window.WordFlowFix(doc,{flatCols:true,dots:true,pt:(o.size&&o.size!=='auto'&&+o.size)||14,aw:o.page?Math.round(11906-(o.ml+o.mr)*56.6929):0});
+    Object.keys(fr.fix).forEach(k=>rep.fix(k,parseInt(fr.fix[k],10)||1));fr.warn.forEach(w=>rep.warn(w))});
   step('dọn nhiễu XML',()=>stripNoise(doc));
   step('Track Changes/Comment',()=>reviewMarks(doc,o,rep));
   step('gộp đoạn chữ rời rạc',()=>mergeRuns(doc));
@@ -1763,6 +1767,7 @@ async function auditOnce(buf,o,hooks){
   step('bảng nền tối → sáng',()=>lightTables(doc,body,rep));
   if(o.img||o.imgInline||o.imgFix)step('hình ảnh',()=>imgPass(doc,secs,o,rep,ctx));
   step('danh sách',()=>numberingCheck(doc,numd,rep));
+  if(numd&&o.flow!==false&&!o.dry&&typeof window!=='undefined'&&window.WordFlowFix&&window.WordFlowFix.clampNumbering)step('thụt lề cấp danh sách',()=>{const k=window.WordFlowFix.clampNumbering(numd);if(k){ctx.numTouched=true;rep.fix('Danh sách (bullet/số): thu lại thụt lề cấp quá lớn',k)}});
   ctx.sz=o.size==='auto'?dominantSize(body,defSz):(+o.size)*2;
   if(o.size==='auto'&&!dry)rep.notes.push('Cỡ chữ chính nhận diện của tài liệu: '+ctx.sz/2+' pt');
   const cnt={font:0,sz:0,odd:0,shd:0,col:0,m:0};
@@ -1805,7 +1810,7 @@ async function auditOnce(buf,o,hooks){
           if(!Array.from(rl.documentElement.children).some(r=>/\/comments$/.test(r.getAttribute('Type')||''))){
             const e=rl.createElementNS(RELNS,'Relationship');e.setAttribute('Id','rIdRsCmt1');e.setAttribute('Type',R+'/comments');e.setAttribute('Target','comments.xml');rl.documentElement.appendChild(e)}}})}}
   const out=[['word/document.xml',doc]];
-  if(sd)out.push(['word/styles.xml',sd]);if(setd)out.push(['word/settings.xml',setd]);
+  if(sd)out.push(['word/styles.xml',sd]);if(setd)out.push(['word/settings.xml',setd]);if(numd&&ctx.numTouched)out.push(['word/numbering.xml',numd]);
   Object.keys(hfDocs).forEach(n=>out.push([n,hfDocs[n]]));
   if(cmt&&cmtTouched)out.push(['word/comments.xml',cmt]);
   if(cmtNew){if(ctd)out.push(['[Content_Types].xml',ctd]);if(rl)out.push(['word/_rels/document.xml.rels',rl])}
@@ -2391,7 +2396,7 @@ function buildUI(){
   +cb('mcqdot','Tự thêm dấu chấm (.) cuối mỗi đáp án A, B, C, D nếu còn thiếu',1)+cb('mcqstem','Bỏ thụt lề lệch của dòng “Câu n.” để các câu thẳng hàng với nhau (bỏ qua nếu bật “thụt đầu dòng 1 cm”)',1)+'</details>'
   +'<details class="raG"><summary>📄 Trang, ngắt trang, tiêu đề</summary>'
   +cb('blank','Xóa dòng trống thừa và ngắt trang thừa (trang trắng)',1)+cb('keep','Giữ tiêu đề/câu hỏi/hình đi cùng đoạn sau; bỏ ràng buộc gây đẩy đoạn sang trang mới',1)+cb('softbreak','Bỏ ngắt trang cứng (Ctrl+Enter) đặt trước “PHẦN / Câu / Bài” để hết khoảng trống cuối trang (vẫn giữ ngắt trang trước ĐỀ / ĐÁP ÁN / MA TRẬN)',1)
-  +cb('page','Đưa khổ giấy về A4 và lề chuẩn:',1)+'<div class="raR">Lề (mm): Trên '+num('mt',15)+' Dưới '+num('mb',15)+' Trái '+num('ml',30)+' Phải '+num('mr',15)+'</div>'
+  +cb('page','Đưa khổ giấy về A4 và lề chuẩn:',1)+'<div class="raR">Lề (mm): Trên '+num('mt',12)+' Dưới '+num('mb',12)+' Trái '+num('ml',20)+' Phải '+num('mr',12)+'</div>'
   +cb('pgnum','Giữ số trang liên tục (bỏ “bắt đầu lại số trang” ở section sau)',1)+cb('fields','Tự cập nhật mục lục khi mở file (nếu có mục lục)',1)+cb('compat','Tắt Compatibility Mode (file .doc cũ)',1)+'</details>'
   +'<details class="raG"><summary>📊 Bảng &amp; 🖼 Hình &amp; ∑ Công thức</summary>'
   +cb('tbl','Bảng: vừa lề, không cắt đôi hàng, lặp hàng tiêu đề, căn giữa ô ngắn, gỡ bảng trôi',1)+cb('tblkeep','Bảng nhỏ (dưới 1/5 trang): giữ nguyên cả bảng trên một trang. Bảng lớn vẫn được tách theo hàng để không chừa khoảng trống',1)+cb('tblborder','Thêm viền cho bảng nhiều hàng chưa có viền',0)+cb('onepage','Biểu mẫu/sổ vốn chỉ 1 trang: giữ nguyên trong 1 trang (nếu cần sẽ tự thu gọn giãn dòng, khoảng cách đoạn, cuối cùng là cỡ chữ, tối thiểu 12 pt)',1)+cb('forcesz','Ép mọi chữ nhỏ hơn cỡ đã chọn (vd 8–10 pt trong biểu mẫu/sổ) về đúng cỡ chữ đã chọn ở trên (không áp dụng khi chọn “Tự nhận diện”; không đụng chỉ số trên/dưới, tiêu đề)',1)+cb('tblfit','Bảng nhiều cột (sổ, biểu mẫu): dùng đúng cỡ chữ văn bản trong bảng và dàn độ rộng cột theo nội dung cho đủ chỗ ghi, vừa khổ giấy',1)
@@ -2537,7 +2542,7 @@ function wire(){
     g('ra_font').value='Times New Roman';g('ra_size').value='14';g('ra_line').value='1.15';g('ra_after').value='6';
     ['justify','firstLine','page','text','indent','num','tbl','tblfit','forcesz','onepage','tblkeep','softbreak','mcq','mcqdot','mcqstem','imgFix','quotes','phead','mark','verify','spell','unify'].forEach(k=>g('ra_'+k).checked=true);
     g('ra_dry').checked=false;
-    g('ra_mt').value=15;g('ra_mb').value=15;g('ra_ml').value=30;g('ra_mr').value=15;
+    g('ra_mt').value=12;g('ra_mb').value=12;g('ra_ml').value=20;g('ra_mr').value=12;
     setSt('Đã đặt: Times New Roman 14pt, giãn dòng 1,15, căn đều, thụt đầu dòng 1 cm, A4, lề 15/15/30/15 mm (khổ ngang: 8/8/10/10 mm), bảng dùng cỡ chữ chuẩn. Bấm “Rà soát & Xuất file” để chạy.','o')};
   g('ra_run').onclick=run}
 window.RaSoatWord={audit,auditExcel,reportText,readOpts,version:VERSION,_t:{docxToParas,structHints,evHit,ommlTex,aiExamReview,geminiJSON,answerKeyText}};
