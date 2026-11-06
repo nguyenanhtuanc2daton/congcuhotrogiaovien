@@ -684,7 +684,13 @@ async function merge(files,o,step){
   if(o.norm)rep=await norm(zip,o.cfg);
   const ck=await check(zip,true);
   if(ck.er.length)throw new Error('Kiểm tra thất bại, không cho tải: '+ck.er.slice(0,5).join('; '));
-  return {data:await zip.generateAsync({type:'uint8array',compression:'DEFLATE'}),docXml:ck.docXml,rep,warns}}
+  let data=await zip.generateAsync({type:'uint8array',compression:'DEFLATE'}),docXml=ck.docXml;
+  if(o.norm&&window.WordDeThiFix&&o.examFix!==false){
+    try{const ad={fix:(k,n)=>{(rep.info=rep.info||[]).push(k+(n>1?' ('+n+')':''))},warn:m=>{(rep.warn=rep.warn||[]).push(m)}};
+      const d2=await WordDeThiFix.apply(data,ad);
+      if(d2!==data){const z2=await JSZip.loadAsync(d2);data=d2;docXml=await z2.file('word/document.xml').async('string')}}
+    catch(e){(rep.warn=rep.warn||[]).push('Bước sửa lỗi đề thi bị bỏ qua: '+(e&&e.message||e))}}
+  return {data,docXml,rep,warns}}
 
 /* ===== Giao diện ===== */
 function readCfg(p){const v=k=>parseFloat(String(g(p+k).value).replace(',','.')),ob=(k,d)=>{const e=g(p+k);return e&&e.type==='checkbox'?e.checked:d};

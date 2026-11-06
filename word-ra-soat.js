@@ -2502,6 +2502,8 @@ async function run(){
       }else{
       USED.clear();
       const r=await audit(f.buf,o,{progress:m=>setSt(pre+m)});
+      if(window.WordDeThiFix&&o.examFix!==false){setSt(pre+'Sửa lỗi riêng của đề thi (đáp án, phiếu trả lời, ngắt trang)...');
+        try{r.data=await WordDeThiFix.apply(r.data,r.rep)}catch(e){r.rep.warn('Bước sửa lỗi đề thi gặp lỗi và đã bỏ qua: '+e.message)}}
       let aiR=null;
       if(o.aiExam){try{aiR=await aiExamReview(r.data,o,{progress:m=>setSt(pre+m)},r.rep)}catch(e){r.rep.warn('AI rà soát đề gặp lỗi và đã bỏ qua: '+e.message)}
         if(aiR){r.rep.ai=aiR;if(aiR.data)r.data=aiR.data}}
