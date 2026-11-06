@@ -429,15 +429,29 @@ function baseIndent(d,body,rep){
 
 /* bảng khung tiêu đề 2 cột (UBND/TRƯỜNG | ĐỀ KIỂM TRA…): cột trái đủ rộng để không rớt dòng, tổng khít vùng chữ */
 function headerBalance(d,body,rep,aw,pt){let n=0;
-  Array.from(body.children).filter(isTbl).slice(0,3).forEach(t=>{
-    if(!/UBND|SỞ GD|PHÒNG GD|TRƯỜNG/.test(fullText(t).slice(0,200)))return;
+  Array.from(body.children).filter(isTbl).forEach(t=>{   /* [v11] mọi khung tiêu đề trong tài liệu (trước: chỉ 3 bảng đầu → đề 2, đáp án, phiếu trả lời vẫn rớt dòng) */
+    if(!/UBND|SỞ GD|PHÒNG GD|TRƯỜNG/.test(fullText(t).slice(0,200))||wk(t,'tr').length>3)return;
     const g=one(t,'tblGrid'),cols=g?wk(g,'gridCol'):[];if(cols.length!==2)return;
+    /* [v11] đoạn căn giữa trong khung tiêu đề còn thụt lề giả của PDF (left/right/hanging) làm cột hẹp lại → rớt dòng “ĐA / TỐN”, “CÔNG NGHỆ / 7” */
+    all(t,'p').forEach(p=>{const pp=one(p,'pPr'),jc=pp&&one(pp,'jc');if(!jc||ga(jc,'val')!=='center')return;const ie=pp&&one(pp,'ind');if(!ie)return;
+      ['left','start','right','end','hanging','firstLine','leftChars','rightChars'].forEach(a=>ie.removeAttributeNS(W,a));if(!ie.attributes.length)pp.removeChild(ie);n++});
+    /* [v11] “Ngày kiểm tra: … Tiết kiểm tra: …” dính một đoạn → tách hai dòng */
+    all(t,'p').forEach(p=>{if(!/Ngày kiểm tra:.*\sTiết kiểm tra:/.test(ownText(p)))return;
+      const rs=wk(p,'r'),k=rs.findIndex(r=>/Tiết/.test(ownText(r)));if(k<0)return;
+      const p2=p.cloneNode(true),rs2=wk(p2,'r');
+      rs2.slice(0,k).forEach(r=>p2.removeChild(r));rs.slice(k+1).forEach(r=>p.removeChild(r));
+      const t1=all(rs[k],'t')[0],t2=all(rs2[k],'t')[0];if(!t1||!t2)return;
+      const full=t1.textContent,ix=full.indexOf('Tiết');t1.textContent=full.slice(0,ix).replace(/\s+$/,'');t2.textContent=full.slice(ix);
+      t1.setAttributeNS(XMLNS,'xml:space','preserve');t2.setAttributeNS(XMLNS,'xml:space','preserve');
+      Array.from(p2.getElementsByTagNameNS(W,'ind')).forEach(e=>e.parentNode.removeChild(e));
+      Array.from(p.getElementsByTagNameNS(W,'ind')).forEach(e=>e.parentNode.removeChild(e));
+      p.parentNode.insertBefore(p2,p.nextSibling);n++});
     const need=ci=>{let m=0;wk(t,'tr').forEach(tr=>{const tc=wk(tr,'tc')[ci];if(!tc)return;
       all(tc,'p').forEach(p=>{const tx=squash(ownText(p));if(!tx)return;
         const bold=all(p,'r').some(r=>one(one(r,'rPr'),'b'));
         let w=0;for(const ch of tx)w+=CWf(ch)*pt*20*(bold?1.07:1);m=Math.max(m,w*1.08)})});return m};
     const nl=need(0)+160,cur=cols.map(c=>+ga(c,'w')||0),tot=cur[0]+cur[1];
-    let left=Math.min(Math.max(nl,aw*0.34),aw*0.46);
+    let left=Math.min(Math.max(nl,aw*0.34),aw*0.5);
     if(cur[0]>=left-30&&tot<=aw+20)return;         // đã đủ rộng và vừa lề
     left=Math.round(left);const right=Math.round(aw-left);
     sa(cols[0],'w',left);sa(cols[1],'w',right);

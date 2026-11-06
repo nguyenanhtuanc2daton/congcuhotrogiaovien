@@ -162,7 +162,7 @@ function paraRules(S,o){
   if((m=/^ +/.exec(S)))add(0,m[0].length,'','sp');
   if((m=/ +$/.exec(S)))add(m.index,S.length,'','sp');
   /* khoảng trắng TRƯỚC dấu đóng/dấu câu */
-  for(m of S.matchAll(/(?<=[^\s\u0001(\[{“‘]) +(?=[,;!?)\]}%”])/g))if(!urlish(S,m.index+m[0].length))add(m.index,m.index+m[0].length,'','pu');
+  for(m of S.matchAll(/(?<=[^\s\u0001(\[{“‘]) +(?=[,;!?)\]}%”])/g))if(!urlish(S,m.index+m[0].length)&&!(S[m.index+m[0].length]==='%'&&!/[\d)]/.test(S[m.index-1]||'')))add(m.index,m.index+m[0].length,'','pu');   /* [v11] giữ dấu cách trong “Tỷ lệ %”: chỉ gộp “50 %” → “50%” khi % liền sau số */
   for(m of S.matchAll(/(?<=[^\s\u0001\u0002]) +(?=:(?! *[\d\u0002]))/g))add(m.index,m.index+m[0].length,'','pu');
   for(m of S.matchAll(/(?<=[^\s\u0001.]) +(?=\.(?!\.)(?! \.)(?:[ \u0001]|$|\p{Lu}\p{Ll}))/gu))add(m.index,m.index+m[0].length,'','pu');
   /* khoảng trắng SAU dấu mở */
@@ -1244,18 +1244,31 @@ function fitCols(tbl,ws,av,sz0,ah,above){
   return{nw:pick.nw,sz:pick.sz,est:pick.H,target}}
 /* Bỏ thụt lề nhỏ thừa & dòng trống đầu/cuối trong ô của bảng nhiều cột (hay gặp khi dán từ PDF/Word cũ) */
 function cellClean(doc,tbl){
-  let ind=0,blk=0;
+  let ind=0,blk=0,tabSp=0;
   all(tbl,'tc').forEach(tc=>{if(anc(tc,'tbl')!==tbl)return;
     const ps=wk(tc,'p');
     ps.forEach(p=>{const pp=one(p,'pPr'),ie=pp&&one(pp,'ind');if(!ie||pInfo(p).list)return;
-      if(['hanging','firstLine','hangingChars','firstLineChars'].some(a=>+ga(ie,a)))return;
+      /* [v11] thụt dòng đầu nhỏ (≤ 0,63 cm) do PDF để lại cũng bỏ — trước đây cả đoạn bị bỏ qua nên ô hẹp (vd “Tỷ lệ % điểm”) rớt từng chữ */
+      if(['hanging','hangingChars','firstLineChars'].some(a=>+ga(ie,a)))return;
+      const FL=+ga(ie,'firstLine')||0;if(FL>360)return;
       const L=+ga(ie,'left')||+ga(ie,'start')||0,R=+ga(ie,'right')||+ga(ie,'end')||0;
-      if((L||R)&&L<=240&&R<=240){['left','start','right','end','leftChars','rightChars','startChars','endChars'].forEach(a=>ie.removeAttributeNS(W,a));if(!ie.attributes.length)rm(ie);ind++}});
+      if((L||R||FL)&&L<=240&&R<=240){['left','start','right','end','leftChars','rightChars','startChars','endChars','firstLine'].forEach(a=>ie.removeAttributeNS(W,a));if(!ie.attributes.length)rm(ie);ind++}});
+    /* [v11] Tab giả giữa các chữ trong ô (“-⇥Làm⇥đất trồng cây” do PDF canh bằng tab) → dấu cách; hết giãn chữ “-      Làm      đất” khi căn đều */
+    ps.forEach(p=>{if(pInfo(p).list)return;
+      const kids=Array.from(p.childNodes).filter(c=>c.nodeType===1&&c.namespaceURI===W&&c.localName==='r');
+      kids.forEach((r,ri)=>{const tabs=wk(r,'tab');if(!tabs.length)return;
+        const before=kids.slice(0,ri).map(x=>ptext(x)).join('').replace(/\s+$/,'')+(ri?'':''),after=kids.slice(ri+1).map(x=>ptext(x)).join('');
+        if(!before.trim()||!after.trim())return;                 /* tab ở đầu/cuối đoạn là canh lề thật → giữ */
+        if(/[.…·]{4,}\s*$/.test(before))return;                  /* tab dẫn chấm … → giữ */
+        const prevTxt=kids.slice(0,ri).map(x=>ptext(x)).join(''),nextTxt=after,needSp=!/\s$/.test(prevTxt)&&!/^\s/.test(nextTxt);
+        tabs.forEach(tb=>{if(needSp){const t=doc.createElementNS(W,'w:t');t.setAttributeNS('http://www.w3.org/XML/1998/namespace','xml:space','preserve');t.textContent=' ';r.replaceChild(t,tb)}else r.removeChild(tb)});
+        tabSp++;
+        if(!Array.from(r.childNodes).some(c=>c.nodeType===1&&c.localName!=='rPr'))p.removeChild(r)})});
     if(ps.length>1&&ps.some(p=>!isE(p)&&ptext(p).trim())){
       const ok=p=>isE(p)&&!hasSect(p)&&!hasPB(p);
       let i=0;while(i<ps.length-1&&ok(ps[i])){rm(ps[i]);blk++;i++}
       let j=ps.length-1;while(j>i&&ok(ps[j])){rm(ps[j]);blk++;j--}}});
-  return{ind,blk}}
+  return{ind,blk,tabSp}}
 /* Số hàng tiêu đề: hàng 1 + các hàng mà ô của hàng 1 gộp dọc xuống (vMerge) */
 function headerSpan(rows){
   if(rows.length<2)return 1;
@@ -1294,7 +1307,7 @@ function tblFont(doc,tbl,sz,ctx){
   return n}
 
 function tablePass(doc,body,secs,o,rep,ctx){
-  const bk=secs.bk;let tf=0,fit=0,cs=0,hd=0,al=0,fl=0,bd=0,nb=0,kt=0,ci=0,cb=0;
+  const bk=secs.bk;let tf=0,fit=0,cs=0,hd=0,al=0,fl=0,bd=0,nb=0,kt=0,ci=0,cb=0,ct=0;
   all(body,'tbl').forEach(tbl=>{
     const nested=!!anc(tbl,'tc');let aw0=9071,ah0=14570,tblSz=(ctx&&ctx.szEst)||28;
     let pr=one(tbl,'tblPr');if(!pr){pr=mk(doc,'tblPr');tbl.insertBefore(pr,tbl.firstChild)}
@@ -1308,7 +1321,7 @@ function tablePass(doc,body,secs,o,rep,ctx){
       if(cols.length){
         const ws=cols.map(c=>parseInt(ga(c,'w'),10)||0),tot=ws.reduce((a,b)=>a+b,0),av=aw-il;
         let nw=null,fz=0;
-        if(o.tblfit&&cols.length>=4&&wk(tbl,'tr').length>=2){const cc=cellClean(doc,tbl);ci+=cc.ind;cb+=cc.blk;const fr=fitCols(tbl,ws,Math.floor(av),(ctx&&ctx.szEst)||28,ah0,aboveH(top,aw,(ctx&&ctx.szEst)||28));nw=fr.nw;fz=fr.sz;
+        if(o.tblfit&&cols.length>=4&&wk(tbl,'tr').length>=2){const cc=cellClean(doc,tbl);ci+=cc.ind;cb+=cc.blk;ct+=cc.tabSp;const fr=fitCols(tbl,ws,Math.floor(av),(ctx&&ctx.szEst)||28,ah0,aboveH(top,aw,(ctx&&ctx.szEst)||28));nw=fr.nw;fz=fr.sz;
           if(fz<((ctx&&ctx.szEst)||28))rep.warn('Bảng nhiều cột: cỡ chữ trong bảng được giảm còn '+fz/2+' pt để mọi cột đủ rộng, không bị xuống dòng giữa từ.')}
         if(nw||tot>av+5){
           if(!nw){const f=av/tot;nw=ws.map(w=>Math.floor(w*f));nw[nw.length-1]+=Math.floor(av)-nw.reduce((a,b)=>a+b,0)}
@@ -1364,7 +1377,7 @@ function tablePass(doc,body,secs,o,rep,ctx){
     const hasB=(one(pr,'tblBorders')&&Array.from(one(pr,'tblBorders').children).some(b=>ga(b,'val')&&ga(b,'val')!=='nil'&&ga(b,'val')!=='none'))||all(tbl,'tcBorders').length||(one(pr,'tblStyle')&&!/^TableNormal$/i.test(ga(one(pr,'tblStyle'),'val')));
     if(!hasB&&rows.length>1&&cells>2){if(o.tblborder){const b=sc(doc,pr,'tblBorders',ORD.tblPr);['top','left','bottom','right','insideH','insideV'].forEach(n=>{const e=mk(doc,n);sa(e,'val','single');sa(e,'sz',4);sa(e,'space',0);sa(e,'color','auto');b.appendChild(e)});bd++}else nb++}});
   rep.fix('Bảng: co về vừa lề/khổ giấy',fit);rep.fix('Bảng nhiều cột: dàn lại độ rộng cột theo nội dung (đủ chỗ ghi) và dùng cỡ chữ chuẩn trong bảng',tf);rep.fix('Bảng: hàng ngắn không bị cắt đôi giữa hai trang; hàng dài (nhiều nội dung) cho phép tràn trang để không chừa khoảng trống lớn',cs);
-  rep.fix('Bảng nhỏ: giữ nguyên cả bảng trên một trang',kt);rep.fix('Bảng nhiều cột: bỏ thụt lề thừa trong ô (hết xuống dòng giữa từ như “Vận dụng”)',ci);rep.fix('Bảng nhiều cột: bỏ dòng trống đầu/cuối ô (hàng gọn hơn, vừa trang)',cb);rep.fix('Bảng dài: lặp hàng tiêu đề ở mỗi trang',hd);rep.fix('Bảng: căn giữa dọc ô và căn giữa ô số/STT',al);
+  rep.fix('Bảng nhỏ: giữ nguyên cả bảng trên một trang',kt);rep.fix('Bảng nhiều cột: đổi tab giả giữa chữ thành dấu cách (hết giãn chữ “-      Làm      đất”)',ct);rep.fix('Bảng nhiều cột: bỏ thụt lề thừa trong ô (hết xuống dòng giữa từ như “Vận dụng”)',ci);rep.fix('Bảng nhiều cột: bỏ dòng trống đầu/cuối ô (hàng gọn hơn, vừa trang)',cb);rep.fix('Bảng dài: lặp hàng tiêu đề ở mỗi trang',hd);rep.fix('Bảng: căn giữa dọc ô và căn giữa ô số/STT',al);
   rep.fix('Bảng: gỡ chế độ bảng trôi (floating) khiến bảng nhảy vị trí',fl);rep.fix('Bảng: thêm đường viền cho bảng chưa có viền',bd);
   if(nb)rep.warn(nb+' bảng không có đường viền. Nếu là bảng dữ liệu, hãy bật tùy chọn "Thêm viền cho bảng chưa có viền" (bảng bố cục 1 hàng được bỏ qua).')}
 
