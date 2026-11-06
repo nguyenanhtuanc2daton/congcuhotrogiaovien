@@ -61,7 +61,7 @@ const pbOnly=p=>p.localName==='p'&&p.namespaceURI===W&&hasPB(p)&&!all(p,'t').som
    NÂNG CẤP v2 — mô hình văn bản cấp ĐOẠN · sửa dấu câu · bắt lỗi gõ sai ·
    đánh dấu Comment tại chỗ · Track Changes · kiểm lại nhiều vòng
    ==================================================================== */
-const VERSION='v7-to-mau-bien-ban (tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
+const VERSION='v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
 const BAR='\u0001',MTH='\u0002',CTNS='http://schemas.openxmlformats.org/package/2006/content-types',RELNS='http://schemas.openxmlformats.org/package/2006/relationships';
 const TRK={on:false,id:900000,author:'Rà soát tự động',date:''};
 let PSEUDO=true;
@@ -284,7 +284,7 @@ const NOEND_SKIP=t=>{const s=t.replace(/[\u0001\u0002]/g,' ').trim();
 const sR=(s,str)=>{const i=s.indexOf(str);return i<0||!str?null:[{s:i,e:i+str.length}]};
 function normRg(rg,S){
   const L=S.length,a=(rg||[]).map(r=>({s:Math.max(0,r.s),e:Math.min(L,r.e),c:r.c})).filter(r=>r.e>r.s&&/[^\s\u0001\u0002]/.test(S.slice(r.s,r.e))).sort((x,y)=>x.s-y.s),o=[];
-  a.forEach(r=>{const l=o[o.length-1];if(l&&r.s<=l.e){l.e=Math.max(l.e,r.e)}else o.push(Object.assign({},r))});
+  a.forEach(r=>{const l=o[o.length-1];if(l&&r.s<=l.e){l.e=Math.max(l.e,r.e);if(r.c==='red')l.c='red'}else o.push(Object.assign({},r))});
   return o.slice(0,8)}
 function mkCtx(S,rg){
   const flat=x=>x.replace(/[\u0001\u0002]/g,'…').replace(/\s+/g,' ');
@@ -295,6 +295,7 @@ function mkCtx(S,rg){
 function lintPara(S,c){
   const out=[],txt=S.normalize('NFC'),off=c.off||{};let m;
   const rg=(c.rg&&txt.length===S.length)?c.rg:null,R=(s,e)=>{if(rg&&e>s)rg.push({s,e})};
+  let mk=rg?rg.length:0;const P=msg=>{out.push(msg);if(rg){for(let i=mk;i<rg.length;i++)rg[i].m=msg;mk=rg.length}};
   if(!off.typo){
     const bad=[],tok=/[\p{L}\p{M}]+/gu;
     while((m=tok.exec(txt))){
@@ -306,25 +307,25 @@ function lintPara(S,c){
       let ok=true;for(const ch of lo)if(!(ch>='a'&&ch<='z')&&ch!=='đ'&&!VM[ch]){ok=false;break}
       if(!ok)continue;
       if(!viWord(lo)){bad.push(w);R(i,i+w.length)}}
-    if(bad.length){const u=Array.from(new Set(bad)).slice(0,6);out.push('nghi gõ sai/thiếu dấu: '+u.map(x=>'“'+x+'”').join(', ')+(bad.length>u.length?'…':''))}}
+    if(bad.length){const u=Array.from(new Set(bad)).slice(0,6);P('nghi gõ sai/thiếu dấu: '+u.map(x=>'“'+x+'”').join(', ')+(bad.length>u.length?'…':''))}}
   if(!off.dup){
     const dup=[];for(m of txt.matchAll(/(?<![\p{L}\p{N}])(\p{L}{2,}) \1(?![\p{L}\p{N}])/giu))if(!DUP_OK.has(m[1].toLowerCase())){dup.push(m[1]);R(m.index,m.index+m[0].length)}
-    if(dup.length)out.push('lặp từ: '+Array.from(new Set(dup)).slice(0,4).map(x=>'“'+x+' '+x+'”').join(', '))}
+    if(dup.length)P('lặp từ: '+Array.from(new Set(dup)).slice(0,4).map(x=>'“'+x+' '+x+'”').join(', '))}
   if(!off.bracket&&!/[\u0001\u0002]/.test(txt)){   /* đoạn có công thức: ngoặc có thể nằm bên trong MathType/Equation nên không kết luận */
     const t2=txt.replace(/^\s*[+\-–•*]\s*\)?\s*/,'').replace(/^\s*\(?[\p{L}\d]{1,3}[.)]\s*/u,'');
     const op=(t2.match(/[(\[{]/g)||[]).length,cl=(t2.match(/[)\]}]/g)||[]).length;
-    if(op!==cl)out.push('ngoặc không cân ('+op+' mở / '+cl+' đóng)')}
+    if(op!==cl)P('ngoặc không cân ('+op+' mở / '+cl+' đóng)')}
   if(!off.quote){
     const q1=(txt.match(/“/g)||[]).length,q2=(txt.match(/”/g)||[]).length,qs=(txt.match(/"/g)||[]).length;
-    if(q1!==q2||qs%2)out.push((qs>0&&q1+q2>0)?'dùng lẫn ngoặc kép cong (“ ”) và thẳng (") trong cùng một cụm — nên thống nhất dùng “ ”':'ngoặc kép không cân')}
-  if(!off.dollar&&((txt.match(/\$/g)||[]).length)%2)out.push('dấu $ lẻ (công thức LaTeX chưa đóng)');
+    if(q1!==q2||qs%2)P((qs>0&&q1+q2>0)?'dùng lẫn ngoặc kép cong (“ ”) và thẳng (") trong cùng một cụm — nên thống nhất dùng “ ”':'ngoặc kép không cân')}
+  if(!off.dollar&&((txt.match(/\$/g)||[]).length)%2)P('dấu $ lẻ (công thức LaTeX chưa đóng)');
   if(!off.punct){const pz=txt.replace(/\.\.\./g,'…\u0000\u0000'),p1=/[,;] ?[.,;]/.exec(pz),p2=/(?<!v\.v)\. ?[,;]/.exec(txt),pm=p1||p2;
-    if(pm){R(pm.index,pm.index+pm[0].length);out.push('dấu câu liền nhau bất thường (vd “,.” “.,” “, ,”)')}}
+    if(pm){R(pm.index,pm.index+pm[0].length);P('dấu câu liền nhau bất thường (vd “,.” “.,” “, ,”)')}}
   const t0=txt.trim(),f0=t0.replace(/^[^\p{L}\p{N}]+/u,'');
-  if(!off.lower&&!c.tc&&!c.list&&!c.head&&t0.length>=25&&/^\p{Ll}/u.test(f0)&&!/^\p{Ll}\s*[.)]/u.test(f0)&&!/^\p{Ll}(?![\p{L}\p{M}])/u.test(f0)&&/[.?!:]$/.test(c.prevEnd||''))R(txt.length-txt.trimStart().length+(t0.length-f0.length),txt.length-txt.trimStart().length+(t0.length-f0.length)+1),out.push('đoạn bắt đầu bằng chữ thường');
+  if(!off.lower&&!c.tc&&!c.list&&!c.head&&t0.length>=25&&/^\p{Ll}/u.test(f0)&&!/^\p{Ll}\s*[.)]/u.test(f0)&&!/^\p{Ll}(?![\p{L}\p{M}])/u.test(f0)&&/[.?!:]$/.test(c.prevEnd||''))R(txt.length-txt.trimStart().length+(t0.length-f0.length),txt.length-txt.trimStart().length+(t0.length-f0.length)+1),P('đoạn bắt đầu bằng chữ thường');
   if(!off.mid){
     const mid=[];for(m of txt.matchAll(/(\p{L}{2,})([.?!]) +(\p{Ll})/gu))if(!ABBR.has(m[1].toLowerCase())&&!urlish(txt,m.index)){mid.push(m[1]+m[2]+' '+m[3]);R(m.index,m.index+m[0].length)}
-    if(mid.length)out.push('chữ thường sau dấu kết câu: '+mid.slice(0,2).map(x=>'“…'+x+'…”').join(', '))}
+    if(mid.length)P('chữ thường sau dấu kết câu: '+mid.slice(0,2).map(x=>'“…'+x+'…”').join(', '))}
   if(!off.noend&&!c.tc&&!c.list&&!c.head&&!c.pseudo&&!c.inKey&&!NOEND_SKIP(t0)){
     /* câu tự luận có vẻ thiếu dấu chấm: chỉ GỢI Ý bằng Comment, không tự sửa */
     const t1=t0.replace(/[\u0001\u0002]+$/,''),sc=/\s*\(\s*\d+(?:[.,]\d+)?\s*(?:điểm|đ)\s*\)\s*$/iu.exec(t1),
@@ -332,11 +333,11 @@ function lintPara(S,c){
       words=bd.split(/\s+/).filter(w=>/[\p{L}\p{N}]/u.test(w)).length;
     if(core&&words>=5&&/[\p{L}\p{N})\]"”%]$/u.test(core)&&!/(\.{2,}|…)\s*$/.test(core)&&/\p{Ll}/u.test(core)
       &&!/^[\s\u0001]*[A-D][.)]/.test(core)&&!/^(Hình|Bảng|Sơ đồ|Biểu đồ|Nguồn|Ghi chú)\b/u.test(bd))
-      R(txt.length-txt.trimStart().length+core.search(/\S+$/),txt.length-txt.trimStart().length+core.length),out.push('câu chưa có dấu chấm kết câu — gợi ý thêm “.” '+(sc?'trước '+sc[0].trim():'sau “…'+core.slice(-24).replace(/[\u0001\u0002]/g,'…')+'”'))}
+      R(txt.length-txt.trimStart().length+core.search(/\S+$/),txt.length-txt.trimStart().length+core.length),P('câu chưa có dấu chấm kết câu — gợi ý thêm “.” '+(sc?'trước '+sc[0].trim():'sau “…'+core.slice(-24).replace(/[\u0001\u0002]/g,'…')+'”'))}
   if(!off.noend&&!c.tc&&!c.inKey){
     const bd2=t0.replace(/[\u0001\u0002]+/g,' ').replace(/^\s*(Câu|CÂU|Bài|BÀI)\s*\d+\s*(\(\s*\d+(?:[.,]\d+)?\s*(?:điểm|đ)\s*\))?\s*[.:]?\s*/,'').trim();
     if(/\?$/.test(bd2)&&/^(Hãy|Em hãy|Nêu|Trình bày|Phân tích|Giải thích|Kể tên|Cho biết|So sánh|Mô tả|Liệt kê|Tính|Chứng minh|Vẽ)\b/i.test(bd2))
-      R(txt.lastIndexOf('?'),txt.lastIndexOf('?')+1),out.push('câu lệnh (“'+bd2.slice(0,28)+'…”) kết thúc bằng “?” — câu yêu cầu nên kết thúc bằng dấu chấm “.” và thống nhất giữa các đề')}
+      R(txt.lastIndexOf('?'),txt.lastIndexOf('?')+1),P('câu lệnh (“'+bd2.slice(0,28)+'…”) kết thúc bằng “?” — câu yêu cầu nên kết thúc bằng dấu chấm “.” và thống nhất giữa các đề')}
   return out}
 /* Gợi ý về cấu trúc / ngữ nghĩa mà công cụ KHÔNG tự sửa được: chỉ gắn Comment để người dùng quyết định */
 function lintStruct(body,o,add){
@@ -408,7 +409,11 @@ function lintConsist(body,o,add,rep){
       for(const [f,re] of res)if(re.test(tl))reg(g,f,p);
     const mp=/^(?:Câu|CÂU|Bài|BÀI)\s*\d+\s*\(\s*[\d.,]+\s*(điểm|đ)\s*\)/.exec(cl);if(mp)reg('đơn vị điểm của câu','“('+mp[1]+')”',p);
     const mh=/^Phần\s+[IVX]+\s*[:.]\s*(?:TRẮC NGHIỆM|TỰ LUẬN)[^()]*\(\s*[\d.,]+\s*điểm\s*\)\s*(:?)\s*$/i.exec(cl);if(mh)reg('dấu ":" cuối tiêu đề Phần',mh[1]?'có “:”':'không có “:”',p)});
-  Object.keys(G).forEach(g=>{const forms=Object.keys(G[g]);if(forms.length<2)return;
+  const GOFF={'kì/kỳ':'c_ky','kĩ/kỹ':'c_ki','đơn vị điểm của câu':'c_unit','dấu ":" cuối tiêu đề Phần':'c_colon'},cv=o.conv||{},
+    PREF={'dấu ":" cuối tiêu đề Phần':{has:'có “:”',none:'không có “:”'}[cv.colon],'đơn vị điểm của câu':{diem:'“(điểm)”',d:'“(đ)”'}[cv.unit]};
+  Object.keys(G).forEach(g=>{if(off[GOFF[g]])return;const forms=Object.keys(G[g]),want=PREF[g];
+    if(want){forms.filter(f=>f!==want).forEach(f=>G[g][f].forEach(p=>add(p,'không thống nhất “'+g+'”: chỗ này dùng '+f+' trong khi quy ước đã chọn là '+want,fR(p,f))));return}
+    if(forms.length<2)return;
     const sorted=forms.sort((a,b)=>G[g][b].length-G[g][a].length),maj=sorted[0];
     if(G[g][sorted[1]].length===G[g][maj].length){const msg='Không thống nhất “'+g+'”: '+sorted.map(f=>f+' '+G[g][f].length+' chỗ').join(' / ');rep.warn(msg+' — hãy chọn một cách dùng.');sorted.forEach(f=>add(G[g][f][0],msg+' (đây là chỗ đầu tiên dùng '+f+') — hãy chọn một cách dùng cho cả tài liệu',fR(G[g][f][0],f)));return}
     sorted.slice(1).forEach(f=>G[g][f].forEach(p=>add(p,'không thống nhất “'+g+'”: chỗ này dùng '+f+' trong khi toàn tài liệu chủ yếu dùng '+maj+' ('+G[g][maj].length+' chỗ)',fR(p,f))))});
@@ -420,6 +425,92 @@ function lintConsist(body,o,add,rep){
     if(!hasOpt||/[?:.!…]$/.test(t))return;
     const q=/\b(nào|gì|sao|đâu|bao nhiêu|không)\s*$/i.test(t)||/\b(nào|gì|sao|đâu|bao nhiêu)\b/i.test(t);
     {const S0=S2[i],e0=S0.replace(/[\s\u0001\u0002]+$/,'').length,s0=S0.slice(0,e0).search(/\S+$/);add(p,'câu dẫn chưa có dấu kết thúc — nên thêm “'+(q?'?':':')+'” ('+(q?'câu hỏi':'câu bỏ lửng, phương án điền tiếp')+')',s0>=0?[{s:s0,e:e0}]:null)}})}
+/* [v8] Mức độ cảnh báo: 1 = LỖI (chắc chắn sai) · 2 = NGHI NGỜ (cần người xem) · 3 = GỢI Ý (không bắt buộc). Tô màu: đỏ · vàng · lục lam */
+const SEV_NAME={1:'LỖI',2:'NGHI NGỜ',3:'GỢI Ý'},SEV_HL={1:'red',2:'yellow',3:'cyan'};
+const SEV_RULES=[
+  [1,/^(số câu bị trùng|điểm không khớp|tổng điểm các Phần = .* nhưng đề ghi|còn mã LaTeX|còn nội dung giữ chỗ|dấu \$ lẻ|đáp án ghi là|đáp án [A-D] và [A-D]|đáp án câu \d|chú thích “[^”]+” bị trùng)/],
+  [3,/^(câu chưa có dấu chấm|câu dẫn chưa có dấu kết thúc|có ký hiệu toán gõ dạng chữ|AI gợi ý)/]
+];
+function sevOf(m){for(const [s,re] of SEV_RULES)if(re.test(m))return s;return 2}
+
+/* [v8] Đối chiếu điểm – đáp án – chú thích Hình/Bảng – tham chiếu “câu n”. Chỉ ghi Comment, không tự sửa.
+   Công tắc riêng: lintOff.pts / lintOff.key / lintOff.xref */
+function lintStruct2(body,o,add){
+  const off=o.lintOff||{};if(off.struct)return;
+  const clean=x=>x.replace(/[\u0001\u0002]/g,' ').replace(/\s+/g,' ').trim(),
+    num=x=>parseFloat(String(x).replace(',','.')),fmt=x=>String(+(+x).toFixed(2)).replace('.',',');
+  const PA=all(body,'p').filter(p=>!anc(p,'txbxContent')),TA=PA.map(p=>clean(pModel(p).S));
+  let kA=-1;for(let i=1;i<PA.length;i++)if(/^(BẢNG\s+)?(ĐÁP ÁN|HƯỚNG DẪN CHẤM)/i.test(TA[i])){kA=i;break}
+  const endI=kA<0?PA.length:kA,ix=[];
+  for(let i=0;i<endI;i++)if(!anc(PA[i],'tc'))ix.push(i);          /* đoạn ngoài bảng, nằm trước phần đáp án */
+  const ps=ix.map(i=>PA[i]),S=ps.map(p=>pModel(p).S),T=ix.map(i=>TA[i]);
+  const QL=/^(?:Câu|CÂU|Bài|BÀI)\s*(\d+)\b/,PH=/^(?:PHẦN|Phần)\s+[IVX\d]+/,PTS=/\(\s*(\d+(?:[.,]\d+)?)\s*(?:điểm|đ)\s*\)/i,PTH=/\(\s*(\d+(?:[.,]\d+)?)\s*điểm\s*\)/i,
+    RST=/^(?:ĐỀ|Đề|MÃ ĐỀ)\b/,EXAM=/^(MÃ ĐỀ|ĐỀ SỐ|ĐỀ\s+[A-D\d]\b)/i;
+  const multi=T.filter(t=>EXAM.test(t)).length>=2;                /* một file chứa nhiều đề / nhiều mã đề */
+  const lead=(s,re)=>{const r=re.exec(s);if(!r)return null;const a=r[0].length-r[0].replace(/^[\s\u0001]+/,'').length;return[{s:a,e:r[0].length}]};
+  const isQ=i=>/^(?:Câu|CÂU)\s*\d+/.test(T[i]);
+
+  /* ---- 1. ĐIỂM: các câu cộng lại có bằng điểm của Phần; các Phần cộng lại có đủ tổng điểm không ---- */
+  if(!off.pts){
+    const heads=[];
+    ps.forEach((p,i)=>{if(PH.test(T[i])){const m=PTH.exec(T[i]);if(m)heads.push({i,pts:num(m[1]),m:m[0]})}});
+    heads.forEach((h,k)=>{
+      const nxt=k+1<heads.length?heads[k+1].i:ps.length;let sum=0,seen=0,allPts=true;
+      for(let j=h.i+1;j<nxt;j++){if(RST.test(T[j])&&EXAM.test(T[j]))break;if(!QL.test(T[j]))continue;seen++;const m=PTS.exec(T[j]);if(m)sum+=num(m[1]);else allPts=false}
+      if(seen>0&&allPts&&Math.abs(sum-h.pts)>0.01)add(ps[h.i],'điểm không khớp: các câu trong phần này cộng lại '+fmt(sum)+' điểm, nhưng tiêu đề ghi ('+fmt(h.pts)+' điểm)',sR(S[h.i],h.m))});
+    if(heads.length>=2&&!multi){
+      const tot=heads.reduce((a,h)=>a+h.pts,0);let dec=null;
+      for(let i=0;i<Math.min(T.length,25);i++){const m=/(?:tổng điểm|thang điểm|điểm tối đa)\s*[:\-–]?\s*(?:là\s*)?(\d+(?:[.,]\d+)?)/i.exec(T[i]);if(m){dec=num(m[1]);break}}
+      const want=dec!=null?dec:10;
+      if(Math.abs(tot-want)>0.01&&(dec!=null||(tot>=6&&tot<=14)))
+        add(ps[heads[0].i],dec!=null?'tổng điểm các Phần = '+fmt(tot)+' nhưng đề ghi tổng '+fmt(dec)+' điểm':'tổng điểm các Phần cộng được '+fmt(tot)+' — thang điểm thường dùng là 10, hãy kiểm tra lại',sR(S[heads[0].i],heads[0].m))}}
+
+  /* ---- 2. ĐÁP ÁN: đề có bao nhiêu câu trắc nghiệm, đáp án có đủ và không mâu thuẫn không ---- */
+  const ALLQ=new Set(),EQ=new Set();
+  ps.forEach((p,i)=>{const m=/^(?:Câu|CÂU)\s*(\d+)\b/.exec(T[i]);if(!m)return;const n=+m[1];ALLQ.add(n);
+    let e=i+1;while(e<ps.length&&!isQ(e)&&!PH.test(T[e]))e++;
+    const Q=S.slice(i,e).join('\n'),lb=L=>new RegExp('(?:^|\\s|[\\u0001\\u0002])'+L+'[.)](?=\\s|[\\u0001\\u0002]|$)').test(Q);
+    if(lb('A')&&lb('B'))EQ.add(n)});
+  if(!off.key&&kA>0&&EQ.size){
+    const kp={},addP=(n,L)=>{n=+n;if(n<1||n>300)return;(kp[n]=kp[n]||new Set()).add(L.toUpperCase())},kt=TA.slice(kA+1).join('\n');
+    for(const m of kt.matchAll(/(?:^|[\s|:;,])(?:Câu\s*)?(\d{1,3})\s*[-–:.)]\s*([A-D])(?![\p{L}\d])/gu))addP(m[1],m[2]);
+    const cellT=c=>clean(all(c,'p').map(p=>pModel(p).S).join(' '));
+    all(body,'tbl').filter(t=>!anc(t,'tbl')&&((PA[kA].compareDocumentPosition(t)&4)||(PA[kA].compareDocumentPosition(t)&8))).forEach(t=>{
+      const rows=Array.from(t.children).filter(c=>c.localName==='tr').map(r=>Array.from(r.children).filter(c=>c.localName==='tc').map(cellT));
+      rows.forEach((a,r)=>{
+        for(let k=0;k+1<a.length;k++)if(/^\d{1,3}$/.test(a[k])&&/^[A-D]$/i.test(a[k+1]))addP(a[k],a[k+1]);
+        const b=rows[r+1];if(!b)return;
+        const na=a.filter(x=>/^\d{1,3}$/.test(x)),lb=b.filter(x=>/^[A-D]$/i.test(x));
+        if(na.length>=3&&na.length===lb.length&&a.length-na.length<=1&&b.length-lb.length<=1)na.forEach((n,k)=>addP(n,lb[k]))})});
+    const kn=Object.keys(kp).map(Number).sort((a,b)=>a-b),need=Array.from(EQ).sort((a,b)=>a-b),at=PA[kA],atS=pModel(at).S,atR=lead(atS,/^[\s\u0001|$]*(?:BẢNG\s+)?(?:ĐÁP ÁN|HƯỚNG DẪN CHẤM)/i);
+    if(kn.length>=Math.max(3,Math.ceil(need.length/2))){
+      const miss=need.filter(n=>!kp[n]);
+      if(miss.length)add(at,'đáp án chưa thấy câu '+miss.slice(0,12).join(', ')+(miss.length>12?'…':'')+' ('+miss.length+' câu trắc nghiệm của đề chưa có đáp án — đếm tự động, hãy kiểm tra lại cách trình bày đáp án)',atR);
+      if(!multi){
+        const extra=kn.filter(n=>!ALLQ.has(n));
+        if(extra.length)add(at,'đáp án có câu '+extra.slice(0,12).join(', ')+(extra.length>12?'…':'')+' nhưng đề không có các câu này',atR);
+        const dup=kn.filter(n=>kp[n].size>1);
+        if(dup.length)add(at,'đáp án câu '+dup.slice(0,8).map(n=>n+' ('+Array.from(kp[n]).join('/')+')').join(', ')+' ghi nhiều hơn một đáp án khác nhau',atR)}}}
+
+  /* ---- 3. THAM CHIẾU CHÉO: chú thích Hình/Bảng liên tục, hình/bảng/câu được nhắc có tồn tại ---- */
+  if(!off.xref){
+    const CAP=/^(Hình|Bảng)\s*(\d+)\s*(?:[.:–\-)]|$)/,caps={'Hình':[],'Bảng':[]};let prev={'Hình':0,'Bảng':0};
+    ps.forEach((p,i)=>{
+      if(EXAM.test(T[i]))prev={'Hình':0,'Bảng':0};
+      const m=CAP.exec(T[i]);if(!m)return;const ty=m[1],n=+m[2],pv=prev[ty],rg=lead(S[i],/^[\s\u0001]*(?:Hình|Bảng)\s*\d+/);caps[ty].push(n);
+      if(pv&&n===pv&&n>1)add(p,'chú thích “'+ty+' '+n+'” bị trùng số',rg);
+      else if(pv&&n>pv+1)add(p,'chú thích nhảy số: sau “'+ty+' '+pv+'” là “'+ty+' '+n+'” (thiếu “'+ty+' '+(pv+1)+'”?)',rg);
+      else if(pv&&n<pv&&n!==1)add(p,'chú thích bị lùi số: sau “'+ty+' '+pv+'” là “'+ty+' '+n+'”',rg);
+      prev[ty]=n});
+    ps.forEach((p,i)=>{
+      if(CAP.test(T[i]))return;
+      for(const m of T[i].matchAll(/(?<![\p{L}\d])(hình|bảng)\s*(\d+)(?![\p{L}\d]|[.,]\d)/giu)){
+        const ty=m[1][0].toUpperCase()+m[1].slice(1).toLowerCase(),n=+m[2];
+        if(new Set(caps[ty]).size>=2&&caps[ty].indexOf(n)<0){add(p,'nhắc “'+ty+' '+n+'” nhưng không thấy chú thích “'+ty+' '+n+'” trong đề',sR(S[i],m[0]));break}}
+      if(ALLQ.size>=3)for(const m of T[i].matchAll(/(?<=(?:xem|ở|như|theo|dựa vào|từ|trong|so với|của|vào)\s+)câu\s*(\d+)\b/giu))
+        if(!ALLQ.has(+m[1])){add(p,'nhắc “câu '+m[1]+'” nhưng đề không có Câu '+m[1],sR(S[i],m[0]));break}})}
+}
+
 function lintDoc(body,o,rep,sugs){
   const flags=[],dec={c:0,d:0},used=new Set(),byP=new Map(),idxOf=new Map();let idx=0,prevEnd='',inKey=false;
   all(body,'p').forEach(p=>{
@@ -431,14 +522,23 @@ function lintDoc(body,o,rep,sugs){
     const info=pInfo(p),tc=!!anc(p,'tc');
     const cx={tc,list:info.list,head:info.head,pseudo:pseudoHead(p),prevEnd,inKey,off:o.lintOff,rg:[]},issues=lintPara(S,cx);
     if(o.dry){const E=paraRules(S,o);if(E.length){const e=E.slice().sort((a,b)=>a.s-b.s)[0],c=x=>x.replace(/\u0001/g,'⇥').replace(/\u0002/g,'⟦CT⟧');
-      E.forEach(z=>cx.rg.push({s:Math.max(0,z.s-(z.e>z.s?0:1)),e:Math.max(z.e,z.s+1)})),issues.unshift('cần sửa '+E.length+' chỗ dấu câu/khoảng trắng/chính tả, vd: “'+c(S.slice(Math.max(0,e.s-14),Math.min(S.length,e.e+14)))+'”')}}
-    sugs.forEach((sg,k)=>{if(!used.has(k)&&S.indexOf(sg.find)>=0){used.add(k);{const ix=S.indexOf(sg.find);cx.rg.push({s:ix,e:ix+sg.find.length})}issues.push('AI gợi ý: “'+sg.find+'” → “'+sg.replace+'”')}});
+      const dm='cần sửa '+E.length+' chỗ dấu câu/khoảng trắng/chính tả, vd: “'+c(S.slice(Math.max(0,e.s-14),Math.min(S.length,e.e+14)))+'”';E.forEach(z=>cx.rg.push({s:Math.max(0,z.s-(z.e>z.s?0:1)),e:Math.max(z.e,z.s+1),m:dm}));issues.unshift(dm)}}
+    sugs.forEach((sg,k)=>{if(!used.has(k)&&S.indexOf(sg.find)>=0){used.add(k);{const ix=S.indexOf(sg.find);cx.rg.push({s:ix,e:ix+sg.find.length,m:'AI gợi ý: “'+sg.find+'” → “'+sg.replace+'”'})}issues.push('AI gợi ý: “'+sg.find+'” → “'+sg.replace+'”')}});
     for(const m of S.matchAll(/(?<![\d.,])\d+,\d{1,2}(?![\d,.])/g))dec.c++;
     for(const m of S.matchAll(/(?<![\d.,])\d+\.\d{1,2}(?![\d,.])/g))if(!(m.index<=1&&/^[ \u0001]/.test(S.slice(m.index+m[0].length)||' ')))dec.d++;
     prevEnd=tr.replace(/[\u0001\u0002]+$/,'').slice(-1)||prevEnd;
     if(issues.length){const f={p,n:idx,snip:tr.replace(/[\u0001\u0002]/g,'…').slice(0,60),issues,rg:cx.rg};flags.push(f);byP.set(p,f)}});
-  const addI=(p,msg,rg)=>{let f=byP.get(p);if(!f){const tr=pModel(p).S.trim();f={p,n:idxOf.get(p)||0,snip:tr.replace(/[\u0001\u0002]/g,'…').slice(0,60),issues:[],rg:[]};byP.set(p,f);flags.push(f)}if(f.issues.indexOf(msg)<0)f.issues.push(msg);if(rg&&rg.length)f.rg=(f.rg||[]).concat(rg.map(r=>Object.assign({c:'cyan'},r)))};
-  lintStruct(body,o,addI);lintConsist(body,o,addI,rep);
+  const addI=(p,msg,rg)=>{let f=byP.get(p);if(!f){const tr=pModel(p).S.trim();f={p,n:idxOf.get(p)||0,snip:tr.replace(/[\u0001\u0002]/g,'…').slice(0,60),issues:[],rg:[]};byP.set(p,f);flags.push(f)}if(f.issues.indexOf(msg)<0)f.issues.push(msg);if(rg&&rg.length)f.rg=(f.rg||[]).concat(rg.map(r=>Object.assign({m:msg},r)))};
+  lintStruct(body,o,addI);
+  try{lintStruct2(body,o,addI)}catch(e){rep.warn('Bước đối chiếu điểm/đáp án/hình–bảng gặp lỗi nên đã bỏ qua: '+e.message)}
+  lintConsist(body,o,addI,rep);
+  /* [v8] phân mức, lọc theo mức người dùng chọn, tô màu theo mức */
+  const sv=o.sevOn||{};
+  flags.forEach(f=>{
+    const it=f.issues.map(m=>({m,s:sevOf(m)})).filter(x=>sv[x.s]!==false).sort((a,b)=>a.s-b.s),ok=new Set(it.map(x=>x.m));
+    f.issues=it.map(x=>'['+SEV_NAME[x.s]+'] '+x.m);f.sev=it.length?it[0].s:3;
+    f.rg=(f.rg||[]).filter(r=>!r.m||ok.has(r.m)).map(r=>Object.assign({},r,{c:r.c||SEV_HL[r.m?sevOf(r.m):f.sev]}))});
+  for(let i=flags.length-1;i>=0;i--)if(!flags[i].issues.length)flags.splice(i,1);
   flags.sort((a,b)=>a.n-b.n);
   flags.forEach(f=>{const S=pModel(f.p).S;f.rg=normRg(f.rg,S);f.hits=f.rg.map(r=>S.slice(r.s,r.e).replace(/[\u0001\u0002]/g,'…'));f.ctx=mkCtx(S,f.rg)});
   if(dec.c>=2&&dec.d>=2)rep.warn('Số thập phân dùng lẫn dấu phẩy ('+dec.c+' chỗ) và dấu chấm ('+dec.d+' chỗ) — nên thống nhất một kiểu (tiếng Việt: dấu phẩy).');
@@ -456,7 +556,7 @@ function hlRuns(doc,p,rgs){
       if(pc.b<len)splitRun(doc,r0,pc.x.t,pc.b);
       if(pc.a>0)mid=splitRun(doc,r0,pc.x.t,pc.a);
       let pr=one(mid,'rPr');if(!pr){pr=mk(doc,'rPr');mid.insertBefore(pr,mid.firstChild)}
-      sa(sc(doc,pr,'highlight',ORD.rPr),'val',r.c==='cyan'?'cyan':'yellow');
+      sa(sc(doc,pr,'highlight',ORD.rPr),'val',(r.c==='cyan'||r.c==='red')?r.c:'yellow');
       runs.unshift(mid)});
     if(runs.length)out.unshift(runs)});
   return out}
@@ -470,7 +570,7 @@ function addComments(doc,cd,flags,o){
     /* tô nền trước (vì tách run), rồi mới đặt mốc Comment */
     let groups=[];if(useHl&&f.rg&&f.rg.length){try{groups=hlRuns(doc,f.p,f.rg)}catch(e){groups=[]}}
     sa(c,'id',cid);sa(c,'author','Rà soát đề');sa(c,'date',TRK.date);sa(c,'initials','RS');
-    const lines=[code+' · Cần kiểm tra:'].concat(f.issues.map(x=>'• '+x));
+    const lines=[code+' · '+(SEV_NAME[f.sev]||'')+' · Cần kiểm tra:'].concat(f.issues.map(x=>'• '+x));
     if(f.hits&&f.hits.length)lines.push('→ Chỗ cần xem'+(groups.length?' (đã tô màu)':'')+': '+f.hits.slice(0,4).map(x=>'“'+x+'”').join(', ')+(f.hits.length>4?'…':''));
     lines.forEach(line=>{
       const cp=mk(cd,'p'),cr=mk(cd,'r'),ct=mk(cd,'t');ct.textContent=line;setXS(ct);cr.appendChild(ct);cp.appendChild(cr);c.appendChild(cp)});
@@ -604,11 +704,14 @@ function textPass(body,o,rep,tag){
   rep.fix('Bỏ Tab dùng để thụt đầu dòng thủ công',tabs)}
 
 function renumber(body,rep){
-  const cnt={};let fixed=0;const ex=[];
+  const cnt={};let fixed=0,inKey=false;const ex=[];
   all(body,'p').forEach(p=>{
     if(anc(p,'tc')||anc(p,'txbxContent'))return;
     const ts=all(p,'t').filter(t=>!inMath(t));if(!ts.length)return;
     const txt=ts.map(t=>t.textContent).join(''),tr=txt.trim();
+    if(tr.length<90&&/^(ĐỀ|Đề)\s+(KIỂM TRA|THI|SỐ)\b/i.test(tr))inKey=false;
+    if(tr.length<90&&/^(BẢNG\s+)?(ĐÁP ÁN|HƯỚNG DẪN CHẤM)/i.test(tr)&&cnt&&Object.keys(cnt).length){inKey=true;for(const k in cnt)delete cnt[k];return}
+    if(inKey)return;   /* [v8] phần Đáp án/Hướng dẫn chấm: không đánh số lại (tránh sửa nhầm và che mất lỗi thiếu/trùng đáp án) */
     if(tr.length<90&&/^(PHẦN|Phần|ĐỀ|Đề|MÃ ĐỀ|Mã đề)\b/.test(tr)){for(const k in cnt)delete cnt[k];return}
     const m=/^(\s*(Câu|CÂU|Bài|BÀI)\s*)(\d{1,3})(?!\d)/.exec(txt);if(!m)return;
     const key=m[2].toLowerCase(),n=+m[3];
@@ -1893,7 +1996,7 @@ async function auditOnce(buf,o,hooks){
   if(o.mark){
     const flags=[];
     step('quét lỗi cần kiểm tra tay',()=>{flags.push(...lintDoc(body,o,rep,(o.aiSug||[]).concat(rep.aiSug||[])))});
-    rep.lint=flags.map((f,i)=>({n:f.n,snip:f.snip,issues:f.issues,code:'#L'+String(i+1).padStart(2,'0'),hits:f.hits||[],ctx:f.ctx||f.snip}));
+    rep.lint=flags.map((f,i)=>({n:f.n,snip:f.snip,issues:f.issues,sev:f.sev,code:'#L'+String(i+1).padStart(2,'0'),hits:f.hits||[],ctx:f.ctx||f.snip}));
     if(flags.length){
       ctd=await rd('[Content_Types].xml');
       step('ghi Comment đánh dấu',()=>{
@@ -1906,7 +2009,15 @@ async function auditOnce(buf,o,hooks){
           if(!rl)rl=pX('<Relationships xmlns="'+RELNS+'"/>');
           if(!Array.from(rl.documentElement.children).some(r=>/\/comments$/.test(r.getAttribute('Type')||''))){
             const e=rl.createElementNS(RELNS,'Relationship');e.setAttribute('Id','rIdRsCmt1');e.setAttribute('Type',R+'/comments');e.setAttribute('Target','comments.xml');rl.documentElement.appendChild(e)}}})}}
-  const out=[['word/document.xml',doc]];
+  const metaDocs=[];
+  {const PN=[['docProps/core.xml',{creator:'tác giả',lastModifiedBy:'người sửa cuối'}],['docProps/app.xml',{Company:'đơn vị',Manager:'người quản lý'}]],found=[];
+   for(const [fn,mp] of PN){let d=null;try{d=await rd(fn)}catch(e){}if(!d)continue;let ch=false;
+     Array.from(d.getElementsByTagName('*')).forEach(e=>{const lb=mp[e.localName];if(!lb||e.children.length)return;const val=e.textContent.trim();if(!val)return;found.push(lb+' “'+val+'”');if(o.meta&&!o.dry){e.textContent='';ch=true}});
+     if(ch)metaDocs.push([fn,d])}
+   if(found.length){
+     if(o.meta&&!o.dry){rep.fix('Xóa thông tin cá nhân trong thuộc tính file (tác giả, người sửa cuối, đơn vị)',found.length);rep.meta=true;rep.notes.push('Đã xóa khỏi thuộc tính file: '+found.join('; ')+'.')}
+     else rep.notes.push('Lưu ý bảo mật: thuộc tính file còn '+found.join('; ')+'. Nếu đề cần giữ kín, bật “Xóa thông tin cá nhân” rồi chạy lại.')}}
+  const out=[['word/document.xml',doc]];metaDocs.forEach(x=>out.push(x));
   if(sd)out.push(['word/styles.xml',sd]);if(setd)out.push(['word/settings.xml',setd]);if(numd&&ctx.numTouched)out.push(['word/numbering.xml',numd]);
   Object.keys(hfDocs).forEach(n=>out.push([n,hfDocs[n]]));
   if(cmt&&cmtTouched)out.push(['word/comments.xml',cmt]);
@@ -1968,6 +2079,25 @@ function txtTable(head,rows,wd,boldCol){
   const emit=(cs)=>{const h=Math.max.apply(null,cs.map(c=>c.length));for(let i=0;i<h;i++)L.push('| '+cs.map((c,k)=>(c[i]||'').padEnd(wd[k])).join(' | ')+' |')};
   emit(head.map(x=>[x.toUpperCase()]));L.push(sep);
   rows.forEach((r,ri)=>{emit(cell(r,ri));L.push(sep)});return L.join('\n')}
+/* [v8] Thống kê mức cảnh báo + danh sách tự kiểm cho người rà soát (phụ lục biên bản) */
+function sevCount(rep){const c={1:0,2:0,3:0};(rep.lint||[]).forEach(x=>(x.issues||[]).forEach(m=>{const k=/^\[(LỖI|NGHI NGỜ|GỢI Ý)\]/.exec(m);if(k)c[k[1]==='LỖI'?1:k[1]==='GỢI Ý'?3:2]++}));return c}
+function sevLine(rep){const c=sevCount(rep);return 'LỖI chắc chắn: '+c[1]+' · NGHI NGỜ: '+c[2]+' · GỢI Ý: '+c[3]+' (các mục xếp từ nặng đến nhẹ)'}
+function checklistItems(name,rep){
+  const nL=(rep.lint||[]).length,nC=nL+rep.w.length+(rep.ai?((rep.ai.d.loi||[]).length+(rep.ai.d.canxacminh||[]).length):0),L=[];
+  const rv=nC?'Đã xem hết '+nC+' mục ở phần II và ghi cách xử lý vào cột “Xử lý”':'Phần II không có mục nào — vẫn đọc lướt toàn bộ file một lượt bằng mắt';
+  if(/\.xlsx$/i.test(name)){
+    L.push(rv,'Số liệu, điểm số và công thức sau khi sửa vẫn đúng (đối chiếu ngẫu nhiên vài dòng với bản gốc)','Số/ngày công cụ đổi từ dạng chữ sang số/ngày đã đúng (đặc biệt ngày dd/mm/yyyy)','Mã định danh, số điện thoại, số 0 đầu vẫn giữ nguyên dạng chữ','Xem trước khi in (File → Print): đủ cột, không cắt chữ, dòng tiêu đề lặp đúng ở mỗi trang','In thử 1 trang để kiểm tra lề và cỡ chữ')}
+  else{
+    const lx=rep.w.some(x=>/công thức LaTeX đã chuyển nhưng có phần được xử lý gần đúng/.test(x));
+    L.push(rv,'Đáp án từng câu đúng: tự giải lại ít nhất các câu khó, câu có hình, câu vận dụng'+(rep.ai?' và mọi câu AI báo “KHÔNG KHỚP” / “cần xác minh”':''),
+      'Đáp án / hướng dẫn chấm khớp với đề (đúng số câu, đúng mã đề, cùng thang điểm)','Hình vẽ, đồ thị, bảng số liệu đúng với lời dẫn, đủ nét, không vỡ khi in',
+      'Công thức hiển thị đúng ký hiệu'+(lx?' — đặc biệt các công thức công cụ đã báo là chuyển gần đúng':''),
+      'Nội dung nằm trong chương trình, ma trận/đặc tả; tỉ lệ nhận biết – thông hiểu – vận dụng đúng quy định',
+      'Thông tin đầu đề đầy đủ: trường, môn, lớp, thời gian, mã đề, họ tên – số báo danh','Thang điểm và tổng điểm đúng quy định',
+      'In thử 1 bản: ngắt trang, bảng, hình, số trang hiển thị đúng; không còn trang trắng',
+      rep.meta?'Thông tin cá nhân trong thuộc tính file đã được công cụ xóa — mở File → Info để xác nhận':'Nếu là đề thi cần giữ kín: kiểm tra File → Info → Inspect Document (tên tác giả, bản nháp, lịch sử sửa)',
+      'Bản nộp cuối: đã xóa hết Comment của công cụ, đã chấp nhận hoặc từ chối mọi Track Changes')}
+  return L}
 function reportText(name,rep){
   const L=['BÁO CÁO RÀ SOÁT '+(/\.xlsx$/i.test(name)?'EXCEL (SỬA LỖI & CĂN TRANG IN)':'WORD')+' — '+name,'Phiên bản công cụ: '+VERSION,''];
   const tot=Array.from(rep.f.values()).reduce((a,b)=>a+b,0);
@@ -1976,19 +2106,22 @@ function reportText(name,rep){
   if(rep.notes.length){L.push('','  Ghi chú:');rep.notes.slice(0,200).forEach(x=>L.push('   - '+x))}
   if(rep.changes&&rep.changes.length){L.push('','  Nhật ký thay đổi văn bản (trước → sau; tối đa '+rep.changes.length+' đoạn đầu):');rep.changes.forEach(x=>{const w=diffWin(x.b,x.a);L.push('   • Đoạn '+x.n+(x.t?' ('+x.t+')':'')+': “'+w[0]+'” → “'+w[1]+'”')})}
   /* 2. Cần chú ý — gộp vào một bảng */
-  const R=[],ai=rep.ai;
+  let R=[];const ai=rep.ai;
   (rep.lint||[]).forEach(x=>R.push([(x.code?x.code+' · ':'')+'Đoạn '+x.n+' “'+(x.ctx||x.snip)+'”','Công cụ',x.issues.join('; '),'Đã đánh dấu Comment trong file Word, chưa tự sửa — cần kiểm tra tay']));
   if(ai){
     (ai.d.loi||[]).forEach(x=>R.push([(x.code?x.code+' · ':'')+(x.vitri||'—'),'AI ('+[x.nhom,x.mucdo,x.tincay&&'tin cậy '+x.tincay].filter(Boolean).join(', ')+')'+(x.tt?' — '+x.tt:''),x.noidung,'AI đề xuất (chưa sửa trong file): '+(x.sua||'—')]));
     (ai.d.canxacminh||[]).forEach(x=>R.push([(x.code?x.code+' · ':'')+(x.vitri||'—'),'AI','[CẦN XÁC MINH] '+x.lydo,'Chưa biết đúng/sai — giáo viên xác nhận']))}
   rep.w.forEach(x=>R.push(['Toàn file','Công cụ',x,'Chưa xử lý — cần kiểm tra tay']));
-  L.push('','II. NỘI DUNG CẦN CHÚ Ý (chưa sửa hoặc chưa biết đúng/sai) — '+R.length+' mục');
+  {const nL=(rep.lint||[]).length,sv=R.map((r,i)=>i<nL?(rep.lint[i].sev||2):2),ord=R.map((r,i)=>i).sort((a,b)=>(sv[a]-sv[b])||(a-b));R=ord.map(i=>R[i])}
+  L.push('','II. NỘI DUNG CẦN CHÚ Ý (chưa sửa hoặc chưa biết đúng/sai) — '+R.length+' mục');if(rep.lint&&rep.lint.length)L.push('  '+sevLine(rep));
   if(R.length)L.push(txtTable(['STT','Vị trí','Nguồn','Nội dung cần chú ý','Xử lý / Gợi ý'],R.map((r,i)=>[String(i+1)].concat(r)),[4,18,13,50,34],[3]),'  (Chữ đặt giữa **…** là phần in đậm — mở bằng Word/Markdown để thấy đậm; cột “Nội dung” là điểm cần xem trước; phần đặt trong 【…】 là cụm chữ lỗi — trong file Word được tô màu, mã #L/#A khớp với số Comment.)');
   else L.push('  (không có)');
   if(ai&&(ai.d.tomtat||ai.d.xacnhan||ai.d.thongke)){L.push('','III. NHẬN XÉT CỦA AI');if(ai.d.tomtat)L.push('  Tóm tắt: '+ai.d.tomtat);if(ai.d.thongke)L.push('  Thống kê: '+ai.d.thongke);if(ai.d.xacnhan)L.push('  Xác nhận: '+ai.d.xacnhan);
     L.push('  Lưu ý: AI không nhìn thấy hình vẽ; các đề xuất chỉ để tham khảo — hãy tự giải lại và đối chiếu trước khi sửa đề.')}
   if(ai&&ai.d.doichieu&&ai.d.doichieu.length){const D=ai.d.doichieu.slice(0,150);L.push('','IV. ĐỐI CHIẾU ĐÁP ÁN (AI tự giải trước, rồi so với đáp án ghi trong đề)');
     L.push(txtTable(['STT','Câu','Cách giải ngắn của AI','Kết quả AI','Đáp án trong đề','Khớp'],D.map((x,i)=>[String(i+1),String(x.cau||''),String(x.cach_giai||''),String(x.ketqua_ai||''),String(x.trong_de||'—'),x.khop===true?'Khớp':x.khop===false?'KHÔNG KHỚP':'—']),[4,6,34,16,16,11],[]),'  (Chỉ là kết quả AI tự tính để bạn đối chiếu nhanh; câu có hình hoặc công thức ảnh AI có thể không giải được.)')}
+  L.push('','PHỤ LỤC. DANH SÁCH TỰ KIỂM CỦA NGƯỜI RÀ SOÁT (công cụ không tự kiểm được)');checklistItems(name,rep).forEach(t=>L.push('  [ ] '+t));
+  L.push('','  Người lập đề: ..............   Người rà soát: ..............   Tổ trưởng duyệt: ..............   Ngày: ....../....../......');
   return L.join('\n')}
 
 /* [v7] Biên bản rà soát .docx — khổ A4 NGANG. Bảng "Nội dung cần chú ý": STT · Mã · Vị trí · Nội dung · Xử lý (để trống cho giáo viên ghi).
@@ -2008,14 +2141,14 @@ async function reportDocx(name,rep){
     const bd=['top','left','bottom','right','insideH','insideV'].map(k=>'<w:'+k+' w:val="single" w:sz="4" w:space="0" w:color="808080"/>').join('');
     let x='<w:tbl><w:tblPr><w:tblW w:w="'+wd.reduce((a,b)=>a+b,0)+'" w:type="dxa"/><w:tblBorders>'+bd+'</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="40" w:type="dxa"/><w:left w:w="80" w:type="dxa"/><w:bottom w:w="40" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>'+wd.map(w=>'<w:gridCol w:w="'+w+'"/>').join('')+'</w:tblGrid>';
     x+='<w:tr><w:trPr><w:cantSplit/><w:tblHeader/></w:trPr>'+head.map((t,k)=>cell(wd[k],para(rn(t,{b:true}),{after:0,jc:'center'}),{fill:'D9E2F3'})).join('')+'</w:tr>';
-    rows.forEach(r=>{x+='<w:tr><w:trPr><w:cantSplit/></w:trPr>'+r.map((c,k)=>cell(wd[k],c==null||c===''?'':(typeof c==='object'?c.xml:lines(c)),{})).join('')+'</w:tr>'});
+    rows.forEach(r=>{x+='<w:tr><w:trPr><w:cantSplit/></w:trPr>'+r.map((c,k)=>cell(wd[k],c==null||c===''?'':(typeof c==='object'?c.xml:lines(c)),{fill:(c&&typeof c==='object')?c.fill:undefined})).join('')+'</w:tr>'});
     return x+'</w:tbl>'};
   const R_='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
   const isX=/\.xlsx$/i.test(name),tot=Array.from(rep.f.values()).reduce((a,b)=>a+b,0);
   let B='';
   B+=para(rn('BIÊN BẢN RÀ SOÁT '+(isX?'FILE EXCEL':'FILE WORD'),{b:true,sz:32}),{jc:'center',after:80});
   B+=para(rn('File: ',{b:true})+rn(name),{after:20})+para(rn('Ngày lập: ',{b:true})+rn(new Date().toLocaleDateString('vi-VN'))+rn('    Công cụ: ',{b:true})+rn(VERSION.split(' (')[0]),{after:80});
-  B+=para(rn('Chú giải: ',{b:true,sz:19})+rn('chữ ',{sz:19})+rn('tô vàng',{sz:19,hl:'yellow',b:true})+rn(' = lỗi chính tả / dấu câu / viết hoa; chữ ',{sz:19})+rn('tô lục lam',{sz:19,hl:'cyan',b:true})+rn(' = lỗi cấu trúc / không nhất quán. Mã #L.. và #A.. trùng với số trong Comment của file Word. Cột “Xử lý” để trống cho người rà soát ghi.',{sz:19}),{after:100});
+  B+=para(rn('Chú giải: ',{b:true,sz:19})+rn('chữ ',{sz:19})+rn('tô đỏ',{sz:19,hl:'red',b:true})+rn(' = LỖI chắc chắn; ',{sz:19})+rn('tô vàng',{sz:19,hl:'yellow',b:true})+rn(' = NGHI NGỜ (cần xem); ',{sz:19})+rn('tô lục lam',{sz:19,hl:'cyan',b:true})+rn(' = GỢI Ý (không bắt buộc). Màu theo mức nặng nhất của đoạn; các mục xếp từ nặng đến nhẹ. Mã #L.. và #A.. trùng với số trong Comment của file Word. Cột “Xử lý” để trống cho người rà soát ghi.',{sz:19}),{after:100});
   /* I. Đã tự sửa */
   B+=h2('I. NỘI DUNG CÔNG CỤ ĐÃ RÀ SOÁT VÀ TỰ SỬA ('+tot+' chỗ)');
   if(!rep.f.size)B+=para(rn('(không có thay đổi nào)',{i:true}));
@@ -2028,14 +2161,15 @@ async function reportDocx(name,rep){
     if(tabs.length)rows.push(['Đoạn '+tabs.slice(0,40).map(c=>c.x.n).join(', ')+(tabs.length>40?'…':'')+'\n('+tabs.length+' đoạn)','⇥ (ký tự Tab thụt đầu dòng)','(đã xóa)']);
     B+=table([620,1900,5925,6125],['STT','Đoạn','Trước','Sau'],rows.map((r,i)=>[String(i+1)].concat(r)))}
   /* II. Cần chú ý */
-  const R=[],ai=rep.ai;
-  (rep.lint||[]).forEach(x=>R.push({code:x.code||'',pos:'Đoạn '+x.n+'\n'+(x.ctx||x.snip),txt:x.issues.map(s=>'• '+s).join('\n')}));
+  let R=[];const ai=rep.ai;
+  (rep.lint||[]).forEach(x=>R.push({sev:x.sev||2,code:x.code||'',pos:'Đoạn '+x.n+'\n'+(x.ctx||x.snip),txt:x.issues.map(s=>'• '+s).join('\n')}));
   if(ai){
     (ai.d.loi||[]).forEach(x=>R.push({code:x.code||'',pos:x.vitri||'—',txt:'['+['AI',x.nhom,x.mucdo,x.tincay&&'tin cậy '+x.tincay].filter(Boolean).join(' · ')+(x.tt?' · '+x.tt:'')+'] '+x.noidung+(x.sua?'\nGợi ý sửa: '+x.sua:'')}));
     (ai.d.canxacminh||[]).forEach(x=>R.push({code:x.code||'',pos:x.vitri||'—',txt:'[AI · CẦN XÁC MINH] '+x.lydo}))}
   rep.w.forEach(x=>R.push({code:'',pos:'Toàn file',txt:'[Công cụ] '+x}));
-  B+=h2('II. NỘI DUNG CẦN CHÚ Ý (chưa sửa hoặc chưa biết đúng/sai) — '+R.length+' mục');
-  if(R.length)B+=table(W_,['STT','Mã','Vị trí','Nội dung cần chú ý','Xử lý'],R.map((r,i)=>[String(i+1),r.code||'—',r.pos,r.txt,'']));
+  R=R.map((r,i)=>[r,i]).sort((a,b)=>((a[0].sev||2)-(b[0].sev||2))||(a[1]-b[1])).map(x=>x[0]);
+  B+=h2('II. NỘI DUNG CẦN CHÚ Ý (chưa sửa hoặc chưa biết đúng/sai) — '+R.length+' mục');if(rep.lint&&rep.lint.length)B+=para(rn(sevLine(rep),{b:true,sz:20}),{after:60});
+  if(R.length)B+=table(W_,['STT','Mã','Vị trí','Nội dung cần chú ý','Xử lý'],R.map((r,i)=>[String(i+1),{xml:para(rn(r.code||'—',{b:true}),{after:0,jc:'center'}),fill:r.sev?({1:'F8CBAD',2:'FFF2CC',3:'DDEBF7'}[r.sev]):undefined},r.pos,r.txt,'']));
   else B+=para(rn('(không có)',{i:true}));
   /* III–IV. AI */
   if(ai&&(ai.d.tomtat||ai.d.xacnhan||ai.d.thongke)){
@@ -2045,6 +2179,9 @@ async function reportDocx(name,rep){
   if(ai&&ai.d.doichieu&&ai.d.doichieu.length){
     B+=h2('IV. ĐỐI CHIẾU ĐÁP ÁN (AI tự giải rồi so với đáp án ghi trong đề)');
     B+=table([620,900,6200,2200,2200,2450],['STT','Câu','Cách giải ngắn của AI','Kết quả AI','Đáp án trong đề','Khớp'],ai.d.doichieu.slice(0,150).map((x,i)=>[String(i+1),String(x.cau||''),String(x.cach_giai||''),String(x.ketqua_ai||''),String(x.trong_de||'—'),{xml:para(rn(x.khop===true?'Khớp':x.khop===false?'KHÔNG KHỚP':'—',{b:x.khop===false}),{after:0})}]))}
+  B+=h2('PHỤ LỤC. DANH SÁCH TỰ KIỂM CỦA NGƯỜI RÀ SOÁT (công cụ không tự kiểm được)');
+  B+=table([800,9300,2470,2000],['Đã kiểm','Nội dung cần tự kiểm','Người kiểm','Ghi chú'],checklistItems(name,rep).map(t=>[{xml:para(rn('☐',{sz:26}),{after:0,jc:'center'})},t,'','']));
+  B+=para(rn('Người lập đề: ............................    Người rà soát: ............................    Tổ trưởng duyệt: ............................    Ngày: ....../....../......'),{before:240});
   const sect='<w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr>';
   const NS='xmlns:w="'+W+'"',HD='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
   const z=new JSZip();
@@ -2589,13 +2726,23 @@ function buildUI(){
   +'<div class="raR">Ép vừa 1 trang nếu chữ sau khi thu nhỏ còn từ: <select id="ra_xmin"><option value="0.6">60% trở lên</option><option value="0.7" selected>70% trở lên</option><option value="0.8">80% trở lên</option></select> (nhỏ hơn thì chia nhiều trang, mỗi trang vẫn đủ cột)</div></details>'
   +'<details class="raG" open><summary>🔎 Kiểm tra &amp; đánh dấu</summary>'
   +cb('mark','Đánh dấu bằng Comment tại chỗ cần kiểm tra tay (nghi gõ sai, ngoặc/ngoặc kép lệch, thiếu dấu chấm cuối, viết hoa, dấu câu lạ…)',1)
-  +cb('hl','Tô màu đúng cụm chữ lỗi (vàng: chính tả/dấu câu/viết hoa · lục lam: cấu trúc/nhất quán) và neo Comment đúng chỗ đó — tắt thì Comment gắn cả đoạn',1)
+  +cb('hl','Tô màu đúng cụm chữ lỗi (đỏ: lỗi chắc chắn · vàng: nghi ngờ · lục lam: gợi ý) và neo Comment đúng chỗ đó — tắt thì Comment gắn cả đoạn',1)
   +cb('verify','Kiểm lại nhiều vòng: chạy lại rà soát trên file kết quả cho tới khi không còn lỗi tự sửa được',1)
   +cb('track','Ghi sửa đổi chữ/dấu câu dưới dạng Track Changes (duyệt từng chỗ trong Word)',0)
   +cb('dry','<b>Chỉ kiểm tra, KHÔNG sửa gì</b>: chỉ gắn Comment tại chỗ có lỗi (kể cả chỗ sẽ được tự sửa) và lập báo cáo',0)
+  +'<div class="raR"><b>Mức cảnh báo cần hiển thị</b> (đỏ = lỗi chắc chắn · vàng = nghi ngờ · lục lam = gợi ý):</div>'
+  +cb('s_err','LỖI chắc chắn: số câu trùng, điểm không khớp, đáp án trùng/sai nhãn, mã LaTeX còn sót…',1)+cb('s_sus','NGHI NGỜ (cần người xem): gõ sai, ngoặc lệch, không thống nhất, thiếu đáp án, hình/bảng nhắc mà không có…',1)+cb('s_sug','GỢI Ý (không bắt buộc): thiếu dấu chấm cuối câu, ký hiệu toán gõ chữ… — tắt nếu tổ trưởng không cần',1)
+  +cb('meta','Xóa thông tin cá nhân trong thuộc tính file (tác giả, người sửa cuối, đơn vị) — nên bật khi gửi đề thi',0)
   +'<details class="raG" style="margin-left:6px"><summary>Chọn loại lỗi cần đánh dấu</summary>'
   +cb('l_typo','Nghi gõ sai/thiếu dấu (kiểm tra âm tiết tiếng Việt)',1)+cb('l_dup','Lặp từ liền nhau',1)+cb('l_bracket','Ngoặc ( ) [ ] không cân',1)+cb('l_quote','Ngoặc kép không cân',1)
-  +cb('l_dollar','Dấu $ lẻ (LaTeX chưa đóng)',1)+cb('l_punct','Dấu câu liền nhau bất thường',1)+cb('l_lower','Đoạn bắt đầu bằng chữ thường',1)+cb('l_mid','Chữ thường sau dấu kết câu',1)+cb('l_struct','Cấu trúc & ngữ nghĩa: đáp án thiếu/lặp/trùng nội dung, số câu nhảy hoặc trùng, số câu–điểm ở tiêu đề không khớp, nhắc “hình/bảng sau” nhưng không có, mã LaTeX hoặc công thức gõ chữ còn sót, ô giữ chỗ chưa điền, “Câu n” dính giữa đoạn',1)+cb('l_noend','Câu chưa có dấu chấm cuối câu (tự luận…) — chỉ gợi ý bằng Comment, không tự sửa',1)+'</details></details>'
+  +cb('l_dollar','Dấu $ lẻ (LaTeX chưa đóng)',1)+cb('l_punct','Dấu câu liền nhau bất thường',1)+cb('l_lower','Đoạn bắt đầu bằng chữ thường',1)+cb('l_mid','Chữ thường sau dấu kết câu',1)+cb('l_struct','Cấu trúc & ngữ nghĩa: đáp án thiếu/lặp/trùng nội dung, số câu nhảy hoặc trùng, số câu–điểm ở tiêu đề không khớp, nhắc “hình/bảng sau” nhưng không có, mã LaTeX hoặc công thức gõ chữ còn sót, ô giữ chỗ chưa điền, “Câu n” dính giữa đoạn',1)+cb('l_noend','Câu chưa có dấu chấm cuối câu (tự luận…) — chỉ gợi ý bằng Comment, không tự sửa',1)
+  +cb('l_pts','Đối chiếu điểm: các câu cộng lại có bằng điểm của Phần; các Phần cộng lại có đủ tổng điểm không',1)
+  +cb('l_key','Đối chiếu đáp án: câu trắc nghiệm nào chưa có đáp án, đáp án thừa, một câu ghi hai đáp án',1)
+  +cb('l_xref','Tham chiếu chéo: chú thích Hình/Bảng nhảy số hoặc trùng; nhắc Hình/Bảng/“câu n” không tồn tại',1)
+  +'<div class="raR"><b>Quy ước trình bày của trường</b> (chọn để công cụ không báo nhầm):</div>'
+  +cb('c_colon','Kiểm tra dấu “:” cuối tiêu đề Phần',1)+'<div class="raR">Quy ước: <select id="ra_conv_colon"><option value="auto">Theo đa số trong đề</option><option value="has">Luôn có dấu “:”</option><option value="none">Luôn không có dấu “:”</option></select></div>'
+  +cb('c_unit','Kiểm tra đơn vị điểm “(điểm)” / “(đ)”',1)+'<div class="raR">Quy ước: <select id="ra_conv_unit"><option value="auto">Theo đa số trong đề</option><option value="diem">Luôn “(điểm)”</option><option value="d">Luôn “(đ)”</option></select></div>'
+  +cb('c_ky','Kiểm tra “kì” / “kỳ”',1)+cb('c_ki','Kiểm tra “kĩ” / “kỹ”',1)+'</details></details>'
   +'<details class="raG"><summary>🤖 AI &amp; xử lý nâng cao</summary>'
   +cb('ai','AI (Gemini) soát chính tả/dấu/gõ nhầm — chỉ gửi chữ, <b>không gửi công thức/hình</b>; có thể mất vài phút',0)
   +'<div class="raR">Model: <select id="ra_model"><option value="">Tự động — ưu tiên Lite, rồi Flash, rồi Pro</option>'+MODELS.map(m=>'<option value="'+m[0]+'">'+m[1]+'</option>').join('')+'</select> <span class="note" style="margin:0">(dùng key Gemini đã nhập ở đầu trang)</span></div>'
@@ -2627,7 +2774,8 @@ function readOpts(){
   const o={text:c('text'),indent:c('indent'),num:c('num'),font:v('font'),size:v('size'),line:+v('line'),after:+v('after'),spacing:c('spacing'),justify:c('justify'),firstLine:c('firstLine'),shd:c('shd'),color:c('color'),
     blank:c('blank'),keep:c('keep'),page:c('page'),mt:n('mt'),mb:n('mb'),ml:n('ml'),mr:n('mr'),pgnum:c('pgnum'),fields:c('fields'),compat:c('compat'),
     tbl:c('tbl'),tblfit:c('tblfit'),forcesz:c('forcesz'),onepage:c('onepage'),tblborder:c('tblborder'),tblkeep:c('tblkeep'),softbreak:c('softbreak'),imgMaxH:+v('imgmax'),mcq:c('mcq'),mcqMode:v('mcqmode'),mcqStem:c('mcqstem'),mcqDot:c('mcqdot'),imgInline:c('imgInline'),imgFix:c('imgFix'),latex:c('latex'),mathsz:c('mathsz'),ai:c('ai'),aiExam:c('aiexam'),aiVerify:c('aiverify'),aiInfo:v('aiinfo'),aiModel:v('model'),aiModelV:v('modelv'),aiComment:c('aicmt'),aiGrade:v('aigrade'),aiKind:v('aikind'),accept:c('accept'),nocmt:c('nocmt'),quotes:c('quotes'),phead:c('phead'),mark:c('mark'),hl:c('hl'),verify:c('verify'),track:c('track'),aiMode:v('aimode'),spell:c('spell'),unify:c('unify'),decimal:c('decimal')?'comma':'',cap:c('cap'),dry:c('dry'),
-    lintOff:{typo:!c('l_typo'),dup:!c('l_dup'),bracket:!c('l_bracket'),quote:!c('l_quote'),dollar:!c('l_dollar'),punct:!c('l_punct'),lower:!c('l_lower'),mid:!c('l_mid'),noend:!c('l_noend'),struct:!c('l_struct')}};
+    lintOff:{typo:!c('l_typo'),dup:!c('l_dup'),bracket:!c('l_bracket'),quote:!c('l_quote'),dollar:!c('l_dollar'),punct:!c('l_punct'),lower:!c('l_lower'),mid:!c('l_mid'),noend:!c('l_noend'),struct:!c('l_struct'),pts:!c('l_pts'),key:!c('l_key'),xref:!c('l_xref'),c_colon:!c('c_colon'),c_unit:!c('c_unit'),c_ky:!c('c_ky'),c_ki:!c('c_ki')},
+    sevOn:{1:c('s_err'),2:c('s_sus'),3:c('s_sug')},conv:{colon:v('conv_colon'),unit:v('conv_unit')},meta:c('meta')};
   if([o.mt,o.mb,o.ml,o.mr].some(x=>!isFinite(x)||x<0||x>100)||o.ml+o.mr>=150||o.mt+o.mb>=200)throw new Error('Lề không hợp lệ (0–100 mm; trái+phải < 150, trên+dưới < 200).');
   return o}
 function readXlOpts(){
