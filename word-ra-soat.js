@@ -61,7 +61,7 @@ const pbOnly=p=>p.localName==='p'&&p.namespaceURI===W&&hasPB(p)&&!all(p,'t').som
    NÂNG CẤP v2 — mô hình văn bản cấp ĐOẠN · sửa dấu câu · bắt lỗi gõ sai ·
    đánh dấu Comment tại chỗ · Track Changes · kiểm lại nhiều vòng
    ==================================================================== */
-const VERSION='v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
+const VERSION='v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
 const BAR='\u0001',MTH='\u0002',CTNS='http://schemas.openxmlformats.org/package/2006/content-types',RELNS='http://schemas.openxmlformats.org/package/2006/relationships';
 const TRK={on:false,id:900000,author:'Rà soát tự động',date:''};
 let PSEUDO=true;
@@ -1022,13 +1022,13 @@ function questionGaps(doc,body,rep){
     const nx=kids[j],pv=kids[i-1];
     if(pv&&pv.localName==='p'&&!isE(pv)&&(isStemP(nx)||(nx&&nx.localName==='p'&&pInfo(nx).head&&/^(PHẦN|Phần)\b/.test(ptext(nx).trim())))){rm(q);em++}});
   const setSp=(p,before,after)=>{let pp=one(p,'pPr');if(!pp){pp=mk(doc,'pPr');p.insertBefore(pp,p.firstChild)}
-    const e=sc(doc,pp,'spacing',ORD.pPr);['beforeLines','afterLines','beforeAutospacing','afterAutospacing'].forEach(a=>e.removeAttributeNS(W,a));
-    if(before!==null)sa(e,'before',before);if(after!==null)sa(e,'after',after)};
+    const e=sc(doc,pp,'spacing',ORD.pPr),key=()=>Array.from(e.attributes).map(a=>a.name+'='+a.value).sort().join(),k0=key();['beforeLines','afterLines','beforeAutospacing','afterAutospacing'].forEach(a=>e.removeAttributeNS(W,a));
+    if(before!==null)sa(e,'before',before);if(after!==null)sa(e,'after',after);return key()!==k0};
   Array.from(body.children).forEach(q=>{
     if(!isStemP(q)||anc(q,'tc'))return;
     const pv=q.previousElementSibling;
     setSp(q,0,null);
-    if(pv&&pv.localName==='p'&&!isE(pv)&&!hasSect(pv)&&!hasPB(pv)&&!pInfo(pv).head){setSp(pv,null,GAP);sp++}});
+    if(pv&&pv.localName==='p'&&!isE(pv)&&!hasSect(pv)&&!hasPB(pv)&&!pInfo(pv).head){if(setSp(pv,null,GAP))sp++}});
   rep.fix('Đều khoảng cách giữa các câu (bỏ dòng trống lẻ, cùng một khoảng sau mỗi câu)',em+sp)}
 
 function keepPass(doc,body,o,rep){
@@ -1153,7 +1153,7 @@ function lightTableStyles(sd,rep){let n=0,m=0;
 /* ===== Bảng nhiều cột (sổ, biểu mẫu): dàn độ rộng cột theo nội dung + cỡ chữ chuẩn trong bảng ===== */
 /* độ rộng ước lượng (em) theo Times New Roman ĐẬM — chọn dư một chút để không bao giờ bị ngắt giữa từ */
 function chW(ch){if(/\d/.test(ch))return .5;if(/\p{Lu}/u.test(ch))return /[MWĐ]/.test(ch)?.98:.78;if(/[iíìỉĩịltfjr.,;:!\/()\-]/.test(ch))return .36;if(/[mw]/.test(ch))return .86;return .55}
-function fitCols(tbl,ws,av,sz0){
+function fitColsOld(tbl,ws,av,sz0){
   const n=ws.length,mw=new Array(n).fill(0);
   wk(tbl,'tr').forEach(tr=>{let col=0;const tp=one(tr,'trPr'),gb=tp&&one(tp,'gridBefore');if(gb)col+=parseInt(ga(gb,'val'),10)||0;
     wk(tr,'tc').forEach(tc=>{const cp=one(tc,'tcPr'),gs=cp&&one(cp,'gridSpan'),k=gs?(parseInt(ga(gs,'val'),10)||1):1;
@@ -1171,6 +1171,113 @@ function fitCols(tbl,ws,av,sz0){
   const nw=w.map(x=>Math.floor(x));let big=0;nw.forEach((x,k)=>{if(x>nw[big])big=k});
   nw[big]+=Math.floor(av)-sum(nw);
   return{nw,sz:s}}
+/* ===== v10: dàn cột bảng nhiều cột (ma trận / bản đặc tả) theo NỘI DUNG, ưu tiên gọn 1 trang ===== */
+const chW2=ch=>/[a-zàáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ]/.test(ch)&&!/[iíìỉĩịltfjr]/.test(ch)?(/[mw]/.test(ch)?.8:.5):chW(ch);
+function colStats(tbl,n){
+  const mw=new Array(n).fill(0),ex=new Array(n).fill(0),len=new Array(n).fill(0),cnt=new Array(n).fill(0);
+  wk(tbl,'tr').forEach(tr=>{let col=0;const tp=one(tr,'trPr'),gb=tp&&one(tp,'gridBefore');if(gb)col+=parseInt(ga(gb,'val'),10)||0;
+    wk(tr,'tc').forEach(tc=>{const cp=one(tc,'tcPr'),gs=cp&&one(cp,'gridSpan'),k=gs?(parseInt(ga(gs,'val'),10)||1):1;
+      if(k===1&&col<n){let tl=0;
+        wk(tc,'p').forEach(p=>{const t=ptext(p);tl+=t.trim().length;
+          const bf=allBold(p)?1.07:1,pp=one(p,'pPr'),ie=pp&&one(pp,'ind'),
+            ind=ie?Math.max(0,+ga(ie,'left')||+ga(ie,'start')||0)+Math.max(0,+ga(ie,'right')||+ga(ie,'end')||0):0;
+          t.split(/\s+/).forEach(w=>{if(!w)return;let e=0;for(const ch of w)e+=chW2(ch);e*=bf;if(e>mw[col]){mw[col]=e;ex[col]=ind}})});
+        if(tl>0){len[col]+=tl;cnt[col]++}}
+      col+=k})});
+  return{mw,ex,len,cnt}}
+/* Ước lượng chiều cao bảng (twips) với độ rộng cột w[] và cỡ chữ s (nửa điểm) */
+function estTbl(tbl,w,s){
+  const n=w.length,lh=s*13.2,trs=wk(tbl,'tr'),rowH=[],pend=[],at=[];
+  trs.forEach((tr,ri)=>{
+    let col=0,mx=1;const tp=one(tr,'trPr'),gb=tp&&one(tp,'gridBefore');if(gb)col+=parseInt(ga(gb,'val'),10)||0;
+    const th=tp&&one(tp,'trHeight'),minH=th?(parseInt(ga(th,'val'),10)||0):0;at[ri]={};
+    wk(tr,'tc').forEach(tc=>{
+      const cp=one(tc,'tcPr'),gs=cp&&one(cp,'gridSpan'),k=gs?(parseInt(ga(gs,'val'),10)||1):1,vm=cp&&one(cp,'vMerge');
+      let cw=0;for(let j=col;j<col+k&&j<n;j++)cw+=w[j];
+      const c0=col;col+=k;
+      at[ri][c0]=vm?(ga(vm,'val')==='restart'?'restart':'cont'):'';
+      if(vm&&ga(vm,'val')!=='restart')return;
+      let L=0;
+      wk(tc,'p').forEach(p=>{
+        const t=ptext(p);if(!t.trim()){L+=1;return}
+        const bf=allBold(p)?1.07:1,pp=one(p,'pPr'),ie=pp&&one(pp,'ind'),
+          ind=ie?Math.max(0,+ga(ie,'left')||+ga(ie,'start')||0)+Math.max(0,+ga(ie,'right')||+ga(ie,'end')||0):0,
+          inner=Math.max(200,cw-140-ind),sp=0.25*s*10;
+        let ln=1,cur=0;
+        t.split(/\s+/).forEach(wd=>{if(!wd)return;let e=0;for(const ch of wd)e+=chW2(ch);const ww=e*s*10*1.04*bf;
+          if(!cur)cur=ww;else if(cur+sp+ww<=inner)cur+=sp+ww;else{ln++;cur=ww}
+          while(cur>inner){ln++;cur-=inner}});
+        L+=ln;
+        all(p,'drawing').forEach(d=>{const ex=d.getElementsByTagNameNS(WP,'extent')[0];L+=ex?(+ex.getAttribute('cy')||0)/635/lh:3})});
+      if(vm&&ga(vm,'val')==='restart')pend.push({r:ri,c:c0,h:L*lh+40});else mx=Math.max(mx,L)});
+    rowH.push(Math.max(minH,mx*lh+40))});
+  pend.forEach(pd=>{let r=pd.r+1;while(r<trs.length&&at[r][pd.c]==='cont')r++;
+    let sm=0;for(let q=pd.r;q<r;q++)sm+=rowH[q];if(sm<pd.h)rowH[r-1]+=pd.h-sm});
+  return{H:rowH.reduce((x,y)=>x+y,0),rows:rowH}}
+function fitCols(tbl,ws,av,sz0,ah,above){
+  const n=ws.length,st=colStats(tbl,n),sum=a=>a.reduce((x,y)=>x+y,0);
+  const avg=st.len.map((l,k)=>st.cnt[k]?l/st.cnt[k]:0),isT=avg.map(a=>a>=14),nT=isT.filter(Boolean).length;
+  const need=s=>st.mw.map((e,k)=>Math.ceil(e*s*10*1.03)+150+st.ex[k]);
+  const dist=(m)=>{
+    if(!(nT>0&&nT<n)){ /* không có cột chữ nổi bật: giữ cách chia theo độ rộng gốc */
+      const base=ws.map(x=>Math.max(x,1)),w=new Array(n).fill(0),lock=new Array(n).fill(false);
+      for(let it=0;it<=n;it++){let ls=0,fs=0;for(let k=0;k<n;k++){if(lock[k])ls+=m[k];else fs+=base[k]}
+        let bad=false;for(let k=0;k<n;k++){if(lock[k])w[k]=m[k];else{w[k]=fs>0?base[k]*(av-ls)/fs:m[k];if(w[k]<m[k]){lock[k]=true;bad=true}}}
+        if(!bad)break}
+      const nw=w.map(x=>Math.floor(x));let big=0;nw.forEach((x,k)=>{if(x>nw[big])big=k});nw[big]+=Math.floor(av)-sum(nw);return nw}
+    /* cột số/ngắn: vừa đủ chữ; phần rộng còn lại chia cho các cột chữ dài theo lượng chữ */
+    let base=m.map((x,k)=>isT[k]?x:Math.ceil(x*1.02)+20);if(sum(base)>av)base=m.slice();
+    const rest=Math.floor(av)-sum(base),ds=sum(st.len.map((l,k)=>isT[k]?l:0))||1;
+    const nw=base.map((x,k)=>isT[k]?x+Math.floor(rest*st.len[k]/ds):x);
+    let big=0;nw.forEach((x,k)=>{if(isT[k]&&x>=nw[big])big=k});nw[big]+=Math.floor(av)-sum(nw);return nw};
+  const target=Math.max(ah*0.35,ah-(above||0)-300);
+  let firstOk=null,smallest=null,chosen=null;
+  for(let s=sz0;s>=20;s-=2){const m=need(s);if(sum(m)>av)continue;
+    const w=dist(m),H=estTbl(tbl,w,s).H;
+    let dk=0;st.len.forEach((l,k)=>{if(isT[k]&&l>st.len[dk])dk=k});
+    if(nT&&nT<n&&w[dk]<av*0.2&&s>20)continue;
+    if(!firstOk)firstOk={nw:w,sz:s,H};
+    if(H<=target){chosen={nw:w,sz:s,H};break}
+    if(s>=22)smallest={nw:w,sz:s,H}}
+  const pick=chosen||(smallest&&smallest.H<=target*1.05?smallest:null)||firstOk;
+  if(!pick)return fitColsOld(tbl,ws,av,sz0);
+  return{nw:pick.nw,sz:pick.sz,est:pick.H,target}}
+/* Bỏ thụt lề nhỏ thừa & dòng trống đầu/cuối trong ô của bảng nhiều cột (hay gặp khi dán từ PDF/Word cũ) */
+function cellClean(doc,tbl){
+  let ind=0,blk=0;
+  all(tbl,'tc').forEach(tc=>{if(anc(tc,'tbl')!==tbl)return;
+    const ps=wk(tc,'p');
+    ps.forEach(p=>{const pp=one(p,'pPr'),ie=pp&&one(pp,'ind');if(!ie||pInfo(p).list)return;
+      if(['hanging','firstLine','hangingChars','firstLineChars'].some(a=>+ga(ie,a)))return;
+      const L=+ga(ie,'left')||+ga(ie,'start')||0,R=+ga(ie,'right')||+ga(ie,'end')||0;
+      if((L||R)&&L<=240&&R<=240){['left','start','right','end','leftChars','rightChars','startChars','endChars'].forEach(a=>ie.removeAttributeNS(W,a));if(!ie.attributes.length)rm(ie);ind++}});
+    if(ps.length>1&&ps.some(p=>!isE(p)&&ptext(p).trim())){
+      const ok=p=>isE(p)&&!hasSect(p)&&!hasPB(p);
+      let i=0;while(i<ps.length-1&&ok(ps[i])){rm(ps[i]);blk++;i++}
+      let j=ps.length-1;while(j>i&&ok(ps[j])){rm(ps[j]);blk++;j--}}});
+  return{ind,blk}}
+/* Số hàng tiêu đề: hàng 1 + các hàng mà ô của hàng 1 gộp dọc xuống (vMerge) */
+function headerSpan(rows){
+  if(rows.length<2)return 1;
+  const pos=tr=>{const m=[];let col=0;const tp=one(tr,'trPr'),gb=tp&&one(tp,'gridBefore');if(gb)col+=parseInt(ga(gb,'val'),10)||0;
+    wk(tr,'tc').forEach(tc=>{const cp=one(tc,'tcPr'),gs=cp&&one(cp,'gridSpan'),k=gs?(parseInt(ga(gs,'val'),10)||1):1,vm=cp&&one(cp,'vMerge');
+      m.push({c:col,vm:vm?(ga(vm,'val')==='restart'?'restart':'cont'):''});col+=k});return m};
+  const P=rows.map(pos);let span=1;
+  P[0].forEach(x=>{if(x.vm!=='restart')return;let r=1;while(r<rows.length&&P[r].some(y=>y.c===x.c&&y.vm==='cont'))r++;span=Math.max(span,r)});
+  /* hàng tiêu đề nhóm (gộp ngang) liền dưới ô gộp dọc cũng thuộc tiêu đề: đã nằm trong span */
+  return Math.min(span,4)}
+/* Ước lượng chiều cao các đoạn/bảng nằm phía trên bảng trong cùng trang (tiêu đề ma trận, quốc hiệu...) */
+function aboveH(top,aw,sz){
+  let h=0;
+  for(let q=top.previousElementSibling;q;q=q.previousElementSibling){
+    if(q.namespaceURI!==W)break;
+    if(q.localName==='tbl'){h+=tblHeight(q,aw,sz||28);continue}
+    if(q.localName!=='p')break;
+    if(hasSect(q))break;
+    h+=Math.max(1,Math.ceil(ptext(q).length*140/Math.max(1,aw)))*340+80;
+    if(hasPB(q))break}
+  return h}
+
 function tblFont(doc,tbl,sz,ctx){
   ctx.fixSz=ctx.fixSz||new WeakSet();let n=0;const own=e=>anc(e,'tbl')===tbl;
   all(tbl,'r').forEach(r=>{if(!own(r))return;
@@ -1178,7 +1285,7 @@ function tblFont(doc,tbl,sz,ctx){
     let pr=one(r,'rPr');if(!pr){pr=mk(doc,'rPr');r.insertBefore(pr,r.firstChild)}
     const f=one(pr,'rFonts');if(f&&SYM.test(ga(f,'ascii')+ga(f,'hAnsi')))return;
     if(one(pr,'vertAlign'))return;
-    sa(sc(doc,pr,'sz',ORD.rPr),'val',sz);sa(sc(doc,pr,'szCs',ORD.rPr),'val',sz);ctx.fixSz.add(pr);n++});
+    {const se0=one(pr,'sz'),was0=se0?ga(se0,'val'):'';sa(sc(doc,pr,'sz',ORD.rPr),'val',sz);sa(sc(doc,pr,'szCs',ORD.rPr),'val',sz);ctx.fixSz.add(pr);if(String(was0)!==String(sz))n++}});
   all(tbl,'p').forEach(p=>{if(!own(p))return;
     let pp=one(p,'pPr');if(!pp){pp=mk(doc,'pPr');p.insertBefore(pp,p.firstChild)}
     const pr=sc(doc,pp,'rPr',ORD.pPr);sa(sc(doc,pr,'sz',ORD.rPr),'val',sz);sa(sc(doc,pr,'szCs',ORD.rPr),'val',sz);ctx.fixSz.add(pr)});
@@ -1187,9 +1294,9 @@ function tblFont(doc,tbl,sz,ctx){
   return n}
 
 function tablePass(doc,body,secs,o,rep,ctx){
-  const bk=secs.bk;let tf=0,fit=0,cs=0,hd=0,al=0,fl=0,bd=0,nb=0,kt=0;
+  const bk=secs.bk;let tf=0,fit=0,cs=0,hd=0,al=0,fl=0,bd=0,nb=0,kt=0,ci=0,cb=0;
   all(body,'tbl').forEach(tbl=>{
-    const nested=!!anc(tbl,'tc');let aw0=9071,ah0=14570;
+    const nested=!!anc(tbl,'tc');let aw0=9071,ah0=14570,tblSz=(ctx&&ctx.szEst)||28;
     let pr=one(tbl,'tblPr');if(!pr){pr=mk(doc,'tblPr');tbl.insertBefore(pr,tbl.firstChild)}
     const fp=one(pr,'tblpPr');if(fp){rm(fp);fl++}
     if(!nested){
@@ -1201,7 +1308,7 @@ function tablePass(doc,body,secs,o,rep,ctx){
       if(cols.length){
         const ws=cols.map(c=>parseInt(ga(c,'w'),10)||0),tot=ws.reduce((a,b)=>a+b,0),av=aw-il;
         let nw=null,fz=0;
-        if(o.tblfit&&cols.length>=4&&wk(tbl,'tr').length>=2){const fr=fitCols(tbl,ws,Math.floor(av),(ctx&&ctx.szEst)||28);nw=fr.nw;fz=fr.sz;
+        if(o.tblfit&&cols.length>=4&&wk(tbl,'tr').length>=2){const cc=cellClean(doc,tbl);ci+=cc.ind;cb+=cc.blk;const fr=fitCols(tbl,ws,Math.floor(av),(ctx&&ctx.szEst)||28,ah0,aboveH(top,aw,(ctx&&ctx.szEst)||28));nw=fr.nw;fz=fr.sz;
           if(fz<((ctx&&ctx.szEst)||28))rep.warn('Bảng nhiều cột: cỡ chữ trong bảng được giảm còn '+fz/2+' pt để mọi cột đủ rộng, không bị xuống dòng giữa từ.')}
         if(nw||tot>av+5){
           if(!nw){const f=av/tot;nw=ws.map(w=>Math.floor(w*f));nw[nw.length-1]+=Math.floor(av)-nw.reduce((a,b)=>a+b,0)}
@@ -1213,30 +1320,40 @@ function tablePass(doc,body,secs,o,rep,ctx){
           const x=sc(doc,pr,'tblW',ORD.tblPr);if(ga(x,'type')!=='pct'){sa(x,'w',Math.floor(av));sa(x,'type','dxa')}
           if(fz){const lt=sc(doc,pr,'tblLayout',ORD.tblPr);sa(lt,'type','fixed');
             {const cm=sc(doc,pr,'tblCellMar',ORD.tblPr);Array.from(cm.children).forEach(rm);['left','right'].forEach(n=>{const e=mk(doc,n);sa(e,'w',70);sa(e,'type','dxa');cm.appendChild(e)})}
-            const tw=sc(doc,pr,'tblW',ORD.tblPr);sa(tw,'w',Math.floor(av));sa(tw,'type','dxa');tblFont(doc,tbl,fz,ctx);tf++}
-          fit++
+            const tw=sc(doc,pr,'tblW',ORD.tblPr);sa(tw,'w',Math.floor(av));sa(tw,'type','dxa');if(tblFont(doc,tbl,fz,ctx)>0)tf++;tblSz=fz}
+          if(nw.some((v,k)=>v!==ws[k]))fit++
         }else{const x=one(pr,'tblW');if(x&&ga(x,'type')==='dxa'&&+ga(x,'w')>av){sa(x,'w',Math.floor(av));fit++}}
       }}
     const rows=wk(tbl,'tr'),cells=rows.reduce((a,r)=>a+wk(r,'tc').length,0);
+    let rowEst=null,tall=false;
+    try{const g2=one(tbl,'tblGrid'),w2=g2?wk(g2,'gridCol').map(c=>parseInt(ga(c,'w'),10)||0):[];
+      if(w2.length&&!nested){const te=estTbl(tbl,w2,tblSz);rowEst=te.rows;tall=te.H>ah0*0.92}}catch(e){rowEst=null}
+    let hdrN=1;try{if(!nested)hdrN=headerSpan(rows)}catch(e){hdrN=1}
+    if(hdrN>=rows.length)hdrN=1;
+    const th0=rows[0]&&one(rows[0],'trPr'),hasTH0=!!(th0&&one(th0,'tblHeader'));
+    const totKeep=new Set();
+    if(!nested&&rows.length>=4){const isTot=tr=>{const t=wk(tr,'tc').map(tc=>ptextAll(tc).trim()).find(x=>x);return !!t&&/^(Tổng|TỔNG|Cộng|CỘNG|Tỷ lệ|TỶ LỆ)(\s|$)/.test(t)};
+      let f=rows.length;while(f>hdrN&&isTot(rows[f-1]))f--;
+      if(f<rows.length&&f-1>=hdrN)for(let q=f-1;q<rows.length-1;q++)totKeep.add(q)}
     /* Bảng ngắn (vừa trọn một trang) → giữ nguyên cả bảng trên một trang */
     const keepAll=!!(o.tblkeep&&!nested&&rows.length>1&&cells>1&&rows.length<=12&&tblHeight(tbl,aw0,(ctx&&ctx.szEst)||28)<=ah0*0.2);let tch=false;
     rows.forEach((tr,ri)=>{
       let tp=one(tr,'trPr');if(!tp){tp=mk(doc,'trPr');const ex=one(tr,'tblPrEx');tr.insertBefore(tp,ex?ex.nextSibling:tr.firstChild)}
       /* Hàng chỉ được "không cắt đôi" khi thật sự NHỎ. Hàng nhiều nội dung/hình/công thức mà bị cấm cắt sẽ bị Word đẩy nguyên sang trang sau → trang trước chỉ còn dòng tiêu đề + khoảng trống lớn. */
       const tcs=wk(tr,'tc'),
-        rowSmall=tcs.every(tc=>wk(tc,'p').length<=3&&ptextAll(tc).length<=250&&!all(tc,'tbl').length&&!all(tc,'drawing').length&&!all(tc,'pict').length&&!all(tc,'object').length&&!all(tc,'br').some(b=>ga(b,'type')==='page')),
-        csE=one(tp,'cantSplit');
+        rowSmall0=tcs.every(tc=>wk(tc,'p').length<=3&&ptextAll(tc).length<=250&&!all(tc,'tbl').length&&!all(tc,'drawing').length&&!all(tc,'pict').length&&!all(tc,'object').length&&!all(tc,'br').some(b=>ga(b,'type')==='page')),
+        csE=one(tp,'cantSplit'),rowSmall=rowSmall0&&(!rowEst||rowEst[ri]<=ah0*0.2);
       if(!rowSmall&&!keepAll){if(csE){rm(csE);cs++}}
       else if(!csE){sc(doc,tp,'cantSplit',ORD.trPr);cs++}
       /* Hàng tiêu đề (hàng 1) luôn đi cùng hàng nội dung kế tiếp: không bị bỏ lẻ một mình ở cuối trang */
       if(o.tblkeep&&!nested&&rows.length>1){
-        const wantK=keepAll?ri<rows.length-1:(ri===0&&rowSmall);
+        const wantK=keepAll?ri<rows.length-1:((ri<hdrN&&rowSmall)||totKeep.has(ri));
         tcs.forEach(tc=>wk(tc,'p').forEach(pp=>{let pr2=one(pp,'pPr');const kn=pr2&&one(pr2,'keepNext'),kl=pr2&&one(pr2,'keepLines');
           if(wantK&&!kn){if(!pr2){pr2=mk(doc,'pPr');pp.insertBefore(pr2,pp.firstChild)}sc(doc,pr2,'keepNext',ORD.pPr);tch=true}
           else if(!wantK&&kn){rm(kn);tch=true}
           if(!wantK&&kl){rm(kl);tch=true}}))}
       else if(ri===0&&rows.length>1&&rowSmall&&!nested)tcs.forEach(tc=>wk(tc,'p').forEach(pp=>{let pr2=one(pp,'pPr');if(!pr2){pr2=mk(doc,'pPr');pp.insertBefore(pr2,pp.firstChild)}if(!one(pr2,'keepNext')){sc(doc,pr2,'keepNext',ORD.pPr);cs++}}));
-      if(ri===0&&!nested&&rows.length>=8&&!one(tp,'tblHeader')&&all(tr,'t').some(t=>t.textContent.trim())){sc(doc,tp,'tblHeader',ORD.trPr);hd++}
+      if(!nested&&ri<hdrN&&(rows.length>=8||tall||hasTH0)&&!one(tp,'tblHeader')&&(ri>0||all(tr,'t').some(t=>t.textContent.trim()))){sc(doc,tp,'tblHeader',ORD.trPr);hd++}
       if(rows.length>1)wk(tr,'tc').forEach(tc=>{
         let cp=one(tc,'tcPr');if(!cp){cp=mk(doc,'tcPr');tc.insertBefore(cp,tc.firstChild)}
         if(!one(cp,'vAlign')){sa(sc(doc,cp,'vAlign',ORD.tcPr),'val','center');al++}
@@ -1247,7 +1364,7 @@ function tablePass(doc,body,secs,o,rep,ctx){
     const hasB=(one(pr,'tblBorders')&&Array.from(one(pr,'tblBorders').children).some(b=>ga(b,'val')&&ga(b,'val')!=='nil'&&ga(b,'val')!=='none'))||all(tbl,'tcBorders').length||(one(pr,'tblStyle')&&!/^TableNormal$/i.test(ga(one(pr,'tblStyle'),'val')));
     if(!hasB&&rows.length>1&&cells>2){if(o.tblborder){const b=sc(doc,pr,'tblBorders',ORD.tblPr);['top','left','bottom','right','insideH','insideV'].forEach(n=>{const e=mk(doc,n);sa(e,'val','single');sa(e,'sz',4);sa(e,'space',0);sa(e,'color','auto');b.appendChild(e)});bd++}else nb++}});
   rep.fix('Bảng: co về vừa lề/khổ giấy',fit);rep.fix('Bảng nhiều cột: dàn lại độ rộng cột theo nội dung (đủ chỗ ghi) và dùng cỡ chữ chuẩn trong bảng',tf);rep.fix('Bảng: hàng ngắn không bị cắt đôi giữa hai trang; hàng dài (nhiều nội dung) cho phép tràn trang để không chừa khoảng trống lớn',cs);
-  rep.fix('Bảng nhỏ: giữ nguyên cả bảng trên một trang',kt);rep.fix('Bảng dài: lặp hàng tiêu đề ở mỗi trang',hd);rep.fix('Bảng: căn giữa dọc ô và căn giữa ô số/STT',al);
+  rep.fix('Bảng nhỏ: giữ nguyên cả bảng trên một trang',kt);rep.fix('Bảng nhiều cột: bỏ thụt lề thừa trong ô (hết xuống dòng giữa từ như “Vận dụng”)',ci);rep.fix('Bảng nhiều cột: bỏ dòng trống đầu/cuối ô (hàng gọn hơn, vừa trang)',cb);rep.fix('Bảng dài: lặp hàng tiêu đề ở mỗi trang',hd);rep.fix('Bảng: căn giữa dọc ô và căn giữa ô số/STT',al);
   rep.fix('Bảng: gỡ chế độ bảng trôi (floating) khiến bảng nhảy vị trí',fl);rep.fix('Bảng: thêm đường viền cho bảng chưa có viền',bd);
   if(nb)rep.warn(nb+' bảng không có đường viền. Nếu là bảng dữ liệu, hãy bật tùy chọn "Thêm viền cho bảng chưa có viền" (bảng bố cục 1 hàng được bỏ qua).')}
 
