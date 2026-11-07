@@ -63,7 +63,7 @@ const pbOnly=p=>p.localName==='p'&&p.namespaceURI===W&&hasPB(p)&&!all(p,'t').som
    NÂNG CẤP v2 — mô hình văn bản cấp ĐOẠN · sửa dấu câu · bắt lỗi gõ sai ·
    đánh dấu Comment tại chỗ · Track Changes · kiểm lại nhiều vòng
    ==================================================================== */
-const VERSION='v18 (v18: tự sửa “ưo”→“ươ”, kiểm tra “cặp số là/không là nghiệm” bằng cách thay số, cảnh báo tổng thời lượng lệch khi >60 phút và không là bội của 45); nền v17-khbd-mau-loi-giao-an (v17: đọc ký hiệu w:sym (∈ ℝ…) cho AI, đặt ngôn ngữ tiếng Việt cho từng run, dấu trừ số âm “= - 0,5”, thiếu cách trước “+”, chữ thường đầu đoạn trong ô bảng, dấu phẩy cuối đoạn, gạch đầu dòng giữa đoạn, hết báo nhầm số thập phân do phép nhân/“Bài 1.1”; thêm: tự sửa “trọng tại”, “gọi tiếp xúc”, “a à đường”, viết hoa “Ổn định tổ chức” / “Luyện tập” / đầu câu “Vì…”; hết báo nhầm công thức A(x), thời gian có ổn định + hướng dẫn về nhà, bước 2–4 dùng chung ô bảng, “song song”, nhãn a) b) c); thêm cảnh báo: số HĐ lệch cột, tên hoạt động lệch tên bài, nhảy số hoạt động, “Chuẩn bị bài sau” khi tiết sau cùng bài, số HS ≠ “hai bạn”); nền v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
+const VERSION='v19 (v19: đổi công thức MathType → Equation của Word; căn đáp án trắc nghiệm nằm trong ô bảng và giữ nguyên câu trên một trang; ghép đoạn bị ngắt giữa câu; tách gạch đầu dòng nằm giữa đoạn; tự sửa đáp số cặp số sai khi phép thay số ngay dưới đã cho biết đáp số đúng; gom tiêu đề bài bị tách nhiều đoạn, căn giữa, in đậm đồng nhất; bỏ dấu “-” thừa cuối dòng đầu trang; bảng giáo án 2 cột vừa vùng chữ và đường chia cột thẳng hàng; giữ lề của giáo án gốc); nền v18 (v18: tự sửa “ưo”→“ươ”, kiểm tra “cặp số là/không là nghiệm” bằng cách thay số, cảnh báo tổng thời lượng lệch khi >60 phút và không là bội của 45); nền v17-khbd-mau-loi-giao-an (v17: đọc ký hiệu w:sym (∈ ℝ…) cho AI, đặt ngôn ngữ tiếng Việt cho từng run, dấu trừ số âm “= - 0,5”, thiếu cách trước “+”, chữ thường đầu đoạn trong ô bảng, dấu phẩy cuối đoạn, gạch đầu dòng giữa đoạn, hết báo nhầm số thập phân do phép nhân/“Bài 1.1”; thêm: tự sửa “trọng tại”, “gọi tiếp xúc”, “a à đường”, viết hoa “Ổn định tổ chức” / “Luyện tập” / đầu câu “Vì…”; hết báo nhầm công thức A(x), thời gian có ổn định + hướng dẫn về nhà, bước 2–4 dùng chung ô bảng, “song song”, nhãn a) b) c); thêm cảnh báo: số HĐ lệch cột, tên hoạt động lệch tên bài, nhảy số hoạt động, “Chuẩn bị bài sau” khi tiết sau cùng bài, số HS ≠ “hai bạn”); nền v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
 const BAR='\u0001',MTH='\u0002',CTNS='http://schemas.openxmlformats.org/package/2006/content-types',RELNS='http://schemas.openxmlformats.org/package/2006/relationships';
 const TRK={on:false,id:900000,author:'Rà soát tự động',date:''};
 let PSEUDO=true;
@@ -1332,6 +1332,231 @@ function blanks(doc,body,rep){
   rep.fix('Xóa ngắt trang thừa gây trang trắng (liên tiếp / cuối tài liệu / sau ngắt trang)',pb)}
 
 /* ====================================================================
+   [v19] SỬA CÁC LỖI CÒN TỒN TRONG GIÁO ÁN
+   · Trắc nghiệm nằm TRONG Ô BẢNG · bảng giáo án 2 cột · ghép/tách đoạn · tiêu đề · đáp số cặp số · đầu trang · MathType → Equation
+   ==================================================================== */
+const mcqBoxes=body=>[body].concat(all(body,'tc'));
+function mcqTop(e,body){let t=e;while(t.parentNode&&t.parentNode!==body)t=t.parentNode;return t}
+function mcqCellW(tc,def){const cp=one(tc,'tcPr'),w=cp&&one(cp,'tcW');
+  if(w&&ga(w,'type')==='dxa'){const v=parseInt(ga(w,'w'),10)||0;if(v>600)return v-216}
+  return def}
+const ptxt=p=>ptext(p).replace(/\s+/g,' ').trim();
+const isCenterP=p=>{const pp=one(p,'pPr'),j=pp&&one(pp,'jc');return !!j&&ga(j,'val')==='center'};
+const hasObjP=p=>all(p,'drawing').length||all(p,'pict').length||all(p,'object').length||p.getElementsByTagNameNS(M,'oMath').length||all(p,'sym').length;
+const lpNote=(rep,m)=>{rep.notes=rep.notes||[];if(rep.notes.length<60)rep.notes.push(m)};
+/* nối nội dung đoạn `from` vào cuối đoạn `to` (cách một dấu cách) rồi xóa `from` */
+function moveInto(doc,to,from){
+  const tt=all(to,'t').filter(t=>!inMath(t)),ft=all(from,'t').filter(t=>!inMath(t)),lt=tt[tt.length-1],ff=ft[0];
+  if(lt&&ff&&!/\s$/.test(lt.textContent)&&!/^\s/.test(ff.textContent)){lt.textContent=lt.textContent+' ';setXS(lt)}
+  Array.from(from.childNodes).forEach(c=>{if(c.nodeType===1&&c.namespaceURI===W&&c.localName==='pPr')return;to.appendChild(c)});
+  rm(from)}
+/* cắt một đoạn tại vị trí `pos` (tính theo pModel(p).S) thành hai đoạn; trả về đoạn mới (phần sau) */
+function splitParaAt(doc,p,pos){
+  if(hasSect(p))return null;
+  const nd=pModel(p).nodes.find(x=>pos>=x.s&&pos<x.s+x.n);if(!nd)return null;
+  let r=nd.t.parentNode;if(!r||r.localName!=='r'||r.namespaceURI!==W||r.parentNode!==p)return null;
+  explode(doc,r);r=nd.t.parentNode;if(!r||r.parentNode!==p)return null;
+  let cut=r;if(pos-nd.s>0)cut=splitRun(doc,r,nd.t,pos-nd.s);
+  const np=p.cloneNode(false);Array.from(np.attributes).forEach(a=>{if(/^(paraId|textId)$/.test(a.localName))np.removeAttribute(a.name)});
+  const pp=one(p,'pPr');if(pp)np.appendChild(pp.cloneNode(true));
+  const mv=[];for(let n=cut;n;n=n.nextSibling)mv.push(n);
+  mv.forEach(x=>np.appendChild(x));
+  p.parentNode.insertBefore(np,p.nextSibling);return np}
+function trimTail(p){const ts=all(p,'t').filter(t=>!inMath(t));for(let i=ts.length-1;i>=0;i--){const v=ts[i].textContent,w=v.replace(/\s+$/,'');if(w!==v)ts[i].textContent=w;if(w)break}}
+
+/* ---- Bảng 2 cột của giáo án (HOẠT ĐỘNG CỦA GV VÀ HS | NỘI DUNG CẦN ĐẠT): đường chia cột phải thẳng hàng ở mọi hàng; bảng rộng vừa đúng vùng chữ ---- */
+function normTwoCol(doc,tbl,av,lp){
+  const grid=one(tbl,'tblGrid');if(!grid)return false;
+  const cols=wk(grid,'gridCol'),rows=wk(tbl,'tr');
+  if(cols.length<2||rows.length<3||av<3000)return false;
+  const ws=cols.map(c=>parseInt(ga(c,'w'),10)||0),tot=ws.reduce((a,b)=>a+b,0),cuts=[];let bad=false,one1=0;
+  for(const tr of rows){
+    const tp=one(tr,'trPr');
+    if(tp&&['gridBefore','gridAfter','wBefore','wAfter'].some(n=>one(tp,n))){bad=true;break}
+    const tcs=wk(tr,'tc');if(tcs.length<1||tcs.length>2){bad=true;break}
+    const span=[];
+    for(const tc of tcs){const cp=one(tc,'tcPr');if(cp&&(one(cp,'vMerge')||one(cp,'hMerge'))){bad=true;break}const gs=cp&&one(cp,'gridSpan');span.push(gs?(parseInt(ga(gs,'val'),10)||1):1)}
+    if(bad||span.reduce((a,b)=>a+b,0)!==cols.length){bad=true;break}
+    if(tcs.length===2)cuts.push(ws.slice(0,span[0]).reduce((a,b)=>a+b,0));else one1++}
+  if(bad||!cuts.length||!tot)return false;
+  const same=cuts.every(v=>Math.abs(v-cuts[0])<=2),W2=lp?av:Math.min(tot,av);
+  const need=!same||(lp&&(Math.abs(tot-W2)>5||cols.length!==2));
+  if(!need)return false;
+  const ratio=Math.min(0.8,Math.max(0.2,cuts[0]/tot)),L=Math.round(W2*ratio),R=W2-L;
+  while(grid.firstChild)grid.removeChild(grid.firstChild);
+  [L,R].forEach(w=>{const g=mk(doc,'gridCol');sa(g,'w',w);grid.appendChild(g)});
+  rows.forEach(tr=>{const tcs=wk(tr,'tc');
+    tcs.forEach((tc,k)=>{let cp=one(tc,'tcPr');if(!cp){cp=mk(doc,'tcPr');tc.insertBefore(cp,tc.firstChild)}
+      const gs=one(cp,'gridSpan');
+      if(tcs.length===1)sa(sc(doc,cp,'gridSpan',ORD.tcPr),'val',2);else if(gs)rm(gs);
+      const tw=sc(doc,cp,'tcW',ORD.tcPr);sa(tw,'w',tcs.length===1?W2:(k===0?L:R));sa(tw,'type','dxa')})});
+  let pr=one(tbl,'tblPr');if(!pr){pr=mk(doc,'tblPr');tbl.insertBefore(pr,tbl.firstChild)}
+  const tw=sc(doc,pr,'tblW',ORD.tblPr);sa(tw,'w',W2);sa(tw,'type','dxa');
+  sa(sc(doc,pr,'tblLayout',ORD.tblPr),'type','fixed');
+  return true}
+function twoColPass(doc,body,secs,o,rep,ctx){
+  const bk=secs.bk;let n=0;
+  all(body,'tbl').forEach(tbl=>{
+    if(anc(tbl,'tc'))return;
+    let top=tbl;while(top.parentNode&&top.parentNode!==body)top=top.parentNode;
+    const i=bk.indexOf(top),sec=secs.find(s=>s.end>=i)||secs[secs.length-1];
+    const pr=one(tbl,'tblPr'),ind=pr&&one(pr,'tblInd');let il=0;if(ind){const v=parseInt(ga(ind,'w'),10)||0;if(v>=0&&v<=1440)il=v}
+    if(normTwoCol(doc,tbl,Math.floor(sec.aw-il),!!(ctx&&ctx.lp)))n++});
+  rep.fix('Bảng 2 cột (giáo án): đường chia cột thẳng hàng ở mọi hàng và bảng rộng vừa đúng vùng chữ (bảng)',n)}
+function afterTableGap(doc,body,rep){
+  let n=0;
+  all(body,'tbl').forEach(tbl=>{
+    if(tbl.parentNode!==body)return;
+    const nx=tbl.nextElementSibling;if(!nx||nx.localName!=='p'||nx.namespaceURI!==W||isE(nx)||hasSect(nx))return;
+    let pp=one(nx,'pPr');if(!pp){pp=mk(doc,'pPr');nx.insertBefore(pp,nx.firstChild)}
+    const sp=sc(doc,pp,'spacing',ORD.pPr),bf=parseInt(ga(sp,'before'),10)||0;
+    if(bf<120){['beforeLines','beforeAutospacing'].forEach(a=>sp.removeAttributeNS(W,a));sa(sp,'before',120);n++}});
+  rep.fix('Giáo án: cách 6 pt giữa đáy bảng và đoạn kế tiếp (không dính sát bảng) (chỗ)',n)}
+
+/* ---- Tiêu đề bài: gom các dòng IN HOA bị tách thành nhiều đoạn, căn giữa, in đậm đồng nhất ---- */
+function lpTitle(doc,body,rep){
+  const kids=Array.from(body.children);
+  const isT=p=>{if(!p||p.localName!=='p'||p.namespaceURI!==W||hasSect(p)||hasObjP(p)||pInfo(p).list)return false;
+    const t=ptxt(p).replace(/\([^)]*\)/g,' ').trim();if(!t||t.length>110)return false;
+    const up=(t.match(/\p{Lu}/gu)||[]).length,lo=(t.match(/\p{Ll}/gu)||[]).length;return up>=3&&lo<=Math.max(1,up*0.1)};
+  let st=-1;for(let i=0;i<Math.min(kids.length,12);i++){if(isT(kids[i])){st=i;break}}
+  if(st<0)return;
+  const blk=[];for(let i=st;i<kids.length&&blk.length<8&&isT(kids[i]);i++)blk.push(kids[i]);
+  const CONN=/^(VÀ|HOẶC|CỦA|VỚI|TRONG|VỀ|CHO|BẰNG|TỪ|ĐẾN|THEO|TẠI|CÁC|NHỮNG)(?=\s|$)/u;
+  let merged=0,fm=0;
+  for(let k=0;k+1<blk.length;){
+    const a=ptxt(blk[k]),b=ptxt(blk[k+1]);
+    if(!/[.:;!?]$/.test(a)&&CONN.test(b)){moveInto(doc,blk[k],blk[k+1]);blk.splice(k+1,1);merged++}else k++}
+  blk.forEach(p=>{
+    let pPr=one(p,'pPr');if(!pPr){pPr=mk(doc,'pPr');p.insertBefore(pPr,p.firstChild)}
+    const j=sc(doc,pPr,'jc',ORD.pPr);if(ga(j,'val')!=='center'){sa(j,'val','center');fm++}
+    const ie=one(pPr,'ind');if(ie){rm(ie);fm++}
+    wk(p,'r').forEach(r=>{if(!wk(r,'t').length)return;
+      let rp=one(r,'rPr');if(!rp){rp=mk(doc,'rPr');r.insertBefore(rp,r.firstChild)}
+      const b=one(rp,'b');
+      if(!b){sc(doc,rp,'b',ORD.rPr);fm++}else if(/^(0|false|off)$/i.test(ga(b,'val'))){b.removeAttributeNS(W,'val');fm++}
+      const bc=one(rp,'bCs');if(!bc)sc(doc,rp,'bCs',ORD.rPr);else if(/^(0|false|off)$/i.test(ga(bc,'val')))bc.removeAttributeNS(W,'val')})});
+  if(merged)lpNote(rep,'Đã ghép '+merged+' dòng tiêu đề bị tách thành đoạn riêng: “'+ptxt(blk[0]).slice(0,90)+'…”');
+  rep.fix('Tiêu đề bài: ghép các dòng tiêu đề bị tách nhiều đoạn, căn giữa, in đậm đồng nhất',merged+fm)}
+
+/* ---- Đoạn bị ngắt giữa câu / đặt lạc chỗ / gạch đầu dòng nằm giữa đoạn ---- */
+function lpOrphans(doc,body,rep){
+  let nm=0,nv=0;
+  mcqBoxes(body).forEach(box=>{
+    const ok=p=>!hasSect(p)&&!hasPB(p)&&!hasObjP(p)&&!pInfo(p).list;
+    const lowStart=t=>/^\p{Ll}{2,}/u.test(t)&&!/[=+<>]/.test(t.slice(0,30))&&!/^[a-d][.)]/i.test(t);
+    let ps=wk(box,'p');
+    /* B. “các HS khác lắng nghe…” bị đặt lạc xuống sau Bước 3 → nối vào đoạn Bước 2 đang kết thúc bằng “;” */
+    for(let i=1;i<ps.length;i++){
+      const p=ps[i],t=ptxt(p);
+      if(!/^các HS khác(?=\s)/u.test(t)||!ok(p)||isCenterP(p))continue;
+      if(!/[.!?…]$/.test(ptxt(ps[i-1])))continue;
+      let c=-1;
+      for(let k=i-2;k>=Math.max(0,i-14);k--){const tk=ptxt(ps[k]);
+        if(/[;,]$/.test(tk)&&ps[k+1]&&/^[-–]?\s*Bước\s*\d/u.test(ptxt(ps[k+1]))&&!/các HS khác/u.test(tk)&&ok(ps[k])){c=k;break}}
+      if(c<0)continue;
+      lpNote(rep,'Đã chuyển đoạn lạc chỗ “'+t.slice(0,50)+'…” về nối vào cuối bước 2 (“…'+ptxt(ps[c]).slice(-40)+'”).');
+      moveInto(doc,ps[c],p);nm++;ps=wk(box,'p');i=Math.max(0,i-1)}
+    /* A. đoạn bắt đầu bằng chữ thường, đoạn trước chưa kết thúc câu → là phần tiếp của đoạn trước */
+    for(let i=1;i<ps.length;i++){
+      const p=ps[i],pv=ps[i-1],t=ptxt(p),a=ptxt(pv);
+      if(!t||!a||!lowStart(t)||!ok(p)||!ok(pv)||isCenterP(p)||isCenterP(pv))continue;
+      if(/[.!?…]$/.test(a)||a.length<8)continue;
+      lpNote(rep,'Đã ghép đoạn bị ngắt giữa câu: “…'+a.slice(-35)+'” + “'+t.slice(0,35)+'…”.');
+      moveInto(doc,pv,p);nv++;ps=wk(box,'p');i--}});
+  rep.fix('Giáo án: nối “các HS khác lắng nghe…” bị đặt lạc chỗ về đúng bước (đoạn)',nm);
+  rep.fix('Giáo án: ghép đoạn bị ngắt giữa câu (đoạn con bắt đầu bằng chữ thường) (chỗ)',nv)}
+function lpSplit(doc,body,rep){
+  let n=0;
+  all(body,'p').filter(p=>!anc(p,'txbxContent')).forEach(p0=>{
+    let p=p0;
+    for(let it=0;it<6&&p;it++){
+      if(hasSect(p))return;
+      const S=pModel(p).S;if(!/^\s*[-–+*•]/.test(S))return;
+      const re=/:(\s+)([-–])\s*\p{Lu}/gu;let m,hit=null;
+      while((m=re.exec(S))){if(m.index<=70&&!/[\u0001\u0002]/.test(S.slice(0,m.index))){hit=m;break}}
+      if(!hit)return;
+      const np=splitParaAt(doc,p,hit.index+1+hit[1].length);if(!np)return;
+      trimTail(p);n++;lpNote(rep,'Đã tách gạch đầu dòng nằm giữa đoạn thành dòng riêng: “'+S.slice(0,hit.index+1).trim().slice(0,60)+'” / “'+ptxt(np).slice(0,40)+'…”.');
+      p=np}});
+  rep.fix('Giáo án: tách gạch đầu dòng nằm giữa đoạn (“…: - …”) thành dòng riêng (chỗ)',n)}
+function lpFix(doc,body,o,rep){lpTitle(doc,body,rep);lpOrphans(doc,body,rep);lpSplit(doc,body,rep)}
+
+/* ---- “Cặp số (a; b) là nghiệm của phương trình …” sai dấu: sửa khi phép thay số ngay dưới cho biết đúng đáp số ---- */
+function pairFix(doc,body,rep){
+  const ps=all(body,'p').filter(p=>!anc(p,'txbxContent'));let n=0;
+  const num=t=>lnConst(String(t).replace(/\s+/g,''),false),esc=t=>String(t).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  ps.forEach((p,i)=>{
+    const S=pModel(p).S.replace(/[\u0001\u0002]/g,' '),
+      m=/(?:cặp số|cặp)\s*\(\s*([^;()]+?)\s*;\s*([^;()]+?)\s*\)\s*(?:là|làm)\s+(?:một\s+)?nghiệm\s+của\s+(?:phương trình\s*)?:?\s*([^\n]*)$/i.exec(S);
+    if(!m)return;
+    if(/không\s+(?:là|làm)\s+(?:một\s+)?nghiệm/i.test(S))return;
+    let rest=m[3].trim(),evS=S;
+    if(!/=/.test(rest)&&i+1<ps.length){evS=pModel(ps[i+1]).S.replace(/[\u0001\u0002]/g,' ');rest=evS.trim()}
+    const em=/^([\dxy+\-\u2212\u2013.,()\s]+=[\dxy+\-\u2212\u2013.,()\s]+?)(?=\s*(?:[;,]|\bvì\b|\bnên\b|\bthì\b|\.\s|\.?$))/i.exec(rest);
+    if(!em)return;
+    const e=lnEq(em[1]),x0=num(m[1]),y0=num(m[2]);
+    if(!e||x0===null||y0===null||(e.a===0&&e.b===0))return;
+    if(Math.abs(e.a*x0+e.b*y0-e.c)<1e-9)return;
+    const cands=[];for(const [sx,sy] of [[1,-1],[-1,1],[-1,-1]])if(Math.abs(e.a*x0*sx+e.b*y0*sy-e.c)<1e-9)cands.push([sx,sy]);
+    if(cands.length!==1)return;
+    const [sx,sy]=cands[0],jobs=[];let minus='–',good=true;
+    [[sx,x0,m[1],0],[sy,y0,m[2],1]].forEach(([sg,v,tok,k])=>{
+      if(sg!==-1)return;
+      const t=String(tok).trim();
+      if(!(v>0)||/^[-\u2212\u2013]/.test(t)){good=false;return}
+      const ev=new RegExp('\\(\\s*([\\u2013\\u2212-])\\s*'+esc(t)+'\\s*\\)').exec(evS);
+      if(!ev){good=false;return}
+      minus=ev[1];jobs.push({k:k,tok:t})});
+    if(!good||!jobs.length)return;
+    const s0=S.search(/(?:cặp số|cặp)\s*\(/i),e0=S.indexOf(')',s0)+1;if(s0<0||e0<=s0)return;
+    const pairTxt=S.slice(s0,e0),pos={0:s0+pairTxt.indexOf(m[1],pairTxt.indexOf('(')+1),1:s0+pairTxt.lastIndexOf(m[2])};
+    const old=pairTxt;
+    jobs.sort((a,b)=>b.k-a.k).forEach(j=>{applyEdit(p,{s:pos[j.k],e:pos[j.k]+j.tok.length,r:minus+j.tok,k:'pair'})});
+    const nw=pModel(p).S.replace(/[\u0001\u0002]/g,' ').slice(s0,s0+pairTxt.length+jobs.length);
+    n++;lpNote(rep,'Đã sửa đáp số: “'+old+'” → “'+nw.replace(/\).*$/,')')+'” (thay vào “'+em[1].trim()+'” mới đúng, khớp phép thay số ngay dưới).')});
+  rep.fix('Sửa đáp số “cặp số là nghiệm” sai dấu (khớp phép thay số ngay dưới)',n)}
+
+/* ---- Đầu trang: bỏ dấu gạch nối thừa cuối dòng (“Trường THCS Đa Tốn-”) ---- */
+function hdrDash(d,rep){
+  let n=0;
+  all(d,'p').forEach(p=>{const S=pModel(p).S,m=/([\p{L}\d])(\s*[-–—]\s*)$/u.exec(S);
+    if(!m)return;applyEdit(p,{s:m.index+1,e:S.length,r:'',k:'hdr'});n++});
+  rep.fix('Đầu trang: bỏ dấu gạch nối thừa cuối dòng (dòng)',n)}
+
+/* ---- MathType (đối tượng OLE) → Equation của Word ---- */
+async function mtPass(zip,doc,relsd,ctx,rep){
+  const API=window.MathTypeOle;if(!API||!relsd)return;
+  const OO='urn:schemas-microsoft-com:office:office',VV='urn:schemas-microsoft-com:vml';
+  const isEq=ob=>{const e=ob.getElementsByTagNameNS(OO,'OLEObject')[0];return e&&/^Equation\.DSMT/i.test(e.getAttribute('ProgID')||'')?e:null};
+  const objs=all(doc,'object').concat(all(doc,'pict')).filter(isEq);
+  if(!objs.length)return;
+  let ok=0;const bad=[],texts=[],drop=new Set();
+  for(const ob of objs){
+    const ole=isEq(ob),rid=ole.getAttributeNS(R,'id'),rel=ctx.rels[rid];let res=null;
+    if(rel&&rel.m!=='External'){const f=zip.file(rs('word/',rel.t));
+      if(f){try{res=API.convert(await f.async('uint8array'))}catch(e){res={err:String(e&&e.message)}}}}
+    if(!res||!res.xml){bad.push(res&&res.err?res.err:'không đọc được dữ liệu công thức');continue}
+    let r=ob.parentNode;if(!r||r.namespaceURI!==W||r.localName!=='r')continue;
+    explode(doc,r);r=ob.parentNode;if(!r||r.localName!=='r'||!r.parentNode)continue;
+    const wrap=new DOMParser().parseFromString('<x xmlns:m="'+M+'" xmlns:w="'+W+'">'+res.xml+'</x>','application/xml');
+    if(wrap.getElementsByTagName('parsererror').length){bad.push('XML công thức dựng không hợp lệ');continue}
+    const nm=doc.importNode(wrap.documentElement.firstElementChild,true),rp=one(r,'rPr'),sz=rp&&one(rp,'sz'),szc=rp&&one(rp,'szCs');
+    if(sz)Array.from(nm.getElementsByTagNameNS(W,'rPr')).forEach(x=>{x.appendChild(sz.cloneNode(true));if(szc)x.appendChild(szc.cloneNode(true))});
+    const ids=[rid].concat(Array.from(ob.getElementsByTagNameNS(VV,'imagedata')).map(x=>x.getAttributeNS(R,'id')));
+    r.parentNode.replaceChild(nm,r);ok++;texts.push(res.text);ids.forEach(i=>i&&drop.add(i))}
+  if(ok){
+    const used=new Set();Array.from(doc.getElementsByTagName('*')).forEach(e=>Array.from(e.attributes).forEach(a=>{if(a.namespaceURI===R)used.add(a.value)}));
+    drop.forEach(id=>{if(used.has(id))return;
+      const el=Array.from(relsd.documentElement.children).find(x=>x.getAttribute('Id')===id);if(!el)return;
+      const tg=el.getAttribute('Target'),ext=el.getAttribute('TargetMode')==='External';rm(el);delete ctx.rels[id];
+      if(!ext&&!Array.from(relsd.documentElement.children).some(x=>x.getAttribute('Target')===tg)){const path=rs('word/',tg);if(zip.file(path))zip.remove(path)}});
+    ctx.relsTouched=true;
+    rep.fix('Công thức MathType (đối tượng nhúng) → Equation của Word (cùng font, cùng cỡ chữ với văn bản) (công thức)',ok);
+    lpNote(rep,'Đã đổi '+ok+' công thức MathType sang Equation của Word: '+texts.slice(0,12).map(t=>'“'+t+'”').join(', ')+(texts.length>12?'…':'')+' — hãy liếc lại các công thức quan trọng.')}
+  if(bad.length){const u=Array.from(new Set(bad));rep.warn(bad.length+' công thức MathType chưa đọc hiểu trọn vẹn nên được GIỮ NGUYÊN (không đoán bừa): '+u.slice(0,3).join('; ')+'.')}}
+
+/* ====================================================================
    NÂNG CẤP v4 — Trắc nghiệm: căn đáp án A/B/C/D thẳng hàng, cách đều (4 cột / 2×2 / mỗi dòng 1 đáp án)
    · Giữ câu hỏi đi cùng đáp án · Bảng ngắn không bị tách sang 2 trang
    ==================================================================== */
@@ -1387,7 +1612,8 @@ function setInd(doc,pPr,L){
   sa(x,'left',L)}
 /* Tìm các nhóm đáp án A,B,C,D (1 đoạn chứa cả 4 / 2 đoạn / 4 đoạn) ở mức thân văn bản */
 function mcqFind(body){
-  const kids=Array.from(body.children),blocks=[];let bad=0;
+  const blocks=[];let bad=0;
+  mcqBoxes(body).forEach(box=>{const kids=Array.from(box.children);
   for(let i=0;i<kids.length;i++){
     const p=kids[i];
     if(p.localName!=='p'||p.namespaceURI!==W)continue;
@@ -1408,9 +1634,10 @@ function mcqFind(body){
         if(pp&&(one(pp,'numPr')||one(pp,'sectPr')||one(pp,'framePr')||one(pp,'pageBreakBefore')))return false;
         if(hasPB(q)||all(q,'fldChar').length||all(q,'fldSimple').length||all(q,'oMathPara',M).length)return false;
         return Array.from(q.children).every(c=>c.localName==='pPr'||c.namespaceURI===M&&c.localName==='oMath'||(c.namespaceURI===W&&MCQ_OK_KIDS.has(c.localName)))});
-      if(clean)blocks.push({ps,i,split});else bad++;
+      if(clean)blocks.push({ps,i,split,box});else bad++;
       i=j-1}
     else if(ps.length>1||seq.length>=2)bad++}
+  });
   return{blocks,bad}}
 /* Tách một nhóm thành 4 đoạn con (frag) bắt đầu bằng chính nhãn A/B/C/D */
 function mcqFrags(doc,ps,split){
@@ -1448,7 +1675,8 @@ function psig(ps){return ps.map(p=>{const c=p.cloneNode(true);
 /* Xóa dòng trống nằm xen giữa câu hỏi và đáp án, hoặc giữa các đáp án A–B–C–D / a)–b)–c)–d) liên tiếp */
 function lastLbl(S){let m,l=null;const re=/(^|[\s\u0001\u0002])([A-Da-d])[.)]/g;while((m=re.exec(S)))l=m[2];return l}
 function gapClean(body,rep){
-  let n=0;const kids=Array.from(body.children);
+  let n=0;
+  mcqBoxes(body).forEach(box=>{const kids=Array.from(box.children);
   for(let i=0;i<kids.length;i++){
     const e=kids[i];
     if(e.localName!=='p'||e.namespaceURI!==W||!isE(e)||hasPB(e)||hasSect(e))continue;
@@ -1461,7 +1689,7 @@ function gapClean(body,rep){
         const lp=optLead(Sp)?lastLbl(Sp):null,ln=mn[1];
         const ok=lp?ln.charCodeAt(0)===lp.charCodeAt(0)+1&&(ln===ln.toLowerCase())===(lp===lp.toLowerCase()):(ln==='A'||ln==='a');
         if(ok){for(let k=a;k<=b;k++){rm(kids[k]);n++}}}}
-    i=b}
+    i=b}});
   rep.fix('Trắc nghiệm: xóa dòng trống xen giữa câu hỏi và các đáp án (đáp án hết bị cách xa nhau không đều)',n)}
 /* Thêm dấu chấm cuối đáp án nếu chưa có dấu kết câu */
 const END_PUNCT=/[.;,:!?…]$/;
@@ -1492,12 +1720,12 @@ function mcqPass(doc,body,secs,o,rep,ctx){
   const GAP=170;
   blocks.forEach(b=>{
     const ps=b.ps,first=ps[0],snap=psig(ps);
-    const idx=bk.indexOf(first),sec=secs.find(s=>s.end>=(idx<0?0:idx))||secs[secs.length-1];
+    const idx=bk.indexOf(mcqTop(first,body)),sec=secs.find(s=>s.end>=(idx<0?0:idx))||secs[secs.length-1];
     const fr=mcqFrags(doc,ps,b.split);
     if(!fr){cnt.skip++;return}
     const frags=fr.frags,stemP=fr.stem.length?first:null;
     if(o.mcqDot!==false)frags.forEach(f=>{if(addDot(doc,f))cnt.dot++});
-    const aw=sec.aw-L0,w=frags.map(f=>estW(f,sz)),mx=Math.max.apply(null,w),multi=frags.some(f=>hasMulti(f));
+    const aw=(b.box&&b.box!==body?Math.max(1500,Math.min(sec.aw,mcqCellW(b.box,sec.aw))):sec.aw)-L0,w=frags.map(f=>estW(f,sz)),mx=Math.max.apply(null,w),multi=frags.some(f=>hasMulti(f));
     let lay=1;
     if(!multi&&mode!=='one'){
       if(mode==='auto'&&mx+GAP<=aw/4)lay=4;
@@ -1519,7 +1747,7 @@ function mcqPass(doc,body,secs,o,rep,ctx){
     lines.forEach((ln,li)=>{
       let p;
       if(li===0&&!stemP)p=first;
-      else{p=first.cloneNode(false);p.appendChild(pPr.cloneNode(true));prev.parentNode.insertBefore(p,prev.nextSibling)}
+      else{p=first.cloneNode(false);Array.from(p.attributes).forEach(a=>{if(/^(paraId|textId)$/.test(a.localName))p.removeAttribute(a.name)});p.appendChild(pPr.cloneNode(true));prev.parentNode.insertBefore(p,prev.nextSibling)}
       prev=p;paras.push(p);
       if(!stemP)Array.from(p.children).forEach(c=>{if(c.localName!=='pPr')p.removeChild(c)});
       ln.forEach((fi,k)=>{
@@ -1704,23 +1932,23 @@ function lightTables(doc,root,rep,perCell){
   let cells=0,runs=0;
   all(root,'tbl').forEach(tbl=>{
     const tp=one(tbl,'tblPr'),tblShd=tp&&one(tp,'shd'),tblDark=tblShd&&ltShdDark(tblShd);
-    if(tblShd&&ltShdVisible(tblShd)&&ltShdDark(tblShd)){ltLighten(tblShd);cells++}
+    if(tblShd&&ltShdVisible(tblShd)){ltLighten(tblShd);cells++}
     all(tbl,'tr').forEach(tr=>{
       const trp=one(tr,'trPr');
       wk(tr,'tc').forEach(tc=>{
         const cp=one(tc,'tcPr'),sh=cp&&one(cp,'shd');let dark=!!tblDark;
-        if(sh&&ltShdVisible(sh)&&ltShdDark(sh)){ltLighten(sh);dark=true;cells++}
+        if(sh&&ltShdVisible(sh)){const dk=ltShdDark(sh);ltLighten(sh);if(dk)dark=true;cells++}
         /* đoạn & chữ trong ô */
         all(tc,'p').forEach(p=>{
           const pp=one(p,'pPr'),psh=pp&&one(pp,'shd');let pd=dark;
-          if(psh&&ltShdVisible(psh)&&ltShdDark(psh)){ltLighten(psh);pd=true;cells++}
+          if(psh&&ltShdVisible(psh)){const dk=ltShdDark(psh);ltLighten(psh);if(dk)pd=true;cells++}
           if(pd&&pp)runs+=ltFixRPr(one(pp,'rPr'),false);
           all(p,'r').forEach(r=>{
             const rp=one(r,'rPr');if(!rp)return;let rd=pd;
             const hl=one(rp,'highlight');if(hl&&LT_DARKHL.test(ga(hl,'val'))){rm(hl);rd=true;cells++}
-            const rs=one(rp,'shd');if(rs&&ltShdVisible(rs)&&ltShdDark(rs)){rm(rs);rd=true;cells++}
+            const rs=one(rp,'shd');if(rs&&ltShdVisible(rs)){const dk=ltShdDark(rs);rm(rs);if(dk)rd=true;cells++}
             if(rd)runs+=ltFixRPr(rp,false)})})})})});
-  if(rep){rep.fix('Bảng: đổi ô có nền TỐI sang nền trắng (chữ đen) để in dễ đọc; nền sáng/nhãn tô màu được giữ nguyên',cells);rep.fix('Bảng: bỏ màu chữ sáng/trắng trong ô nền tối',runs)}}
+  if(rep){rep.fix('Bảng: đổi mọi ô có nền màu (xám, tối, tô màu) sang nền trắng; ô nền tối thì đổi luôn chữ sang đen',cells);rep.fix('Bảng: bỏ màu chữ sáng/trắng trong ô nền tối',runs)}}
 /* kiểu bảng (styles.xml) có nền tối + chữ trắng */
 function lightTableStyles(sd,rep){let n=0,m=0;
   all(sd.documentElement,'style').forEach(st=>{
@@ -1949,10 +2177,10 @@ function tablePass(doc,body,secs,o,rep,ctx){
       /* Hàng tiêu đề (hàng 1) luôn đi cùng hàng nội dung kế tiếp: không bị bỏ lẻ một mình ở cuối trang */
       if(o.tblkeep&&!nested&&rows.length>1){
         const wantK=keepAll?ri<rows.length-1:((ri<hdrN&&rowSmall)||totKeep.has(ri));
-        tcs.forEach(tc=>wk(tc,'p').forEach(pp=>{let pr2=one(pp,'pPr');const kn=pr2&&one(pr2,'keepNext'),kl=pr2&&one(pr2,'keepLines');
+        tcs.forEach(tc=>wk(tc,'p').forEach(pp=>{let pr2=one(pp,'pPr');const kn=pr2&&one(pr2,'keepNext'),kl=pr2&&one(pr2,'keepLines');const tq=ptext(pp),mq=!!o.mcq&&(optLead(tq)||/^\s*(Câu|CÂU)\s*\d+/.test(tq));
           if(wantK&&!kn){if(!pr2){pr2=mk(doc,'pPr');pp.insertBefore(pr2,pp.firstChild)}sc(doc,pr2,'keepNext',ORD.pPr);tch=true}
-          else if(!wantK&&kn){rm(kn);tch=true}
-          if(!wantK&&kl){rm(kl);tch=true}}))}
+          else if(!wantK&&kn&&!mq){rm(kn);tch=true}
+          if(!wantK&&kl&&!mq){rm(kl);tch=true}}))}
       else if(ri===0&&rows.length>1&&rowSmall&&!nested)tcs.forEach(tc=>wk(tc,'p').forEach(pp=>{let pr2=one(pp,'pPr');if(!pr2){pr2=mk(doc,'pPr');pp.insertBefore(pr2,pp.firstChild)}if(!one(pr2,'keepNext')){sc(doc,pr2,'keepNext',ORD.pPr);cs++}}));
       if(!nested&&ri<hdrN&&(rows.length>=8||tall||hasTH0)&&!one(tp,'tblHeader')&&(ri>0||all(tr,'t').some(t=>t.textContent.trim()))){sc(doc,tp,'tblHeader',ORD.trPr);hd++}
       if(rows.length>1)wk(tr,'tc').forEach(tc=>{
@@ -2114,7 +2342,7 @@ function paraFmt(doc,body,o,ctx,rep){
     if(o.spacing!==false){
     const s=sc(doc,pPr,'spacing',ORD.pPr),old=[ga(s,'before'),ga(s,'after'),ga(s,'line'),ga(s,'lineRule')].join();
     ['beforeLines','afterLines','beforeAutospacing','afterAutospacing'].forEach(a=>s.removeAttributeNS(W,a));
-    if(!info.head){sa(s,'before',0);sa(s,'after',inTc||optMid?0:after)}
+    if(!info.head){const aT=!!(ctx&&ctx.lp&&p.parentNode===body&&p.previousElementSibling&&p.previousElementSibling.localName==='tbl');sa(s,'before',aT?120:0);sa(s,'after',inTc||optMid?0:after)}
     sa(s,'line',line);sa(s,'lineRule','auto');
     if([ga(s,'before'),ga(s,'after'),ga(s,'line'),ga(s,'lineRule')].join()!==old)sp++}
     const je=one(pPr,'jc'),jc=je?ga(je,'val'):'',txt=ptext(p).trim();
@@ -2743,6 +2971,7 @@ async function auditOnce(buf,o,hooks){
   if(!body)throw new Error('thiếu w:body trong document.xml');
   const sd=await rd('word/styles.xml'),setd=await rd('word/settings.xml'),numd=await rd('word/numbering.xml'),relsd=await rd('word/_rels/document.xml.rels');
   if(relsd)Array.from(relsd.documentElement.children).forEach(r=>ctx.rels[r.getAttribute('Id')]={t:r.getAttribute('Target'),m:r.getAttribute('TargetMode')||'',ty:r.getAttribute('Type')||''});
+  if(o.mtconv!==false&&!o.dry&&window.MathTypeOle)await astep('MathType → Equation',()=>mtPass(zip,doc,relsd,ctx,rep));
   hooks.progress('Đang đọc kích thước hình...');
   for(const id in ctx.rels){const r=ctx.rels[id];if(!/\/image$/.test(r.ty)||r.m==='External')continue;
     const f=zip.file(rs('word/',r.t));if(!f){ctx.missing.push(id);continue}const d=imgDim(await f.async('uint8array'));if(d)ctx.dims[id]=d}
@@ -2774,17 +3003,27 @@ async function auditOnce(buf,o,hooks){
   if(o.content!==false&&!o.dry)step('sửa lỗi nội dung giáo án/bài tập',()=>contentPass(doc,body,o,rep));
   if(o.unify!==false)step('thống nhất nhãn',()=>unifyLabels(body,o,rep));
   if(o.unum!==false&&!o.dry)step('thống nhất dấu trừ & số thập phân',()=>unifyNums(body,o,rep));
+  ctx.lp=false;try{ctx.lp=o.lpfix!==false&&isLessonPlan(body)}catch(e){}
+  if(o.lpfix!==false&&!o.dry){
+    if(o.fixmath!==false)step('sửa đáp số cặp số',()=>pairFix(doc,body,rep));
+    if(ctx.lp)step('giáo án: tiêu đề và đoạn bị ngắt',()=>lpFix(doc,body,o,rep))}
   if(o.cap)step('viết hoa đầu đoạn',()=>capPass(body,o,rep));
   if(o.ai)await astep('AI soát chính tả',()=>aiPass(body,o,rep,hooks));
   if(o.num)step('đánh số Câu/Bài',()=>renumber(body,rep));
   if(o.softbreak)step('ngắt trang cứng',()=>softBreaks(doc,body,o,rep));
   if(o.blank)step('dòng trống/ngắt trang',()=>blanks(doc,body,rep));
   if(o.keep)step('giữ đoạn không bị tách trang',()=>keepPass(doc,body,o,rep));
-  if(o.page&&o.mt===14&&o.mb===12&&o.ml===25&&o.mr===12){let lp=false;try{lp=isLessonPlan(body)}catch(e){}
-    if(lp){o=Object.assign({},o,{mt:20,mb:20,ml:30,mr:15});rep.notes.push('Nhận diện Kế hoạch bài dạy/giáo án → dùng lề chuẩn văn bản 20/20/30/15 mm (thay cho lề đề thi gọn).')}}
+  if(o.page&&o.lpfix!==false&&!(o.mt===20&&o.mb===20&&o.ml===30&&o.mr===15)){let lp=false;try{lp=isLessonPlan(body)}catch(e){}
+    if(lp){const sp0=one(body,'sectPr'),pm=sp0&&one(sp0,'pgMar'),mm=a=>pm&&ga(pm,a)?Math.round(parseInt(ga(pm,a),10)/56.6929):0;
+      let m=[mm('top'),mm('bottom'),mm('left'),mm('right')];
+      const okM=m[0]>=10&&m[1]>=10&&m[2]>=20&&m[3]>=10&&m.every(x=>x<=45);
+      if(!okM)m=[20,20,30,15];
+      o=Object.assign({},o,{mt:m[0],mb:m[1],ml:m[2],mr:m[3]});
+      rep.notes.push('Nhận diện Kế hoạch bài dạy/giáo án → '+(okM?'giữ lề của file gốc':'dùng lề chuẩn văn bản')+' '+m.join('/')+' mm (trên/dưới/trái/phải) thay cho lề đề thi gọn, vì giáo án cần lề trái rộng để đóng quyển. Muốn dùng đúng lề đã nhập: bỏ tick mục “Giáo án” rồi chạy lại.')}}
   let secs=null;step('khổ giấy & lề',()=>{secs=sections(doc,body,o,rep)});
   if(!secs){secs=[{end:body.children.length,sp:one(body,'sectPr')||mk(doc,'sectPr'),aw:9071,ah:14570}];secs.bk=Array.from(body.children)}
   ctx.szEst=o.size==='auto'?dominantSize(body,defSz):(+o.size)*2;
+  if(o.tbl&&o.tblfit!==false)step('bảng 2 cột giáo án',()=>twoColPass(doc,body,secs,o,rep,ctx));
   if(o.mcq)step('căn đáp án trắc nghiệm',()=>mcqPass(doc,body,secs,o,rep,ctx));
   if(o.mcq||o.blank)step('đều khoảng cách giữa các câu',()=>questionGaps(doc,body,rep));
   if(o.tbl)step('bảng',()=>tablePass(doc,body,secs,o,rep,ctx));
@@ -2801,6 +3040,7 @@ async function auditOnce(buf,o,hooks){
   step('font/cỡ chữ',()=>{all(doc,'rPr').forEach(r=>{const pa=r.parentNode;if(pa&&pa.namespaceURI===M&&pa.localName==='r')return;mathAndRunFmt(doc,r,o,ctx,rep,cnt,false)});
     all(doc,'r',M).forEach(r=>{if(!o.mathsz)return;let wr=one(r,'rPr');if(!wr){wr=mk(doc,'rPr');const mp=Array.from(r.children).find(c=>c.namespaceURI===M&&c.localName==='rPr');r.insertBefore(wr,mp?mp.nextSibling:r.firstChild)}mathAndRunFmt(doc,wr,o,ctx,rep,cnt,false)});
     step('định dạng đoạn',()=>paraFmt(doc,body,o,ctx,rep))});
+  if(ctx.lp)step('khoảng cách sau bảng',()=>afterTableGap(doc,body,rep));
   rep.fix('Đồng nhất font chữ (run)',cnt.font);rep.fix('Đồng nhất cỡ chữ lệch (run)',cnt.sz);
   rep.fix('Gỡ co giãn/giãn cách ký tự/nâng hạ chữ bất thường (dán từ PDF/web)',cnt.odd);rep.fix('Gỡ nền (shading) lạ trong chữ',cnt.shd);
   rep.fix('Đặt ngôn ngữ kiểm tra chính tả = Tiếng Việt cho chữ đang gắn nhầm Hà Lan/Pháp/Bồ Đào Nha… (hết gạch đỏ chính tả) (run)',cnt.lang||0);
@@ -2813,7 +3053,8 @@ async function auditOnce(buf,o,hooks){
     step('header/footer',()=>{const c={font:0,sz:0,odd:0,shd:0,col:0,m:0};all(d,'rPr').forEach(r=>mathAndRunFmt(d,r,o,ctx,rep,c,true))});
     step('bảng header/footer',()=>lightTables(d,d.documentElement,rep));
     if(o.text&&/^word\/(header|footer)/.test(n))step('căn phải đầu/chân trang',()=>spaceRunsToTab(d,sd,(secs&&secs[0]&&secs[0].aw)||9071,rep));
-    if(o.text)step('dọn văn bản header/footer/chú thích',()=>textPass(d.documentElement,Object.assign({},o,{indent:false}),rep,'đầu/chân trang, chú thích'))}
+    if(o.text)step('dọn văn bản header/footer/chú thích',()=>textPass(d.documentElement,Object.assign({},o,{indent:false}),rep,'đầu/chân trang, chú thích'));
+    if(o.lpfix!==false&&!o.dry&&/^word\/header/.test(n))step('đầu trang: bỏ gạch nối thừa',()=>hdrDash(d,rep))}
   rep.hfText=Object.keys(hfDocs).filter(n=>/header/.test(n)).map(n=>all(hfDocs[n],'p').map(p=>ptext(p)).join('\n')).join('\n');
   if(!hasPage)rep.warn('Chưa thấy số trang (trường PAGE) trong header/footer — thêm bằng Insert → Page Number nếu cần.');
   if(ctx.hasToc){const heads=all(body,'p').filter(p=>pInfo(p).head).length;
@@ -2852,6 +3093,7 @@ async function auditOnce(buf,o,hooks){
   Object.keys(hfDocs).forEach(n=>out.push([n,hfDocs[n]]));
   if(cmt&&cmtTouched)out.push(['word/comments.xml',cmt]);
   if(cmtNew){if(ctd)out.push(['[Content_Types].xml',ctd]);if(rl)out.push(['word/_rels/document.xml.rels',rl])}
+  else if(ctx.relsTouched&&relsd)out.push(['word/_rels/document.xml.rels',relsd]);
   hooks.progress('Đang kiểm tra cấu trúc file...');
   const er=[];
   for(const [n,d] of out){const s=ser(d);try{pX(s,n)}catch(e){er.push(e.message)}zip.file(n,s,{createFolders:false})}
@@ -3520,6 +3762,9 @@ function buildUI(){
   +'<div class="raR">Font: <select id="ra_font"><option>Times New Roman</option><option>Arial</option><option>Calibri</option><option>Cambria</option><option value="">Giữ nguyên font</option></select> &nbsp; Cỡ chữ: <select id="ra_size"><option value="auto">Tự nhận diện</option><option value="12">12</option><option value="13">13</option><option value="14">14</option></select></div>'
   +'<div class="raR">Giãn dòng: <select id="ra_line"><option value="1">1.0</option><option value="1.15" selected>1.15</option><option value="1.3">1.3</option><option value="1.5">1.5</option></select> &nbsp; Sau đoạn (pt): <select id="ra_after"><option value="0">0</option><option value="3">3</option><option value="6" selected>6</option><option value="8">8</option></select></div>'
   +cb('spacing','Đồng nhất giãn dòng và khoảng cách đoạn theo 2 giá trị trên (bỏ tick để giữ nguyên giãn dòng/khoảng cách của file gốc)',1)+cb('justify','Căn đều hai bên cho đoạn văn dài (không đụng tiêu đề, danh sách, bảng, đoạn căn giữa/phải)',1)+cb('firstLine','Thụt đầu dòng 1 cm cho đoạn văn thường (tắt nếu là đề trắc nghiệm)',0)+cb('shd','Gỡ nền (shading) lạ khi dán từ web',1)+cb('color','Gỡ màu chữ và tô sáng (tắt nếu có đáp án tô màu)',0)+'</details>'
+  +'<details class="raG"><summary>📘 Giáo án (KHBD) &amp; công thức MathType</summary>'
+  +cb('lpfix','Giáo án: gom tiêu đề bài bị tách nhiều đoạn (căn giữa, in đậm đồng nhất), ghép đoạn bị ngắt giữa câu, tách gạch đầu dòng nằm giữa đoạn, sửa đáp số cặp số sai khi phép thay số dưới đã cho biết đúng, bỏ “-” thừa ở đầu trang, bảng 2 cột vừa vùng chữ, giữ lề của giáo án gốc',1)
+  +cb('mtconv','Đổi công thức MathType (đối tượng nhúng) sang Equation của Word để cùng font, cùng cỡ chữ với văn bản; công thức nào đọc không chắc chắn thì giữ nguyên',1)+'</details>'
   +'<details class="raG"><summary>✅ Trắc nghiệm (đề kiểm tra)</summary>'
   +cb('mcq','Tự căn đáp án A, B, C, D thẳng hàng, cách đều nhau (ngắn: 1 hàng 4 cột · vừa: 2 hàng × 2 cột · dài: mỗi đáp án 1 dòng); giữ câu hỏi đi cùng đáp án, không tách trang',1)
   +'<div class="raR">Kiểu xếp đáp án: <select id="ra_mcqmode"><option value="auto">Tự chọn theo độ dài đáp án</option><option value="two">Ưu tiên 2 × 2 (A B / C D)</option><option value="one">Mỗi đáp án một dòng</option></select></div>'
@@ -3610,7 +3855,7 @@ function readOpts(){
   const c=id=>g('ra_'+id).checked,v=id=>g('ra_'+id).value,n=id=>parseFloat(String(v(id)).replace(',','.'));
   const o={text:c('text'),indent:c('indent'),num:c('num'),font:v('font'),size:v('size'),line:+v('line'),after:+v('after'),spacing:c('spacing'),justify:c('justify'),firstLine:c('firstLine'),shd:c('shd'),color:c('color'),
     blank:c('blank'),keep:c('keep'),page:c('page'),mt:n('mt'),mb:n('mb'),ml:n('ml'),mr:n('mr'),pgnum:c('pgnum'),fitPages:c('fitpages'),fields:c('fields'),compat:c('compat'),
-    tbl:c('tbl'),tblfit:c('tblfit'),forcesz:c('forcesz'),onepage:c('onepage'),tblborder:c('tblborder'),tblkeep:c('tblkeep'),tbljust:c('tbljust'),listfix:c('listfix'),softbreak:c('softbreak'),imgMaxH:+v('imgmax'),mcq:c('mcq'),mcqMode:v('mcqmode'),mcqStem:c('mcqstem'),mcqDot:c('mcqdot'),imgInline:c('imgInline'),imgFix:c('imgFix'),latex:c('latex'),mathsz:c('mathsz'),ai:c('ai'),aiExam:c('aiexam'),aiVerify:c('aiverify'),aiInfo:v('aiinfo'),aiModel:v('model'),aiModelV:v('modelv'),aiComment:c('aicmt'),aiGrade:v('aigrade'),aiKind:v('aikind'),accept:c('accept'),nocmt:c('nocmt'),quotes:c('quotes'),phead:c('phead'),mark:c('mark'),hl:c('hl'),verify:c('verify'),track:c('track'),aiMode:v('aimode'),spell:c('spell'),unify:c('unify'),decimal:c('decimal')?'comma':'',cap:c('cap'),dry:c('dry'),fixdot:c('fixdot'),fixlbl:c('fixlbl'),fixkey:c('fixkey'),fixmath:c('fixmath'),fixcopy:c('fixcopy'),fixarith:c('fixarith'),unum:c('unum'),
+    tbl:c('tbl'),tblfit:c('tblfit'),forcesz:c('forcesz'),onepage:c('onepage'),tblborder:c('tblborder'),tblkeep:c('tblkeep'),tbljust:c('tbljust'),listfix:c('listfix'),softbreak:c('softbreak'),imgMaxH:+v('imgmax'),mcq:c('mcq'),mcqMode:v('mcqmode'),mcqStem:c('mcqstem'),mcqDot:c('mcqdot'),imgInline:c('imgInline'),imgFix:c('imgFix'),latex:c('latex'),mathsz:c('mathsz'),ai:c('ai'),aiExam:c('aiexam'),aiVerify:c('aiverify'),aiInfo:v('aiinfo'),aiModel:v('model'),aiModelV:v('modelv'),aiComment:c('aicmt'),aiGrade:v('aigrade'),aiKind:v('aikind'),accept:c('accept'),nocmt:c('nocmt'),quotes:c('quotes'),phead:c('phead'),mark:c('mark'),hl:c('hl'),verify:c('verify'),track:c('track'),aiMode:v('aimode'),spell:c('spell'),unify:c('unify'),decimal:c('decimal')?'comma':'',cap:c('cap'),dry:c('dry'),fixdot:c('fixdot'),fixlbl:c('fixlbl'),fixkey:c('fixkey'),fixmath:c('fixmath'),fixcopy:c('fixcopy'),fixarith:c('fixarith'),unum:c('unum'),lpfix:c('lpfix'),mtconv:c('mtconv'),
     lintOff:{typo:!c('l_typo'),dup:!c('l_dup'),bracket:!c('l_bracket'),quote:!c('l_quote'),dollar:!c('l_dollar'),punct:!c('l_punct'),lower:!c('l_lower'),mid:!c('l_mid'),noend:!c('l_noend'),struct:!c('l_struct'),khbd:!c('l_khbd'),fmiss:!c('l_fmiss'),pts:!c('l_pts'),key:!c('l_key'),xref:!c('l_xref'),c_colon:!c('c_colon'),c_unit:!c('c_unit'),c_ky:!c('c_ky'),c_ki:!c('c_ki')},
     sevOn:{1:c('s_err'),2:c('s_sus'),3:c('s_sug')},conv:{colon:v('conv_colon'),unit:v('conv_unit')},meta:c('meta')};
   if([o.mt,o.mb,o.ml,o.mr].some(x=>!isFinite(x)||x<0||x>100)||o.ml+o.mr>=150||o.mt+o.mb>=200)throw new Error('Lề không hợp lệ (0–100 mm; trái+phải < 150, trên+dưới < 200).');
@@ -3691,7 +3936,7 @@ function wire(){
   ['dragover','drop'].forEach(ev=>g('wtAudit').addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'&&e.dataTransfer)addFiles(e.dataTransfer.files)}));
   g('ra_preset').onclick=()=>{
     g('ra_font').value='Times New Roman';g('ra_size').value='14';g('ra_line').value='1.15';g('ra_after').value='6';
-    ['justify','page','text','indent','num','tbl','tblfit','forcesz','onepage','tblkeep','softbreak','mcq','mcqdot','mcqstem','imgFix','quotes','phead','mark','hl','verify','spell','unify','fixdot','fixlbl','fixkey','fixmath','fixcopy','fixarith','unum'].forEach(k=>g('ra_'+k).checked=true);
+    ['justify','page','text','indent','num','tbl','tblfit','forcesz','onepage','tblkeep','softbreak','mcq','mcqdot','mcqstem','imgFix','quotes','phead','mark','hl','verify','spell','unify','fixdot','fixlbl','fixkey','fixmath','fixcopy','fixarith','unum','lpfix','mtconv'].forEach(k=>g('ra_'+k).checked=true);
     g('ra_dry').checked=false;g('ra_firstLine').checked=false;
     g('ra_marg').value='compact';setMargins('compact');
     setSt('Đã đặt: Times New Roman 14pt, giãn dòng 1,15, căn đều, không thụt đầu dòng, A4, lề đề thi gọn 14/12/25/12 mm (khổ ngang: 8/8/10/10 mm), bảng dùng cỡ chữ chuẩn. Bấm “Rà soát & Xuất file” để chạy.','o')};
