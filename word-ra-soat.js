@@ -2,6 +2,7 @@
    Đưa file .docx lên → tự rà soát & sửa lỗi bố cục/định dạng/bảng/hình/công thức → xuất .docx mới + báo cáo.
    Cần: JSZip (index.html đã nạp) · word-latex.js (convertDocumentXML) · gkey.js (tùy chọn, cho AI soát chính tả).
    Mới: cũng nhận file .xlsx → tự RÀ SOÁT & SỬA LỖI (khoảng trắng/dấu tiếng Việt, số & ngày lưu dạng chữ, công thức lỗi, cột hẹp #####, chữ bị cắt, thiếu viền, ô gộp chồng nhau, liên kết ngoài) rồi căn trang in Excel (A4, hướng, lề, vùng in, vừa trang, lặp dòng tiêu đề, số trang).
+   [v15] Giáo án nhiều tiết: kiểm tra từng tiết; thêm từ điển lỗi gõ (nhóm “more” nằm trong word-chuan-hoa.js, nhận qua window.RA_SPELL_EXTRA), viết hoa đầu mục danh sách, cỡ chữ lẻ → 14 pt, báo công thức A(x) thiếu ngoặc.
    Tự chèn mục "🔍 Rà soát & Chuẩn hóa toàn diện" vào ô chọn công cụ #wtSel — không cần sửa HTML, chỉ thêm 1 thẻ <script>. */
 (function(){
 'use strict';
@@ -156,7 +157,9 @@ const SPELL=[['xử dụng','sử dụng'],['xác xuất','xác suất'],['giúp
   /* [v14] thuật ngữ Toán (dạng sai chắc chắn; “nghiêm/hê” chỉ sửa khi đứng trong cụm Toán quen thuộc để không đụng từ “nghiêm túc”) */
   ['hê số','hệ số'],['hê thức','hệ thức'],['hê hai','hệ hai'],['hê bất','hệ bất'],['hê trục','hệ trục'],['hê tọa','hệ tọa'],['hê toạ','hệ toạ'],
   ['vô nghiêm','vô nghiệm'],['có nghiêm','có nghiệm'],['tập nghiêm','tập nghiệm'],['nghiêm của','nghiệm của'],['nghiêm duy nhất','nghiệm duy nhất'],['nghiêm nguyên','nghiệm nguyên'],['nghiêm kép','nghiệm kép'],['nghiêm chung','nghiệm chung'],['nghiêm phân biệt','nghiệm phân biệt'],['vô số nghiêm','vô số nghiệm'],['một nghiêm','một nghiệm'],['hai nghiêm','hai nghiệm'],['là nghiêm','là nghiệm'],
-  ['đồ thi','đồ thị'],['hàm sô','hàm số'],['cặp sô','cặp số'],['ẩn sô','ẩn số'],['tọa đô','tọa độ'],['toạ đô','toạ độ'],['giá tri','giá trị'],['biêu đồ','biểu đồ'],['biêu thức','biểu thức'],['biễu đồ','biểu đồ']];
+  ['đồ thi','đồ thị'],['hàm sô','hàm số'],['cặp sô','cặp số'],['ẩn sô','ẩn số'],['tọa đô','tọa độ'],['toạ đô','toạ độ'],['giá tri','giá trị'],['biêu đồ','biểu đồ'],['biêu thức','biểu thức'],['biễu đồ','biểu đồ'],
+  /* [v15] lỗi gõ nhầm sang âm tiết HỢP LỆ (bộ kiểm tra âm tiết không bắt được) — gặp trong giáo án/đề Toán; có thể bổ sung thêm qua window.RA_SPELL_EXTRA (khai báo ở word-chuan-hoa.js, nạp trước file này) */
+  ['bất phường','bất phương'],['phường trình','phương trình'],['như cầu','nhu cầu'],['trả lới','trả lời'],['hoạt đông','hoạt động'],['dự dịnh','dự định'],['theo cá thể','theo cá nhân'],['chứng một','chứng minh một']].concat(Array.isArray(window.RA_SPELL_EXTRA)?window.RA_SPELL_EXTRA.filter(x=>Array.isArray(x)&&x.length===2&&x[0]&&x[1]):[]);
 const SPELL_RE=SPELL.map(([w,r])=>[new RegExp('(?<![\\p{L}])'+w+'(?![\\p{L}])','giu'),r]);
 function paraRules(S,o){
   const E=[],add=(s,e,r,k)=>E.push({s,e,r:r||'',k});
@@ -297,6 +300,7 @@ const ABBR=new Set(['tr','vd','tp','ts','ths','gs','pgs','st','nxb','tt','sđt',
 const DUP_OK=new Set('dụng nhà người ngày năm đời dần từ đều mãi hàng từng xa lâu khắp muôn tưng rưng'.split(' '));
 /* [v6] đoạn KHÔNG cần dấu chấm cuối: dòng điểm/thời gian/tiêu đề; câu dẫn trắc nghiệm có luật riêng (lintStruct) */
 const NOEND_SKIP=t=>{const s=t.replace(/[\u0001\u0002]/g,' ').trim();
+  if(/^[-–+]?\s*Đáp án\b/i.test(s)&&s.length<80)return true;   /* [v15] nhãn “Đáp án …” không phải câu */
   if(/\d\s*(đ|điểm|phút|trang|giờ|%)\s*$/i.test(s))return true;
   if(/^(Mỗi|Thời gian|Tiết|Ngày|Năm học|Họ và tên|Lớp|Điểm|Lưu ý)\b/i.test(s))return true;
   if(/\(\s*\d+\s*(phút|ph|tiết)\s*\)\s*$/i.test(s))return true;
@@ -660,7 +664,10 @@ function capPass(body,o,rep){
     const S=pModel(p).S,tr=S.trim();
     if(!/\p{L}/u.test(tr))return;
     const info=pInfo(p),k=/^[^\p{L}\p{N}]*/u.exec(S)[0].length,ch=S[k],f0=S.slice(k);
-    if(!anc(p,'tc')&&!info.list&&!info.head&&tr.length>=25&&ch&&/\p{Ll}/u.test(ch)&&!/^\p{Ll}\s*[.)]/u.test(f0)&&!/^\p{Ll}(?![\p{L}\p{M}])/u.test(f0)&&/[.?!:]$/.test(prevEnd)){
+    /* [v15] mục danh sách/đánh số bắt đầu bằng chữ thường (vd “ổn định tổ chức”) → viết hoa; bỏ qua khi đoạn trước kết thúc bằng , ; (câu còn dang dở) */
+    if(!anc(p,'tc')&&info.list&&!info.head&&tr.length>=4&&ch&&/\p{Ll}/u.test(ch)&&!/^\p{Ll}\s*[.)]/u.test(f0)&&!/^\p{Ll}(?![\p{L}\p{M}])/u.test(f0)&&!/[,;]$/.test(prevEnd)){
+      applyEdit(p,{s:k,e:k+1,r:ch.toUpperCase(),k:'cp'});n++}
+    else if(!anc(p,'tc')&&!info.list&&!info.head&&tr.length>=25&&ch&&/\p{Ll}/u.test(ch)&&!/^\p{Ll}\s*[.)]/u.test(f0)&&!/^\p{Ll}(?![\p{L}\p{M}])/u.test(f0)&&/[.?!:]$/.test(prevEnd)){
       applyEdit(p,{s:k,e:k+1,r:ch.toUpperCase(),k:'cp'});n++}
     prevEnd=tr.replace(/[\u0001\u0002]+$/,'').slice(-1)||prevEnd});
   rep.fix('Viết hoa chữ cái đầu đoạn (chỗ)',n)}
@@ -1029,11 +1036,34 @@ function unifyNums(body,o,rep){
   else if(dots.length&&comma>=1)rep.warn('Số thập phân dùng lẫn dấu phẩy ('+comma+' chỗ) và dấu chấm ('+dots.length+' chỗ), dấu chấm chiếm đa số nên chưa tự đổi — hãy kiểm tra (dấu chấm có thể là dấu nhân).')}
 
 /* [v14-1,5,7] Kiểm tra KHBD: thời gian, cấu trúc theo CV 5512, đầu trang. Chỉ ghi Comment, không tự sửa */
+/* [v15] File có nhiều tiết (Tiết 41, 42, 43…): tách thành từng phần rồi kiểm tra riêng từng tiết (trước đây chỉ kiểm tra tiết đầu).
+   File chỉ có 1 bài → chạy đúng như cũ. Thêm: tiết thiếu tiêu đề, công thức A(x) thiếu ngoặc, style Heading dùng cho nội dung thường, “vận tốc lớn nhất” + “kịp/trước”. */
 function lintLesson(body,o,add,rep){
   const off=o.lintOff||{};if(off.khbd)return;
   if(!isLessonPlan(body))return;
+  const cl=x=>x.replace(/[\u0001\u0002]/g,' ').replace(/\s+/g,' ').trim();
+  const PA0=all(body,'p').filter(p=>!anc(p,'txbxContent')),S0=PA0.map(p=>pModel(p).S);
+  const TIET=/^(?:Tiết|TIẾT)\s*\d+\b/,MT=/^(?:I\s*[.)]\s*)?(?:MỤC TIÊU|Mục tiêu)\b/;
+  const cuts=[];let seenMT=false;
+  PA0.forEach((p,i)=>{if(anc(p,'tc'))return;const t=cl(S0[i]);if(!t||t.length>200)return;
+    if(TIET.test(t)){cuts.push(i);seenMT=false;return}
+    if(MT.test(t)){
+      if(seenMT){cuts.push(i);add(p,'bắt đầu một tiết/bài mới (“Mục tiêu”) nhưng thiếu tiêu đề “Tiết n. …” ở phía trên',lead0(S0[i]))}
+      seenMT=true}});
+  const bnd=[0].concat(cuts.filter(i=>i>0)).filter((v,k,a)=>a.indexOf(v)===k).sort((a,b)=>a-b);
+  bnd.forEach((b,k)=>{const e=k+1<bnd.length?bnd[k+1]:PA0.length,PA=PA0.slice(b,e),S=S0.slice(b,e);
+    if(!PA.length)return;
+    try{lintLessonSeg(body,o,add,rep,{PA,S,skip3:k>0})}catch(err){rep.warn('Kiểm tra KHBD phần '+(k+1)+' gặp lỗi nên đã bỏ qua: '+err.message)}});
+  /* công thức dạng Ax<B(x) (thiếu ngoặc ở A(x)) */
+  all(body,'oMath',M).forEach(om=>{const t=all(om,'t',M).map(x=>x.textContent).join('').replace(/\s+/g,''),p=anc(om,'p');
+    if(p&&/^[A-Z]x\d?[<>≤≥=][A-Z]\(x\d?\)$/.test(t))add(p,'công thức “'+t+'” có thể thiếu ngoặc ở vế trái — nên viết dạng A(x) < B(x) (và A(x₀) < B(x₀))')});
+  PA0.forEach((p,i)=>{
+    const t=cl(S0[i]),pp=one(p,'pPr'),st=pp&&one(pp,'pStyle'),sv=st?ga(st,'val'):'';
+    if(!anc(p,'tc')&&/^Heading/i.test(sv)&&(/^[-–+•*]\s/.test(t)||t.length>90))add(p,'đoạn đang dùng style tiêu đề ('+sv+') nhưng là nội dung thường — nên đổi về kiểu văn bản thường để không lẫn vào mục lục/định dạng tiêu đề',lead0(S0[i]));
+    if(/vận tốc[^.?!]{0,40}(?:lớn nhất|tối đa)/i.test(t)&&/(?:trước|kịp|không muộn|đúng giờ|không quá)/i.test(t))add(p,'đề yêu cầu đến “trước/kịp” giờ thì vận tốc phải “nhỏ nhất/tối thiểu” — kiểm tra lại cụm “lớn nhất/tối đa”',sR(S0[i],'lớn nhất')||sR(S0[i],'tối đa'))})}
+function lintLessonSeg(body,o,add,rep,seg){
   const clean=x=>x.replace(/[\u0001\u0002]/g,' ').replace(/\s+/g,' ').trim();
-  const PA=all(body,'p').filter(p=>!anc(p,'txbxContent')),S=PA.map(p=>pModel(p).S),T=S.map(clean);
+  const PA=seg.PA,S=seg.S,T=S.map(clean);
   const first=Math.max(0,T.findIndex(t=>/\p{L}/u.test(t)));
   const tmOf=s=>{const m=/\(\s*(\d{1,3})\s*(?:phút|ph)\s*\)/i.exec(s)||/[-\u2013:]\s*(\d{1,3})\s*phút\s*$/i.exec(s);return m?{v:+m[1],m:m[0]}:null};
   const SEC=/^([A-D])\s*[.)]\s+(.{3,})$/,SECK=/HOẠT ĐỘNG|KHỞI ĐỘNG|MỞ ĐẦU|HÌNH THÀNH|LUYỆN TẬP|VẬN DỤNG/i,ACT=/^(?:HOẠT ĐỘNG|Hoạt động|Hoạt Động|HĐ)\s*(\d+)\b/;
@@ -1079,8 +1109,8 @@ function lintLesson(body,o,add,rep){
       const got=STEP.filter(z=>z[1].test(blk)),miss=STEP.filter(z=>!z[1].test(blk)).map(z=>z[0]);
       if(!miss.length)return;
       if(got.length||/Tổ chức thực hiện/i.test(blk))add(PA[a.i],'hoạt động '+a.n+(a.sec?' (mục '+a.sec+')':'')+' thiếu bước: '+miss.join(', ')+' (CV 5512: 4 bước Chuyển giao – Thực hiện – Báo cáo, thảo luận – Kết luận, nhận định)',lead0(S[a.i]))}) }
-  /* ---- 3. ĐẦU TRANG: dòng còn dở, thiếu/để trống Ngày soạn – Tuần ---- */
-  {const hf=String(rep.hfText||'').split('\n').map(clean).filter(Boolean),head=T.slice(0,40);
+  /* ---- 3. ĐẦU TRANG: dòng còn dở, thiếu/để trống Ngày soạn – Tuần (chỉ kiểm tra ở phần đầu file) ---- */
+  if(!seg.skip3){const hf=String(rep.hfText||'').split('\n').map(clean).filter(Boolean),head=T.slice(0,40);
     const trow=p=>{const tr=anc(p,'tr');return tr?clean(all(tr,'p').map(q=>pModel(q).S).join(' ')):null};
     hf.forEach(t=>{if(/^(?:Trường|TRƯỜNG)\s.+[-\u2013\u2014]\s*$/.test(t))rep.warn('Tiêu đề đầu trang còn dở: “'+t.slice(0,60)+'” kết thúc bằng gạch nối — thiếu phần sau (vd tên tổ/môn). Hãy sửa trong Header.')});
     head.forEach((t,i)=>{if(/^(?:Trường|TRƯỜNG)\s.+[-\u2013\u2014]\s*$/.test(t)){const k=S[i].replace(/[\s\u0001\u0002]+$/,'').length-1;add(PA[i],'tiêu đề đầu trang còn dở: “'+t.slice(0,60)+'” kết thúc bằng gạch nối — thiếu phần sau (vd tên tổ/môn)',[{s:Math.max(0,k),e:k+1}])}});
@@ -1906,6 +1936,9 @@ function mathAndRunFmt(doc,rPr,o,ctx,rep,cnt,hf){
     if(!same){if(!f)f=sc(doc,rPr,'rFonts',ORD.rPr);['asciiTheme','hAnsiTheme','eastAsiaTheme','cstheme'].forEach(a=>f.removeAttributeNS(W,a));['ascii','hAnsi','cs','eastAsia'].forEach(a=>sa(f,a,o.font));cnt.font++}}
   if(hf)return;
   const va=one(rPr,'vertAlign');
+  /* [v15] run mang cỡ chữ lẻ sát cỡ chính (vd 27 = 13,5 pt khi cỡ chính là 28) → đồng nhất về cỡ chính */
+  {const so=one(rPr,'sz'),c1=so?+ga(so,'val'):0;
+    if(c1&&c1%2===1&&ctx.sz%2===0&&Math.abs(c1-ctx.sz)<=1&&!va&&!hasObj&&!SYM.test(fam)&&!(ctx.fixSz&&ctx.fixSz.has(rPr))){sa(so,'val',ctx.sz);sa(sc(doc,rPr,'szCs',ORD.rPr),'val',ctx.sz);cnt.sz++}}
   /* tiêu đề/dòng in đậm đang nhỏ hơn cỡ đã chọn (vd tiêu đề sổ 8 pt): nâng lên đúng cỡ đã chọn, không thu nhỏ tiêu đề lớn hơn */
   if(head&&o.forcesz&&o.size!=='auto'&&!va&&!hasObj&&!SYM.test(fam)&&!(ctx.fixSz&&ctx.fixSz.has(rPr))){const s0=one(rPr,'sz'),c0=s0?+ga(s0,'val'):0;
     if(c0&&c0<ctx.sz){sa(s0,'val',ctx.sz);sa(sc(doc,rPr,'szCs',ORD.rPr),'val',ctx.sz);cnt.sz++}}
@@ -1988,7 +2021,7 @@ function paraFmt(doc,body,o,ctx,rep){
 function dominantSize(body,defSz){
   const c={};all(body,'r').forEach(r=>{const p=anc(r,'p');if(p&&pInfo(p).head)return;const pr=one(r,'rPr');if(pr&&one(pr,'vertAlign'))return;
     const n=all(r,'t').reduce((a,t)=>a+t.textContent.length,0);if(!n)return;const se=pr&&one(pr,'sz'),v=se?+ga(se,'val'):defSz;c[v]=(c[v]||0)+n});
-  let best=0,bn=0;for(const k in c)if(c[k]>bn){bn=c[k];best=+k}return best||defSz}
+  let best=0,bn=0;for(const k in c)if(c[k]>bn){bn=c[k];best=+k}best=best||defSz;return best%2?best+1:best}   /* [v15] cỡ lẻ (vd 13,5 pt) → làm tròn lên cỡ chuẩn (14 pt) */
 
 function numberingCheck(doc,numDoc,rep){
   const ids=new Set(numDoc?all(numDoc,'num').map(n=>ga(n,'numId')):[]);let n=0;
@@ -2302,8 +2335,11 @@ function evHit(bc,text){
   const a=nzk(bc);if(a.length>=4&&nzk(text).indexOf(a)>=0)return true;
   const tk=wtok(bc);if(tk.length<3)return false;
   const tl=String(text).normalize('NFC').toLowerCase();let pos=0;
-  for(const w of tk){const k=tl.indexOf(w,pos);if(k<0)return false;pos=k+w.length}
-  return true}
+  let seq=true;for(const w of tk){const k=tl.indexOf(w,pos);if(k<0){seq=false;break}pos=k+w.length}
+  if(seq)return true;
+  /* [v15] AI hay trích dẫn lệch một từ (vd thêm “quyết”): chấp nhận khi ≥2 cặp từ liền nhau của trích dẫn có thật trong đoạn */
+  const tj=wtok(text).join(' ');let bg=0;for(let i=0;i+1<tk.length;i++)if(tk[i].length+tk[i+1].length>=6&&tj.indexOf(tk[i]+' '+tk[i+1])>=0)bg++;
+  return bg>=2&&bg>=Math.ceil((tk.length-1)/2)}
 const KEY_RE=/^[\s|$]*(BẢNG\s+)?(ĐÁP ÁN|HƯỚNG DẪN CHẤM)/i;
 function answerKeyText(items){
   const i=items.findIndex((x,k)=>k>0&&KEY_RE.test(x.t));if(i<0)return '';

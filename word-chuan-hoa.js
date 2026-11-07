@@ -1,3 +1,16 @@
+/* [v15] Từ điển lỗi gõ NHẦM SANG ÂM TIẾT HỢP LỆ (giáo án/đề Toán…) — dùng chung cho 2 công cụ:
+   · Chuẩn hóa Word (bảng TYPO bên dưới) tự sửa cả 2 nhóm "core" + "more";
+   · Rà soát Word toàn diện (word-ra-soat.js) đã có sẵn nhóm "core" trong bộ SPELL của nó, nên chỉ nhận nhóm "more" qua window.RA_SPELL_EXTRA.
+   Chỉ ghi cụm SAI CHẮC CHẮN (không làm hỏng từ đúng). Muốn thêm cụm mới: thêm cặp ['cụm sai','cụm đúng'] vào "more" (nếu chỉ muốn Chuẩn hóa Word dùng thì thêm vào "core" ở đây
+   và bảng TYPO) rồi tăng số ?v= của word-chuan-hoa.js trong index.html. Phải đặt cụm không trùng/không chứa từ sai khác đã có để tránh sửa chồng lên nhau. */
+(function(){
+  const core=[['bất phường','bất phương'],['phường trình','phương trình'],['như cầu','nhu cầu'],['trả lới','trả lời'],['hoạt đông','hoạt động'],['dự dịnh','dự định'],['chứng một','chứng minh một']];
+  const more=[['nội dụng','nội dung'],['khái niêm','khái niệm'],['thảo luân','thảo luận'],['nhân xét','nhận xét'],['nhiêm vụ','nhiệm vụ'],['báo cao','báo cáo'],['đáp ấn','đáp án'],['bài tâp','bài tập'],['bài toàn','bài toán'],['hoàn thiên','hoàn thiện']];
+  window.RA_VI_FIX={core:core,more:more};
+  try{const cur=Array.isArray(window.RA_SPELL_EXTRA)?window.RA_SPELL_EXTRA:[],have=new Set(cur.map(x=>x&&x[0]));
+    window.RA_SPELL_EXTRA=cur.concat(more.filter(x=>!have.has(x[0])))}catch(e){}
+})();
+
 /* Công cụ Word: Ghép file Word + Chuẩn hóa Word (norm): định dạng, bảng biểu, khoảng trắng, dấu câu, viết hoa, từ lặp/sai, cảnh báo chỗ khó hiểu.
    API ngoài: window.WordNormalize(buf,cfg) và window.WordPkgCheck(zip,full). */
 
@@ -237,7 +250,7 @@ const DUP=new RegExp('(?<![\\p{L}\\p{N}])('+FW+')( +)\\1(?![\\p{L}\\p{N}])','giu
 const TYPO=[['ko','không'],['đc','được'],['chia sẽ','chia sẻ'],['sơ xuất','sơ suất'],['xử dụng','sử dụng'],['sử lý','xử lý'],['chỉnh chu','chỉn chu'],
   ['trình bầy','trình bày'],['bổ xung','bổ sung'],['sắp sếp','sắp xếp'],['xắp xếp','sắp xếp'],['suất sắc','xuất sắc'],['xuất xắc','xuất sắc'],
   ['năng xuất','năng suất'],['sản suất','sản xuất'],['quang trọng','quan trọng'],['tập chung','tập trung'],['rà xoát','rà soát'],['ra soát','rà soát'],
-  ['xem sét','xem xét'],['nghành','ngành']].map(([a,b])=>({re:new RegExp('(?<![\\p{L}\\p{N}])'+a.replace(/ /g,' +')+'(?![\\p{L}\\p{N}])','giu'),to:b}));
+  ['xem sét','xem xét'],['nghành','ngành']].concat((window.RA_VI_FIX&&window.RA_VI_FIX.core)||[],(window.RA_VI_FIX&&window.RA_VI_FIX.more)||[]).map(([a,b])=>({re:new RegExp('(?<![\\p{L}\\p{N}])'+a.replace(/ /g,' +')+'(?![\\p{L}\\p{N}])','giu'),to:b}));
 const REF=/\[(?:\d{1,3}(?:\s*[-–,]\s*\d{1,3})*|(?:cần |cần dẫn |cần có )?nguồn[^\]]{0,20}|cần làm rõ|chỉnh sửa|sửa(?: ?\| ?sửa mã nguồn)?|edit|citation needed|source needed)\]/giu;
 const TONE=/(?<![qQ])([oOuU])([àáảãạèéẻẽẹýỳỷỹỵÀÁẢÃẠÈÉẺẼẸÝỲỶỸỴ])(?![\p{L}])/gu;
 const TMAP={à:'òa',á:'óa',ả:'ỏa',ã:'õa',ạ:'ọa',è:'òe',é:'óe',ẻ:'ỏe',ẽ:'õe',ẹ:'ọe',ý:'úy',ỳ:'ùy',ỷ:'ủy',ỹ:'ũy',ỵ:'ụy'};
