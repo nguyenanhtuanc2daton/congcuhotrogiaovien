@@ -333,6 +333,26 @@
       } else return j;
     }
   }
+  /* Khối công thức không được cắt đôi: \left...\right và \begin{env}...\end{env} (hệ phương trình, ma trận…). Trả về vị trí cuối khối, hoặc i nếu không phải khối. */
+  function blockEnd(t, i) {
+    var m, re, d, e;
+    if (/^\\left(?![a-zA-Z])/.test(t.slice(i))) {
+      re = /\\(left|right)(?![a-zA-Z])/g; re.lastIndex = i; d = 0;
+      while ((m = re.exec(t))) {
+        if (m[1] === 'left') d++; else if (--d === 0) {
+          e = /^\s*(\\[{}|]|\\[a-zA-Z]+|[()\[\]|.<>\/])/.exec(t.slice(re.lastIndex));
+          return e ? re.lastIndex + e[0].length : re.lastIndex;
+        }
+      }
+      return i;
+    }
+    m = /^\\begin\s*\{([a-zA-Z]+\*?)\}/.exec(t.slice(i));
+    if (m) {
+      re = new RegExp('\\\\(begin|end)\\s*\\{' + m[1].replace('*', '\\*') + '\\}', 'g'); re.lastIndex = i; d = 0;
+      while ((e = re.exec(t))) { if (e[1] === 'begin') d++; else if (--d === 0) return re.lastIndex; }
+    }
+    return i;
+  }
   /* Đoạn chữ nằm ngoài $...$ mà có mã LaTeX (AI hay quên bọc $) → tự bọc */
   function fixGap(g) {
     if (g.indexOf('$') >= 0) return g;
@@ -340,7 +360,7 @@
     if (!hasCmd && !hasCaret && !hasUni) return g;
     var lead = g.match(/^\s*/)[0], trail = g.match(/\s*$/)[0], core = g.trim();
     if (!core) return g;
-    var words = core.replace(/\\[a-zA-Z]+/g, '').replace(/[{}]/g, ' ');
+    var words = core.replace(/\\(?:begin|end)\s*\{[a-zA-Z]+\*?\}/g, '').replace(/\\[a-zA-Z]+/g, '').replace(/[{}]/g, ' ');
     if (!/[A-Za-z]{3,}/.test(words) && !/[\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u1EF9]/.test(words)) {               /* toàn công thức → bọc cả đoạn */
       core = core.replace(/√\s*(\d+|\([^()]*\)|[A-Za-z])/g, function (_, a) { return '\\sqrt{' + a.replace(/^\(|\)$/g, '') + '}'; })
                  .replace(/([A-Za-z0-9)])([²³⁴⁵⁶⁷⁸⁹¹])/g, function (_, a, b) { return a + '^{' + SUPC[b] + '}'; });
@@ -350,6 +370,7 @@
     var o = '', i = 0, n = core.length, m;
     while (i < n) {
       var c = core.charAt(i);
+      if (c === '\\') { var be = blockEnd(core, i); if (be > i) { o += '$' + core.slice(i, be) + '$'; i = be; continue; } }
       if (c === '\\' && /[a-zA-Z]/.test(core.charAt(i + 1))) {
         var j = i + 1; while (j < n && /[a-zA-Z]/.test(core.charAt(j))) j++;
         j = scanArgs(core, j); o += '$' + core.slice(i, j) + '$'; i = j; continue;
