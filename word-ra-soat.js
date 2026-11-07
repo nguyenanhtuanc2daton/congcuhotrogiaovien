@@ -61,7 +61,7 @@ const pbOnly=p=>p.localName==='p'&&p.namespaceURI===W&&hasPB(p)&&!all(p,'t').som
    NÂNG CẤP v2 — mô hình văn bản cấp ĐOẠN · sửa dấu câu · bắt lỗi gõ sai ·
    đánh dấu Comment tại chỗ · Track Changes · kiểm lại nhiều vòng
    ==================================================================== */
-const VERSION='v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
+const VERSION='v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
 const BAR='\u0001',MTH='\u0002',CTNS='http://schemas.openxmlformats.org/package/2006/content-types',RELNS='http://schemas.openxmlformats.org/package/2006/relationships';
 const TRK={on:false,id:900000,author:'Rà soát tự động',date:''};
 let PSEUDO=true;
@@ -227,6 +227,10 @@ function paraRules(S,o){
   if((m=/\(nếu có(?=[\s\u0001\u0002]*$)/.exec(S)))add(m.index+m[0].length,m.index+m[0].length,')','pu');                                      /* “(nếu có” thiếu “)” ở cuối đoạn */
   if(o.quotes!==false){const qa1=[...S.matchAll(/“/g)],qb1=S.match(/”/g);
     if(qa1.length===1&&!qb1){const mm=/(’’|'')/.exec(S.slice(qa1[0].index+1));if(mm){const st=qa1[0].index+1+mm.index;add(st,st+2,'”','qt')}}}   /* “abc’’ → “abc” */
+  /* [v13] dấu chấm thừa: “. Phương trình…” đầu đoạn; “B. .x – 2y” trong phương án */
+  if(o.fixdot!==false){
+    if((m=/^([ \u0001]*)\.(?=[ \u0001]*\p{Lu})/u.exec(S)))add(m[1].length,m[1].length+1,'','sd');   /* chỉ xóa dấu “.”; dấu cách đứng đầu đoạn do bước dọn khoảng trắng gỡ tiếp */
+    for(m of S.matchAll(/(?<=(?:^|[ \u0001])[A-D]\. )\.(?=[\p{L}\u0001])/gu))add(m.index,m.index+1,'','sd')}
   return E}
 function fixParagraph(p,o,cnt){
   for(let it=0;it<4;it++){
@@ -447,7 +451,7 @@ function lintConsist(body,o,add,rep){
 /* [v8] Mức độ cảnh báo: 1 = LỖI (chắc chắn sai) · 2 = NGHI NGỜ (cần người xem) · 3 = GỢI Ý (không bắt buộc). Tô màu: đỏ · vàng · lục lam */
 const SEV_NAME={1:'LỖI',2:'NGHI NGỜ',3:'GỢI Ý'},SEV_HL={1:'red',2:'yellow',3:'cyan'};
 const SEV_RULES=[
-  [1,/^(số câu bị trùng|điểm không khớp|tổng điểm các Phần = .* nhưng đề ghi|còn mã LaTeX|còn nội dung giữ chỗ|dấu \$ lẻ|đáp án ghi là|đáp án [A-D] và [A-D]|đáp án câu \d|chú thích “[^”]+” bị trùng)/],
+  [1,/^(số câu bị trùng|điểm không khớp|tổng điểm các Phần = .* nhưng đề ghi|còn mã LaTeX|còn nội dung giữ chỗ|dấu \$ lẻ|đáp án ghi là|đáp án [A-D] và [A-D]|đáp án câu \d|kết quả giải sai|thiếu nhãn “Câu|chú thích “[^”]+” bị trùng)/],
   [3,/^(câu chưa có dấu chấm|câu dẫn chưa có dấu kết thúc|có ký hiệu toán gõ dạng chữ|AI gợi ý)/]
 ];
 function sevOf(m){for(const [s,re] of SEV_RULES)if(re.test(m))return s;return 2}
@@ -540,9 +544,9 @@ function lintDoc(body,o,rep,sugs){
     if(/^\s*ĐÁP ÁN\b|\bĐÁP ÁN MÔN|HƯỚNG DẪN CHẤM/.test(S))inKey=true;else if(/PHIẾU TRẢ LỜI|BÀI LÀM ĐỀ|^\s*ĐỀ KIỂM TRA|^\s*MA TRẬN|BẢN ĐẶC TẢ/.test(S))inKey=false;
     const info=pInfo(p),tc=!!anc(p,'tc');
     const cx={tc,list:info.list,head:info.head,pseudo:pseudoHead(p),prevEnd,inKey,off:o.lintOff,rg:[]},issues=lintPara(S,cx);
-    {const ms=/^[\s\u0001\u0002]*\.(?=\s+\p{Lu})/u.exec(S);
+    {const ms=/^[\s\u0001]*\.(?=\s+\p{Lu})/u.exec(S);
       if(ms){const i=ms[0].lastIndexOf('.'),mg='đoạn bắt đầu bằng dấu chấm lạ “.” (có thể là gạch đầu dòng gõ nhầm) — hãy kiểm tra';issues.push(mg);cx.rg.push({s:i,e:i+1,m:mg})}
-      const mo=/(?<=(?:^|[\s\u0001])[A-D]\. )\.(?=\p{L})/u.exec(S);
+      const mo=/(?<=(?:^|[\s\u0001])[A-D]\. )\.(?=[\p{L}\u0001])/u.exec(S);
       if(mo){const mg='dấu chấm thừa ngay trước chữ trong phương án — hãy kiểm tra';issues.push(mg);cx.rg.push({s:mo.index,e:mo.index+1,m:mg})}}
     if(o.dry){const E=paraRules(S,o);if(E.length){const e=E.slice().sort((a,b)=>a.s-b.s)[0],c=x=>x.replace(/\u0001/g,'⇥').replace(/\u0002/g,'⟦CT⟧');
       const dm='cần sửa '+E.length+' chỗ dấu câu/khoảng trắng/chính tả, vd: “'+c(S.slice(Math.max(0,e.s-14),Math.min(S.length,e.e+14)))+'”';E.forEach(z=>cx.rg.push({s:Math.max(0,z.s-(z.e>z.s?0:1)),e:Math.max(z.e,z.s+1),m:dm}));issues.unshift(dm)}}
@@ -554,6 +558,7 @@ function lintDoc(body,o,rep,sugs){
   const addI=(p,msg,rg)=>{let f=byP.get(p);if(!f){const tr=pModel(p).S.trim();f={p,n:idxOf.get(p)||0,snip:tr.replace(/[\u0001\u0002]/g,'…').slice(0,60),issues:[],rg:[]};byP.set(p,f);flags.push(f)}if(f.issues.indexOf(msg)<0)f.issues.push(msg);if(rg&&rg.length)f.rg=(f.rg||[]).concat(rg.map(r=>Object.assign({m:msg},r)))};
   lintStruct(body,o,addI);
   try{lintStruct2(body,o,addI)}catch(e){rep.warn('Bước đối chiếu điểm/đáp án/hình–bảng gặp lỗi nên đã bỏ qua: '+e.message)}
+  lintContent(body,o,addI);
   lintConsist(body,o,addI,rep);
   /* [v8] phân mức, lọc theo mức người dùng chọn, tô màu theo mức */
   const sv=o.sevOn||{};
@@ -665,6 +670,174 @@ function imgDim(b){try{
     i+=2+(b[i+2]<<8|b[i+3])}}
 }catch(e){}return null}
 
+/* ====================================================================
+   [v13] SỬA LỖI NỘI DUNG giáo án / bài tập (tự sửa, ghi Track Changes khi bật):
+   dấu chấm thừa · thiếu nhãn “Câu 1.” · đáp án trắc nghiệm để trống · kết quả giải phương trình bậc nhất hai ẩn sai ·
+   câu chữ sao chép nhầm giữa các hoạt động. Chỉ sửa khi TÍNH ĐƯỢC chắc chắn; còn lại gắn Comment.
+   ==================================================================== */
+const NT=s=>String(s).replace(/[\u2212\u2013\u2014]/g,'-').replace(/\s+/g,'');
+function linParse(side){
+  let s=NT(side).replace(/,/g,'.');
+  if(!s||!/^[0-9xy.+\-]+$/.test(s))return null;
+  if(!/^[+\-]/.test(s))s='+'+s;
+  const re=/([+\-])(\d*\.?\d*)([xy]?)/y,r={x:0,y:0,c:0};let pos=0;
+  while(pos<s.length){
+    re.lastIndex=pos;const m=re.exec(s);if(!m||!m[0])return null;pos=re.lastIndex;
+    if(m[2]==='.')return null;
+    let k=m[2]===''?(m[3]?1:NaN):parseFloat(m[2]);if(isNaN(k))return null;
+    if(m[1]==='-')k=-k;
+    if(m[3])r[m[3]]+=k;else r.c+=k}
+  return r}
+function linEq(t){
+  t=String(t).replace(/^[\s.]+/,'').replace(/[.;,\s]+$/,'');
+  const p=t.split('=');if(p.length!==2)return null;
+  const L=linParse(p[0]),R=linParse(p[1]);if(!L||!R)return null;
+  return{a:L.x-R.x,b:L.y-R.y,c:R.c-L.c}}
+const numOf=s=>{const v=parseFloat(NT(s).replace(',','.'));return isFinite(v)?v:null};
+const fmtN=v=>String(+(+v).toFixed(6)).replace('.',',');
+/* tách các phương án A–D khỏi một khối câu hỏi */
+function mcqOpts(block){
+  const t=block.replace(/[\u0001\u0002]/g,' ').replace(/[ \t]+/g,' '),re=/(?:^|\s)([A-D])[.)]\s+/g,hits=[];let m;
+  while((m=re.exec(t)))hits.push({L:m[1],s:m.index+m[0].length,st:m.index});
+  let a=-1;for(let i=hits.length-1;i>=0;i--)if(hits[i].L==='A'){a=i;break}
+  if(a<0)return null;
+  const seq=[hits[a]];for(let i=a+1;i<hits.length;i++){if(hits[i].L.charCodeAt(0)===seq[seq.length-1].L.charCodeAt(0)+1)seq.push(hits[i])}
+  if(seq.length<2)return null;
+  const map={};seq.forEach((h,k)=>{map[h.L]=t.slice(h.s,k+1<seq.length?seq[k+1].st:t.length).replace(/\s+/g,' ').replace(/^[.\s]+/,'').replace(/[.;,\s]+$/,'')});
+  return{map,stem:t.slice(0,seq[0].st).replace(/\s+/g,' ').replace(/^\s*(?:Câu|CÂU)\s*\d+\s*[.:]\s*/,'').trim()}}
+/* giải các dạng trắc nghiệm chắc chắn tính được (phương trình bậc nhất hai ẩn) → chữ cái đáp án hoặc null */
+function solveMcq(block){
+  const q=mcqOpts(block);if(!q)return null;
+  const Ls=Object.keys(q.map);if(Ls.length<4)return null;
+  const only=a=>a.length===1?a[0]:null;
+  let m;
+  if(/số nghiệm của (?:mỗi )?phương trình bậc nhất hai ẩn/i.test(q.stem))return only(Ls.filter(L=>/vô số/i.test(q.map[L])));
+  const eqs={};let ok=true;
+  if(/KHÔNG\s+(?:phải\s+)?là phương trình bậc nhất hai ẩn/i.test(q.stem)){
+    Ls.forEach(L=>{const e=linEq(q.map[L]);if(!e)ok=false;eqs[L]=e});
+    if(!ok)return null;
+    return only(Ls.filter(L=>eqs[L].a===0&&eqs[L].b===0))}
+  if((m=/nhận cặp số\s*\(\s*([^;()]+?)\s*;\s*([^()]+?)\s*\)\s*làm nghiệm/i.exec(q.stem))){
+    const x0=numOf(m[1]),y0=numOf(m[2]);if(x0===null||y0===null)return null;
+    Ls.forEach(L=>{const e=linEq(q.map[L]);if(!e)ok=false;eqs[L]=e});
+    if(!ok)return null;
+    return only(Ls.filter(L=>Math.abs(eqs[L].a*x0+eqs[L].b*y0-eqs[L].c)<1e-9))}
+  if((m=/phương trình\s+(.+?)\s+có nghiệm là cặp số/i.exec(q.stem))){
+    const e=linEq(m[1]);if(!e)return null;
+    const sat=[];
+    for(const L of Ls){const pm=/^\(\s*([^;]+?)\s*;\s*([^)]+?)\s*\)/.exec(q.map[L]);if(!pm)return null;
+      const x0=numOf(pm[1]),y0=numOf(pm[2]);if(x0===null||y0===null)return null;
+      if(Math.abs(e.a*x0+e.b*y0-e.c)<1e-9)sat.push(L)}
+    return only(sat)}
+  return null}
+const cellParas=c=>Array.from(c.children).filter(e=>e.localName==='p'&&e.namespaceURI===W);
+const LABRE=/^[\s\u0001]*(?:Câu|CÂU)\s*(\d+)\s*[.:]/,KEYRE=/^[\s\u0001]*(?:Câu|CÂU)\s*(\d+)\s*[.:]?\s*([A-D])?\s*$/,
+  CUTRE=/^[\s\u0001]*[-–+*•]*\s*(?:Bước\s*\d|GV\b|HS\b)/;
+/* khối câu hỏi số n trong danh sách đoạn (đến câu kế/ dòng hướng dẫn GV–HS) */
+function qBlock(ps,n){
+  for(let i=0;i<ps.length;i++){const S=pModel(ps[i]).S,m=LABRE.exec(S);
+    if(!m||+m[1]!==n||KEYRE.test(S))continue;
+    const parts=[S];
+    for(let k=i+1;k<ps.length;k++){const s2=pModel(ps[k]).S;if(LABRE.test(s2)||CUTRE.test(s2))break;parts.push(s2)}
+    const b=parts.join('\n');if(/(^|[\s\u0001])A[.)]\s/.test(b)&&/(^|[\s\u0001])B[.)]\s/.test(b))return b}
+  return null}
+/* đáp án trắc nghiệm nằm ở ô khác cùng hàng với ô chứa câu hỏi */
+function keyJobs(body){
+  const out=[];
+  all(body,'tr').forEach(tr=>{
+    const cells=wk(tr,'tc').map(tc=>cellParas(tc));
+    cells.forEach((K,ki)=>K.forEach(p=>{
+      const S=pModel(p).S,m=KEYRE.exec(S);if(!m)return;
+      const n=+m[1];let block=null;
+      cells.forEach((Q,qi)=>{if(!block&&qi!==ki)block=qBlock(Q,n)});
+      if(!block)return;
+      out.push({p,n,S,letter:m[2]||'',sol:solveMcq(block)})}))});
+  return out}
+/* câu hỏi đầu tiên của ô/phần bị mất nhãn “Câu 1.” (phía sau là “Câu 2.”) */
+function lblMissing(PS){
+  const S=PS.map(p=>pModel(p).S);let f=-1,n1=0;
+  for(let i=0;i<S.length;i++){const m=LABRE.exec(S[i]);if(m){f=i;n1=+m[1];break}}
+  if(f<1||n1!==2)return null;
+  let o=-1;
+  for(let i=0;i<f;i++)if(/^[\s\u0001]*A[.)]\s/.test(S[i])||/(^|\s)A[.)]\s.*\sB[.)]\s/.test(S[i])){o=i;break}
+  if(o<0)return null;
+  let st=o;
+  if(/^[\s\u0001]*A[.)]\s/.test(S[o])){st=o-1;while(st>=0&&!/[^\s\u0001\u0002]/.test(S[st]))st--}
+  if(st<0)return null;
+  const t=S[st];
+  if(!/\p{L}/u.test(t)||LABRE.test(t)||CUTRE.test(t)||/^[\s\u0001]*[A-D][.)]\s/.test(t)||t.replace(/[\s\u0001\u0002]/g,'').length<8)return null;
+  return{p:PS[st],pos:t.search(/[^\s\u0001\u0002]/),n:1}}
+/* “<pt> ta có x|y = …” — tính lại nghiệm biểu diễn theo biến còn lại */
+const TACO=/^([\s\u0001]*(?:[a-d]\)\s*)?)([0-9xy+\-\u2013\u2212.,\s]+=[0-9xy+\-\u2013\u2212.,\s]+?)\s+ta có\s+([xy])\s*=\s*([0-9xy+\-\u2013\u2212.,\s]+?)\s*$/;
+function taCoCheck(p){
+  const S=pModel(p).S,m=TACO.exec(S);if(!m)return null;
+  const e=linEq(m[2]),v=m[3],o=v==='x'?'y':'x',R=linParse(m[4]);
+  if(!e||!R||R[v]!==0)return null;
+  const den=v==='y'?e.b:e.a;if(!den)return null;
+  const co=-(v==='y'?e.a:e.b)/den,cc=e.c/den;
+  if(Math.abs(R[o]-co)<1e-9&&Math.abs(R.c-cc)<1e-9)return null;
+  const mn=/\u2013/.test(m[4])?'–':'-',f=x=>(x<0?mn:'')+fmtN(Math.abs(x));
+  let nr='';
+  if(Math.abs(co)>1e-12)nr+=(co<0?mn:'')+(Math.abs(Math.abs(co)-1)<1e-12?'':fmtN(Math.abs(co)))+o;
+  if(Math.abs(cc)>1e-12||!nr)nr+=nr?(' '+(cc<0?mn:'+')+' '+fmtN(Math.abs(cc))):f(cc);
+  const end=S.replace(/\s+$/,'').length,old=m[4].trim(),s0=end-old.length;
+  return{S,eq:m[2].trim(),v,old,nr,s:s0,e:end}}
+const COPYRE=/hai HĐ(?!\s*\d)/;
+function copyIssues(body){
+  const out=[];
+  all(body,'tc').forEach(tc=>{const ps=cellParas(tc);let before='';
+    ps.forEach(p=>{const S=pModel(p).S,m=COPYRE.exec(S);
+      if(m&&!/HĐ\s*\d|hoạt động\s*\d/i.test(before))out.push({p,at:m.index,len:m[0].length,tn:/trắc nghiệm/i.test(before)});
+      before+=S+'\n'})});
+  return out}
+function trimEd(S,ed){
+  const old=S.slice(ed.s,ed.e);let a=0;
+  while(a<old.length&&a<ed.r.length&&old[a]===ed.r[a])a++;
+  let b=0;while(b<old.length-a&&b<ed.r.length-a&&old[old.length-1-b]===ed.r[ed.r.length-1-b])b++;
+  return{s:ed.s+a,e:ed.e-b,r:ed.r.slice(a,ed.r.length-b)}}
+function contentPass(doc,body,o,rep){
+  const note=m=>{rep.notes=rep.notes||[];if(rep.notes.length<60)rep.notes.push(m)};
+  /* 1. thiếu nhãn “Câu 1.” */
+  if(o.fixlbl!==false){let n=0;
+    [body].concat(all(body,'tc')).forEach(c=>{const r=lblMissing(cellParas(c));
+      if(r){const sn=pModel(r.p).S.replace(/[\u0001\u0002]/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
+        applyEdit(r.p,{s:r.pos,e:r.pos,r:'Câu '+r.n+'. ',k:'lbl'});n++;
+        note('Đã thêm nhãn “Câu '+r.n+'.” còn thiếu trước: “'+sn+'…”')}});
+    rep.fix('Thêm nhãn “Câu 1.” còn thiếu trước câu trắc nghiệm đầu tiên',n)}
+  /* 2. điền đáp án trắc nghiệm còn để trống (chỉ khi tính được chắc chắn) */
+  if(o.fixkey!==false){let n=0;
+    keyJobs(body).forEach(j=>{
+      if(j.letter||!j.sol)return;
+      const S=pModel(j.p).S,L=S.replace(/\s+$/,'').length;
+      applyEdit(j.p,{s:S.length,e:S.length,r:(S.length>L&&S[S.length-1]===' '?'':' ')+j.sol,k:'key'});n++;
+      note('Đã điền đáp án Câu '+j.n+' = '+j.sol+' (tự tính từ đề) — hãy xem lại trước khi dùng.')});
+    rep.fix('Điền đáp án trắc nghiệm còn để trống (tự tính từ đề)',n)}
+  /* 3. kết quả “ta có x|y = …” sai */
+  if(o.fixmath!==false){let n=0;
+    all(body,'p').forEach(p=>{const r=taCoCheck(p);if(!r)return;
+      const ed=trimEd(r.S,{s:r.s,e:r.e,r:r.nr});applyEdit(p,{s:ed.s,e:ed.e,r:ed.r,k:'math'});n++;
+      note('Đã sửa kết quả sai: “'+r.eq+' ta có '+r.v+' = '+r.old+'” → “'+r.v+' = '+r.nr+'” (tính lại từ phương trình).')});
+    rep.fix('Sửa kết quả giải phương trình bậc nhất hai ẩn bị sai (tự tính lại)',n)}
+  /* 4. “hai HĐ” chép nhầm sang hoạt động không có HĐ nào */
+  if(o.fixcopy!==false){let n=0;
+    copyIssues(body).forEach(c=>{if(!c.tn)return;
+      applyEdit(c.p,{s:c.at,e:c.at+c.len,r:'các câu hỏi trắc nghiệm',k:'copy'});n++;
+      note('Đã sửa câu chữ sao chép nhầm “hai HĐ” → “các câu hỏi trắc nghiệm” (hoạt động này không có HĐ nào).')});
+    rep.fix('Sửa câu chữ sao chép nhầm từ hoạt động khác (“hai HĐ”)',n)}
+  all(body,'t').forEach(setXS)}
+/* Comment cho những chỗ không tự sửa được / cần người xem (dùng cả ở chế độ chỉ kiểm tra) */
+function lintContent(body,o,add){
+  const off=o.lintOff||{};if(off.struct)return;
+  try{keyJobs(body).forEach(j=>{
+    const lab=[{s:j.S.search(/\S/),e:j.S.replace(/\s+$/,'').length}];
+    if(!j.letter){add(j.p,'đáp án câu '+j.n+' còn để trống'+(j.sol?' — tính ra đáp án là '+j.sol:' — hãy điền đáp án'),lab)}
+    else if(j.sol&&j.sol!==j.letter)add(j.p,'đáp án câu '+j.n+' ghi '+j.letter+' nhưng tính từ đề ra '+j.sol+' — hãy kiểm tra',lab)})}catch(e){}
+  try{[body].concat(all(body,'tc')).forEach(c=>{const r=lblMissing(cellParas(c));
+    if(r)add(r.p,'thiếu nhãn “Câu '+r.n+'.” — phía sau là “Câu 2.”',[{s:r.pos,e:Math.min(pModel(r.p).S.length,r.pos+12)}])})}catch(e){}
+  try{all(body,'p').forEach(p=>{const r=taCoCheck(p);
+    if(r)add(p,'kết quả giải sai: “'+r.eq+' ta có '+r.v+' = '+r.old+'” — tính lại ra '+r.v+' = '+r.nr,[{s:r.s,e:r.e}])})}catch(e){}
+  try{copyIssues(body).forEach(c=>add(c.p,'nhắc “hai HĐ” nhưng hoạt động này không có HĐ nào — nội dung có thể sao chép nhầm từ hoạt động trước',[{s:c.at,e:c.at+c.len}]))}catch(e){}}
+
 /* ====================== CÁC BƯỚC RÀ SOÁT ====================== */
 function stripNoise(doc){
   all(doc,'proofErr').forEach(rm);all(doc,'lastRenderedPageBreak').forEach(rm);
@@ -717,6 +890,7 @@ function textPass(body,o,rep,tag){
     if(b0!==a0){rep.changes=rep.changes||[];if(rep.changes.length<300)rep.changes.push({n:idx,t:tag||'',b:b0,a:a0})}});
   rep.fix('Dọn khoảng trắng thừa, ký tự ẩn, NBSP (chỗ)',cnt.sp||0);
   rep.fix('Sửa khoảng cách quanh dấu câu: trước/sau dấu chấm, phẩy, hai chấm, ngoặc (chỗ)',cnt.pu||0);
+  rep.fix('Xóa dấu chấm thừa (vd “. Phương trình…” đầu đoạn, “B. .x”)',cnt.sd||0);
   rep.fix('Gộp dấu câu lặp (,, ;; ..)',cnt.dp||0);
   rep.fix('Bỏ từ chức năng bị lặp liền nhau (vd “của của”)',cnt.dw||0);
   rep.fix('Sửa lỗi chính tả thường gặp (vd “xác xuất” → “xác suất”) (chỗ)',cnt.cw||0);
@@ -2192,6 +2366,7 @@ async function auditOnce(buf,o,hooks){
   step('Track Changes/Comment',()=>reviewMarks(doc,o,rep));
   step('gộp đoạn chữ rời rạc',()=>mergeRuns(doc));
   if(o.text)step('dọn văn bản',()=>textPass(body,o,rep));
+  if(o.content!==false&&!o.dry)step('sửa lỗi nội dung giáo án/bài tập',()=>contentPass(doc,body,o,rep));
   if(o.unify!==false)step('thống nhất nhãn',()=>unifyLabels(body,o,rep));
   if(o.cap)step('viết hoa đầu đoạn',()=>capPass(body,o,rep));
   if(o.ai)await astep('AI soát chính tả',()=>aiPass(body,o,rep,hooks));
@@ -2941,6 +3116,8 @@ function buildUI(){
   +cb('mcq','Tự căn đáp án A, B, C, D thẳng hàng, cách đều nhau (ngắn: 1 hàng 4 cột · vừa: 2 hàng × 2 cột · dài: mỗi đáp án 1 dòng); giữ câu hỏi đi cùng đáp án, không tách trang',1)
   +'<div class="raR">Kiểu xếp đáp án: <select id="ra_mcqmode"><option value="auto">Tự chọn theo độ dài đáp án</option><option value="two">Ưu tiên 2 × 2 (A B / C D)</option><option value="one">Mỗi đáp án một dòng</option></select></div>'
   +cb('mcqdot','Tự thêm dấu chấm (.) cuối mỗi đáp án A, B, C, D nếu còn thiếu',1)+cb('mcqstem','Bỏ thụt lề lệch của dòng “Câu n.” để các câu thẳng hàng với nhau (bỏ qua nếu bật “thụt đầu dòng 1 cm”)',1)+'</details>'
+  +'<details class="raG" open><summary>🛠 Sửa lỗi nội dung (giáo án, bài tập) — chỉ sửa khi tính được chắc chắn</summary>'
+  +cb('fixdot','Xóa dấu chấm thừa gõ nhầm (vd “. Phương trình…” đầu đoạn, “B. .x – 2y”)',1)+cb('fixlbl','Thêm nhãn “Câu 1.” còn thiếu khi câu trắc nghiệm đầu tiên bị mất nhãn (phía sau đã là “Câu 2.”)',1)+cb('fixkey','Điền đáp án trắc nghiệm còn để trống khi tự tính được từ đề (phương trình bậc nhất hai ẩn); đáp án ghi sai chỉ gắn Comment',1)+cb('fixmath','Sửa kết quả sai dạng “… ta có x = …” / “… ta có y = …” bằng cách tính lại từ phương trình bậc nhất hai ẩn',1)+cb('fixcopy','Sửa câu chữ sao chép nhầm “hai HĐ” vào hoạt động trắc nghiệm không có HĐ nào',1)+'</details>'
   +'<details class="raG"><summary>📄 Trang, ngắt trang, tiêu đề</summary>'
   +cb('blank','Xóa dòng trống thừa và ngắt trang thừa (trang trắng)',1)+cb('keep','Giữ tiêu đề/câu hỏi/hình đi cùng đoạn sau; bỏ ràng buộc gây đẩy đoạn sang trang mới',1)+cb('softbreak','Bỏ ngắt trang cứng (Ctrl+Enter) đặt trước “PHẦN / Câu / Bài” để hết khoảng trống cuối trang (vẫn giữ ngắt trang trước ĐỀ / ĐÁP ÁN / MA TRẬN)',1)
   +cb('page','Đưa khổ giấy về A4 và lề chuẩn:',1)+'<div class="raR">Mẫu lề: <select id="ra_marg"><option value="compact" selected>Đề thi gọn (14/12/25/12 mm) — khuyên dùng</option><option value="exam">Đề thi (15/15/30/15 mm)</option><option value="admin">Văn bản hành chính (20/20/30/15 mm)</option><option value="custom">Tùy chỉnh</option></select> <span class="note" style="margin:0">(thứ tự: Trên/Dưới/Trái/Phải; trang khổ ngang luôn dùng lề hẹp 8/8/10/10 để bảng đủ chỗ)</span></div><div class="raR">Lề (mm): Trên '+num('mt',12)+' Dưới '+num('mb',12)+' Trái '+num('ml',20)+' Phải '+num('mr',12)+'</div>'
@@ -3022,7 +3199,7 @@ function readOpts(){
   const c=id=>g('ra_'+id).checked,v=id=>g('ra_'+id).value,n=id=>parseFloat(String(v(id)).replace(',','.'));
   const o={text:c('text'),indent:c('indent'),num:c('num'),font:v('font'),size:v('size'),line:+v('line'),after:+v('after'),spacing:c('spacing'),justify:c('justify'),firstLine:c('firstLine'),shd:c('shd'),color:c('color'),
     blank:c('blank'),keep:c('keep'),page:c('page'),mt:n('mt'),mb:n('mb'),ml:n('ml'),mr:n('mr'),pgnum:c('pgnum'),fitPages:c('fitpages'),fields:c('fields'),compat:c('compat'),
-    tbl:c('tbl'),tblfit:c('tblfit'),forcesz:c('forcesz'),onepage:c('onepage'),tblborder:c('tblborder'),tblkeep:c('tblkeep'),tbljust:c('tbljust'),listfix:c('listfix'),softbreak:c('softbreak'),imgMaxH:+v('imgmax'),mcq:c('mcq'),mcqMode:v('mcqmode'),mcqStem:c('mcqstem'),mcqDot:c('mcqdot'),imgInline:c('imgInline'),imgFix:c('imgFix'),latex:c('latex'),mathsz:c('mathsz'),ai:c('ai'),aiExam:c('aiexam'),aiVerify:c('aiverify'),aiInfo:v('aiinfo'),aiModel:v('model'),aiModelV:v('modelv'),aiComment:c('aicmt'),aiGrade:v('aigrade'),aiKind:v('aikind'),accept:c('accept'),nocmt:c('nocmt'),quotes:c('quotes'),phead:c('phead'),mark:c('mark'),hl:c('hl'),verify:c('verify'),track:c('track'),aiMode:v('aimode'),spell:c('spell'),unify:c('unify'),decimal:c('decimal')?'comma':'',cap:c('cap'),dry:c('dry'),
+    tbl:c('tbl'),tblfit:c('tblfit'),forcesz:c('forcesz'),onepage:c('onepage'),tblborder:c('tblborder'),tblkeep:c('tblkeep'),tbljust:c('tbljust'),listfix:c('listfix'),softbreak:c('softbreak'),imgMaxH:+v('imgmax'),mcq:c('mcq'),mcqMode:v('mcqmode'),mcqStem:c('mcqstem'),mcqDot:c('mcqdot'),imgInline:c('imgInline'),imgFix:c('imgFix'),latex:c('latex'),mathsz:c('mathsz'),ai:c('ai'),aiExam:c('aiexam'),aiVerify:c('aiverify'),aiInfo:v('aiinfo'),aiModel:v('model'),aiModelV:v('modelv'),aiComment:c('aicmt'),aiGrade:v('aigrade'),aiKind:v('aikind'),accept:c('accept'),nocmt:c('nocmt'),quotes:c('quotes'),phead:c('phead'),mark:c('mark'),hl:c('hl'),verify:c('verify'),track:c('track'),aiMode:v('aimode'),spell:c('spell'),unify:c('unify'),decimal:c('decimal')?'comma':'',cap:c('cap'),dry:c('dry'),fixdot:c('fixdot'),fixlbl:c('fixlbl'),fixkey:c('fixkey'),fixmath:c('fixmath'),fixcopy:c('fixcopy'),
     lintOff:{typo:!c('l_typo'),dup:!c('l_dup'),bracket:!c('l_bracket'),quote:!c('l_quote'),dollar:!c('l_dollar'),punct:!c('l_punct'),lower:!c('l_lower'),mid:!c('l_mid'),noend:!c('l_noend'),struct:!c('l_struct'),pts:!c('l_pts'),key:!c('l_key'),xref:!c('l_xref'),c_colon:!c('c_colon'),c_unit:!c('c_unit'),c_ky:!c('c_ky'),c_ki:!c('c_ki')},
     sevOn:{1:c('s_err'),2:c('s_sus'),3:c('s_sug')},conv:{colon:v('conv_colon'),unit:v('conv_unit')},meta:c('meta')};
   if([o.mt,o.mb,o.ml,o.mr].some(x=>!isFinite(x)||x<0||x>100)||o.ml+o.mr>=150||o.mt+o.mb>=200)throw new Error('Lề không hợp lệ (0–100 mm; trái+phải < 150, trên+dưới < 200).');
@@ -3103,7 +3280,7 @@ function wire(){
   ['dragover','drop'].forEach(ev=>g('wtAudit').addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'&&e.dataTransfer)addFiles(e.dataTransfer.files)}));
   g('ra_preset').onclick=()=>{
     g('ra_font').value='Times New Roman';g('ra_size').value='14';g('ra_line').value='1.15';g('ra_after').value='6';
-    ['justify','page','text','indent','num','tbl','tblfit','forcesz','onepage','tblkeep','softbreak','mcq','mcqdot','mcqstem','imgFix','quotes','phead','mark','hl','verify','spell','unify'].forEach(k=>g('ra_'+k).checked=true);
+    ['justify','page','text','indent','num','tbl','tblfit','forcesz','onepage','tblkeep','softbreak','mcq','mcqdot','mcqstem','imgFix','quotes','phead','mark','hl','verify','spell','unify','fixdot','fixlbl','fixkey','fixmath','fixcopy'].forEach(k=>g('ra_'+k).checked=true);
     g('ra_dry').checked=false;g('ra_firstLine').checked=false;
     g('ra_marg').value='compact';setMargins('compact');
     setSt('Đã đặt: Times New Roman 14pt, giãn dòng 1,15, căn đều, không thụt đầu dòng, A4, lề đề thi gọn 14/12/25/12 mm (khổ ngang: 8/8/10/10 mm), bảng dùng cỡ chữ chuẩn. Bấm “Rà soát & Xuất file” để chạy.','o')};
