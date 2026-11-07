@@ -63,7 +63,7 @@ const pbOnly=p=>p.localName==='p'&&p.namespaceURI===W&&hasPB(p)&&!all(p,'t').som
    NÂNG CẤP v2 — mô hình văn bản cấp ĐOẠN · sửa dấu câu · bắt lỗi gõ sai ·
    đánh dấu Comment tại chỗ · Track Changes · kiểm lại nhiều vòng
    ==================================================================== */
-const VERSION='v17-khbd-mau-loi-giao-an (v17: đọc ký hiệu w:sym (∈ ℝ…) cho AI, đặt ngôn ngữ tiếng Việt cho từng run, dấu trừ số âm “= - 0,5”, thiếu cách trước “+”, chữ thường đầu đoạn trong ô bảng, dấu phẩy cuối đoạn, gạch đầu dòng giữa đoạn, hết báo nhầm số thập phân do phép nhân/“Bài 1.1”; thêm: tự sửa “trọng tại”, “gọi tiếp xúc”, “a à đường”, viết hoa “Ổn định tổ chức” / “Luyện tập” / đầu câu “Vì…”; hết báo nhầm công thức A(x), thời gian có ổn định + hướng dẫn về nhà, bước 2–4 dùng chung ô bảng, “song song”, nhãn a) b) c); thêm cảnh báo: số HĐ lệch cột, tên hoạt động lệch tên bài, nhảy số hoạt động, “Chuẩn bị bài sau” khi tiết sau cùng bài, số HS ≠ “hai bạn”); nền v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
+const VERSION='v18 (v18: tự sửa “ưo”→“ươ”, kiểm tra “cặp số là/không là nghiệm” bằng cách thay số, cảnh báo tổng thời lượng lệch khi >60 phút và không là bội của 45); nền v17-khbd-mau-loi-giao-an (v17: đọc ký hiệu w:sym (∈ ℝ…) cho AI, đặt ngôn ngữ tiếng Việt cho từng run, dấu trừ số âm “= - 0,5”, thiếu cách trước “+”, chữ thường đầu đoạn trong ô bảng, dấu phẩy cuối đoạn, gạch đầu dòng giữa đoạn, hết báo nhầm số thập phân do phép nhân/“Bài 1.1”; thêm: tự sửa “trọng tại”, “gọi tiếp xúc”, “a à đường”, viết hoa “Ổn định tổ chức” / “Luyện tập” / đầu câu “Vì…”; hết báo nhầm công thức A(x), thời gian có ổn định + hướng dẫn về nhà, bước 2–4 dùng chung ô bảng, “song song”, nhãn a) b) c); thêm cảnh báo: số HĐ lệch cột, tên hoạt động lệch tên bài, nhảy số hoạt động, “Chuẩn bị bài sau” khi tiết sau cùng bài, số HS ≠ “hai bạn”); nền v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
 const BAR='\u0001',MTH='\u0002',CTNS='http://schemas.openxmlformats.org/package/2006/content-types',RELNS='http://schemas.openxmlformats.org/package/2006/relationships';
 const TRK={on:false,id:900000,author:'Rà soát tự động',date:''};
 let PSEUDO=true;
@@ -204,6 +204,8 @@ function paraRules(S,o){
     let a=0;while(a<mt.length&&a<w.length&&mt[a]===w[a])a++;
     let b=0;while(b<mt.length-a&&b<w.length-a&&mt[mt.length-1-b]===w[w.length-1-b])b++;
     add(m.index+a,m.index+mt.length-b,w.slice(a,w.length-b),'cw')}
+  /* [v18] lỗi gõ Telex “ưo” → “ươ” (phưong, thưong, đưoc, nưoc…): tiếng Việt không có vần “ưo”, nên sửa chắc chắn */
+  if(o.spell!==false)for(m of S.matchAll(/(?<=\p{L})ư(o)(?=(?:ng|nh|ch|c|i|m|n|p|t|u)?(?![\p{L}]))/giu))add(m.index+1,m.index+2,m[1]==='O'?'Ơ':'ơ','cw');
   /* [v6] lỗi gõ "cáng … càng …" (vd "cáng sớm càng tốt" → "càng sớm càng tốt") */
   if(o.spell!==false)for(m of S.matchAll(/(?<![\p{L}\p{N}])([Cc])áng(?= \p{L}+ càng(?![\p{L}\p{N}]))/gu))add(m.index+1,m.index+2,'à','cw');
   /* số thập phân: đưa về dấu phẩy (tuỳ chọn) — bỏ qua số hiệu mục/hình/bảng, ngày tháng, số điện thoại */
@@ -484,7 +486,7 @@ function lintConsist(body,o,add,rep){
 /* [v8] Mức độ cảnh báo: 1 = LỖI (chắc chắn sai) · 2 = NGHI NGỜ (cần người xem) · 3 = GỢI Ý (không bắt buộc). Tô màu: đỏ · vàng · lục lam */
 const SEV_NAME={1:'LỖI',2:'NGHI NGỜ',3:'GỢI Ý'},SEV_HL={1:'red',2:'yellow',3:'cyan'};
 const SEV_RULES=[
-  [1,/^(phép tính sai|thời gian không khớp|số câu bị trùng|điểm không khớp|tổng điểm các Phần = .* nhưng đề ghi|còn mã LaTeX|còn nội dung giữ chỗ|dấu \$ lẻ|đáp án ghi là|đáp án [A-D] và [A-D]|đáp án câu \d|kết quả giải sai|thiếu nhãn “Câu|chú thích “[^”]+” bị trùng)/],
+  [1,/^(phép tính sai|thời gian không khớp|số câu bị trùng|điểm không khớp|tổng điểm các Phần = .* nhưng đề ghi|còn mã LaTeX|còn nội dung giữ chỗ|dấu \$ lẻ|đáp án ghi là|đáp án [A-D] và [A-D]|đáp án câu \d|kết quả giải sai|cặp số không thỏa|thiếu nhãn “Câu|chú thích “[^”]+” bị trùng)/],
   [3,/^(câu chưa có dấu chấm|câu dẫn chưa có dấu kết thúc|có ký hiệu toán gõ dạng chữ|AI gợi ý)/]
 ];
 function sevOf(m){for(const [s,re] of SEV_RULES)if(re.test(m))return s;return 2}
@@ -888,7 +890,8 @@ function lintContent(body,o,add){
   try{all(body,'p').forEach(p=>{const r=taCoCheck(p);
     if(r)add(p,'kết quả giải sai: “'+r.eq+' ta có '+r.v+' = '+r.old+'” — tính lại ra '+r.v+' = '+r.nr,[{s:r.s,e:r.e}])})}catch(e){}
   try{copyIssues(body).forEach(c=>add(c.p,'nhắc “hai HĐ” nhưng hoạt động này không có HĐ nào — nội dung có thể sao chép nhầm từ hoạt động trước',[{s:c.at,e:c.at+c.len}]))}catch(e){}
-  try{arithLint(body,add)}catch(e){}}
+  try{arithLint(body,add)}catch(e){}
+  try{pairLint(body,add)}catch(e){}}
 
 /* ====================== [v14] CẢI TIẾN THEO ĐỀ XUẤT RÀ SOÁT KHBD ======================
    1) Kiểm tra thời gian (mốc “(n phút)” so với 45 phút/tiết; mục A–D = tổng các HĐ)   2) Kiểm tra & tự sửa phép tính số học sai
@@ -1021,6 +1024,27 @@ function arithFix(doc,body,o,rep,note){
       applyEdit(p,{s:h.s,e:h.e,r:txt,k:'ar'});n++;
       note('Đã sửa phép tính sai: “'+h.lhs+' = '+old+'” → “'+h.lhs+' = '+txt+'” (tính lại).')}});
   rep.fix('Sửa kết quả phép tính số học sai (tự tính lại)',n)}
+/* [v18] “Cặp số (a; b) là / không là nghiệm của phương trình …”: thay vào phương trình để kiểm tra (phương trình có thể nằm ở đoạn kế tiếp) */
+function pairLint(body,add){
+  const ps=all(body,'p').filter(p=>!anc(p,'txbxContent'));
+  const num=t=>lnConst(String(t).replace(/\s+/g,''),false),fm=x=>String(+(+x).toFixed(6)).replace('.',',');
+  ps.forEach((p,i)=>{
+    const S=pModel(p).S.replace(/[\u0001\u0002]/g,' '),m=/(?:cặp số|cặp)\s*\(\s*([^;()]+?)\s*;\s*([^;()]+?)\s*\)\s*(không\s+)?(?:là|làm)\s+(?:một\s+)?nghiệm\s+của\s+(?:phương trình\s*)?:?\s*([^\n]*)$/i.exec(S);
+    if(!m)return;
+    let rest=m[4].trim();
+    if(!/=/.test(rest)&&i+1<ps.length)rest=pModel(ps[i+1]).S.replace(/[\u0001\u0002]/g,' ').trim();
+    const em=/^([\dxy+\-\u2212\u2013.,()\s]+=[\dxy+\-\u2212\u2013.,()\s]+?)(?=\s*(?:[;,]|\bvì\b|\bnên\b|\bthì\b|\.\s|\.?$))/i.exec(rest);
+    if(!em)return;
+    const e=lnEq(em[1]),x0=num(m[1]),y0=num(m[2]);
+    if(!e||x0===null||y0===null||(e.a===0&&e.b===0))return;
+    const val=e.a*x0+e.b*y0,holds=Math.abs(val-e.c)<1e-9,neg=!!m[3];
+    if(holds!==neg)return;
+    let hint='';
+    if(!neg)for(const [sx,sy] of [[1,-1],[-1,1],[-1,-1]])if(Math.abs(e.a*x0*sx+e.b*y0*sy-e.c)<1e-9){hint=' — cặp số đúng có thể là ('+fm(x0*sx)+'; '+fm(y0*sy)+')';break}
+    const msg=neg?'cặp số không thỏa phương trình: ghi “('+m[1]+'; '+m[2]+') không là nghiệm” nhưng thay vào “'+em[1].trim()+'” thì đúng'
+      :'cặp số không thỏa phương trình: ghi “('+m[1]+'; '+m[2]+') là nghiệm” nhưng thay vào “'+em[1].trim()+'” ra '+fm(val)+' ≠ '+fm(e.c)+hint;
+    const s0=S.search(/(?:cặp số|cặp)\s*\(/i),e0=S.indexOf(')',s0)+1;
+    add(p,msg,[{s:s0,e:e0}])})}
 function arithLint(body,add){
   all(body,'p').forEach(p=>{
     if(anc(p,'txbxContent'))return;
@@ -1103,7 +1127,7 @@ function lintLesson(body,o,add,rep){
   const bnd=[0].concat(cuts.filter(i=>i>0)).filter((v,k,a)=>a.indexOf(v)===k).sort((a,b)=>a-b);
   bnd.forEach((b,k)=>{const e=k+1<bnd.length?bnd[k+1]:PA0.length,PA=PA0.slice(b,e),S=S0.slice(b,e);
     if(!PA.length)return;
-    try{lintLessonSeg(body,o,add,rep,{PA,S,skip3:k>0})}catch(err){rep.warn('Kiểm tra KHBD phần '+(k+1)+' gặp lỗi nên đã bỏ qua: '+err.message)}});
+    try{lintLessonSeg(body,o,add,rep,{PA,S,skip3:k>0,pre:k>=1?S0.slice(bnd[k-1],b).filter(x=>/^[^\p{L}]*ổn định/iu.test(cl(x))):[]})}catch(err){rep.warn('Kiểm tra KHBD phần '+(k+1)+' gặp lỗi nên đã bỏ qua: '+err.message)}});
   /* công thức dạng Ax<B(x) (thiếu ngoặc ở A(x)) */
   all(body,'oMath',M).forEach(om=>{const t=mathTxtD(om).replace(/\s+/g,''),p=anc(om,'p');
     if(p&&/^[A-Z]x\d?[<>≤≥=][A-Z]\(x\d?\)$/.test(t))add(p,'công thức “'+t+'” có thể thiếu ngoặc ở vế trái — nên viết dạng A(x) < B(x) (và A(x₀) < B(x₀))')});
@@ -1133,7 +1157,7 @@ function lintLessonSeg(body,o,add,rep,seg){
   const PA=seg.PA,S=seg.S,T=S.map(clean);
   const first=Math.max(0,T.findIndex(t=>/\p{L}/u.test(t)));
   const tmOf=s=>{const m=/\(\s*(\d{1,3})\s*(?:phút|ph)\s*\)/i.exec(s)||/[-\u2013:]\s*(\d{1,3})\s*phút\s*$/i.exec(s);return m?{v:+m[1],m:m[0]}:null};
-  const SEC=/^([A-D])\s*[.)]\s+(.{3,})$/,SECK=/HOẠT ĐỘNG|KHỞI ĐỘNG|MỞ ĐẦU|HÌNH THÀNH|LUYỆN TẬP|VẬN DỤNG/i,ACT=/^(?:HOẠT ĐỘNG|Hoạt động|Hoạt Động|HĐ)\s*(\d+)\b/;
+  const SEC=/^([A-D])\s*[.):]\s*(.{3,})$/,SECK=/HOẠT ĐỘNG|KHỞI ĐỘNG|MỞ ĐẦU|HÌNH THÀNH|LUYỆN TẬP|VẬN DỤNG/i,ACT=/^(?:HOẠT ĐỘNG|Hoạt động|Hoạt Động|HĐ)\s*(\d+)\b/;
   const KIND=[['KĐ',/KHỞI ĐỘNG|MỞ ĐẦU/i,'khởi động/mở đầu','A'],['HT',/HÌNH THÀNH/i,'hình thành kiến thức','B'],['LT',/LUYỆN TẬP/i,'luyện tập','C'],['VD',/VẬN DỤNG/i,'vận dụng','D']];
   const secs=[],acts=[],bound=[];let cur=null;
   T.forEach((t,i)=>{let m;
@@ -1159,9 +1183,9 @@ function lintLessonSeg(body,o,add,rep,seg){
     else if(!secT.length){const at=acts.filter(a=>a.min!=null);if(at.length>=2){items=at;label=at.map(a=>'HĐ'+a.n).join(' + ')}}
     if(items){
       const EX=(()=>{let v=0;const lb=[];let a1=false,b1=false;   /* [v16] cộng thêm phút “ổn định tổ chức” và “hướng dẫn về nhà” (trước đây bị bỏ → báo nhầm lệch giờ) */
-        T.forEach(t=>{if(t.length>160)return;let m1;const mm=/\(\s*(\d{1,2})\s*(?:phút|ph)\s*\)/i;
+        (T.concat((seg.pre||[]).map(clean))).forEach(t=>{if(t.length>160)return;let m1;const mm=/\(\s*(\d{1,2})\s*(?:phút|ph)\s*\)/i;
           if(!a1&&/^[^\p{L}]*ổn định/iu.test(t)&&(m1=mm.exec(t))){a1=true;v+=+m1[1];lb.push('ổn định')}
-          else if(!b1&&/^[^\p{L}]*hướng dẫn (?:về nhà|công việc ở nhà)/iu.test(t)&&(m1=mm.exec(t))){b1=true;v+=+m1[1];lb.push('hướng dẫn về nhà')}});
+          else if(!b1&&/^[^\p{L}]*(?:(?:IV|V|VI)\s*[.):]\s*)?hướng dẫn(?: học bài)?(?: (?:về nhà|công việc ở nhà|ở nhà))/iu.test(t)&&(m1=mm.exec(t))){b1=true;v+=+m1[1];lb.push('hướng dẫn về nhà')}});
         return{v,lb}})();
       const sum=items.reduce((q,x)=>q+x.min,0)+EX.v;if(EX.lb.length)label+=' + '+EX.lb.join(' + ');let exp=null,expl=false,m;
       for(let i=0;i<Math.min(T.length,60)&&exp===null;i++){
@@ -1169,7 +1193,7 @@ function lintLessonSeg(body,o,add,rep,seg){
         else if((m=/(?:thời lượng|thời gian thực hiện)[^.]{0,40}?(\d+)\s*phút/i.exec(T[i]))){exp=+m[1];expl=true}}
       const tgt=items[0],at=tgt.i!==undefined?PA[tgt.i]:PA[first],rg=tgt.tm?sR(S[tgt.i],tgt.tm):null;
       if(exp!==null){if(sum!==exp)add(at,'thời gian không khớp: '+label+' cộng lại '+sum+' phút, nhưng thời lượng ghi '+exp+' phút (45 phút/tiết)',rg)}
-      else if(sum>=30&&sum<=60&&sum!==45)add(at,'thời gian có thể chưa khớp: '+label+' cộng lại '+sum+' phút, trong khi một tiết là 45 phút (không thấy ghi thời lượng khác trong đầu bài)',rg)}}
+      else if((sum>=30&&sum<=60&&sum!==45)||(sum>60&&sum<=180&&sum%45!==0))add(at,'thời gian có thể chưa khớp: '+label+' cộng lại '+sum+' phút, trong khi một tiết là 45 phút (hoặc bội của 45 nếu bài nhiều tiết; không thấy ghi thời lượng khác trong đầu bài)',rg)}}
   /* ---- 2. CẤU TRÚC THEO CV 5512 ---- */
   {const H=[['I',/^I\s*[.)]\s*(?:MỤC TIÊU|Mục tiêu)/,'I. Mục tiêu'],['II',/^II\s*[.)]\s*(?:THIẾT BỊ|Thiết bị|CHUẨN BỊ|Chuẩn bị)/,'II. Thiết bị dạy học và học liệu'],['III',/^III\s*[.)]\s*(?:TIẾN TRÌNH|Tiến trình)/,'III. Tiến trình dạy học']];
     const pos=H.map(h=>T.findIndex(t=>t.length<=160&&h[1].test(t))),found=pos.filter(x=>x>=0).length;
@@ -3485,22 +3509,22 @@ function setMargins(k){const m=MARGINS[k];if(!m)return;['mt','mb','ml','mr'].for
 function buildUI(){
   if(g('wtAudit'))return;
   const st=document.createElement('style');
-  st.textContent='#wtAudit .raG{border:1px solid rgba(128,128,128,.35);border-radius:10px;margin:8px 0;padding:6px 10px}#wtAudit summary{cursor:pointer;font-weight:600;padding:4px 0}#wtAudit .raC{display:block;margin:5px 0;font-size:14px;line-height:1.4}#wtAudit .raR{margin:5px 0;font-size:14px}#wtAudit .raRes{border:1px solid rgba(128,128,128,.35);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:14px}#wtAudit .raRes ul{margin:4px 0 4px 18px;padding:0}#wtAudit .raRes li{margin:2px 0}';
+  st.textContent='#wtAudit .raG{border:1px solid rgba(128,128,128,.35);border-radius:10px;margin:8px 0;padding:6px 10px}#wtAudit summary{cursor:pointer;font-weight:600;padding:4px 0;display:list-item}#wtAudit details:not([open])>*:not(summary){display:none!important}#wtAudit .raC{display:block;margin:5px 0;font-size:14px;line-height:1.4}#wtAudit .raR{margin:5px 0;font-size:14px}#wtAudit .raRes{border:1px solid rgba(128,128,128,.35);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:14px}#wtAudit .raRes ul{margin:4px 0 4px 18px;padding:0}#wtAudit .raRes li{margin:2px 0}';
   document.head.appendChild(st);
   const d=document.createElement('div');d.className='wtool';d.id='wtAudit';
   d.innerHTML='<div class="note">Đưa file .docx lên → công cụ tự rà soát và sửa lỗi bố cục, định dạng, bảng, hình, công thức, đánh số… rồi xuất file mới kèm báo cáo (đã gồm cả chức năng Chuẩn hóa Word). <b>Mới:</b> đưa file <b>.xlsx</b> lên → tự sửa lỗi dữ liệu (số/ngày lưu dạng chữ, công thức lỗi, cột hẹp ####, thiếu viền…) rồi căn trang in sẵn sàng in (A4, hướng ngang/dọc, lề, vùng in, vừa trang); mục Excel bên dưới chỉ áp dụng cho file .xlsx. <b>File gốc không bị thay đổi.</b> File xuất ra được tự kiểm tra cấu trúc; nếu có nguy cơ lỗi, công cụ tự thử lại ở chế độ an toàn. Mặc định đã chọn các mục an toàn; mở từng nhóm để tinh chỉnh.</div>'
   +'<div class="bar"><button class="ghost sm" id="ra_preset" type="button">⚡ Chuẩn hóa nhanh: Times New Roman 14, A4, lề đề thi gọn 14/12/25/12</button></div>'
   +'<div class="bar"><input type="file" id="ra_in" accept=".docx,.xlsx" multiple style="display:none"><button class="ghost" id="ra_pick" type="button">📁 Chọn file .docx / .xlsx (nhiều file / kéo thả vào đây)</button><button class="sec sm" id="ra_clear" type="button">🗑 Xóa danh sách</button></div><div id="ra_list"></div>'
-  +'<details class="raG" open><summary>📝 Văn bản &amp; định dạng</summary>'
+  +'<details class="raG"><summary>📝 Văn bản &amp; định dạng</summary>'
   +cb('text','Dọn khoảng trắng thừa, dấu cách trước dấu câu, ký tự ẩn, NBSP; chuẩn hóa dấu tiếng Việt (NFC)',1)+cb('indent','Bỏ Tab/dấu cách thụt đầu dòng thủ công',1)+cb('num','Đánh số lại “Câu/Bài” bị nhảy hoặc trùng (reset theo PHẦN/ĐỀ)',1)+cb('spell','Sửa lỗi chính tả thường gặp chắc chắn sai (vd “xác xuất”→“xác suất”, “bổ xung”→“bổ sung”, “xử dụng”→“sử dụng”)',1)+cb('unify','Thống nhất kiểu nhãn theo kiểu đa số: đáp án “A.” hay “A)”, nhãn “Câu 1.” hay “Câu 1:”',1)+cb('decimal','Đổi số thập phân 3.5 → 3,5 (bỏ qua số mục/hình/bảng, ngày tháng) — chỉ bật nếu tài liệu dùng dấu phẩy',0)+cb('cap','Tự viết hoa chữ đầu câu / đầu đoạn (chỉ khi chắc chắn; mặc định chỉ đánh dấu Comment)',0)+cb('quotes','Đổi ngoặc kép thẳng (") thành ngoặc kép cong “ ” khi mở/đóng đúng cặp',1)+cb('phead','Nhận diện tiêu đề không dùng style Heading (dòng ngắn in đậm hoặc IN HOA) để không căn đều/thụt dòng nhầm',1)
   +'<div class="raR">Font: <select id="ra_font"><option>Times New Roman</option><option>Arial</option><option>Calibri</option><option>Cambria</option><option value="">Giữ nguyên font</option></select> &nbsp; Cỡ chữ: <select id="ra_size"><option value="auto">Tự nhận diện</option><option value="12">12</option><option value="13">13</option><option value="14">14</option></select></div>'
   +'<div class="raR">Giãn dòng: <select id="ra_line"><option value="1">1.0</option><option value="1.15" selected>1.15</option><option value="1.3">1.3</option><option value="1.5">1.5</option></select> &nbsp; Sau đoạn (pt): <select id="ra_after"><option value="0">0</option><option value="3">3</option><option value="6" selected>6</option><option value="8">8</option></select></div>'
   +cb('spacing','Đồng nhất giãn dòng và khoảng cách đoạn theo 2 giá trị trên (bỏ tick để giữ nguyên giãn dòng/khoảng cách của file gốc)',1)+cb('justify','Căn đều hai bên cho đoạn văn dài (không đụng tiêu đề, danh sách, bảng, đoạn căn giữa/phải)',1)+cb('firstLine','Thụt đầu dòng 1 cm cho đoạn văn thường (tắt nếu là đề trắc nghiệm)',0)+cb('shd','Gỡ nền (shading) lạ khi dán từ web',1)+cb('color','Gỡ màu chữ và tô sáng (tắt nếu có đáp án tô màu)',0)+'</details>'
-  +'<details class="raG" open><summary>✅ Trắc nghiệm (đề kiểm tra)</summary>'
+  +'<details class="raG"><summary>✅ Trắc nghiệm (đề kiểm tra)</summary>'
   +cb('mcq','Tự căn đáp án A, B, C, D thẳng hàng, cách đều nhau (ngắn: 1 hàng 4 cột · vừa: 2 hàng × 2 cột · dài: mỗi đáp án 1 dòng); giữ câu hỏi đi cùng đáp án, không tách trang',1)
   +'<div class="raR">Kiểu xếp đáp án: <select id="ra_mcqmode"><option value="auto">Tự chọn theo độ dài đáp án</option><option value="two">Ưu tiên 2 × 2 (A B / C D)</option><option value="one">Mỗi đáp án một dòng</option></select></div>'
   +cb('mcqdot','Tự thêm dấu chấm (.) cuối mỗi đáp án A, B, C, D nếu còn thiếu',1)+cb('mcqstem','Bỏ thụt lề lệch của dòng “Câu n.” để các câu thẳng hàng với nhau (bỏ qua nếu bật “thụt đầu dòng 1 cm”)',1)+'</details>'
-  +'<details class="raG" open><summary>🛠 Sửa lỗi nội dung (giáo án, bài tập) — chỉ sửa khi tính được chắc chắn</summary>'
+  +'<details class="raG"><summary>🛠 Sửa lỗi nội dung (giáo án, bài tập) — chỉ sửa khi tính được chắc chắn</summary>'
   +cb('fixdot','Xóa dấu chấm thừa gõ nhầm (vd “. Phương trình…” đầu đoạn, “B. .x – 2y”)',1)+cb('fixlbl','Thêm nhãn “Câu 1.” còn thiếu khi câu trắc nghiệm đầu tiên bị mất nhãn (phía sau đã là “Câu 2.”)',1)+cb('fixkey','Điền đáp án trắc nghiệm còn để trống khi tự tính được từ đề (phương trình bậc nhất hai ẩn); đáp án ghi sai chỉ gắn Comment',1)+cb('fixmath','Sửa kết quả sai dạng “… ta có x = …” / “… ta có y = …” bằng cách tính lại từ phương trình bậc nhất hai ẩn',1)+cb('fixcopy','Sửa câu chữ sao chép nhầm “hai HĐ” vào hoạt động trắc nghiệm không có HĐ nào',1)+cb('fixarith','Sửa kết quả phép tính số học sai dạng “4.2 + 3.(-1) = 5” (dấu “.” là nhân); đoạn có từ “sai/không đúng/phút/điểm…” chỉ gắn Comment',1)+cb('unum','Thống nhất dấu trừ (− – -) và số thập phân (0,5 / 0.5) theo kiểu đa số; bỏ qua chỗ dấu “.” có thể là dấu nhân',1)+'</details>'
   +'<details class="raG"><summary>📄 Trang, ngắt trang, tiêu đề</summary>'
   +cb('blank','Xóa dòng trống thừa và ngắt trang thừa (trang trắng)',1)+cb('keep','Giữ tiêu đề/câu hỏi/hình đi cùng đoạn sau; bỏ ràng buộc gây đẩy đoạn sang trang mới',1)+cb('softbreak','Bỏ ngắt trang cứng (Ctrl+Enter) đặt trước “PHẦN / Câu / Bài” để hết khoảng trống cuối trang (vẫn giữ ngắt trang trước ĐỀ / ĐÁP ÁN / MA TRẬN)',1)
@@ -3510,7 +3534,7 @@ function buildUI(){
   +cb('tbl','Bảng: vừa lề, không cắt đôi hàng, lặp hàng tiêu đề, căn giữa ô ngắn, gỡ bảng trôi',1)+cb('tbljust','Bảng: ô hẹp (dưới ~5,6 cm) căn trái thay vì căn đều hai bên để hết giãn chữ',1)+cb('listfix','Danh sách a./b./c. tự động: căn lại thụt lề và khoảng cách sau nhãn cho đều nhau',1)+cb('tblkeep','Bảng nhỏ (dưới 1/5 trang): giữ nguyên cả bảng trên một trang. Bảng lớn vẫn được tách theo hàng để không chừa khoảng trống',1)+cb('tblborder','Thêm viền cho bảng nhiều hàng chưa có viền',0)+cb('onepage','Biểu mẫu/sổ vốn chỉ 1 trang: giữ nguyên trong 1 trang (nếu cần sẽ tự thu gọn giãn dòng, khoảng cách đoạn, cuối cùng là cỡ chữ, tối thiểu 12 pt)',1)+cb('forcesz','Ép mọi chữ nhỏ hơn cỡ đã chọn (vd 8–10 pt trong biểu mẫu/sổ) về đúng cỡ chữ đã chọn ở trên (không áp dụng khi chọn “Tự nhận diện”; không đụng chỉ số trên/dưới, tiêu đề)',1)+cb('tblfit','Bảng nhiều cột (sổ, biểu mẫu): dùng đúng cỡ chữ văn bản trong bảng và dàn độ rộng cột theo nội dung cho đủ chỗ ghi, vừa khổ giấy',1)
   +'<div class="raR">Chiều cao tối đa của hình/bản vẽ: <select id="ra_imgmax"><option value="0.4">40% trang (ít khoảng trống nhất)</option><option value="0.5" selected>50% trang</option><option value="0.65">65% trang</option><option value="0.95">Gần cả trang (kiểu cũ)</option></select></div>'+cb('imgInline','Hình: chuyển hình “trôi” thành hình cùng dòng (hết nhảy vị trí/che chữ)',1)+cb('imgFix','Hình: sửa méo, thu nhỏ hình tràn lề/ô bảng, căn giữa hình đứng riêng',1)
   +cb('latex','Công thức: chuyển LaTeX ($...$, \\(...\\), \\[...\\]) thành Equation của Word',1)+cb('mathsz','Công thức: đồng bộ font/cỡ chữ với văn bản',1)+'</details>'
-  +'<details class="raG" open><summary>📗 Excel (.xlsx): sửa lỗi &amp; căn trang in</summary>'
+  +'<details class="raG"><summary>📗 Excel (.xlsx): sửa lỗi &amp; căn trang in</summary>'
   +'<div class="note" style="margin:4px 0">Chỉ áp dụng cho file .xlsx. Số liệu hợp lệ được giữ nguyên; mã dài/số 0 đầu (mã định danh, SĐT) luôn giữ dạng chữ. Chỗ không chắc chắn chỉ cảnh báo trong báo cáo, không tự sửa.</div>'
   +'<div class="raR"><b>① Làm sạch &amp; sửa lỗi dữ liệu</b></div>'
   +cb('xclean','Dọn khoảng trắng thừa, dấu cách lạ (NBSP), ký tự ẩn; chuẩn hóa dấu tiếng Việt (NFC) để tìm kiếm/lọc/sắp xếp không sai',1)
@@ -3534,7 +3558,7 @@ function buildUI(){
   +cb('xstretch','Bảng vừa 1 trang mà còn trống phía dưới: tăng nhẹ độ cao dòng dữ liệu để bảng lấp đầy trang và căn chữ giữa ô',1)
   +cb('xtitles','Bảng dài nhiều trang: lặp dòng tiêu đề bảng ở đầu mỗi trang',1)
   +'<div class="raR">Ép vừa 1 trang nếu chữ sau khi thu nhỏ còn từ: <select id="ra_xmin"><option value="0.6">60% trở lên</option><option value="0.7" selected>70% trở lên</option><option value="0.8">80% trở lên</option></select> (nhỏ hơn thì chia nhiều trang, mỗi trang vẫn đủ cột)</div></details>'
-  +'<details class="raG" open><summary>🔎 Kiểm tra &amp; đánh dấu</summary>'
+  +'<details class="raG"><summary>🔎 Kiểm tra &amp; đánh dấu</summary>'
   +cb('mark','Đánh dấu bằng Comment tại chỗ cần kiểm tra tay (nghi gõ sai, ngoặc/ngoặc kép lệch, thiếu dấu chấm cuối, viết hoa, dấu câu lạ…)',1)
   +cb('hl','Tô màu đúng cụm chữ lỗi (đỏ: lỗi chắc chắn · vàng: nghi ngờ · lục lam: gợi ý) và neo Comment đúng chỗ đó — tắt thì Comment gắn cả đoạn',1)
   +cb('verify','Kiểm lại nhiều vòng: chạy lại rà soát trên file kết quả cho tới khi không còn lỗi tự sửa được',1)
@@ -3569,7 +3593,10 @@ function buildUI(){
   const tools=Array.from(t3.querySelectorAll('.wtool')),last=tools[tools.length-1];
   if(last)last.insertAdjacentElement('afterend',d);else t3.appendChild(d);
   const op=document.createElement('option');op.value='wtAudit';op.textContent='🔍 Rà soát & Chuẩn hóa toàn diện';sel.insertBefore(op,sel.options[1]||null);
-  wire()}
+  wire();
+  const closeAll=()=>d.querySelectorAll('details').forEach(x=>{x.open=false;x.removeAttribute('open')});
+  closeAll();setTimeout(closeAll,0);setTimeout(closeAll,600);
+  sel.addEventListener('change',()=>{if(sel.value==='wtAudit')closeAll()})}
 
 const q=[];
 const fsz=n=>n<1024?n+' B':n<1048576?(n/1024).toFixed(0)+' KB':(n/1048576).toFixed(1)+' MB';

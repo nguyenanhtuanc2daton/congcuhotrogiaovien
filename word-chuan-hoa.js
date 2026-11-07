@@ -5,7 +5,7 @@
    và bảng TYPO) rồi tăng số ?v= của word-chuan-hoa.js trong index.html. Phải đặt cụm không trùng/không chứa từ sai khác đã có để tránh sửa chồng lên nhau. */
 (function(){
   const core=[['bất phường','bất phương'],['phường trình','phương trình'],['như cầu','nhu cầu'],['trả lới','trả lời'],['hoạt đông','hoạt động'],['dự dịnh','dự định'],['chứng một','chứng minh một']];
-  const more=[['nội dụng','nội dung'],['khái niêm','khái niệm'],['thảo luân','thảo luận'],['nhân xét','nhận xét'],['nhiêm vụ','nhiệm vụ'],['báo cao','báo cáo'],['đáp ấn','đáp án'],['bài tâp','bài tập'],['bài toàn','bài toán'],['hoàn thiên','hoàn thiện']];
+  const more=[['nội dụng','nội dung'],['khái niêm','khái niệm'],['thảo luân','thảo luận'],['nhân xét','nhận xét'],['nhiêm vụ','nhiệm vụ'],['báo cao','báo cáo'],['đáp ấn','đáp án'],['bài tâp','bài tập'],['bài toàn','bài toán'],['hoàn thiên','hoàn thiện'],['bâc','bậc'],['thưc','thức'],['phut','phút']];
   window.RA_VI_FIX={core:core,more:more};
   try{const cur=Array.isArray(window.RA_SPELL_EXTRA)?window.RA_SPELL_EXTRA:[],have=new Set(cur.map(x=>x&&x[0]));
     window.RA_SPELL_EXTRA=cur.concat(more.filter(x=>!have.has(x[0])))}catch(e){}
@@ -357,6 +357,7 @@ function fixPara(items,info,pv,cnt,cfg,notes,lb){
   /* 4. từ ngữ */
   ed(DUP,m=>m[1],'từ lặp liền kề (của của, và và…)');
   for(const t of TYPO)ed(t.re,m=>mcase(m[0],t.to),'từ sai chính tả/viết tắt');
+  ed(/(?<=\p{L})ư(o)(?=(?:ng|nh|ch|c|i|m|n|p|t|u)?(?![\p{L}]))/giu,m=>m[0][0]+(m[1]==='O'?'Ơ':'ơ'),'lỗi gõ Telex “ưo” → “ươ”');
   /* 5. viết hoa */
   let broken=false;
   ed(CAP0,(m,s)=>{const pre=m[1]||'',w=m[2],e=m[0].length,nx=s[e],nn=s[e+1];
@@ -387,7 +388,8 @@ function fixPara(items,info,pv,cnt,cfg,notes,lb){
   items.broken=broken;
   if(broken)note('Dòng có vẻ bị ngắt giữa câu (đoạn trước chưa kết thúc)',s);
   if(/Ã[\u0080-\u00BF\u0152\u0153\u0160\u0161\u0178\u017D\u017E\u0192\u02C6\u02DC\u2013-\u203A\u20AC]|Ä‘|áº|á»|ï¿½|\uFFFD/.test(s))note('Lỗi mã hóa/font (ký tự lạ)',s);
-  const bal=(a,b)=>(s.split(a).length-1)!==(s.split(b).length-1);
+  const sb=s.replace(/^\s*\(?[A-Za-zđĐ\d]{1,2}\)(?=\s)/,'');  /* [v18] nhãn đầu dòng “a)”, “1)” không phải ngoặc lẻ */
+  const bal=(a,b)=>(sb.split(a).length-1)!==(sb.split(b).length-1);
   if(bal('(',')')||bal('[',']')||bal('“','”'))note('Ngoặc/nháy không khớp cặp',s);
   if(/lorem ipsum|\bx{3,}\b|\?{3,}|\bTBD\b/i.test(s))note('Còn nội dung giữ chỗ (xxx, ???, lorem…)',s);
   s.split(/(?<=[.!?…])\s+/).forEach(x=>{if(x.split(/\s+/).length>70)note('Câu quá dài (>70 từ), nên tách câu',x)});
