@@ -3,6 +3,7 @@
    Cần: JSZip (index.html đã nạp) · word-latex.js (convertDocumentXML) · gkey.js (tùy chọn, cho AI soát chính tả).
    Mới: cũng nhận file .xlsx → tự RÀ SOÁT & SỬA LỖI (khoảng trắng/dấu tiếng Việt, số & ngày lưu dạng chữ, công thức lỗi, cột hẹp #####, chữ bị cắt, thiếu viền, ô gộp chồng nhau, liên kết ngoài) rồi căn trang in Excel (A4, hướng, lề, vùng in, vừa trang, lặp dòng tiêu đề, số trang).
    [v15] Giáo án nhiều tiết: kiểm tra từng tiết; thêm từ điển lỗi gõ (nhóm “more” nằm trong word-chuan-hoa.js, nhận qua window.RA_SPELL_EXTRA), viết hoa đầu mục danh sách, cỡ chữ lẻ → 14 pt, báo công thức A(x) thiếu ngoặc.
+   [v16] Giáo án Toán: tự sửa “trọng tại/gọi tiếp xúc/a à đường/Ổn định tổ chức/Luyện Tập/…. vì”; bỏ báo nhầm A(x), giờ, bước dùng chung ô, “song song”, nhãn a) b); thêm cảnh báo số HĐ lệch cột, nhảy số hoạt động, tên hoạt động lệch tên bài, “Chuẩn bị bài sau” sai, số HS ≠ “hai bạn”.
    Tự chèn mục "🔍 Rà soát & Chuẩn hóa toàn diện" vào ô chọn công cụ #wtSel — không cần sửa HTML, chỉ thêm 1 thẻ <script>. */
 (function(){
 'use strict';
@@ -62,7 +63,7 @@ const pbOnly=p=>p.localName==='p'&&p.namespaceURI===W&&hasPB(p)&&!all(p,'t').som
    NÂNG CẤP v2 — mô hình văn bản cấp ĐOẠN · sửa dấu câu · bắt lỗi gõ sai ·
    đánh dấu Comment tại chỗ · Track Changes · kiểm lại nhiều vòng
    ==================================================================== */
-const VERSION='v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
+const VERSION='v16-khbd-mau-loi-giao-an (thêm: tự sửa “trọng tại”, “gọi tiếp xúc”, “a à đường”, viết hoa “Ổn định tổ chức” / “Luyện tập” / đầu câu “Vì…”; hết báo nhầm công thức A(x), thời gian có ổn định + hướng dẫn về nhà, bước 2–4 dùng chung ô bảng, “song song”, nhãn a) b) c); thêm cảnh báo: số HĐ lệch cột, tên hoạt động lệch tên bài, nhảy số hoạt động, “Chuẩn bị bài sau” khi tiết sau cùng bài, số HS ≠ “hai bạn”); nền v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
 const BAR='\u0001',MTH='\u0002',CTNS='http://schemas.openxmlformats.org/package/2006/content-types',RELNS='http://schemas.openxmlformats.org/package/2006/relationships';
 const TRK={on:false,id:900000,author:'Rà soát tự động',date:''};
 let PSEUDO=true;
@@ -159,7 +160,9 @@ const SPELL=[['xử dụng','sử dụng'],['xác xuất','xác suất'],['giúp
   ['vô nghiêm','vô nghiệm'],['có nghiêm','có nghiệm'],['tập nghiêm','tập nghiệm'],['nghiêm của','nghiệm của'],['nghiêm duy nhất','nghiệm duy nhất'],['nghiêm nguyên','nghiệm nguyên'],['nghiêm kép','nghiệm kép'],['nghiêm chung','nghiệm chung'],['nghiêm phân biệt','nghiệm phân biệt'],['vô số nghiêm','vô số nghiệm'],['một nghiêm','một nghiệm'],['hai nghiêm','hai nghiệm'],['là nghiêm','là nghiệm'],
   ['đồ thi','đồ thị'],['hàm sô','hàm số'],['cặp sô','cặp số'],['ẩn sô','ẩn số'],['tọa đô','tọa độ'],['toạ đô','toạ độ'],['giá tri','giá trị'],['biêu đồ','biểu đồ'],['biêu thức','biểu thức'],['biễu đồ','biểu đồ'],
   /* [v15] lỗi gõ nhầm sang âm tiết HỢP LỆ (bộ kiểm tra âm tiết không bắt được) — gặp trong giáo án/đề Toán; có thể bổ sung thêm qua window.RA_SPELL_EXTRA (khai báo ở word-chuan-hoa.js, nạp trước file này) */
-  ['bất phường','bất phương'],['phường trình','phương trình'],['như cầu','nhu cầu'],['trả lới','trả lời'],['hoạt đông','hoạt động'],['dự dịnh','dự định'],['theo cá thể','theo cá nhân'],['chứng một','chứng minh một']].concat(Array.isArray(window.RA_SPELL_EXTRA)?window.RA_SPELL_EXTRA.filter(x=>Array.isArray(x)&&x.length===2&&x[0]&&x[1]):[]);
+  ['bất phường','bất phương'],['phường trình','phương trình'],['như cầu','nhu cầu'],['trả lới','trả lời'],['hoạt đông','hoạt động'],['dự dịnh','dự định'],['theo cá thể','theo cá nhân'],['chứng một','chứng minh một'],
+  /* [v16] lỗi gặp trong giáo án Toán 9 (đã đối chiếu thực tế): “trọng tải”, thiếu “là” trong định nghĩa, thiếu “thùng” */
+  ['trọng tại','trọng tải'],['gọi tiếp xúc','gọi là tiếp xúc'],['là số sữa','là số thùng sữa']].concat(Array.isArray(window.RA_SPELL_EXTRA)?window.RA_SPELL_EXTRA.filter(x=>Array.isArray(x)&&x.length===2&&x[0]&&x[1]):[]);
 const SPELL_RE=SPELL.map(([w,r])=>[new RegExp('(?<![\\p{L}])'+w+'(?![\\p{L}])','giu'),r]);
 function paraRules(S,o){
   const E=[],add=(s,e,r,k)=>E.push({s,e,r:r||'',k});
@@ -238,6 +241,20 @@ function paraRules(S,o){
   if(o.fixdot!==false){
     if((m=/^([ \u0001]*)\.(?=[ \u0001]*\p{Lu})/u.exec(S)))add(m[1].length,m[1].length+1,'','sd');   /* chỉ xóa dấu “.”; dấu cách đứng đầu đoạn do bước dọn khoảng trắng gỡ tiếp */
     for(m of S.matchAll(/(?<=(?:^|[ \u0001])[A-D]\. )\.(?=[\p{L}\u0001])/gu))add(m.index,m.index+1,'','sd')}
+  /* [v16] lỗi gặp trong KHBD Toán (tự sửa, chỉ các dạng chắc chắn) */
+  if(o.spell!==false){
+    /* “- ổn định tổ chức (3 phút)” → viết hoa “Ổn định…” ở đầu mục */
+    if((m=/^([\s\u0001\u0002]*(?:[-–+•*]\s*)?)ổn định (?=tổ chức|lớp)/u.exec(S)))add(m[1].length,m[1].length+1,'Ổ','cp');
+    /* “Hoạt động 4. Luyện Tập” → “Luyện tập” (các tên hoạt động khác trong file đều viết thường chữ sau) */
+    for(m of S.matchAll(/((?:Hoạt động|Hoạt Động) ?\d+ ?[.:] ?(?:Luyện|Vận|Khởi) )(Tập|Dụng|Động)(?![\p{L}])/gu)){const k=m.index+m[1].length;add(k,k+1,S[k].toLowerCase(),'cw')}
+    /* “đường thẳng a à đường tròn” → “a và đường tròn” */
+    for(m of S.matchAll(/(?<![\p{L}\p{N}])([A-Za-z]) à (?=đường)/gu))add(m.index+2,m.index+3,'và','cw');
+    /* “R=3cm. vì d>R nên…” → viết hoa chữ đầu câu khi câu sau mở bằng từ nối quen thuộc */
+    for(m of S.matchAll(/(\S{2,})\. +(vì|nên|do đó|suy ra|khi đó|vậy|ta có)(?![\p{L}])/gu)){
+      const w=m[1].toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
+      if(ABBR.has(w)||/^\d+$/.test(m[1])||urlish(S,m.index))continue;
+      const k=m.index+m[0].length-m[2].length;add(k,k+1,S[k].toUpperCase(),'cp')}
+  }
   return E}
 function fixParagraph(p,o,cnt){
   for(let it=0;it<4;it++){
@@ -297,7 +314,7 @@ const ABBR=new Set(['tr','vd','tp','ts','ths','gs','pgs','st','nxb','tt','sđt',
 
 /* ---- Lint: các lỗi không tự sửa chắc chắn được → đánh dấu để người dùng xem ---- */
 /* [v6] ngoại lệ cho luật "lặp từ": từ láy / ranh giới từ ghép hợp lệ trong tiếng Việt (vd "sử dụng dụng cụ", "nhà nhà", "ngày ngày") */
-const DUP_OK=new Set('dụng nhà người ngày năm đời dần từ đều mãi hàng từng xa lâu khắp muôn tưng rưng'.split(' '));
+const DUP_OK=new Set('dụng nhà người ngày năm đời dần từ đều mãi hàng từng xa lâu khắp muôn tưng rưng song'.split(' '));
 /* [v6] đoạn KHÔNG cần dấu chấm cuối: dòng điểm/thời gian/tiêu đề; câu dẫn trắc nghiệm có luật riêng (lintStruct) */
 const NOEND_SKIP=t=>{const s=t.replace(/[\u0001\u0002]/g,' ').trim();
   if(/^[-–+]?\s*Đáp án\b/i.test(s)&&s.length<80)return true;   /* [v15] nhãn “Đáp án …” không phải câu */
@@ -343,7 +360,7 @@ function lintPara(S,c){
     const dup=[];for(m of txt.matchAll(/(?<![\p{L}\p{N}])(\p{L}{2,}) \1(?![\p{L}\p{N}])/giu))if(!DUP_OK.has(m[1].toLowerCase())){dup.push(m[1]);R(m.index,m.index+m[0].length)}
     if(dup.length)P('lặp từ: '+Array.from(new Set(dup)).slice(0,4).map(x=>'“'+x+' '+x+'”').join(', '))}
   if(!off.bracket&&!/[\u0001\u0002]/.test(txt)){   /* đoạn có công thức: ngoặc có thể nằm bên trong MathType/Equation nên không kết luận */
-    const t2=txt.replace(/^\s*[+\-–•*]\s*\)?\s*/,'').replace(/^\s*\(?[\p{L}\d]{1,3}[.)]\s*/u,'');
+    const t2=txt.replace(/^\s*[+\-–•*]\s*\)?\s*/,'').replace(/^\s*\(?[\p{L}\d]{1,3}[.)]\s*/u,'').replace(/(?<=^|\s)[a-dđ]\)(?=\s)/gu,'');   /* [v16] bỏ nhãn a) b) c) giữa dòng */
     const op=(t2.match(/[(\[{]/g)||[]).length,cl=(t2.match(/[)\]}]/g)||[]).length;
     if(op!==cl)P('ngoặc không cân ('+op+' mở / '+cl+' đóng)')}
   if(!off.quote){
@@ -1038,6 +1055,17 @@ function unifyNums(body,o,rep){
 /* [v14-1,5,7] Kiểm tra KHBD: thời gian, cấu trúc theo CV 5512, đầu trang. Chỉ ghi Comment, không tự sửa */
 /* [v15] File có nhiều tiết (Tiết 41, 42, 43…): tách thành từng phần rồi kiểm tra riêng từng tiết (trước đây chỉ kiểm tra tiết đầu).
    File chỉ có 1 bài → chạy đúng như cũ. Thêm: tiết thiếu tiêu đề, công thức A(x) thiếu ngoặc, style Heading dùng cho nội dung thường, “vận tốc lớn nhất” + “kịp/trước”. */
+/* [v16] văn bản công thức OMML có tính cả dấu ngoặc của <m:d> (trước đây bỏ sót nên báo nhầm “A(x) thiếu ngoặc”) */
+function mathTxtD(n){let s='';
+  for(const c of Array.from(n.childNodes)){if(c.nodeType!==1)continue;const ln=c.localName,isM=c.namespaceURI===M;
+    if(ln==='rPr'||ln==='ctrlPr'||ln==='dPr')continue;
+    if(isM&&ln==='t'){s+=c.textContent;continue}
+    if(isM&&ln==='d'){const dp=Array.from(c.children).find(k=>k.localName==='dPr'),
+        bc=dp&&Array.from(dp.children).find(k=>k.localName==='begChr'),ec=dp&&Array.from(dp.children).find(k=>k.localName==='endChr'),
+        bv=bc?(bc.getAttributeNS(M,'val')||''):'(',ev=ec?(ec.getAttributeNS(M,'val')||''):')';
+      s+=bv+Array.from(c.children).filter(k=>k.localName==='e').map(mathTxtD).join(',')+ev;continue}
+    s+=mathTxtD(c)}
+  return s}
 function lintLesson(body,o,add,rep){
   const off=o.lintOff||{};if(off.khbd)return;
   if(!isLessonPlan(body))return;
@@ -1055,12 +1083,29 @@ function lintLesson(body,o,add,rep){
     if(!PA.length)return;
     try{lintLessonSeg(body,o,add,rep,{PA,S,skip3:k>0})}catch(err){rep.warn('Kiểm tra KHBD phần '+(k+1)+' gặp lỗi nên đã bỏ qua: '+err.message)}});
   /* công thức dạng Ax<B(x) (thiếu ngoặc ở A(x)) */
-  all(body,'oMath',M).forEach(om=>{const t=all(om,'t',M).map(x=>x.textContent).join('').replace(/\s+/g,''),p=anc(om,'p');
+  all(body,'oMath',M).forEach(om=>{const t=mathTxtD(om).replace(/\s+/g,''),p=anc(om,'p');
     if(p&&/^[A-Z]x\d?[<>≤≥=][A-Z]\(x\d?\)$/.test(t))add(p,'công thức “'+t+'” có thể thiếu ngoặc ở vế trái — nên viết dạng A(x) < B(x) (và A(x₀) < B(x₀))')});
   PA0.forEach((p,i)=>{
     const t=cl(S0[i]),pp=one(p,'pPr'),st=pp&&one(pp,'pStyle'),sv=st?ga(st,'val'):'';
     if(!anc(p,'tc')&&/^Heading/i.test(sv)&&(/^[-–+•*]\s/.test(t)||t.length>90))add(p,'đoạn đang dùng style tiêu đề ('+sv+') nhưng là nội dung thường — nên đổi về kiểu văn bản thường để không lẫn vào mục lục/định dạng tiêu đề',lead0(S0[i]));
-    if(/vận tốc[^.?!]{0,40}(?:lớn nhất|tối đa)/i.test(t)&&/(?:trước|kịp|không muộn|đúng giờ|không quá)/i.test(t))add(p,'đề yêu cầu đến “trước/kịp” giờ thì vận tốc phải “nhỏ nhất/tối thiểu” — kiểm tra lại cụm “lớn nhất/tối đa”',sR(S0[i],'lớn nhất')||sR(S0[i],'tối đa'))})}
+    if(/vận tốc[^.?!]{0,40}(?:lớn nhất|tối đa)/i.test(t)&&/(?:trước|kịp|không muộn|đúng giờ|không quá)/i.test(t))add(p,'đề yêu cầu đến “trước/kịp” giờ thì vận tốc phải “nhỏ nhất/tối thiểu” — kiểm tra lại cụm “lớn nhất/tối đa”',sR(S0[i],'lớn nhất')||sR(S0[i],'tối đa'))});
+  /* [v16-a] “GV mời 1 HS … nhận xét bài làm của hai bạn” → số HS không khớp */
+  PA0.forEach((p,i)=>{if(i===0)return;const prev=cl(S0[i-1]),cur=cl(S0[i]);let m;
+    if((m=/(?:mời|gọi|chỉ định)\s+(\d+)\s*HS/i.exec(prev))&&+m[1]!==2&&/(?:của|bài làm của)\s+(?:hai|2)\s+bạn/i.test(cur))
+      add(p,'câu trước ghi “'+m[0]+'” nhưng câu này ghi “hai bạn” — kiểm tra số HS (1 HS → “của bạn”; 2 HS → giữ “hai bạn”)',sR(S0[i],'hai bạn')||lead0(S0[i]))});
+  /* [v16-b] số “HĐ” ở cột nội dung lệch số “HĐ” ở cột hoạt động trong cùng một hàng bảng */
+  all(body,'tr').forEach(tr=>{const tcs=Array.from(tr.children).filter(c=>c.localName==='tc'&&c.namespaceURI===W);if(tcs.length<2)return;
+    const RE=/(?<![\p{L}])HĐ\s*(\d+)\b/u,hdOf=tc=>{const st=new Set();all(tc,'p').forEach(pp=>{for(const m of cl(pModel(pp).S).matchAll(/(?<![\p{L}])HĐ\s*(\d+)\b/gu))st.add(m[1])});return st};
+    const lastTc=tcs[tcs.length-1],Ls=hdOf(tcs[0]),Rs=hdOf(lastTc);
+    if(!Ls.size||!Rs.size||Array.from(Rs).some(x=>Ls.has(x)))return;
+    for(const pp of all(lastTc,'p')){const SS=pModel(pp).S,m=RE.exec(SS);
+      if(m){add(pp,'cột “Nội dung cần đạt” ghi “HĐ'+m[1]+'” nhưng cột hoạt động GV–HS nói tới '+Array.from(Ls).map(x=>'HĐ'+x).join(', ')+' — kiểm tra lại số HĐ ở cột nội dung',[{s:m.index,e:m.index+m[0].length}]);break}}});
+  /* [v16-c] tiết sau vẫn cùng một BÀI mà phần hướng dẫn về nhà ghi “Chuẩn bị bài sau …” */
+  {const info=bnd.map((b,k)=>{const e=k+1<bnd.length?bnd[k+1]:PA0.length;let id=null;
+      if(TIET.test(cl(S0[b])))for(let i=b;i<Math.min(e,b+4);i++){const m=/BÀI\s*(\d+)/i.exec(cl(S0[i]));if(m){id=m[1];break}}
+      let hw=-1;for(let i=b;i<e;i++)if(/chuẩn bị\s+bài\s+sau/i.test(cl(S0[i])))hw=i;return{id,hw}});
+    info.forEach((x,k)=>{const nx=info[k+1];if(nx&&x.id&&nx.id&&x.id===nx.id&&x.hw>=0)add(PA0[x.hw],'tiết sau vẫn là BÀI '+x.id+' nên “Chuẩn bị bài sau” có thể chưa đúng — nên ghi “Chuẩn bị tiết sau: …”',sR(S0[x.hw],'bài sau')||lead0(S0[x.hw]))})}
+}
 function lintLessonSeg(body,o,add,rep,seg){
   const clean=x=>x.replace(/[\u0001\u0002]/g,' ').replace(/\s+/g,' ').trim();
   const PA=seg.PA,S=seg.S,T=S.map(clean);
@@ -1073,9 +1118,15 @@ function lintLessonSeg(body,o,add,rep,seg){
     if(t.length<=220&&(m=SEC.exec(t))&&SECK.test(m[2])&&(/hoạt động/i.test(m[2])||m[2]===m[2].toUpperCase())&&!secs.some(s=>s.L===m[1])){
       const k=KIND.find(K=>K[1].test(m[2])),tm=tmOf(S[i]);
       cur={L:m[1],i,kind:k?k[0]:null,min:tm?tm.v:null,tm:tm?tm.m:null};secs.push(cur);bound.push(i);return}
-    if(t.length<=250&&(m=ACT.exec(t))){bound.push(i);const tm=tmOf(S[i]);
+    if(t.length<=250&&(m=ACT.exec(t))){bound.push(i);const tm=tmOf(S[i])||((i+1<S.length&&/^\(/.test(T[i+1])&&T[i+1].length<30)?tmOf(S[i+1]):null);
       if(!acts.some(a=>a.sec===(cur&&cur.L)&&a.n===+m[1]&&a.min!=null))acts.push({n:+m[1],i,min:tm?tm.v:null,tm:tm?tm.m:null,sec:cur&&cur.L});return}
     if(/^(?:IV|V)\s*[.)]\s+\p{Lu}/u.test(t))bound.push(i)});
+  /* [v16] số thứ tự hoạt động bị nhảy (HĐ1 → HĐ3) và tên hoạt động lệch tên bài */
+  {const bySec=new Map();acts.forEach(a=>{const k=a.sec||'';if(!bySec.has(k))bySec.set(k,[]);bySec.get(k).push(a)});
+    bySec.forEach(arr=>{for(let k=1;k<arr.length;k++)if(arr[k].n>arr[k-1].n+1)add(PA[arr[k].i],'số thứ tự hoạt động nhảy từ '+arr[k-1].n+' sang '+arr[k].n+' (thiếu “Hoạt động '+(arr[k-1].n+1)+'”) — kiểm tra lại đánh số hoặc thêm tên hoạt động còn thiếu',lead0(S[arr[k].i]))});
+    const ttl=T.slice(0,6).join(' ').toLowerCase();
+    if(/đường thẳng và đường tròn/.test(ttl)&&!/hai đường tròn/.test(ttl))
+      T.forEach((t,i)=>{let mm;if(ACT.test(t)&&(mm=/vị trí tương đối của (?:hai|2) đường tròn/i.exec(t)))add(PA[i],'tên hoạt động ghi “'+mm[0]+'” nhưng bài học là “đường thẳng và đường tròn” — nên sửa cho khớp tên bài',sR(S[i],'hai đường tròn')||lead0(S[i]))})}
   /* ---- 1. THỜI GIAN ---- */
   const secT=secs.filter(s=>s.min!=null);
   secT.forEach(s=>{const as=acts.filter(a=>a.sec===s.L);
@@ -1085,7 +1136,12 @@ function lintLessonSeg(body,o,add,rep,seg){
     if(secT.length>=2){items=secT;label='các mục '+secT.map(s=>s.L).join(' + ')}
     else if(!secT.length){const at=acts.filter(a=>a.min!=null);if(at.length>=2){items=at;label=at.map(a=>'HĐ'+a.n).join(' + ')}}
     if(items){
-      const sum=items.reduce((q,x)=>q+x.min,0);let exp=null,expl=false,m;
+      const EX=(()=>{let v=0;const lb=[];let a1=false,b1=false;   /* [v16] cộng thêm phút “ổn định tổ chức” và “hướng dẫn về nhà” (trước đây bị bỏ → báo nhầm lệch giờ) */
+        T.forEach(t=>{if(t.length>160)return;let m1;const mm=/\(\s*(\d{1,2})\s*(?:phút|ph)\s*\)/i;
+          if(!a1&&/^[^\p{L}]*ổn định/iu.test(t)&&(m1=mm.exec(t))){a1=true;v+=+m1[1];lb.push('ổn định')}
+          else if(!b1&&/^[^\p{L}]*hướng dẫn (?:về nhà|công việc ở nhà)/iu.test(t)&&(m1=mm.exec(t))){b1=true;v+=+m1[1];lb.push('hướng dẫn về nhà')}});
+        return{v,lb}})();
+      const sum=items.reduce((q,x)=>q+x.min,0)+EX.v;if(EX.lb.length)label+=' + '+EX.lb.join(' + ');let exp=null,expl=false,m;
       for(let i=0;i<Math.min(T.length,60)&&exp===null;i++){
         if((m=/(?:thời lượng|thời gian thực hiện|thời gian)[^.]{0,60}?(\d+)\s*tiết/i.exec(T[i]))){exp=45*(+m[1]);expl=true}
         else if((m=/(?:thời lượng|thời gian thực hiện)[^.]{0,40}?(\d+)\s*phút/i.exec(T[i]))){exp=+m[1];expl=true}}
@@ -1104,8 +1160,10 @@ function lintLessonSeg(body,o,add,rep,seg){
     if(ks.length>=2){
       const miss=KIND.filter(K=>!ks.some(s=>s.kind===K[0])).map(K=>K[3]+'. '+K[2]);
       if(miss.length)add(PA[ks[0].i],'thiếu hoạt động theo CV 5512: '+miss.join('; ')+' (4 hoạt động: khởi động – hình thành kiến thức – luyện tập – vận dụng)')}
-    const STEP=[['Chuyển giao nhiệm vụ',/chuyển giao/i],['Thực hiện nhiệm vụ',/thực hiện nhiệm vụ|bước\s*2\b/i],['Báo cáo, thảo luận',/báo cáo/i],['Kết luận, nhận định',/kết luận|nhận định/i]];
-    acts.forEach(a=>{const nb=bound.filter(x=>x>a.i).sort((x,y)=>x-y)[0],end=nb===undefined?T.length:nb,blk=T.slice(a.i,end).join('\n');
+    const STEP=[['Chuyển giao nhiệm vụ',/chuyển giao|giao nhiệm vụ/i],['Thực hiện nhiệm vụ',/thực hiện nhiệm vụ|bước\s*2\b/i],['Báo cáo, thảo luận',/báo cáo/i],['Kết luận, nhận định',/kết luận|nhận định/i]];
+    acts.forEach(a=>{const nb=bound.filter(x=>x>a.i).sort((x,y)=>x-y)[0],end0=nb===undefined?T.length:nb;let end=end0;
+        const tcA=anc(PA[a.i],'tc');if(tcA)PA.forEach((pp,ix)=>{if(ix>=end0&&anc(pp,'tc')===tcA)end=Math.max(end,ix+1)});   /* [v16] nhiều hoạt động chung 1 ô bảng: các bước 2–4 ghi chung ở cuối ô vẫn tính */
+        const blk=T.slice(a.i,end).join('\n');
       const got=STEP.filter(z=>z[1].test(blk)),miss=STEP.filter(z=>!z[1].test(blk)).map(z=>z[0]);
       if(!miss.length)return;
       if(got.length||/Tổ chức thực hiện/i.test(blk))add(PA[a.i],'hoạt động '+a.n+(a.sec?' (mục '+a.sec+')':'')+' thiếu bước: '+miss.join(', ')+' (CV 5512: 4 bước Chuyển giao – Thực hiện – Báo cáo, thảo luận – Kết luận, nhận định)',lead0(S[a.i]))}) }
