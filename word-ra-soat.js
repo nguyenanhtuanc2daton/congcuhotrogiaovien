@@ -63,7 +63,7 @@ const pbOnly=p=>p.localName==='p'&&p.namespaceURI===W&&hasPB(p)&&!all(p,'t').som
    NÂNG CẤP v2 — mô hình văn bản cấp ĐOẠN · sửa dấu câu · bắt lỗi gõ sai ·
    đánh dấu Comment tại chỗ · Track Changes · kiểm lại nhiều vòng
    ==================================================================== */
-const VERSION='v16-khbd-mau-loi-giao-an (thêm: tự sửa “trọng tại”, “gọi tiếp xúc”, “a à đường”, viết hoa “Ổn định tổ chức” / “Luyện tập” / đầu câu “Vì…”; hết báo nhầm công thức A(x), thời gian có ổn định + hướng dẫn về nhà, bước 2–4 dùng chung ô bảng, “song song”, nhãn a) b) c); thêm cảnh báo: số HĐ lệch cột, tên hoạt động lệch tên bài, nhảy số hoạt động, “Chuẩn bị bài sau” khi tiết sau cùng bài, số HS ≠ “hai bạn”); nền v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
+const VERSION='v17-khbd-mau-loi-giao-an (v17: đọc ký hiệu w:sym (∈ ℝ…) cho AI, đặt ngôn ngữ tiếng Việt cho từng run, dấu trừ số âm “= - 0,5”, thiếu cách trước “+”, chữ thường đầu đoạn trong ô bảng, dấu phẩy cuối đoạn, gạch đầu dòng giữa đoạn, hết báo nhầm số thập phân do phép nhân/“Bài 1.1”; thêm: tự sửa “trọng tại”, “gọi tiếp xúc”, “a à đường”, viết hoa “Ổn định tổ chức” / “Luyện tập” / đầu câu “Vì…”; hết báo nhầm công thức A(x), thời gian có ổn định + hướng dẫn về nhà, bước 2–4 dùng chung ô bảng, “song song”, nhãn a) b) c); thêm cảnh báo: số HĐ lệch cột, tên hoạt động lệch tên bài, nhảy số hoạt động, “Chuẩn bị bài sau” khi tiết sau cùng bài, số HS ≠ “hai bạn”); nền v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
 const BAR='\u0001',MTH='\u0002',CTNS='http://schemas.openxmlformats.org/package/2006/content-types',RELNS='http://schemas.openxmlformats.org/package/2006/relationships';
 const TRK={on:false,id:900000,author:'Rà soát tự động',date:''};
 let PSEUDO=true;
@@ -186,6 +186,8 @@ function paraRules(S,o){
   for(m of S.matchAll(/(?<=\p{Ll}{2}):(?=\p{Ll})/gu))if(!urlish(S,m.index))add(m.index+1,m.index+1,' ','pu');
   for(m of S.matchAll(/(?<=[\p{Ll}\p{N})\]”\u0002])[.?!](?=\p{Lu}\p{Ll})/gu))if(!urlish(S,m.index))add(m.index+1,m.index+1,' ','pu');
   for(m of S.matchAll(/(?<=\p{Ll}[)\]”])(?=\p{Lu}\p{Ll})/gu))add(m.index,m.index,' ','pu');
+  /* [v17] “4.2+ 3.(–1)”, “ax+ by = c”: sau dấu + đã có cách nhưng trước + thì dính liền → thêm một dấu cách (chữ thường/số/ngoặc đứng trước; không đụng “A+”, “C++”) */
+  for(m of S.matchAll(/(?<=[\p{Ll}\p{N})\]])\+(?= [\p{L}\p{N}(\u2013\u2212-])/gu))if(!urlish(S,m.index)&&S[m.index-1]!=='+')add(m.index,m.index,' ','pu');
   /* dấu gạch chéo giữa hai chữ: “đúng/ sai” → “đúng/sai”; số liền đơn vị điểm: “0,25đ” → “0,25 đ” */
   for(m of S.matchAll(/(?<=\p{L}\/) +(?=\p{L})/gu))add(m.index,m.index+m[0].length,'','pu');
   for(m of S.matchAll(/(?<=\p{L}) +(?=\/\p{L})/gu))add(m.index,m.index+m[0].length,'','pu');
@@ -376,7 +378,7 @@ function lintPara(S,c){
   if(!off.punct){const pz=txt.replace(/\.\.\./g,'…\u0000\u0000'),p1=/[,;] ?[.,;]/.exec(pz),p2=/(?<!v\.v)\. ?[,;]/.exec(txt),pm=p1||p2;
     if(pm){R(pm.index,pm.index+pm[0].length);P('dấu câu liền nhau bất thường (vd “,.” “.,” “, ,”)')}}
   const t0=txt.trim(),f0=t0.replace(/^[^\p{L}\p{N}]+/u,'');
-  if(!off.lower&&!c.tc&&!c.list&&!c.head&&t0.length>=25&&/^\p{Ll}/u.test(f0)&&!/^\p{Ll}\s*[.)]/u.test(f0)&&!/^\p{Ll}(?![\p{L}\p{M}])/u.test(f0)&&/[.?!:]$/.test(c.prevEnd||''))R(txt.length-txt.trimStart().length+(t0.length-f0.length),txt.length-txt.trimStart().length+(t0.length-f0.length)+1),P('đoạn bắt đầu bằng chữ thường');
+  if(!off.lower&&(!c.tc||c.cellPrev!==undefined)&&!c.list&&!c.head&&t0.length>=25&&/^\p{Ll}/u.test(f0)&&!/^\p{Ll}\s*[.)]/u.test(f0)&&!/^\p{Ll}(?![\p{L}\p{M}])/u.test(f0)&&/[.?!:]$/.test((c.tc?c.cellPrev:c.prevEnd)||''))R(txt.length-txt.trimStart().length+(t0.length-f0.length),txt.length-txt.trimStart().length+(t0.length-f0.length)+1),P('đoạn bắt đầu bằng chữ thường');
   if(!off.mid){
     const mid=[];for(m of txt.matchAll(/(\p{L}{2,})([.?!]) +(\p{Ll})/gu))if(!ABBR.has(m[1].toLowerCase())&&!urlish(txt,m.index)){mid.push(m[1]+m[2]+' '+m[3]);R(m.index,m.index+m[0].length)}
     if(mid.length)P('chữ thường sau dấu kết câu: '+mid.slice(0,2).map(x=>'“…'+x+'…”').join(', '))}
@@ -567,14 +569,20 @@ function lintStruct2(body,o,add){
 
 function lintDoc(body,o,rep,sugs){
   const flags=[],dec={c:0,d:0},used=new Set(),byP=new Map(),idxOf=new Map();let idx=0,prevEnd='',inKey=false;
-  all(body,'p').forEach(p=>{
+  const PL=all(body,'p'),cellEnd=new Map();
+  PL.forEach(p=>{
     idx++;idxOf.set(p,idx);
     if(anc(p,'txbxContent'))return;
     const S=pModel(p).S,tr=S.trim();
     if(!/\p{L}/u.test(tr))return;
     if(/^\s*ĐÁP ÁN\b|\bĐÁP ÁN MÔN|HƯỚNG DẪN CHẤM/.test(S))inKey=true;else if(/PHIẾU TRẢ LỜI|BÀI LÀM ĐỀ|^\s*ĐỀ KIỂM TRA|^\s*MA TRẬN|BẢN ĐẶC TẢ/.test(S))inKey=false;
     const info=pInfo(p),tc=!!anc(p,'tc');
-    const cx={tc,list:info.list,head:info.head,pseudo:pseudoHead(p),prevEnd,inKey,off:o.lintOff,rg:[]},issues=lintPara(S,cx);
+    const tcEl=tc?anc(p,'tc'):null,cx={tc,list:info.list,head:info.head,pseudo:pseudoHead(p),prevEnd,cellPrev:tcEl?(cellEnd.get(tcEl)||''):undefined,inKey,off:o.lintOff,rg:[]},issues=lintPara(S,cx);
+    if(!(o.lintOff&&o.lintOff.mid)){/* [v17] đoạn kết thúc bằng dấu phẩy nhưng đoạn kế bắt đầu bằng chữ hoa; gạch đầu dòng thứ hai nằm giữa đoạn */
+      const tl=S.replace(/[\s\u0001\u0002]+$/,'');
+      if(tl.length>=8&&/,$/.test(tl)){let nt='';for(let k=idx;k<Math.min(PL.length,idx+3);k++){const s2=pModel(PL[k]).S.replace(/^[\s\u0001\u0002]+/,'');if(/\p{L}/u.test(s2)){nt=s2;break}}
+        if(/^\p{Lu}/u.test(nt)){const mg='đoạn kết thúc bằng dấu phẩy “,” nhưng đoạn kế tiếp bắt đầu bằng chữ hoa — có thể bỏ sót nội dung hoặc nên đổi thành dấu chấm';issues.push(mg);const ci=tl.length-1;cx.rg.push({s:ci,e:ci+1,m:mg})}}
+      if(/^[\s\u0001]*[-\u2013+*]\s/.test(S)){const mb=/[:;.]\s+([-\u2013])\s+(?=\p{Lu})/u.exec(S);if(mb){const mg='có gạch đầu dòng thứ hai nằm giữa đoạn (“…: - …”) — nên tách thành dòng riêng';issues.push(mg);const bi=mb.index+mb[0].search(/[-\u2013]/);cx.rg.push({s:bi,e:bi+1,m:mg})}}}
     {const ms=/^[\s\u0001]*\.(?=\s+\p{Lu})/u.exec(S);
       if(ms){const i=ms[0].lastIndexOf('.'),mg='đoạn bắt đầu bằng dấu chấm lạ “.” (có thể là gạch đầu dòng gõ nhầm) — hãy kiểm tra';issues.push(mg);cx.rg.push({s:i,e:i+1,m:mg})}
       const mo=/(?<=(?:^|[\s\u0001])[A-D]\. )\.(?=[\p{L}\u0001])/u.exec(S);
@@ -583,8 +591,14 @@ function lintDoc(body,o,rep,sugs){
       const dm='cần sửa '+E.length+' chỗ dấu câu/khoảng trắng/chính tả, vd: “'+c(S.slice(Math.max(0,e.s-14),Math.min(S.length,e.e+14)))+'”';E.forEach(z=>cx.rg.push({s:Math.max(0,z.s-(z.e>z.s?0:1)),e:Math.max(z.e,z.s+1),m:dm}));issues.unshift(dm)}}
     sugs.forEach((sg,k)=>{if(!used.has(k)&&S.indexOf(sg.find)>=0){used.add(k);{const ix=S.indexOf(sg.find);cx.rg.push({s:ix,e:ix+sg.find.length,m:'AI gợi ý: “'+sg.find+'” → “'+sg.replace+'”'})}issues.push('AI gợi ý: “'+sg.find+'” → “'+sg.replace+'”')}});
     for(const m of S.matchAll(/(?<![\d.,])\d+,\d{1,2}(?![\d,.])/g))dec.c++;
-    for(const m of S.matchAll(/(?<![\d.,])\d+\.\d{1,2}(?![\d,.])/g))if(!(m.index<=1&&/^[ \u0001]/.test(S.slice(m.index+m[0].length)||' ')))dec.d++;
-    prevEnd=tr.replace(/[\u0001\u0002]+$/,'').slice(-1)||prevEnd;
+    /* [v17] cùng bộ lọc với unifyNums: bỏ “Bài 1.1/Hình 2.3”, và dấu chấm là phép nhân (4.2+3.(–1)) */
+    if(!/\d\.\s?\(|\)\s?\.\s?[\d(]/.test(S))for(const m of S.matchAll(/(?<![\d.,])\d+\.\d{1,2}(?![\d,.])/g)){
+      if(m.index<=1&&/^[ \u0001]/.test(S.slice(m.index+m[0].length)||' '))continue;
+      if(/(Hình|Bảng|Bài|Câu|Mục|Chương|Phần|Điều|Khoản|Trang|Ví dụ|Sơ đồ|Biểu đồ|Đồ thị|Dạng|Chuyên đề|Tiết|Fig|Table|Section|Chapter|No|Số)\s*$/i.test(S.slice(Math.max(0,m.index-16),m.index)))continue;
+      const bf=S.slice(0,m.index).replace(/\s+$/,''),af=S.slice(m.index+m[0].length).replace(/^\s+/,'');
+      if(/[+\u00d7\u00b7*\/\u00f7]$/.test(bf)||/^[+\u00d7\u00b7*\/\u00f7]/.test(af)||/\d\s*[-\u2212\u2013]$/.test(bf)||/^[-\u2212\u2013]\s*[\d(]/.test(af))continue;
+      dec.d++}
+    prevEnd=tr.replace(/[\u0001\u0002]+$/,'').slice(-1)||prevEnd;if(tcEl)cellEnd.set(tcEl,tr.replace(/[\u0001\u0002]+$/,'').slice(-1));
     if(issues.length){const f={p,n:idx,snip:tr.replace(/[\u0001\u0002]/g,'…').slice(0,60),issues,rg:cx.rg};flags.push(f);byP.set(p,f)}});
   const addI=(p,msg,rg)=>{let f=byP.get(p);if(!f){const tr=pModel(p).S.trim();f={p,n:idxOf.get(p)||0,snip:tr.replace(/[\u0001\u0002]/g,'…').slice(0,60),issues:[],rg:[]};byP.set(p,f);flags.push(f)}if(f.issues.indexOf(msg)<0)f.issues.push(msg);if(rg&&rg.length)f.rg=(f.rg||[]).concat(rg.map(r=>Object.assign({m:msg},r)))};
   lintStruct(body,o,addI);
@@ -1027,6 +1041,9 @@ function unifyNums(body,o,rep){
     for(const m of S.matchAll(/(?<=[\s\u0001\u0002(=;\[])([-\u2212\u2013])(?=\d|\((?!\s)|[xy](?![\p{L}]))/gu)){
       if(!S.slice(0,m.index).trim()||urlish(S,m.index))continue;hits.push({x,i:m.index,ch:m[1]})}
     if(/=/.test(S))for(const m of S.matchAll(/(?<=[\d)xy] )([-\u2212\u2013])(?= [\d(xy])/g))hits.push({x,i:m.index,ch:m[1]})});
+  /* [v17] số âm viết cách rời “= - 0,5x”, “( - 2 ;” → “= –0,5x” (gộp dấu trừ vào số, dùng đúng kiểu dấu trừ đa số) */
+  const spHits=[];
+  ps.forEach(x=>{const S=x.S;for(const m of S.matchAll(/(?<=[=(;] )([-\u2212\u2013]) (?=\d)/g)){if(!S.slice(0,m.index).trim()||urlish(S,m.index))continue;spHits.push({x,i:m.index,ch:m[1]})}});
   const cnt={};hits.forEach(h=>{cnt[h.ch]=(cnt[h.ch]||0)+1});
   const chs=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]);
   if(chs.length>=2&&hits.length>=3){
@@ -1035,6 +1052,11 @@ function unifyNums(body,o,rep){
     else{const maj=chs[0];let n=0;
       hits.filter(h=>h.ch!==maj).forEach(h=>{applyEdit(h.x.p,{s:h.i,e:h.i+1,r:maj,k:'mn'});n++});
       rep.fix('Thống nhất dấu trừ trong biểu thức về '+NM[maj]+' (kiểu đa số) (chỗ)',n)}}
+  if(spHits.length){const maj=chs.length?chs[0]:'\u2013';let n=0;
+    if(!(chs.length>=2&&cnt[chs[0]]===cnt[chs[1]])){
+      const byP=new Map();spHits.forEach(h=>{if(!byP.has(h.x.p))byP.set(h.x.p,[]);byP.get(h.x.p).push(h)});
+      byP.forEach((a,p)=>{a.sort((u,v)=>v.i-u.i).forEach(h=>{applyEdit(p,{s:h.i,e:h.i+2,r:maj,k:'mn'});n++})});
+      rep.fix('Số âm viết cách rời (“= - 0,5x”) → gộp dấu trừ vào số (“= –0,5x”) (chỗ)',n)}}
   /* --- số thập phân --- */
   const PRE=/(Hình|Bảng|Bài|Câu|Mục|Chương|Phần|Điều|Khoản|Trang|Ví dụ|Sơ đồ|Biểu đồ|Đồ thị|Dạng|Chuyên đề|Tiết|Fig|Table|Section|Chapter|No|Số)\s*$/i;
   let comma=0;const dots=[];
@@ -1983,6 +2005,11 @@ function mathAndRunFmt(doc,rPr,o,ctx,rep,cnt,hf){
     if(sig()!==was)cnt.m++;return}
   /* w:rPr nằm trong m:ctrlPr (định dạng dấu ngoặc/căn/phân số/tổng...) — giữ nguyên, đổi font sẽ làm hỏng cấu trúc công thức */
   if(par.namespaceURI===M)return;
+  /* [v17] ngôn ngữ kiểm tra chính tả của từng run: chữ Việt hay bị gắn nl-NL/fr-FR/pt-BR… (dán từ web/PDF) → gạch đỏ chính tả khắp nơi. Đặt về vi-VN. */
+  if(o.lang!==false){const lg=one(rPr,'lang'),v=lg?ga(lg,'val'):'';
+    if(v&&!/^vi(-|$)/i.test(v)){
+      const tx=par.localName==='r'?all(par,'t').map(t=>t.textContent).join(''):'';
+      if(/^(nl|fr|de|es|it|pt|sv|da|nb|nn|no|fi|pl|cs|sk|hu|ro|tr|id|ms|tl|ca|hr|sl|et|lv|lt)(-|$)/i.test(v)||(/^en(-|$)/i.test(v)&&/[ăâêôơưđàáảãạằắẳẵặầấẩẫậèéẻẽẹềếểễệìíỉĩịòóỏõọồốổỗộờớởỡợùúủũụừứửữựỳýỷỹỵ]/i.test(tx))){sa(lg,'val','vi-VN');cnt.lang=(cnt.lang||0)+1}}}
   const p=par.localName==='pPr'?par.parentNode:anc(rPr,'p');
   const head=!hf&&p&&pInfo(p).head;
   /* Run chứa công thức MathType/đối tượng/hình: giữ nguyên w:position & cỡ chữ để công thức thẳng hàng với dòng chữ */
@@ -2305,6 +2332,9 @@ function ommlTex(n){
     case 'm':return '\\begin{matrix}'+Array.from(n.children).filter(c=>c.namespaceURI===M&&c.localName==='mr').map(r=>Array.from(r.children).filter(c=>c.namespaceURI===M&&c.localName==='e').map(ommlTex).join(' & ')).join(' \\\\ ')+'\\end{matrix}';
     case 'sPre':return '{}_{'+ommlTex(ch(n,'sub'))+'}^{'+ommlTex(ch(n,'sup'))+'} '+ommlTex(ch(n,'e'));
     default:return kids(n)}}
+/* [v17] w:sym = ký hiệu chèn bằng Insert → Symbol (∈, ℝ, ≠, ≤…). Trước đây bị bỏ qua nên AI thấy “với x .” cụt và báo nhầm. */
+const SYM_UNI={symbol:{F0CE:'∈',F0CF:'∉',F0B9:'≠',F0A3:'≤',F0B3:'≥',F0B1:'±',F0B4:'×',F0B8:'÷',F0AE:'→',F0AC:'←',F0AB:'↔',F0DE:'⇒',F0DB:'⇔',F0A5:'∞',F0D6:'√',F0B0:'°',F0C7:'∩',F0C8:'∪',F0CC:'⊂',F0CD:'⊆',F0D0:'∠',F0B7:'•'},'euclid extra':{F0A1:'ℝ'}};
+function symChar(font,ch){const u=(SYM_UNI[String(font||'').toLowerCase()]||{})[String(ch||'').toUpperCase()];return u||'⟦KÝ-HIỆU⟧'}
 function docxToParas(doc){
   const body=doc.getElementsByTagNameNS(W,'body')[0],items=[];
   const walk=(n,o)=>{for(const c of Array.from(n.childNodes)){if(c.nodeType!==1)continue;
@@ -2313,6 +2343,7 @@ function docxToParas(doc){
     const l=c.localName;
     if(l==='t'){o.push(c.textContent);continue}
     if(l==='tab'||l==='br'||l==='cr'){o.push(l==='br'&&ga(c,'type')==='page'?'':' ');continue}
+    if(l==='sym'){o.push(symChar(ga(c,'font'),ga(c,'char')));continue}
     if(l==='delText'||l==='instrText'||l==='rPr'||l==='pPr')continue;
     if(l==='drawing'||l==='pict'||l==='object'){let tag='⟦HÌNH⟧';
       if(l!=='drawing'){const ole=c.getElementsByTagNameNS('urn:schemas-microsoft-com:office:office','OLEObject')[0];if(ole&&/Equation|MathType|DSMT/i.test(ole.getAttribute('ProgID')||''))tag='⟦CT-ẢNH⟧'}
@@ -2748,6 +2779,7 @@ async function auditOnce(buf,o,hooks){
     step('định dạng đoạn',()=>paraFmt(doc,body,o,ctx,rep))});
   rep.fix('Đồng nhất font chữ (run)',cnt.font);rep.fix('Đồng nhất cỡ chữ lệch (run)',cnt.sz);
   rep.fix('Gỡ co giãn/giãn cách ký tự/nâng hạ chữ bất thường (dán từ PDF/web)',cnt.odd);rep.fix('Gỡ nền (shading) lạ trong chữ',cnt.shd);
+  rep.fix('Đặt ngôn ngữ kiểm tra chính tả = Tiếng Việt cho chữ đang gắn nhầm Hà Lan/Pháp/Bồ Đào Nha… (hết gạch đỏ chính tả) (run)',cnt.lang||0);
   rep.fix('Gỡ màu chữ/tô sáng',cnt.col);rep.fix('Công thức: đồng bộ font Cambria Math và cỡ chữ với văn bản',cnt.m);
   if(ctx.hidden)rep.warn(ctx.hidden+' đoạn chữ đang ẩn (Hidden text) — kiểm tra nếu thấy thiếu/thừa nội dung.');
   if(ctx.legacy.size)rep.warn('Phát hiện font bảng mã cũ: '+Array.from(ctx.legacy).slice(0,4).join(', ')+' — chữ Việt có thể hiện sai dấu. Hãy đổi sang Unicode bằng UniKey (Ctrl+Shift+F6) rồi rà soát lại.');
