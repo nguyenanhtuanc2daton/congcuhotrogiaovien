@@ -2403,8 +2403,9 @@ function tableJustify(doc,body,rep){
   rep.fix('Bảng: ô hẹp căn trái thay vì căn đều (hết giãn chữ) (đoạn)',n)}
 
 function paraFmt(doc,body,o,ctx,rep){
-  const line=Math.round(o.line*240),after=Math.round(o.after*20);let sp=0,jf=0,ind=0,fl=0;
+  const line=Math.round(o.line*240);let after=Math.round(o.after*20);let sp=0,jf=0,ind=0,fl=0;
   const isExam=all(body,'p').filter(q=>!anc(q,'tc')&&/^\s*(Câu|CÂU)\s*\d+/.test(ptext(q))).length>=3;
+  if(isExam&&after>0){after=0;rep.notes.push('Đây là đề kiểm tra nên khoảng cách sau đoạn được đặt 0 pt để các câu hỏi sát nhau như đề gốc.')}
   if(o.firstLine&&isExam)rep.notes.push('Đây là đề kiểm tra (có từ 3 “Câu n” trở lên) nên bỏ qua “thụt đầu dòng 1 cm” để câu hỏi/đáp án thẳng hàng.');
   all(body,'p').forEach(p=>{
     let pPr=one(p,'pPr');if(!pPr){pPr=mk(doc,'pPr');p.insertBefore(pPr,p.firstChild)}
@@ -3840,7 +3841,7 @@ function buildUI(){
   +'<details class="raG"><summary>📝 Văn bản &amp; định dạng</summary>'
   +cb('text','Dọn khoảng trắng thừa, dấu cách trước dấu câu, ký tự ẩn, NBSP; chuẩn hóa dấu tiếng Việt (NFC)',1)+cb('indent','Bỏ Tab/dấu cách thụt đầu dòng thủ công',1)+cb('num','Đánh số lại “Câu/Bài” bị nhảy hoặc trùng (reset theo PHẦN/ĐỀ)',1)+cb('spell','Sửa lỗi chính tả thường gặp chắc chắn sai (vd “xác xuất”→“xác suất”, “bổ xung”→“bổ sung”, “xử dụng”→“sử dụng”)',1)+cb('unify','Thống nhất kiểu nhãn theo kiểu đa số: đáp án “A.” hay “A)”, nhãn “Câu 1.” hay “Câu 1:”',1)+cb('decimal','Đổi số thập phân 3.5 → 3,5 (bỏ qua số mục/hình/bảng, ngày tháng) — chỉ bật nếu tài liệu dùng dấu phẩy',0)+cb('cap','Tự viết hoa chữ đầu câu / đầu đoạn (chỉ khi chắc chắn; mặc định chỉ đánh dấu Comment)',0)+cb('quotes','Đổi ngoặc kép thẳng (") thành ngoặc kép cong “ ” khi mở/đóng đúng cặp',1)+cb('phead','Nhận diện tiêu đề không dùng style Heading (dòng ngắn in đậm hoặc IN HOA) để không căn đều/thụt dòng nhầm',1)
   +'<div class="raR">Font: <select id="ra_font"><option>Times New Roman</option><option>Arial</option><option>Calibri</option><option>Cambria</option><option value="">Giữ nguyên font</option></select> &nbsp; Cỡ chữ: <select id="ra_size"><option value="auto">Tự nhận diện</option><option value="12">12</option><option value="13">13</option><option value="14" selected>14</option></select></div>'
-  +'<div class="raR">Giãn dòng: <select id="ra_line"><option value="1">1.0</option><option value="1.15" selected>1.15</option><option value="1.3">1.3</option><option value="1.5">1.5</option></select> &nbsp; Sau đoạn (pt): <select id="ra_after"><option value="0">0</option><option value="3">3</option><option value="6" selected>6</option><option value="8">8</option></select></div>'
+  +'<div class="raR">Giãn dòng: <select id="ra_line"><option value="1" selected>1.0</option><option value="1.15">1.15</option><option value="1.3">1.3</option><option value="1.5">1.5</option></select> &nbsp; Sau đoạn (pt): <select id="ra_after"><option value="0" selected>0</option><option value="3">3</option><option value="6">6</option><option value="8">8</option></select></div>'
   +cb('spacing','Đồng nhất giãn dòng và khoảng cách đoạn theo 2 giá trị trên (bỏ tick để giữ nguyên giãn dòng/khoảng cách của file gốc)',1)+cb('justify','Căn đều hai bên cho đoạn văn dài (không đụng tiêu đề, danh sách, bảng, đoạn căn giữa/phải)',1)+cb('firstLine','Thụt đầu dòng 1 cm cho đoạn văn thường (tắt nếu là đề trắc nghiệm)',0)+cb('shd','Gỡ nền (shading) lạ khi dán từ web',1)+cb('color','Gỡ màu chữ và tô sáng (tắt nếu có đáp án tô màu)',0)+'</details>'
   +'<details class="raG"><summary>📘 Giáo án (KHBD) &amp; công thức MathType</summary>'
   +cb('lpfix','Giáo án: gom tiêu đề bài bị tách nhiều đoạn (căn giữa, in đậm đồng nhất), ghép đoạn bị ngắt giữa câu, tách gạch đầu dòng nằm giữa đoạn, sửa đáp số cặp số sai khi phép thay số dưới đã cho biết đúng, bỏ “-” thừa ở đầu trang, bảng 2 cột vừa vùng chữ, giữ lề của giáo án gốc',1)
@@ -4015,11 +4016,11 @@ function wire(){
   g('ra_clear').onclick=()=>{q.length=0;renderList();g('ra_out').innerHTML='';setSt('')};
   ['dragover','drop'].forEach(ev=>g('wtAudit').addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'&&e.dataTransfer)addFiles(e.dataTransfer.files)}));
   g('ra_preset').onclick=()=>{
-    g('ra_font').value='Times New Roman';g('ra_size').value='14';g('ra_line').value='1.15';g('ra_after').value='6';
+    g('ra_font').value='Times New Roman';g('ra_size').value='14';g('ra_line').value='1';g('ra_after').value='0';
     ['justify','page','text','indent','num','tbl','tblfit','forcesz','onepage','tblkeep','softbreak','mcq','mcqdot','mcqstem','imgFix','quotes','phead','mark','hl','verify','spell','unify','fixdot','fixlbl','fixkey','fixmath','fixcopy','fixarith','unum','lpfix','mtconv'].forEach(k=>g('ra_'+k).checked=true);
     g('ra_dry').checked=false;g('ra_firstLine').checked=false;
     g('ra_marg').value='compact';setMargins('compact');
-    setSt('Đã đặt: Times New Roman 14pt, giãn dòng 1,15, căn đều, không thụt đầu dòng, A4, lề đề thi gọn 14/12/25/12 mm (khổ ngang: 8/8/10/10 mm), bảng dùng cỡ chữ chuẩn. Bấm “Rà soát & Xuất file” để chạy.','o')};
+    setSt('Đã đặt: Times New Roman 14pt, giãn dòng 1,0, cách đoạn 0, căn đều, không thụt đầu dòng, A4, lề đề thi gọn 14/12/25/12 mm (khổ ngang: 8/8/10/10 mm), bảng dùng cỡ chữ chuẩn. Bấm “Rà soát & Xuất file” để chạy.','o')};
   g('ra_marg').onchange=e=>{if(e.target.value!=='custom')setMargins(e.target.value)};
   ['mt','mb','ml','mr'].forEach(id=>g('ra_'+id).addEventListener('input',()=>{const cur=['mt','mb','ml','mr'].map(i=>+g('ra_'+i).value).join(),hit=Object.keys(MARGINS).find(k=>MARGINS[k].join()===cur);g('ra_marg').value=hit||'custom'}));
   g('ra_run').onclick=run}
