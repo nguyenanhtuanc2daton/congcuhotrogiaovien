@@ -4,6 +4,7 @@
    Mới: cũng nhận file .xlsx → tự RÀ SOÁT & SỬA LỖI (khoảng trắng/dấu tiếng Việt, số & ngày lưu dạng chữ, công thức lỗi, cột hẹp #####, chữ bị cắt, thiếu viền, ô gộp chồng nhau, liên kết ngoài) rồi căn trang in Excel (A4, hướng, lề, vùng in, vừa trang, lặp dòng tiêu đề, số trang).
    [v15] Giáo án nhiều tiết: kiểm tra từng tiết; thêm từ điển lỗi gõ (nhóm “more” nằm trong word-chuan-hoa.js, nhận qua window.RA_SPELL_EXTRA), viết hoa đầu mục danh sách, cỡ chữ lẻ → 14 pt, báo công thức A(x) thiếu ngoặc.
    [v16] Giáo án Toán: tự sửa “trọng tại/gọi tiếp xúc/a à đường/Ổn định tổ chức/Luyện Tập/…. vì”; bỏ báo nhầm A(x), giờ, bước dùng chung ô, “song song”, nhãn a) b); thêm cảnh báo số HĐ lệch cột, nhảy số hoạt động, tên hoạt động lệch tên bài, “Chuẩn bị bài sau” sai, số HS ≠ “hai bạn”.
+   [v18] Sửa lỗi bảng ma trận/đặc tả bị bóp cột (chữ, số viết dọc): gộp cột đệm 12 twips; giữ tỉ lệ cột gốc; không thu nhỏ chữ khi đã chọn cỡ cố định; khôi phục bảng trong trang khổ ngang bị ép về khổ dọc; đồng bộ kiểu Normal (Times New Roman, cỡ đã chọn); mặc định cỡ chữ 14.
    Tự chèn mục "🔍 Rà soát & Chuẩn hóa toàn diện" vào ô chọn công cụ #wtSel — không cần sửa HTML, chỉ thêm 1 thẻ <script>. */
 (function(){
 'use strict';
@@ -63,7 +64,7 @@ const pbOnly=p=>p.localName==='p'&&p.namespaceURI===W&&hasPB(p)&&!all(p,'t').som
    NÂNG CẤP v2 — mô hình văn bản cấp ĐOẠN · sửa dấu câu · bắt lỗi gõ sai ·
    đánh dấu Comment tại chỗ · Track Changes · kiểm lại nhiều vòng
    ==================================================================== */
-const VERSION='v19 (v19: đổi công thức MathType → Equation của Word; căn đáp án trắc nghiệm nằm trong ô bảng và giữ nguyên câu trên một trang; ghép đoạn bị ngắt giữa câu; tách gạch đầu dòng nằm giữa đoạn; tự sửa đáp số cặp số sai khi phép thay số ngay dưới đã cho biết đáp số đúng; gom tiêu đề bài bị tách nhiều đoạn, căn giữa, in đậm đồng nhất; bỏ dấu “-” thừa cuối dòng đầu trang; bảng giáo án 2 cột vừa vùng chữ và đường chia cột thẳng hàng; giữ lề của giáo án gốc); nền v18 (v18: tự sửa “ưo”→“ươ”, kiểm tra “cặp số là/không là nghiệm” bằng cách thay số, cảnh báo tổng thời lượng lệch khi >60 phút và không là bội của 45); nền v17-khbd-mau-loi-giao-an (v17: đọc ký hiệu w:sym (∈ ℝ…) cho AI, đặt ngôn ngữ tiếng Việt cho từng run, dấu trừ số âm “= - 0,5”, thiếu cách trước “+”, chữ thường đầu đoạn trong ô bảng, dấu phẩy cuối đoạn, gạch đầu dòng giữa đoạn, hết báo nhầm số thập phân do phép nhân/“Bài 1.1”; thêm: tự sửa “trọng tại”, “gọi tiếp xúc”, “a à đường”, viết hoa “Ổn định tổ chức” / “Luyện tập” / đầu câu “Vì…”; hết báo nhầm công thức A(x), thời gian có ổn định + hướng dẫn về nhà, bước 2–4 dùng chung ô bảng, “song song”, nhãn a) b) c); thêm cảnh báo: số HĐ lệch cột, tên hoạt động lệch tên bài, nhảy số hoạt động, “Chuẩn bị bài sau” khi tiết sau cùng bài, số HS ≠ “hai bạn”); nền v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
+const VERSION='v20 (v20: sửa bảng ma trận bị bóp cột (chữ/số viết dọc), giữ tỉ lệ cột gốc, không tự thu nhỏ chữ khi đã chọn cỡ, mặc định Times New Roman 14; nền v19: đổi công thức MathType → Equation của Word; căn đáp án trắc nghiệm nằm trong ô bảng và giữ nguyên câu trên một trang; ghép đoạn bị ngắt giữa câu; tách gạch đầu dòng nằm giữa đoạn; tự sửa đáp số cặp số sai khi phép thay số ngay dưới đã cho biết đáp số đúng; gom tiêu đề bài bị tách nhiều đoạn, căn giữa, in đậm đồng nhất; bỏ dấu “-” thừa cuối dòng đầu trang; bảng giáo án 2 cột vừa vùng chữ và đường chia cột thẳng hàng; giữ lề của giáo án gốc); nền v18 (v18: tự sửa “ưo”→“ươ”, kiểm tra “cặp số là/không là nghiệm” bằng cách thay số, cảnh báo tổng thời lượng lệch khi >60 phút và không là bội của 45); nền v17-khbd-mau-loi-giao-an (v17: đọc ký hiệu w:sym (∈ ℝ…) cho AI, đặt ngôn ngữ tiếng Việt cho từng run, dấu trừ số âm “= - 0,5”, thiếu cách trước “+”, chữ thường đầu đoạn trong ô bảng, dấu phẩy cuối đoạn, gạch đầu dòng giữa đoạn, hết báo nhầm số thập phân do phép nhân/“Bài 1.1”; thêm: tự sửa “trọng tại”, “gọi tiếp xúc”, “a à đường”, viết hoa “Ổn định tổ chức” / “Luyện tập” / đầu câu “Vì…”; hết báo nhầm công thức A(x), thời gian có ổn định + hướng dẫn về nhà, bước 2–4 dùng chung ô bảng, “song song”, nhãn a) b) c); thêm cảnh báo: số HĐ lệch cột, tên hoạt động lệch tên bài, nhảy số hoạt động, “Chuẩn bị bài sau” khi tiết sau cùng bài, số HS ≠ “hai bạn”); nền v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
 const BAR='\u0001',MTH='\u0002',CTNS='http://schemas.openxmlformats.org/package/2006/content-types',RELNS='http://schemas.openxmlformats.org/package/2006/relationships';
 const TRK={on:false,id:900000,author:'Rà soát tự động',date:''};
 let PSEUDO=true;
@@ -1870,6 +1871,35 @@ function keepPass(doc,body,o,rep){
    kids.forEach(q=>{const pp=q.localName==='p'&&one(q,'pPr');if(pp&&one(pp,'keepNext'))run.push(q);else flush()});flush()}
   rep.fix('Chỉnh "giữ với đoạn sau" (tiêu đề/câu hỏi/hình không bị tách trang; bỏ ràng buộc gây đẩy đoạn sang trang mới)',n)}
 
+/* [v18] Bề rộng vùng chữ của TỪNG section (tính trước khi sections() chỉnh lề). Khổ ngang rộng hơn khổ dọc nên không được dùng chung một số cho cả file. */
+function preSecAw(doc,body,o){
+  const bk=Array.from(body.children),res=[],mm=v=>Math.round(v*56.6929);
+  const calc=sp=>{const z=one(sp,'pgSz'),m=one(sp,'pgMar');
+    const land=!!z&&(ga(z,'orient')==='landscape'||(+ga(z,'w')>+ga(z,'h')&&+ga(z,'h')>0));
+    if(o.page){const L=land?Math.min(o.ml,10):o.ml,R=land?Math.min(o.mr,10):o.mr;return (land?16838:11906)-mm(L)-mm(R)}
+    return ((z&&+ga(z,'w'))||11906)-(m?(+ga(m,'left')||1701):1701)-(m?(+ga(m,'right')||850):850)};
+  bk.forEach((c,i)=>{if(c.localName==='p'&&c.namespaceURI===W){const pp=one(c,'pPr'),sp=pp&&one(pp,'sectPr');if(sp)res.push({end:i,aw:calc(sp)})}});
+  const fs=one(body,'sectPr');res.push({end:bk.length,aw:fs?calc(fs):9071});res.bk=bk;return res}
+/* Chụp độ rộng cột/ô của bảng trước bước “gỡ bố cục giả”, rồi khôi phục nếu bước đó bóp bảng nhỏ hơn vùng chữ thật của section chứa nó
+   (bước ngoài này tính theo khổ DỌC nên làm bảng ma trận/đặc tả nằm trong section khổ NGANG bị thu còn ~2/3 bề ngang). */
+function snapTables(body,ps){
+  const out=[];
+  all(body,'tbl').forEach(t=>{if(anc(t,'tc'))return;
+    let top=t;while(top.parentNode&&top.parentNode!==body)top=top.parentNode;
+    const i=ps.bk.indexOf(top),sec=ps.find(x=>x.end>=i)||ps[ps.length-1],g=one(t,'tblGrid');if(!g)return;
+    const gw=wk(g,'gridCol').map(c=>parseInt(ga(c,'w'),10)||0),pr=one(t,'tblPr'),tw=pr&&one(pr,'tblW');
+    const cells=[];wk(t,'tr').forEach(tr=>wk(tr,'tc').forEach(tc=>{const cp=one(tc,'tcPr'),x=cp&&one(cp,'tcW');cells.push({tc,w:x?ga(x,'w'):null,ty:x?ga(x,'type'):null})}));
+    out.push({t,aw:sec.aw,gw,tot:gw.reduce((a,b)=>a+b,0),tw:tw?{w:ga(tw,'w'),ty:ga(tw,'type')}:null,cells})});
+  return out}
+function restoreTables(doc,snap){let n=0;
+  snap.forEach(s=>{const g=one(s.t,'tblGrid');if(!g)return;const cols=wk(g,'gridCol');
+    const cur=cols.reduce((a,c)=>a+(parseInt(ga(c,'w'),10)||0),0);
+    if(cols.length!==s.gw.length||s.tot<=0||s.tot>s.aw+5||cur>=s.tot*0.97)return;
+    cols.forEach((c,k)=>sa(c,'w',s.gw[k]));
+    s.cells.forEach(c=>{if(c.w===null||!c.tc.parentNode)return;const cp=one(c.tc,'tcPr');if(!cp)return;const x=one(cp,'tcW');if(!x)return;sa(x,'w',c.w);if(c.ty)sa(x,'type',c.ty)});
+    const pr=one(s.t,'tblPr'),tw=pr&&one(pr,'tblW');if(tw&&s.tw){sa(tw,'w',s.tw.w);if(s.tw.ty)sa(tw,'type',s.tw.ty)}
+    n++});
+  return n}
 function sections(doc,body,o,rep){
   const bk=Array.from(body.children),secs=[];
   bk.forEach((c,i)=>{if(c.localName==='p'&&c.namespaceURI===W){const pp=one(c,'pPr'),s=pp&&one(pp,'sectPr');if(s)secs.push({end:i,sp:s})}});
@@ -1964,14 +1994,42 @@ function lightTableStyles(sd,rep){let n=0,m=0;
 /* ===== Bảng nhiều cột (sổ, biểu mẫu): dàn độ rộng cột theo nội dung + cỡ chữ chuẩn trong bảng ===== */
 /* độ rộng ước lượng (em) theo Times New Roman ĐẬM — chọn dư một chút để không bao giờ bị ngắt giữa từ */
 function chW(ch){if(/\d/.test(ch))return .5;if(/\p{Lu}/u.test(ch))return /[MWĐ]/.test(ch)?.98:.78;if(/[iíìỉĩịltfjr.,;:!\/()\-]/.test(ch))return .36;if(/[mw]/.test(ch))return .86;return .55}
-function fitColsOld(tbl,ws,av,sz0){
+/* [v18] Bảng ma trận/đặc tả xuất từ Word cũ hay có CỘT ĐỆM siêu hẹp (12 twips) nằm xen giữa các cột thật; ô nào cũng gridSpan=2 (đệm + cột thật),
+   riêng hàng “Tổng cộng” thì đệm lại nằm CUỐI ô. fitCols chỉ đo ô gridSpan=1 nên coi các cột “Nhận biết / Thông hiểu / Vận dụng…” là cột trống
+   → ép còn ~173 twips → chữ & số bị viết dọc. Ở đây bỏ cột đệm khỏi lưới (cộng độ rộng vào cột thật kề bên), mỗi ô chỉ còn phủ các cột thật.
+   Không chắc chắn (ô chỉ phủ mỗi cột đệm, hàng lệch lưới, gridBefore/After…) thì bỏ qua, không đụng bảng. */
+function mergeSpacerCols(doc,tbl){
+  const grid=one(tbl,'tblGrid');if(!grid)return 0;
+  const cols=wk(grid,'gridCol'),n=cols.length;if(n<4)return 0;
+  const ws=cols.map(c=>parseInt(ga(c,'w'),10)||0),tiny=ws.map(w=>w>0&&w<=60);
+  if(!tiny.some(Boolean)||tiny[0]||tiny.every(Boolean))return 0;
+  for(let k=1;k<n;k++)if(tiny[k]&&tiny[k-1])return 0;
+  const idx=new Array(n).fill(-1);let nN=0;for(let k=0;k<n;k++)if(!tiny[k])idx[k]=nN++;
+  const nw=new Array(nN).fill(0);
+  for(let k=0;k<n;k++){const t=tiny[k]?(k+1<n?idx[k+1]:idx[k-1]):idx[k];nw[t]+=ws[k]}
+  const plan=[];
+  for(const tr of wk(tbl,'tr')){
+    const tp=one(tr,'trPr');if(tp&&['gridBefore','gridAfter','wBefore','wAfter'].some(x=>one(tp,x)))return 0;
+    let col=0,run=0;const row=[];
+    for(const tc of wk(tr,'tc')){const cp=one(tc,'tcPr'),gs=cp&&one(cp,'gridSpan'),k=gs?(parseInt(ga(gs,'val'),10)||1):1;
+      if(col+k>n)return 0;
+      let f=-1,l=-1;for(let q=col;q<col+k;q++)if(!tiny[q]){if(f<0)f=idx[q];l=idx[q]}
+      if(f<0||f!==run)return 0;row.push({tc,k2:l-f+1,f});run=l+1;col+=k}
+    if(col!==n||run!==nN)return 0;plan.push(row)}
+  cols.slice(nN).forEach(rm);wk(grid,'gridCol').forEach((c,k)=>sa(c,'w',nw[k]));
+  plan.forEach(row=>row.forEach(c=>{let cp=one(c.tc,'tcPr');if(!cp){cp=mk(doc,'tcPr');c.tc.insertBefore(cp,c.tc.firstChild)}
+    if(c.k2>1)sa(sc(doc,cp,'gridSpan',ORD.tcPr),'val',c.k2);else{const g=one(cp,'gridSpan');if(g)rm(g)}
+    let w=0;for(let q=c.f;q<c.f+c.k2;q++)w+=nw[q];const x=sc(doc,cp,'tcW',ORD.tcPr);sa(x,'w',w);sa(x,'type','dxa')}));
+  return n-nN}
+
+function fitColsOld(tbl,ws,av,sz0,keepSz){
   const n=ws.length,mw=new Array(n).fill(0);
   wk(tbl,'tr').forEach(tr=>{let col=0;const tp=one(tr,'trPr'),gb=tp&&one(tp,'gridBefore');if(gb)col+=parseInt(ga(gb,'val'),10)||0;
     wk(tr,'tc').forEach(tc=>{const cp=one(tc,'tcPr'),gs=cp&&one(cp,'gridSpan'),k=gs?(parseInt(ga(gs,'val'),10)||1):1;
       if(k===1&&col<n)wk(tc,'p').forEach(p=>ptext(p).split(/\s+/).forEach(w=>{if(!w)return;let e=0;for(const ch of w)e+=chW(ch);if(e>mw[col])mw[col]=e}));col+=k})});
   const need=s=>mw.map(e=>Math.ceil(e*s*10*1.04)+170),sum=a=>a.reduce((x,y)=>x+y,0);
   let s=sz0,m=need(s);
-  while(sum(m)>av*0.98&&s>20){s-=2;m=need(s)}
+  while(sum(m)>av*0.98&&s>(keepSz?sz0:20)){s-=2;m=need(s)}
   if(sum(m)>av){const f=av/sum(m);m=m.map(x=>Math.floor(x*f))}
   const base=ws.map(x=>Math.max(x,1)),w=new Array(n).fill(0),lock=new Array(n).fill(false);
   for(let it=0;it<=n;it++){
@@ -2030,11 +2088,16 @@ function estTbl(tbl,w,s){
   pend.forEach(pd=>{let r=pd.r+1;while(r<trs.length&&at[r][pd.c]==='cont')r++;
     let sm=0;for(let q=pd.r;q<r;q++)sm+=rowH[q];if(sm<pd.h)rowH[r-1]+=pd.h-sm});
   return{H:rowH.reduce((x,y)=>x+y,0),rows:rowH}}
-function fitCols(tbl,ws,av,sz0,ah,above){
+function fitCols(tbl,ws,av,sz0,ah,above,keepSz){
   const n=ws.length,st=colStats(tbl,n),sum=a=>a.reduce((x,y)=>x+y,0);
   const avg=st.len.map((l,k)=>st.cnt[k]?l/st.cnt[k]:0),isT=avg.map(a=>a>=14),nT=isT.filter(Boolean).length;
   const need=s=>st.mw.map((e,k)=>Math.ceil(e*s*10*1.03)+150+st.ex[k]);
   const dist=(m)=>{
+    /* [v18] giữ TỈ LỆ cột của file gốc (co/giãn đều cho vừa vùng chữ); chỉ nới riêng cột nào thật sự thiếu chỗ, lấy phần dư từ các cột còn rộng — không bóp cột số/mức độ */
+    {const tw=sum(ws)||1,base0=ws.map(x=>x*av/tw);let w0=base0.slice(),def=0;
+      w0.forEach((x,k)=>{if(x<m[k]){def+=m[k]-x;w0[k]=m[k]}});
+      if(def>0){const slack=w0.map((x,k)=>base0[k]>m[k]?x-m[k]:0),st=sum(slack);if(st>=def)w0=w0.map((x,k)=>slack[k]?x-def*slack[k]/st:x);else w0=null}
+      if(w0){const o2=w0.map(x=>Math.floor(x));let b=0;o2.forEach((x,k)=>{if(x>o2[b])b=k});o2[b]+=Math.floor(av)-sum(o2);if(o2.every((x,k)=>x>=m[k]-1))return o2}}
     if(!(nT>0&&nT<n)){ /* không có cột chữ nổi bật: giữ cách chia theo độ rộng gốc */
       const base=ws.map(x=>Math.max(x,1)),w=new Array(n).fill(0),lock=new Array(n).fill(false);
       for(let it=0;it<=n;it++){let ls=0,fs=0;for(let k=0;k<n;k++){if(lock[k])ls+=m[k];else fs+=base[k]}
@@ -2048,7 +2111,7 @@ function fitCols(tbl,ws,av,sz0,ah,above){
     let big=0;nw.forEach((x,k)=>{if(isT[k]&&x>=nw[big])big=k});nw[big]+=Math.floor(av)-sum(nw);return nw};
   const target=Math.max(ah*0.35,ah-(above||0)-300);
   let firstOk=null,smallest=null,chosen=null;
-  for(let s=sz0;s>=20;s-=2){const m=need(s);if(sum(m)>av)continue;
+  for(let s=sz0;s>=(keepSz?sz0:20);s-=2){const m=need(s);if(sum(m)>av)continue;
     const w=dist(m),H=estTbl(tbl,w,s).H;
     let dk=0;st.len.forEach((l,k)=>{if(isT[k]&&l>st.len[dk])dk=k});
     if(nT&&nT<n&&w[dk]<av*0.2&&s>20)continue;
@@ -2056,7 +2119,7 @@ function fitCols(tbl,ws,av,sz0,ah,above){
     if(H<=target){chosen={nw:w,sz:s,H};break}
     if(s>=22)smallest={nw:w,sz:s,H}}
   const pick=chosen||(smallest&&smallest.H<=target*1.05?smallest:null)||firstOk;
-  if(!pick)return fitColsOld(tbl,ws,av,sz0);
+  if(!pick)return fitColsOld(tbl,ws,av,sz0,keepSz);
   return{nw:pick.nw,sz:pick.sz,est:pick.H,target}}
 /* Bỏ thụt lề nhỏ thừa & dòng trống đầu/cuối trong ô của bảng nhiều cột (hay gặp khi dán từ PDF/Word cũ) */
 function cellClean(doc,tbl){
@@ -2123,7 +2186,8 @@ function tblFont(doc,tbl,sz,ctx){
   return n}
 
 function tablePass(doc,body,secs,o,rep,ctx){
-  const bk=secs.bk;let tf=0,fit=0,cs=0,hd=0,al=0,fl=0,bd=0,nb=0,kt=0,ci=0,cb=0,ct=0;
+  const bk=secs.bk;let tf=0,fit=0,cs=0,hd=0,al=0,fl=0,bd=0,nb=0,kt=0,ci=0,cb=0,ct=0,spc=0;
+  const lockSz=o.forcesz!==false&&o.size!=='auto';   /* [v18] người dùng đã chọn cỡ chữ cố định → bảng KHÔNG tự thu nhỏ chữ */
   all(body,'tbl').forEach(tbl=>{
     const nested=!!anc(tbl,'tc');let aw0=9071,ah0=14570,tblSz=(ctx&&ctx.szEst)||28;
     let pr=one(tbl,'tblPr');if(!pr){pr=mk(doc,'tblPr');tbl.insertBefore(pr,tbl.firstChild)}
@@ -2133,11 +2197,12 @@ function tablePass(doc,body,secs,o,rep,ctx){
       const i=bk.indexOf(top),sec=secs.find(s=>s.end>=i)||secs[secs.length-1],aw=sec.aw;aw0=aw;ah0=sec.ah;
       const ind=one(pr,'tblInd');let il=0;
       if(ind){const v=parseInt(ga(ind,'w'),10)||0;if(v<0||v>1440){sa(ind,'w',0);sa(ind,'type','dxa');fit++}else il=v}
+      if(o.tblfit)try{spc+=mergeSpacerCols(doc,tbl)}catch(e){}
       const grid=one(tbl,'tblGrid'),cols=grid?wk(grid,'gridCol'):[];
       if(cols.length){
         const ws=cols.map(c=>parseInt(ga(c,'w'),10)||0),tot=ws.reduce((a,b)=>a+b,0),av=aw-il;
         let nw=null,fz=0;
-        if(o.tblfit&&cols.length>=4&&wk(tbl,'tr').length>=2&&!isLayoutTbl(ws)){const cc=cellClean(doc,tbl);ci+=cc.ind;cb+=cc.blk;ct+=cc.tabSp;const fr=fitCols(tbl,ws,Math.floor(av),(ctx&&ctx.szEst)||28,ah0,aboveH(top,aw,(ctx&&ctx.szEst)||28));nw=fr.nw;fz=fr.sz;
+        if(o.tblfit&&cols.length>=4&&wk(tbl,'tr').length>=2&&!isLayoutTbl(ws)){const cc=cellClean(doc,tbl);ci+=cc.ind;cb+=cc.blk;ct+=cc.tabSp;const fr=fitCols(tbl,ws,Math.floor(av),(ctx&&ctx.szEst)||28,ah0,aboveH(top,aw,(ctx&&ctx.szEst)||28),lockSz);nw=fr.nw;fz=fr.sz;
           if(fz<((ctx&&ctx.szEst)||28))rep.warn('Bảng nhiều cột: cỡ chữ trong bảng được giảm còn '+fz/2+' pt để mọi cột đủ rộng, không bị xuống dòng giữa từ.')}
         if(nw||tot>av+5){
           if(!nw){const f=av/tot;nw=ws.map(w=>Math.floor(w*f));nw[nw.length-1]+=Math.floor(av)-nw.reduce((a,b)=>a+b,0)}
@@ -2192,6 +2257,7 @@ function tablePass(doc,body,secs,o,rep,ctx){
     if(tch)kt++;
     const hasB=(one(pr,'tblBorders')&&Array.from(one(pr,'tblBorders').children).some(b=>ga(b,'val')&&ga(b,'val')!=='nil'&&ga(b,'val')!=='none'))||all(tbl,'tcBorders').length||(one(pr,'tblStyle')&&!/^TableNormal$/i.test(ga(one(pr,'tblStyle'),'val')));
     if(!hasB&&rows.length>1&&cells>2){if(o.tblborder){const b=sc(doc,pr,'tblBorders',ORD.tblPr);['top','left','bottom','right','insideH','insideV'].forEach(n=>{const e=mk(doc,n);sa(e,'val','single');sa(e,'sz',4);sa(e,'space',0);sa(e,'color','auto');b.appendChild(e)});bd++}else nb++}});
+  rep.fix('Bảng ma trận: gộp cột đệm siêu hẹp vào cột thật (hết chữ/số bị viết dọc)',spc);
   rep.fix('Bảng: co về vừa lề/khổ giấy',fit);rep.fix('Bảng nhiều cột: dàn lại độ rộng cột theo nội dung (đủ chỗ ghi) và dùng cỡ chữ chuẩn trong bảng',tf);rep.fix('Bảng: hàng ngắn không bị cắt đôi giữa hai trang; hàng dài (nhiều nội dung) cho phép tràn trang để không chừa khoảng trống lớn',cs);
   rep.fix('Bảng nhỏ: giữ nguyên cả bảng trên một trang',kt);rep.fix('Bảng nhiều cột: đổi tab giả giữa chữ thành dấu cách (hết giãn chữ “-      Làm      đất”)',ct);rep.fix('Bảng nhiều cột: bỏ thụt lề thừa trong ô (hết xuống dòng giữa từ như “Vận dụng”)',ci);rep.fix('Bảng nhiều cột: bỏ dòng trống đầu/cuối ô (hàng gọn hơn, vừa trang)',cb);rep.fix('Bảng dài: lặp hàng tiêu đề ở mỗi trang',hd);rep.fix('Bảng: căn giữa dọc ô và căn giữa ô số/STT',al);
   rep.fix('Bảng: gỡ chế độ bảng trôi (floating) khiến bảng nhảy vị trí',fl);rep.fix('Bảng: thêm đường viền cho bảng chưa có viền',bd);
@@ -2386,7 +2452,12 @@ function stylesPass(sd,o,ctx){
   let rd=one(dd,'rPrDefault');if(!rd){rd=mk(sd,'rPrDefault');dd.insertBefore(rd,dd.firstChild)}
   let rp=one(rd,'rPr');if(!rp){rp=mk(sd,'rPr');rd.appendChild(rp)}
   if(o.font){const f=sc(sd,rp,'rFonts',ORD.rPr);['asciiTheme','hAnsiTheme','eastAsiaTheme','cstheme'].forEach(a=>f.removeAttributeNS(W,a));['ascii','hAnsi','cs','eastAsia'].forEach(a=>sa(f,a,o.font))}
-  sa(sc(sd,rp,'sz',ORD.rPr),'val',ctx.sz);sa(sc(sd,rp,'szCs',ORD.rPr),'val',ctx.sz);sa(sc(sd,rp,'lang',ORD.rPr),'val','vi-VN')}
+  sa(sc(sd,rp,'sz',ORD.rPr),'val',ctx.sz);sa(sc(sd,rp,'szCs',ORD.rPr),'val',ctx.sz);sa(sc(sd,rp,'lang',ORD.rPr),'val','vi-VN');
+  /* [v18] kiểu Normal của file gốc ghi cứng Calibri 12 → đoạn/ô nào không có định dạng riêng vẫn hiện Calibri 12 dù đã chọn Times New Roman 14. Đồng bộ kiểu Normal với font/cỡ đã chọn. */
+  const nm=wk(root,'style').find(x=>ga(x,'type')==='paragraph'&&ga(x,'default')==='1');
+  if(nm){let r2=one(nm,'rPr');if(!r2){r2=mk(sd,'rPr');nm.appendChild(r2)}
+    if(o.font){const f=sc(sd,r2,'rFonts',ORD.rPr);['asciiTheme','hAnsiTheme','eastAsiaTheme','cstheme'].forEach(a=>f.removeAttributeNS(W,a));['ascii','hAnsi','cs','eastAsia'].forEach(a=>sa(f,a,o.font))}
+    sa(sc(sd,r2,'sz',ORD.rPr),'val',ctx.sz);sa(sc(sd,r2,'szCs',ORD.rPr),'val',ctx.sz)}}
 
 /* ---------- AI (Gemini): soát chính tả / dấu / gõ nhầm / dấu câu ---------- */
 const AI_SYS=`Bạn là biên tập viên tiếng Việt chuyên soát lỗi văn bản giáo dục (môn Toán THCS). Đầu vào: mảng JSON [{"i":số,"t":"đoạn văn"}]. Chỉ soát LỖI GÕ / CHÍNH TẢ / DẤU CÂU, không biên tập văn phong.
@@ -2994,8 +3065,12 @@ async function auditOnce(buf,o,hooks){
           if(!pl.fit)rep.warn('Ước tính nội dung vẫn có thể hơi tràn 1 trang dù đã thu gọn tối đa (chữ '+t.size/2+' pt) — hãy mở file kiểm tra, nếu tràn thì bớt dòng ghi chú hoặc giảm cỡ chữ.')}}}}
   hooks.progress('Đang rà soát...');await tick();
   if(o.flow!==false&&!o.dry&&typeof window!=='undefined'&&typeof window.WordFlowFix==='function')step('gỡ bố cục giả của file chuyển từ PDF',()=>{
-    const fr=window.WordFlowFix(doc,{flatCols:true,dots:true,pt:(o.size&&o.size!=='auto'&&+o.size)||14,aw:o.page?Math.round(11906-(o.ml+o.mr)*56.6929):0});
-    Object.keys(fr.fix).forEach(k=>rep.fix(k,parseInt(fr.fix[k],10)||1));fr.warn.forEach(w=>rep.warn(w))});
+    /* [v18] WordFlowFix chỉ biết một bề rộng chung → trước đây tính theo khổ DỌC, làm bảng trong section khổ NGANG bị bóp còn ~10 000 twips.
+       Nay: truyền bề rộng của section RỘNG NHẤT, rồi khôi phục bảng nào vẫn bị bóp nhỏ hơn vùng chữ thật của section chứa nó. */
+    const ps=preSecAw(doc,body,o),snap=snapTables(body,ps),awMax=o.page?Math.max.apply(null,ps.map(x=>x.aw)):0;
+    const fr=window.WordFlowFix(doc,{flatCols:true,dots:true,pt:(o.size&&o.size!=='auto'&&+o.size)||14,aw:awMax});
+    const rt=restoreTables(doc,snap);
+    Object.keys(fr.fix).forEach(k=>rep.fix(k,parseInt(fr.fix[k],10)||1));fr.warn.forEach(w=>rep.warn(w));rep.fix('Giữ nguyên bề ngang bảng trong trang khổ ngang (không bị thu về khổ dọc)',rt)});
   step('dọn nhiễu XML',()=>stripNoise(doc));
   step('Track Changes/Comment',()=>reviewMarks(doc,o,rep));
   step('gộp đoạn chữ rời rạc',()=>mergeRuns(doc));
@@ -3759,7 +3834,7 @@ function buildUI(){
   +'<div class="bar"><input type="file" id="ra_in" accept=".docx,.xlsx" multiple style="display:none"><button class="ghost" id="ra_pick" type="button">📁 Chọn file .docx / .xlsx (nhiều file / kéo thả vào đây)</button><button class="sec sm" id="ra_clear" type="button">🗑 Xóa danh sách</button></div><div id="ra_list"></div>'
   +'<details class="raG"><summary>📝 Văn bản &amp; định dạng</summary>'
   +cb('text','Dọn khoảng trắng thừa, dấu cách trước dấu câu, ký tự ẩn, NBSP; chuẩn hóa dấu tiếng Việt (NFC)',1)+cb('indent','Bỏ Tab/dấu cách thụt đầu dòng thủ công',1)+cb('num','Đánh số lại “Câu/Bài” bị nhảy hoặc trùng (reset theo PHẦN/ĐỀ)',1)+cb('spell','Sửa lỗi chính tả thường gặp chắc chắn sai (vd “xác xuất”→“xác suất”, “bổ xung”→“bổ sung”, “xử dụng”→“sử dụng”)',1)+cb('unify','Thống nhất kiểu nhãn theo kiểu đa số: đáp án “A.” hay “A)”, nhãn “Câu 1.” hay “Câu 1:”',1)+cb('decimal','Đổi số thập phân 3.5 → 3,5 (bỏ qua số mục/hình/bảng, ngày tháng) — chỉ bật nếu tài liệu dùng dấu phẩy',0)+cb('cap','Tự viết hoa chữ đầu câu / đầu đoạn (chỉ khi chắc chắn; mặc định chỉ đánh dấu Comment)',0)+cb('quotes','Đổi ngoặc kép thẳng (") thành ngoặc kép cong “ ” khi mở/đóng đúng cặp',1)+cb('phead','Nhận diện tiêu đề không dùng style Heading (dòng ngắn in đậm hoặc IN HOA) để không căn đều/thụt dòng nhầm',1)
-  +'<div class="raR">Font: <select id="ra_font"><option>Times New Roman</option><option>Arial</option><option>Calibri</option><option>Cambria</option><option value="">Giữ nguyên font</option></select> &nbsp; Cỡ chữ: <select id="ra_size"><option value="auto">Tự nhận diện</option><option value="12">12</option><option value="13">13</option><option value="14">14</option></select></div>'
+  +'<div class="raR">Font: <select id="ra_font"><option>Times New Roman</option><option>Arial</option><option>Calibri</option><option>Cambria</option><option value="">Giữ nguyên font</option></select> &nbsp; Cỡ chữ: <select id="ra_size"><option value="auto">Tự nhận diện</option><option value="12">12</option><option value="13">13</option><option value="14" selected>14</option></select></div>'
   +'<div class="raR">Giãn dòng: <select id="ra_line"><option value="1">1.0</option><option value="1.15" selected>1.15</option><option value="1.3">1.3</option><option value="1.5">1.5</option></select> &nbsp; Sau đoạn (pt): <select id="ra_after"><option value="0">0</option><option value="3">3</option><option value="6" selected>6</option><option value="8">8</option></select></div>'
   +cb('spacing','Đồng nhất giãn dòng và khoảng cách đoạn theo 2 giá trị trên (bỏ tick để giữ nguyên giãn dòng/khoảng cách của file gốc)',1)+cb('justify','Căn đều hai bên cho đoạn văn dài (không đụng tiêu đề, danh sách, bảng, đoạn căn giữa/phải)',1)+cb('firstLine','Thụt đầu dòng 1 cm cho đoạn văn thường (tắt nếu là đề trắc nghiệm)',0)+cb('shd','Gỡ nền (shading) lạ khi dán từ web',1)+cb('color','Gỡ màu chữ và tô sáng (tắt nếu có đáp án tô màu)',0)+'</details>'
   +'<details class="raG"><summary>📘 Giáo án (KHBD) &amp; công thức MathType</summary>'
