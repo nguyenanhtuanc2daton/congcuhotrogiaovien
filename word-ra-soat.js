@@ -64,7 +64,7 @@ const pbOnly=p=>p.localName==='p'&&p.namespaceURI===W&&hasPB(p)&&!all(p,'t').som
    NÂNG CẤP v2 — mô hình văn bản cấp ĐOẠN · sửa dấu câu · bắt lỗi gõ sai ·
    đánh dấu Comment tại chỗ · Track Changes · kiểm lại nhiều vòng
    ==================================================================== */
-const VERSION='v20 (v20: giữ nguyên hình có chữ chạy quanh (không đổi thành hình cùng dòng); sửa bảng ma trận bị bóp cột (chữ/số viết dọc), giữ tỉ lệ cột gốc, không tự thu nhỏ chữ khi đã chọn cỡ, mặc định Times New Roman 14; nền v19: đổi công thức MathType → Equation của Word; căn đáp án trắc nghiệm nằm trong ô bảng và giữ nguyên câu trên một trang; ghép đoạn bị ngắt giữa câu; tách gạch đầu dòng nằm giữa đoạn; tự sửa đáp số cặp số sai khi phép thay số ngay dưới đã cho biết đáp số đúng; gom tiêu đề bài bị tách nhiều đoạn, căn giữa, in đậm đồng nhất; bỏ dấu “-” thừa cuối dòng đầu trang; bảng giáo án 2 cột vừa vùng chữ và đường chia cột thẳng hàng; giữ lề của giáo án gốc); nền v18 (v18: tự sửa “ưo”→“ươ”, kiểm tra “cặp số là/không là nghiệm” bằng cách thay số, cảnh báo tổng thời lượng lệch khi >60 phút và không là bội của 45); nền v17-khbd-mau-loi-giao-an (v17: đọc ký hiệu w:sym (∈ ℝ…) cho AI, đặt ngôn ngữ tiếng Việt cho từng run, dấu trừ số âm “= - 0,5”, thiếu cách trước “+”, chữ thường đầu đoạn trong ô bảng, dấu phẩy cuối đoạn, gạch đầu dòng giữa đoạn, hết báo nhầm số thập phân do phép nhân/“Bài 1.1”; thêm: tự sửa “trọng tại”, “gọi tiếp xúc”, “a à đường”, viết hoa “Ổn định tổ chức” / “Luyện tập” / đầu câu “Vì…”; hết báo nhầm công thức A(x), thời gian có ổn định + hướng dẫn về nhà, bước 2–4 dùng chung ô bảng, “song song”, nhãn a) b) c); thêm cảnh báo: số HĐ lệch cột, tên hoạt động lệch tên bài, nhảy số hoạt động, “Chuẩn bị bài sau” khi tiết sau cùng bài, số HS ≠ “hai bạn”); nền v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
+const VERSION='v21 (v21: Excel — sau khi đổi Times New Roman 14, đo lại bảng theo kích thước thật rồi căn A4 vừa 1 trang, giãn cột/dòng cho bảng kín trang); nền v20 (v20: giữ nguyên hình có chữ chạy quanh (không đổi thành hình cùng dòng); sửa bảng ma trận bị bóp cột (chữ/số viết dọc), giữ tỉ lệ cột gốc, không tự thu nhỏ chữ khi đã chọn cỡ, mặc định Times New Roman 14; nền v19: đổi công thức MathType → Equation của Word; căn đáp án trắc nghiệm nằm trong ô bảng và giữ nguyên câu trên một trang; ghép đoạn bị ngắt giữa câu; tách gạch đầu dòng nằm giữa đoạn; tự sửa đáp số cặp số sai khi phép thay số ngay dưới đã cho biết đáp số đúng; gom tiêu đề bài bị tách nhiều đoạn, căn giữa, in đậm đồng nhất; bỏ dấu “-” thừa cuối dòng đầu trang; bảng giáo án 2 cột vừa vùng chữ và đường chia cột thẳng hàng; giữ lề của giáo án gốc); nền v18 (v18: tự sửa “ưo”→“ươ”, kiểm tra “cặp số là/không là nghiệm” bằng cách thay số, cảnh báo tổng thời lượng lệch khi >60 phút và không là bội của 45); nền v17-khbd-mau-loi-giao-an (v17: đọc ký hiệu w:sym (∈ ℝ…) cho AI, đặt ngôn ngữ tiếng Việt cho từng run, dấu trừ số âm “= - 0,5”, thiếu cách trước “+”, chữ thường đầu đoạn trong ô bảng, dấu phẩy cuối đoạn, gạch đầu dòng giữa đoạn, hết báo nhầm số thập phân do phép nhân/“Bài 1.1”; thêm: tự sửa “trọng tại”, “gọi tiếp xúc”, “a à đường”, viết hoa “Ổn định tổ chức” / “Luyện tập” / đầu câu “Vì…”; hết báo nhầm công thức A(x), thời gian có ổn định + hướng dẫn về nhà, bước 2–4 dùng chung ô bảng, “song song”, nhãn a) b) c); thêm cảnh báo: số HĐ lệch cột, tên hoạt động lệch tên bài, nhảy số hoạt động, “Chuẩn bị bài sau” khi tiết sau cùng bài, số HS ≠ “hai bạn”); nền v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
 const BAR='\u0001',MTH='\u0002',CTNS='http://schemas.openxmlformats.org/package/2006/content-types',RELNS='http://schemas.openxmlformats.org/package/2006/relationships';
 const TRK={on:false,id:900000,author:'Rà soát tự động',date:''};
 let PSEUDO=true;
@@ -3943,6 +3943,65 @@ function xlFonts(X,sd,ssDoc,name,rep){
 function xlRecalc(wbDoc,wbRoot){let cp=s1(wbRoot,'calcPr');
   if(!cp){cp=wbDoc.createElementNS(SN,'calcPr');cp.setAttribute('calcId','191029');const ref=Array.from(wbRoot.children).find(c=>XL_AFTER_DN.indexOf(c.localName)>0)||null;wbRoot.insertBefore(cp,ref)}
   cp.setAttribute('fullCalcOnLoad','1')}
+/* ---------- [v21] CĂN LẠI TRANG IN SAU KHI ĐỔI FONT (Times New Roman 14) ----------
+   Bước căn trang đầu tiên tính theo cột/dòng của font GỐC (Calibri 11). Sau khi excel-chuan.js đổi sang Times New Roman 14 và nới cột/dòng,
+   kích thước bảng đổi hẳn → bảng bị giới hạn bởi chiều cao, thừa lề hai bên, chữ thu nhỏ quá mức, có thể còn #####.
+   Hàm này đo lại bảng theo kích thước THẬT sau khi đổi font rồi: (1) đặt độ cao dòng đủ cho chữ 14 (dòng trống không viền thu gọn),
+   (2) chọn hướng giấy A4 cho chữ lớn nhất, (3) giãn đều cột để bảng KÍN chiều ngang trang (lề cân đối), (4) nếu còn thừa chiều cao thì giãn dòng
+   để KÍN cả chiều dọc, (5) đặt lại vùng in, vừa 1 trang, căn giữa. */
+const XL_ROW14=18.75,XL_GAP=9;
+async function xlFinalFit(zip,xo,rep,shsIn){
+  const wbF=zip.file('xl/workbook.xml');if(!wbF)return 0;
+  const wbDoc=pX(await wbF.async('string'),'workbook.xml'),wbRoot=wbDoc.documentElement;
+  let stDoc=null;const stF=zip.file('xl/styles.xml');if(stF)stDoc=pX(await stF.async('string'),'styles.xml');
+  const vcCache=new Map();let stDirty=false,done=0;
+  for(const sh of shsIn){
+    if(sh.hidden||!/^xl\/worksheets\//.test(sh.path)||!zip.file(sh.path))continue;
+    const doc=pX(await zip.file(sh.path).async('string'),sh.path);
+    let S=xlScan(doc);if(S.empty||S.drawing)continue;     /* có hình/biểu đồ: giữ kết quả bước đầu, không đổi cột/dòng để khỏi lệch hình */
+    let area={r1:S.minR,c1:S.minC,r2:S.maxR,c2:S.maxC};
+    if(!xo.area){const dn=sk(s1(wbRoot,'definedNames'),'definedName').find(e=>e.getAttribute('name')==='_xlnm.Print_Area'&&e.getAttribute('localSheetId')===String(sh.i));
+      const m=dn&&/!\$?([A-Z]+)\$?(\d+):\$?([A-Z]+)\$?(\d+)$/.exec(dn.textContent.trim());
+      if(m)area={c1:colNum(m[1]),r1:+m[2],c2:colNum(m[3]),r2:+m[4]}}
+    const apply=()=>{S=xlScan(doc);S.minR=area.r1;S.maxR=area.r2;S.minC=area.c1;S.maxC=area.c2};
+    apply();
+    /* (1) độ cao dòng: dòng có chữ tối thiểu đủ cho 14pt; dòng trống hẳn (không ô, không viền) thu gọn */
+    for(let r=area.r1;r<=area.r2;r++){const ro=S.rows.get(r);if(!ro||ro.hid)continue;
+      const cells=sk(ro.el,'c'),plain=cells.every(ce=>!(parseInt(ce.getAttribute('s')||'0',10)>0)&&!sk(ce,'f').length&&!sk(ce,'is').length&&!sk(ce,'v').some(v=>v.textContent!==''));
+      if(ro.cnt>0){if(ro.ht==null||ro.ht<XL_ROW14){ro.el.setAttribute('ht',String(XL_ROW14));ro.el.setAttribute('customHeight','1')}}
+      else if(plain&&(ro.ht==null||ro.ht>XL_GAP)){ro.el.setAttribute('ht',String(XL_GAP));ro.el.setAttribute('customHeight','1')}}
+    apply();
+    let sz=xlSize(S);if(!(sz.cw>0&&sz.ch>0))continue;
+    let hdr=xlHeader(S),plan=xlPlan(sz.cw,sz.ch,xo),spreadN=0,stretched=0,addPt=0;
+    /* (3) bảng bị giới hạn bởi chiều CAO → giãn đều cột cho kín chiều ngang */
+    if(xo.spread&&plan.one&&plan.sa<plan.sw-0.02){
+      const target=plan.aw/plan.sa,el=[];let cwEl=0,cwFix=0;
+      for(let c=area.c1;c<=area.c2;c++){const w=S.colW(c);if(!(w>0))continue;if(w>=9){el.push(c);cwEl+=w*7*0.75}else cwFix+=w*7*0.75}
+      const g=el.length?(target*0.99-cwFix)/cwEl:1;
+      if(g>1.04){const k=Math.min(g,2),nw=new Map();el.forEach(c=>{nw.set(c,Math.min(255,Math.round(S.colW(c)*k*10)/10))});
+        xlSetCols(doc,nw,area.c2);apply();sz=xlSize(S);hdr=xlHeader(S);plan=xlPlan(sz.cw,sz.ch,xo);spreadN=nw.size}}
+    /* (4) bảng bị giới hạn bởi chiều RỘNG, còn thừa chiều cao → giãn dòng cho kín trang */
+    if(xo.stretch&&plan.one&&stDoc){
+      const start=hdr?hdr.b+1:area.r1,el=[];
+      for(let r=start;r<=area.r2;r++){const ro=S.rows.get(r);if(ro&&!ro.hid&&ro.cnt>0&&(ro.ht==null||ro.ht<=40))el.push(ro)}
+      const room=plan.ah/plan.sw*0.965-sz.ch;
+      if(el.length&&room>0){
+        const avg=el.reduce((a,ro)=>a+(ro.ht!=null?ro.ht:S.defH),0)/el.length,add=Math.min(room/el.length,0.5*avg);
+        if(add>=2){addPt=add;
+          el.forEach(ro=>{ro.el.setAttribute('ht',((ro.ht!=null?ro.ht:S.defH)+add).toFixed(2));ro.el.setAttribute('customHeight','1');
+            sk(ro.el,'c').forEach(ce=>{const s=parseInt(ce.getAttribute('s')||'0',10)||0,n=xlVC(stDoc,vcCache,s);if(n!==s){ce.setAttribute('s',String(n));stDirty=true}})});
+          stretched=el.length;stDirty=true;apply();sz=xlSize(S);plan=xlPlan(sz.cw,sz.ch,xo)}}}
+    /* (5) in ấn */
+    xlSetPrint(doc,plan,xo,plan.one);
+    const a1='$'+colName(area.c1)+'$'+area.r1+':$'+colName(area.c2)+'$'+area.r2;
+    xlDefName(wbRoot,wbDoc,sh.i,'Print_Area',qName(sh.name)+'!'+a1);
+    const useT=xo.titles&&!plan.one&&hdr;
+    xlDefName(wbRoot,wbDoc,sh.i,'Print_Titles',useT?qName(sh.name)+'!$'+hdr.a+':$'+hdr.b:null);
+    zip.file(sh.path,ser(doc));done++;
+    rep.notes.push('Sheet “'+sh.name+'” (sau khi đổi font Times New Roman 14): A4 '+(plan.o==='landscape'?'ngang':'dọc')+', '+(plan.one?'vừa 1 trang':'khoảng '+plan.pages+' trang')+', chữ in ≈'+Math.round(14*plan.e*10)/10+'pt'+(spreadN?'; giãn '+spreadN+' cột cho kín chiều ngang':'')+(stretched?'; giãn '+stretched+' dòng (+'+addPt.toFixed(1)+'pt) cho kín chiều dọc':'')+'.')}
+  if(done){if(stDoc&&stDirty)zip.file('xl/styles.xml',ser(stDoc));zip.file('xl/workbook.xml',ser(wbDoc));
+    rep.fix('Căn lại trang in theo kích thước thật sau khi đổi font (bảng kín chiều ngang, vừa 1 trang)',done)}
+  return done}
 async function auditExcel(buf,xo,hooks){
   const rep=mkRep(),zip=await JSZip.loadAsync(buf),prog=hooks&&hooks.progress?hooks.progress:()=>{};
   const wbF=zip.file('xl/workbook.xml'),rlF=zip.file('xl/_rels/workbook.xml.rels');
@@ -3989,7 +4048,7 @@ async function auditExcel(buf,xo,hooks){
     let sz=xlSize(S);if(!(sz.cw>0&&sz.ch>0)){rep.notes.push('Sheet “'+sh.name+'”: toàn bộ cột/dòng bị ẩn — bỏ qua.');continue}
     let hdr=xlHeader(S),plan=xlPlan(sz.cw,sz.ch,xo),spreadN=0;
     /* Bảng bị giới hạn bởi chiều CAO trang (còn thừa bề ngang): giãn đều các cột để bảng lấp đầy chiều ngang, lề trái/phải bằng lề đã chọn */
-    if(xo.spread&&plan.one&&plan.sa<plan.sw-0.02){
+    if(!window.XlsxChuan&&xo.spread&&plan.one&&plan.sa<plan.sw-0.02){
       const target=plan.aw/plan.sa,el=[];let cwEl=0,cwFix=0;
       for(let c=area.c1;c<=area.c2;c++){const w=S.colW(c);if(!(w>0))continue;if(w>=9){el.push(c);cwEl+=w*7*0.75}else cwFix+=w*7*0.75}
       const g=el.length?(target*0.99-cwFix)/cwEl:1;
@@ -3998,7 +4057,7 @@ async function auditExcel(buf,xo,hooks){
         sz=xlSize(S);hdr=xlHeader(S);plan=xlPlan(sz.cw,sz.ch,xo);spreadN=nw.size}}
     /* kéo giãn độ cao dòng để bảng lấp đầy trang (chỉ khi bảng vừa 1 trang và còn chỗ trống) */
     let stretched=0,addPt=0;
-    if(xo.stretch&&plan.one&&stDoc){
+    if(!window.XlsxChuan&&xo.stretch&&plan.one&&stDoc){
       const start=hdr?hdr.b+1:S.minR,el=[];
       for(let r=start;r<=S.maxR;r++){const ro=S.rows.get(r);if(ro&&!ro.hid&&ro.cnt>0&&(ro.ht==null||ro.ht<=40))el.push(ro)}
       const room=plan.ah/plan.sw*0.965-sz.ch;
@@ -4032,7 +4091,9 @@ async function auditExcel(buf,xo,hooks){
   if(C.recalc)xlRecalc(wbDoc,wbRoot);
   if(stDoc&&(stDirty||(X&&X.dirty)))zip.file('xl/styles.xml',ser(stDoc));
   zip.file('xl/workbook.xml',ser(wbDoc));
-  if(window.XlsxChuan){try{const fx=await XlsxChuan.fixZip(zip);rep.fix('Đặt toàn bộ ô sang Times New Roman cỡ '+XlsxChuan.SIZE+' (font gốc: '+fx.from+'), tự co giãn cột/dòng',fx.fonts)}catch(e){rep.warn('Chưa đổi được font Times New Roman cỡ 14: '+e.message)}}else rep.warn('Chưa nạp được excel-chuan.js nên chưa đổi font Times New Roman cỡ 14.');
+  if(window.XlsxChuan){try{const fx=await XlsxChuan.fixZip(zip);rep.fix('Đặt toàn bộ ô sang Times New Roman cỡ '+XlsxChuan.SIZE+' (font gốc: '+fx.from+'), tự co giãn cột/dòng',fx.fonts);
+    try{await xlFinalFit(zip,xo,rep,shs)}catch(e2){rep.warn('Chưa căn lại được trang in sau khi đổi font ('+e2.message+') — giữ cách căn trang ban đầu.')}
+  }catch(e){rep.warn('Chưa đổi được font Times New Roman cỡ 14: '+e.message)}}else rep.warn('Chưa nạp được excel-chuan.js nên chưa đổi font Times New Roman cỡ 14.');
   const data=await zip.generateAsync({type:'uint8array',compression:'DEFLATE'});
   if(C.recalc)rep.notes.push('Đã đặt “tính lại toàn bộ công thức khi mở”: Excel sẽ tự cập nhật ĐTB/tổng sau khi sửa số liệu (có thể hỏi lưu khi đóng — chọn Save).');
   rep.notes.push('Số liệu, công thức (trừ chỗ bọc IFERROR), cột/dòng ẩn được giữ nguyên. Thu phóng thực tế do Excel tính khi in (đã đặt “vừa 1 trang theo chiều rộng”), nên kiểm tra lại ở File → Print.');
@@ -4091,7 +4152,7 @@ function buildUI(){
   +cb('xfooter','Bảng in nhiều trang: thêm số trang “Trang x/y” ở chân trang',1)
   +'<div class="raR"><b>③ Trang in</b></div>'
   +'<div class="raR">Hướng giấy (A4): <select id="ra_xorient"><option value="auto">Tự chọn (ngang/dọc cho chữ lớn nhất)</option><option value="landscape">Luôn ngang</option><option value="portrait">Luôn dọc</option></select></div>'
-  +'<div class="raR">Lề (mm): Trên '+num('xmt',15)+' Dưới '+num('xmb',15)+' Trái '+num('xml',15)+' Phải '+num('xmr',15)+'</div>'
+  +'<div class="raR">Lề (mm): Trên '+num('xmt',8)+' Dưới '+num('xmb',8)+' Trái '+num('xml',8)+' Phải '+num('xmr',8)+'</div>'
   +cb('xarea','Tự đặt vùng in = vùng có dữ liệu (bỏ cột/dòng trống thừa; bỏ tick để giữ vùng in cũ nếu có)',1)
   +cb('xcenter','Căn giữa trang (ngang; bảng 1 trang thì căn giữa cả dọc)',1)
   +cb('xspread','Bảng vừa 1 trang nhưng còn thừa bề ngang: giãn đều các cột để bảng lấp đầy chiều ngang, bốn lề cân đối (cột STT/cột hẹp giữ nguyên)',1)
