@@ -9,6 +9,8 @@
    7. Dựng lại PHIẾU TRẢ LỜI (lưới tô A-B-C-D, trả lời ngắn, Đúng/Sai, tự luận) vừa khổ giấy, không tràn lề
    API: WordDeThiFix.apply(buf, rep) → Promise<Uint8Array>   (rep: đối tượng báo cáo có fix(k,n) và warn(msg))
    Cần: JSZip. Không đụng tới file không phải đề thi (cần ≥3 câu "Câu N.").
+   [v4 – ĐÁP ÁN KHÔNG BỊ XUỐNG DÒNG] Bố cục đáp án A–D chọn theo bề rộng chữ thật (cỡ chữ × số ký tự, có hệ số an toàn), không còn đếm ký tự:
+   vừa 1 hàng → 1×4 · không vừa → 2×2 (A,B dòng trên; C,D dòng dưới) · vẫn không vừa → mỗi đáp án 1 dòng. Bảng 1×4/2×2 có sẵn mà quá chật cũng được dựng lại.
    [v3 – SỬA LỖI MẤT ĐÁP ÁN/CÔNG THỨC] Trước đây khối đáp án chứa công thức (MathType w:object, Equation m:oMath, ký hiệu w:sym, hình) bị coi là “hỏng”
    vì hàm đọc chữ không thấy công thức → bảng bị DỰNG LẠI TỪ CHỮ THUẦN: “A. [công thức]” thành “A. A.”, “A. ;”; dòng chỉ có “A.” bị xóa như “dòng thừa”;
    đoạn chỉ có hình/công thức bị xóa như “đoạn trống”. Nay: (1) khối đáp án/đoạn có công thức hoặc hình KHÔNG BAO GIỜ bị dựng lại hay xóa;
@@ -143,6 +145,15 @@ function shapeOK(tbl,blk){
 const DEFTBL='<w:tbl xmlns:w="'+W+'"><w:tblPr><w:tblW w:w="9808" w:type="dxa"/><w:tblInd w:w="284" w:type="dxa"/><w:tblBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="0" w:type="dxa"/><w:right w:w="60" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="9808"/></w:tblGrid><w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w="9808" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:spacing w:line="276" w:lineRule="auto"/></w:pPr><w:r><w:t>x</w:t></w:r></w:p></w:tc></w:tr></w:tbl>';
 /* [v3] w14:paraId/textId phải duy nhất trong file; nhân bản ô mẫu làm trùng ID (lỗi thấy ở file kết quả: 4 ô cùng paraId) */
 const stripPid=e=>{[e].concat(Array.from(e.getElementsByTagName('*'))).forEach(x=>Array.from(x.attributes).forEach(a=>{if(a.localName==='paraId'||a.localName==='textId')x.removeAttributeNode(a)}))};
+/* [v4] Chọn bố cục đáp án theo BỀ RỘNG CHỮ THẬT (không đếm ký tự): vừa 1 hàng 4 cột → 1×4; không vừa → 2×2 (A,B trên – C,D dưới); vẫn không vừa → mỗi đáp án 1 dòng.
+   Trước đây dùng “≤24 ký tự” nên “A. Hình hộp chữ nhật.” (21 ký tự) bị xếp 4 cột 4,3 cm rồi tự xuống dòng. */
+const OPT_CW=c=>/[0-9]/.test(c)?0.5:/[A-ZÀ-Ỹ]/.test(c)?0.68:/\s/.test(c)?0.25:/[.,;:'"!()\-]/.test(c)?0.32:/[\u2E80-\u9FFF]/.test(c)?1:0.47;
+function optPt(rpr){const se=rpr&&kid(rpr,'sz'),v=se?+wa(se,'val'):0;return v>0?v/2:14}
+function optWidth(s,pt){let w=0;for(const ch of s)w+=OPT_CW(ch);return w*pt*20*1.1}   /* twips, hệ số 1,1 cho an toàn */
+function pickLayout(opts,tw,rpr){
+  const pt=optPt(rpr),mx=Math.max.apply(null,opts.map((s,i)=>optWidth('ABCD'[i]+'. '+s,pt))),GAP=340;
+  return mx+GAP<=tw/4?4:mx+GAP<=tw/2?2:1}
+function layoutRows(o,lay){return lay===4?[o]:lay===2?[[o[0],o[1]],[o[2],o[3]]]:o.map(x=>[x])}
 function buildTable(doc,tpl,rows,aw,rpr){
   let t;
   if(tpl)t=tpl.cloneNode(true);else t=doc.importNode(new DOMParser().parseFromString(DEFTBL,'application/xml').documentElement,true);
@@ -229,11 +240,15 @@ function questionPass(doc,body,rep,info){
       if(strayTxt.length)blk.opts.forEach((x,i)=>{if(/^(Cả|Tất cả)\.?$/.test(x)&&strayTxt.length){blk.opts[i]=x.replace(/\.$/,'')+' '+strayTxt.shift();mergedTail++}});
       if(mergedTail){nTail+=mergedTail}
       const nt=fixOptText(blk,m=>rep.warn(m),qn,dotMajor)+mergedTail;if(nt)nTxt+=nt;
-      const need=tk.k==='Op'||!tk.els[0]||!shapeOK(tk.els[0],blk)||nt>0;
+      const twAll=tpl?(+wa(kid(kid(tpl,'tblPr'),'tblW'),'w')||aw-284):aw-284;
+      const lay=pickLayout(blk.opts,twAll,blk.rpr);
+      /* [v4] bảng đúng dạng nhưng quá chật so với chữ (vd. 1×4 mà đáp án dài bị xuống dòng) → dựng lại theo bố cục vừa chữ */
+      const curRows=tk.els[0]&&ln(tk.els[0],'tbl')?kids(tk.els[0],'tr').length:0;
+      const tooTight=(curRows===1&&lay!==4)||(curRows===2&&lay===1);
+      const need=tk.k==='Op'||!tk.els[0]||!shapeOK(tk.els[0],blk)||nt>0||tooTight;
       if(!need)return;
-      const L=Math.max.apply(null,blk.opts.map(s=>s.length+3));
       const o=blk.opts.map((s,i)=>'ABCD'[i]+'. '+s);
-      const rows=L<=24?[o]:L<=50?[[o[0],o[1]],[o[2],o[3]]]:o.map(x=>[x]);
+      const rows=layoutRows(o,lay);
       const parent=tk.els[0].parentNode,anchor=tk.els[0];
       if(blk.pre.length){const pr=buildTable(doc,tpl,[blk.pre],aw,blk.rpr);parent.insertBefore(pr,anchor)}
       parent.insertBefore(buildTable(doc,tpl,rows,aw,blk.rpr),anchor);
