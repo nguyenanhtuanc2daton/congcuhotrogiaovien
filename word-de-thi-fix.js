@@ -8,7 +8,11 @@
    6. Năm học sai/lẫn ("2025 - 2026", "2026 – 20267") → thống nhất theo năm học xuất hiện nhiều nhất
    7. Dựng lại PHIẾU TRẢ LỜI (lưới tô A-B-C-D, trả lời ngắn, Đúng/Sai, tự luận) vừa khổ giấy, không tràn lề
    API: WordDeThiFix.apply(buf, rep) → Promise<Uint8Array>   (rep: đối tượng báo cáo có fix(k,n) và warn(msg))
-   Cần: JSZip. Không đụng tới file không phải đề thi (cần ≥3 câu "Câu N."). */
+   Cần: JSZip. Không đụng tới file không phải đề thi (cần ≥3 câu "Câu N.").
+   [v3 – SỬA LỖI MẤT ĐÁP ÁN/CÔNG THỨC] Trước đây khối đáp án chứa công thức (MathType w:object, Equation m:oMath, ký hiệu w:sym, hình) bị coi là “hỏng”
+   vì hàm đọc chữ không thấy công thức → bảng bị DỰNG LẠI TỪ CHỮ THUẦN: “A. [công thức]” thành “A. A.”, “A. ;”; dòng chỉ có “A.” bị xóa như “dòng thừa”;
+   đoạn chỉ có hình/công thức bị xóa như “đoạn trống”. Nay: (1) khối đáp án/đoạn có công thức hoặc hình KHÔNG BAO GIỜ bị dựng lại hay xóa;
+   (2) phân loại đoạn dùng chữ có ký hiệu giữ chỗ ⟦F⟧ cho công thức; (3) chốt chặn trong apply(): số công thức/hình/ký tự công thức mà giảm → hoàn tác cả bước, trả về file gốc. */
 (function(global){
 'use strict';
 const W='http://schemas.openxmlformats.org/wordprocessingml/2006/main',XNS='http://www.w3.org/XML/1998/namespace';
@@ -18,6 +22,11 @@ const kid=(e,n)=>kids(e,n)[0]||null;
 const all=(e,n)=>Array.from(e.getElementsByTagNameNS(W,n));
 const wa=(e,a)=>e.getAttributeNS(W,a);
 const sa=(e,a,v)=>e.setAttributeNS(W,'w:'+a,String(v));
+const MNS='http://schemas.openxmlformats.org/officeDocument/2006/math';
+/* [v3] “Đối tượng không phải chữ”: công thức MathType/OLE, Equation, hình, ký hiệu chèn bằng Insert→Symbol, hộp chữ, trường, mốc Comment/chú thích.
+   Các đoạn/khối có những thứ này KHÔNG được dựng lại từ chữ thuần (ptext không thấy chúng) và KHÔNG được xóa. */
+const FX_W=['object','pict','drawing','sym','fldChar','fldSimple','txbxContent','commentRangeStart','commentRangeEnd','commentReference','footnoteReference','endnoteReference'];
+const hasFx=e=>!!e&&e.nodeType===1&&(FX_W.some(n=>e.getElementsByTagNameNS(W,n).length>0)||e.getElementsByTagNameNS(MNS,'oMath').length>0||e.getElementsByTagNameNS(MNS,'oMathPara').length>0);
 const STEM=/^\s*Câu\s*(\d+)\s*[.:]/;
 const STRAY=/^[A-D](\s*[,;]\s*[A-D])*\s*\.?$/;
 const LBL=/(?<![A-Za-z0-9])([A-D])\.(?=\s)/g;
@@ -27,6 +36,14 @@ function ptext(n){let s='';(function w(x){for(const c of Array.from(x.childNodes
     if(l==='t')s+=c.textContent;else if(l==='tab')s+='\t';else if(l==='br')s+=' ';
     else if(l==='instrText'||l==='delText'||l==='pPr'||l==='rPr')continue;else w(c)}else w(c)}})(n);return s}
 const ttext=t=>all(t,'p').map(p=>ptext(p).replace(/\t/g,' ')).join(' ');
+/* [v3] như ptext nhưng công thức/hình/ký hiệu hiện thành ⟦F⟧ — chỉ để PHÂN LOẠI đoạn (không bao giờ dùng để ghi lại nội dung) */
+function ptextC(n){let s='';(function w(x){for(const c of Array.from(x.childNodes)){if(c.nodeType!==1)continue;
+  if(c.namespaceURI===MNS){if(c.localName==='oMath'||c.localName==='oMathPara'){s+='⟦F⟧';continue}w(c);continue}
+  if(c.namespaceURI===W){const l=c.localName;
+    if(l==='t')s+=c.textContent;else if(l==='tab')s+='\t';else if(l==='br')s+=' ';
+    else if(l==='object'||l==='pict'||l==='drawing'||l==='sym'){s+='⟦F⟧';continue}
+    else if(l==='instrText'||l==='delText'||l==='pPr'||l==='rPr')continue;else w(c)}else w(c)}})(n);return s}
+const ttextC=t=>all(t,'p').map(p=>ptextC(p).replace(/\t/g,' ')).join(' ');
 const hasSect=e=>ln(e,'p')&&!!kid(kid(e,'pPr')||e,'sectPr');
 const elems=body=>Array.from(body.childNodes).filter(c=>c.nodeType===1);
 function mk(doc,name,attrs,kidsArr){const e=doc.createElementNS(W,'w:'+name);
@@ -68,7 +85,7 @@ function fixYears(doc,body,rep){
   let best=null,bn=0;cnt.forEach((n,k)=>{if(n>bn){bn=n;best=k}});
   if(!best&&hits.length){const m=hits[0].m;best=m[1]+'-'+m[2]}
   if(!best)return;const[a,b]=best.split('-');let n=0;
-  hits.forEach(h=>{const cur=h.m[1]+'-'+h.m[2]+h.m[3];if(cur===best&&!h.m[3])return;
+  hits.forEach(h=>{const cur=h.m[1]+'-'+h.m[2]+h.m[3];if(cur===best&&!h.m[3])return;if(hasFx(h.p))return;
     const nt=h.t.replace(re,'NĂM HỌC '+a+' - '+b);if(nt===h.t)return;setParaText(doc,h.p,nt);n++});
   if(n)rep.fix('Đề thi: thống nhất năm học '+a+' - '+b+' (sửa năm sai/lẫn chữ số)',n)}
 
@@ -124,6 +141,8 @@ function shapeOK(tbl,blk){
     seq.push(m[1])}
   return seq.join('')==='ABCD'&&!blk.pre.length}
 const DEFTBL='<w:tbl xmlns:w="'+W+'"><w:tblPr><w:tblW w:w="9808" w:type="dxa"/><w:tblInd w:w="284" w:type="dxa"/><w:tblBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="0" w:type="dxa"/><w:right w:w="60" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="9808"/></w:tblGrid><w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w="9808" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:spacing w:line="276" w:lineRule="auto"/></w:pPr><w:r><w:t>x</w:t></w:r></w:p></w:tc></w:tr></w:tbl>';
+/* [v3] w14:paraId/textId phải duy nhất trong file; nhân bản ô mẫu làm trùng ID (lỗi thấy ở file kết quả: 4 ô cùng paraId) */
+const stripPid=e=>{[e].concat(Array.from(e.getElementsByTagName('*'))).forEach(x=>Array.from(x.attributes).forEach(a=>{if(a.localName==='paraId'||a.localName==='textId')x.removeAttributeNode(a)}))};
 function buildTable(doc,tpl,rows,aw,rpr){
   let t;
   if(tpl)t=tpl.cloneNode(true);else t=doc.importNode(new DOMParser().parseFromString(DEFTBL,'application/xml').documentElement,true);
@@ -140,21 +159,23 @@ function buildTable(doc,tpl,rows,aw,rpr){
       const p=kid(tc,'p');setParaText(doc,p,s);
       if(rpr){const r=kid(p,'r'),old=kid(r,'rPr');if(old)r.removeChild(old);r.insertBefore(rpr.cloneNode(true),r.firstChild)}
       tr.appendChild(tc)});t.appendChild(tr)});
+  stripPid(t);
   return t}
 
 function questionPass(doc,body,rep,info){
   let ch=elems(body),toks=[],inTL=false,lastK=null;
   const isOptTxt=t=>{const m=t.match(LBL)||[];return new Set(m.map(x=>x[0])).size>=3};
   for(const e of ch){
-    const t=ln(e,'p')?ptext(e).replace(/\t/g,' ').replace(/\s+/g,' ').trim():(ln(e,'tbl')?ttext(e):'');
+    const t=ln(e,'p')?ptextC(e).replace(/\t/g,' ').replace(/\s+/g,' ').trim():(ln(e,'tbl')?ttextC(e):'');
     let k='B';
     if(ln(e,'p')&&/^Phần\s*II(?!I)/i.test(t)){inTL=true}
     else if(ln(e,'p')&&/^Phần\s*I(?!I)/i.test(t)){inTL=false}
     else if(inTL){}
     else if(ln(e,'p')&&hasSect(e)){}
-    else if(ln(e,'p')&&!t)k='E';
+    else if(ln(e,'p')&&!t&&!hasFx(e))k='E';
+    else if(ln(e,'p')&&lastK==='S'&&/^(⟦F⟧\s*)+$/.test(t)){const ps=[...toks].reverse().find(x=>x.k==='S');if(ps){ps.els.push(e);continue}}   /* [v3] đoạn chỉ có hình/công thức ngay sau câu hỏi: đi cùng câu hỏi, không bị coi là đoạn trống */
     else if(ln(e,'p')&&STEM.test(t)){k='S';info.maxQ=Math.max(info.maxQ,+STEM.exec(t)[1])}
-    else if(ln(e,'p')&&STRAY.test(t))k='X';
+    else if(ln(e,'p')&&STRAY.test(t)&&!hasFx(e))k='X';
     else if(ln(e,'tbl')&&!isOptTxt(t)&&/^\s*1[.)]\s.*\b2[.)]\s/.test(t)&&lastK==='S'){const ps=[...toks].reverse().find(x=>x.k==='S');if(ps){ps.els.push(e);continue}}
     else if(ln(e,'tbl')&&isOptTxt(t))k='O';
     else if(ln(e,'p')&&(lastK==='S'||lastK==='Op')&&/(^|\s)[B-D]\.\s/.test(t)&&t.length<200)k='Op';
@@ -168,13 +189,13 @@ function questionPass(doc,body,rep,info){
   /* bảng mẫu: bảng 1×4 chuẩn có sẵn trong file */
   let tpl=null;
   for(const tk of toks){if(tk.k!=='O')continue;const t=tk.els[0],rows=kids(t,'tr');
-    if(rows.length===1&&kids(rows[0],'tc').length===4&&!all(t,'tbl').length&&kids(kids(rows[0],'tc')[0],'p').length===1){tpl=t;break}}
+    if(rows.length===1&&kids(rows[0],'tc').length===4&&!all(t,'tbl').length&&kids(kids(rows[0],'tc')[0],'p').length===1&&!hasFx(t)){tpl=t;break}}
   const aw=textWidth(kid(body,'sectPr'));
-  let nd=0,nt0=0;toks.forEach(tk=>{if(tk.k==='O'||tk.k==='Op'){tk.blk=parseBlock(tk.els);if(tk.blk)tk.blk.opts.forEach(x=>{nt0++;if(/[.…]$/.test(x))nd++})}});
+  let nd=0,nt0=0;toks.forEach(tk=>{if((tk.k==='O'||tk.k==='Op')&&!tk.els.some(hasFx)){tk.blk=parseBlock(tk.els);if(tk.blk)tk.blk.opts.forEach(x=>{nt0++;if(/[.…]$/.test(x))nd++})}});
   const dotMajor=nt0>0&&nd/nt0>=.5;
   /* tách thành các "đoạn" giữa các điểm chặn */
   const runs=[];let cur=[];toks.forEach(tk=>{if(tk.k==='B'){if(cur.length)runs.push(cur);cur=[]}else cur.push(tk)});if(cur.length)runs.push(cur);
-  let nMis=0,nStray=0,nBlank=0,nNorm=0,nTxt=0,nTail=0;const strayLeft=[];
+  let nMis=0,nStray=0,nBlank=0,nNorm=0,nTxt=0,nTail=0,nKeepFx=0;const strayLeft=[];
   const isQ=k=>k==='S'||k==='O'||k==='Op';
   runs.forEach(run=>{
     const real=run.filter(x=>isQ(x.k)),S=real.filter(x=>x.k==='S'),O=real.filter(x=>x.k!=='S');
@@ -198,6 +219,8 @@ function questionPass(doc,body,rep,info){
     run.filter(x=>x.k==='E').forEach(x=>{const e=x.els[0];if(e.parentNode){e.parentNode.removeChild(e);nBlank++}});
     /* chuẩn hóa từng khối đáp án */
     O.forEach(tk=>{
+      /* [v3] khối đáp án có công thức/hình/ký hiệu: GIỮ NGUYÊN 100% (dựng lại từ chữ thuần sẽ làm mất công thức: “A. A.”, “B. ;”) */
+      if(tk.els.some(hasFx)){nKeepFx++;return}
       const blk=tk.blk||parseBlock(tk.els);
       const sEl=ok?S[O.indexOf(tk)]:null;
       const qn=sEl?(STEM.exec(ptext(sEl.els[0]).trim())||[0,'?'])[1]:'?';
@@ -217,6 +240,7 @@ function questionPass(doc,body,rep,info){
       tk.els.forEach(e=>{if(e.parentNode)e.parentNode.removeChild(e)});nNorm++});
     strayTxt.forEach(t=>strayLeft.push('Đề thi: đã xóa dòng thừa “'+t+'” không ghép được vào phương án nào — kiểm tra lại câu hỏi gần đó.'))});
   strayLeft.forEach(m=>rep.warn(m));
+  if(nKeepFx&&rep.notes&&rep.notes.push)rep.notes.push('Đề thi: giữ nguyên '+nKeepFx+' khối đáp án có công thức/hình (không dựng lại từ chữ để khỏi mất công thức; việc căn cột đã do bước căn đáp án trắc nghiệm lo).');
   if(nTail)rep.fix('Đề thi: ghép phần đuôi “A, B, C.” vào phương án “Cả” (D. Cả A, B, C.)',nTail);
   if(nMis)rep.fix('Đề thi: ghép lại đáp án đang lệch câu hỏi (đoạn câu)',nMis);
   if(nStray)rep.fix('Đề thi: xóa dòng thừa dạng “A, B, C.”',nStray);
@@ -243,7 +267,7 @@ function sectPass(doc,body,rep){
   if(n)rep.fix('Đề thi: bỏ ngắt trang/section thừa giữa các câu hỏi',n);
   let d=0;const ch2=elems(body);
   for(let i=0;i+1<ch2.length;i++){const a=ch2[i],b=ch2[i+1];
-    if(hasSect(a)&&hasSect(b)&&!ptext(a).trim()&&!ptext(b).trim()&&sig(kid(kid(a,'pPr'),'sectPr'))===sig(kid(kid(b,'pPr'),'sectPr'))){body.removeChild(b);ch2.splice(i+1,1);i--;d++}}
+    if(hasSect(a)&&hasSect(b)&&!ptext(a).trim()&&!ptext(b).trim()&&!hasFx(a)&&!hasFx(b)&&sig(kid(kid(a,'pPr'),'sectPr'))===sig(kid(kid(b,'pPr'),'sectPr'))){body.removeChild(b);ch2.splice(i+1,1);i--;d++}}
   if(d)rep.fix('Đề thi: xóa section rỗng liền nhau (gây trang trống)',d)}
 
 /* ================== 6. THỨ TỰ CÁC DẠNG ================== */
@@ -294,6 +318,7 @@ function sheetPass(doc,body,rep,info){
     const keep=sects.length?sects[sects.length-1]:null;
     const sp=keep?kid(kid(keep,'pPr'),'sectPr'):kid(body,'sectPr');
     const aw=textWidth(sp),ind=0,tw=Math.max(6000,aw-ind);
+    if(region.some(hasFx)){rep.warn('Phiếu trả lời #'+(h+1)+': vùng cần dựng lại có công thức/hình nên giữ nguyên, không dựng lại (tránh mất nội dung).');continue}
     region.forEach(e=>e.parentNode.removeChild(e));
     const out=[];
     /* lưới tô A-B-C-D */
@@ -556,8 +581,15 @@ function checkLoss(a,b,rep){
 }
 
 /* ================== API ================== */
-async function apply(buf,rep,opt){
-  rep=rep||{fix(){},warn(){}};opt=opt||{};
+/* [v3] chữ ký “nội dung không phải chữ”: số đối tượng/hình/ký hiệu, số Equation, tổng ký tự trong Equation */
+function fxSig(body){let n=0;['object','pict','drawing','sym'].forEach(k=>{n+=all(body,k).length});
+  let len=0;Array.from(body.getElementsByTagNameNS(MNS,'t')).forEach(t=>{len+=t.textContent.replace(/\s+/g,'').length});
+  return{n:n,om:body.getElementsByTagNameNS(MNS,'oMath').length,len:len}}
+async function apply(buf,rep0,opt){
+  const real=rep0||{fix(){},warn(){}};opt=opt||{};
+  /* báo cáo cục bộ: chỉ ghi vào báo cáo thật khi bước này KHÔNG làm mất công thức/hình (nếu hoàn tác thì không khai báo sửa gì) */
+  const LF=[],LW=[],LN=[];
+  const rep={fix:(k,n)=>{LF.push([k,n])},warn:m=>{LW.push(m)},notes:{push:m=>{LN.push(m)}}};
   if(typeof JSZip==='undefined')throw new Error('thiếu JSZip');
   const zip=await JSZip.loadAsync(buf),f=zip.file('word/document.xml');if(!f)return buf;
   const xml=await f.async('string');
@@ -565,6 +597,7 @@ async function apply(buf,rep,opt){
   if(doc.getElementsByTagName('parsererror').length)return buf;
   const body=doc.getElementsByTagNameNS(W,'body')[0];if(!body)return buf;
   const info={maxQ:0};
+  const fx0=fxSig(body);
   let def=12;{const sf=zip.file('word/styles.xml');
     if(sf){try{const sd=new DOMParser().parseFromString(await sf.async('string'),'application/xml'),dz=sd.getElementsByTagNameNS(W,'docDefaults')[0],z=dz&&dz.getElementsByTagNameNS(W,'sz')[0];if(z&&tw(wa(z,'val')))def=tw(wa(z,'val'))/2}catch(e){}}}
   info.def=def;
@@ -580,6 +613,14 @@ async function apply(buf,rep,opt){
   if(opt.fitPages!==false){
     try{fitPass(doc,body,rep,opt,def)}catch(e){rep.warn('Đề thi: bước giữ số trang gặp lỗi và đã bỏ qua: '+e.message)}}
   checkLoss(before,wordBag(body),rep);
+  {const fx1=fxSig(body),miss=[];
+   if(fx1.n<fx0.n)miss.push((fx0.n-fx1.n)+' công thức/hình/ký hiệu');
+   if(fx1.om<fx0.om)miss.push((fx0.om-fx1.om)+' Equation');
+   if(fx1.len<fx0.len)miss.push((fx0.len-fx1.len)+' ký tự trong công thức');
+   if(miss.length){
+     if(real.warn)real.warn('Đề thi: bước sửa lỗi riêng của đề thi làm mất '+miss.join(', ')+' (thường là đáp án trắc nghiệm có công thức) nên đã được HOÀN TÁC — file giữ nguyên như trước bước này.');
+     return buf}}
+  LF.forEach(x=>real.fix(x[0],x[1]));LW.forEach(m=>real.warn(m));if(real.notes&&real.notes.push)LN.forEach(m=>real.notes.push(m));
   let out=new XMLSerializer().serializeToString(doc);
   if(!/^<\?xml/.test(out))out='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+out;
   zip.file('word/document.xml',out);

@@ -1500,6 +1500,23 @@ function colWordFit(doc,body,ctx,rep){
       if(cp||w){let c2=cp;if(!c2){c2=mk(doc,'tcPr');tc.insertBefore(c2,tc.firstChild)}const x=sc(doc,c2,'tcW',ORD.tcPr);if(ga(x,'type')!=='pct'){sa(x,'w',w);sa(x,'type','dxa')}}})});
     n++});
   rep.fix('Bảng: căn lại độ rộng cột để mỗi từ nằm trọn trên một dòng, không bị bẻ giữa từ (bảng)',n)}
+/* [v19] CHỐT CHẶN MẤT CÔNG THỨC/HÌNH: các bước ngoài (WordFlowFix, WordDeThiFix) từng làm đáp án trắc nghiệm chứa công thức biến thành chữ trơn (“A. A.”, “B. ;”)
+   hoặc mất hẳn. Đếm đối tượng (OLE/MathType, hình, khung vẽ) và tổng chữ trong Equation trước/sau; nếu bước nào làm GIẢM → hoàn tác bước đó và báo. */
+function mathSigDoc(doc){
+  let obj=0;['object','drawing','pict'].forEach(n=>{obj+=doc.getElementsByTagNameNS(W,n).length});
+  let len=0;Array.from(doc.getElementsByTagNameNS(M,'t')).forEach(t=>{len+=t.textContent.replace(/\s+/g,'').length});
+  return{obj,len}}
+function mathSigXml(x){
+  let obj=0;['object','drawing','pict'].forEach(n=>{obj+=(x.match(new RegExp('<w:'+n+'[ >/]','g'))||[]).length});
+  let len=0;(x.match(/<m:t(?: [^>]*)?>[^<]*<\/m:t>/g)||[]).forEach(t=>{len+=t.replace(/<[^>]+>/g,'').replace(/\s+/g,'').length});
+  return{obj,len}}
+const mathLost=(a,b)=>(a.obj>b.obj)||(a.len>b.len)?{obj:Math.max(0,a.obj-b.obj),len:Math.max(0,a.len-b.len)}:null;
+function restoreBody(doc,body,xml){
+  const d2=new DOMParser().parseFromString(xml,'application/xml');
+  if(d2.getElementsByTagName('parsererror').length)return false;
+  const b2=Array.from(d2.documentElement.children).find(c=>c.localName==='body'&&c.namespaceURI===W);if(!b2)return false;
+  while(body.firstChild)body.removeChild(body.firstChild);
+  Array.from(b2.childNodes).forEach(c=>body.appendChild(doc.importNode(c,true)));return true}
 function afterTableGap(doc,body,rep){
   let n=0;
   all(body,'tbl').forEach(tbl=>{
@@ -3263,8 +3280,13 @@ async function auditOnce(buf,o,hooks){
     /* [v18] WordFlowFix chỉ biết một bề rộng chung → trước đây tính theo khổ DỌC, làm bảng trong section khổ NGANG bị bóp còn ~10 000 twips.
        Nay: truyền bề rộng của section RỘNG NHẤT, rồi khôi phục bảng nào vẫn bị bóp nhỏ hơn vùng chữ thật của section chứa nó. */
     const ps=preSecAw(doc,body,o),snap=snapTables(body,ps),awMax=o.page?Math.max.apply(null,ps.map(x=>x.aw)):0;
+    const sig0=mathSigDoc(doc),xml0=new XMLSerializer().serializeToString(doc.documentElement);
     const fr=window.WordFlowFix(doc,{flatCols:true,dots:true,pt:(o.size&&o.size!=='auto'&&+o.size)||14,aw:awMax});
     const rt=restoreTables(doc,snap);
+    {const lost=mathLost(sig0,mathSigDoc(doc));
+      if(lost){const okR=restoreBody(doc,body,xml0);
+        rep.warn('Bước “gỡ bỏ các giả của file chuyển từ PDF” làm mất '+(lost.obj?lost.obj+' công thức/hình':'')+(lost.obj&&lost.len?' và ':'')+(lost.len?lost.len+' ký tự trong công thức':'')+' (thường là đáp án trắc nghiệm A/B/C/D chứa công thức) nên '+(okR?'đã được HOÀN TÁC — công thức giữ nguyên':'KHÔNG hoàn tác được — hãy kiểm tra lại đáp án trắc nghiệm')+'.');
+        return}}
     Object.keys(fr.fix).forEach(k=>rep.fix(k,parseInt(fr.fix[k],10)||1));fr.warn.forEach(w=>rep.warn(w));rep.fix('Giữ nguyên bề ngang bảng trong trang khổ ngang (không bị thu về khổ dọc)',rt)});
   step('dọn nhiễu XML',()=>stripNoise(doc));
   step('Track Changes/Comment',()=>reviewMarks(doc,o,rep));
@@ -4168,7 +4190,14 @@ async function run(){
       USED.clear();
       const r=await audit(f.buf,o,{progress:m=>setSt(pre+m)});
       if(window.WordDeThiFix&&o.examFix!==false){setSt(pre+'Sửa lỗi riêng của đề thi (đáp án, phiếu trả lời, ngắt trang)...');
-        try{r.data=await WordDeThiFix.apply(r.data,r.rep,{fitPages:o.fitPages!==false})}catch(e){r.rep.warn('Bước sửa lỗi đề thi gặp lỗi và đã bỏ qua: '+e.message)}}
+        {const d0=r.data,f0=new Map(r.rep.f),w0=r.rep.w.slice(),n0=(r.rep.notes||[]).slice();
+          try{
+            const z0=await JSZip.loadAsync(d0),sig0=mathSigXml(await z0.file('word/document.xml').async('string'));
+            r.data=await WordDeThiFix.apply(r.data,r.rep,{fitPages:o.fitPages!==false});
+            const z1=await JSZip.loadAsync(r.data),lost=mathLost(sig0,mathSigXml(await z1.file('word/document.xml').async('string')));
+            if(lost){r.data=d0;r.rep.f=f0;r.rep.w=w0;r.rep.notes=n0;
+              r.rep.warn('Bước sửa lỗi riêng của đề thi làm mất '+(lost.obj?lost.obj+' công thức/hình':'')+(lost.obj&&lost.len?' và ':'')+(lost.len?lost.len+' ký tự trong công thức':'')+' (thường là đáp án trắc nghiệm) nên đã được HOÀN TÁC — công thức giữ nguyên.')}
+          }catch(e){r.data=d0;r.rep.f=f0;r.rep.w=w0;r.rep.notes=n0;r.rep.warn('Bước sửa lỗi đề thi gặp lỗi và đã bỏ qua: '+e.message)}}}
       let aiR=null;
       if(o.aiExam){try{aiR=await aiExamReview(r.data,o,{progress:m=>setSt(pre+m)},r.rep)}catch(e){r.rep.warn('AI rà soát đề gặp lỗi và đã bỏ qua: '+e.message)}
         if(aiR){r.rep.ai=aiR;if(aiR.data)r.data=aiR.data}}
