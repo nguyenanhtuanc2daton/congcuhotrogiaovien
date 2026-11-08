@@ -3578,7 +3578,7 @@ function xlMdw(sd){try{if(!sd)return 7;const fonts=sk(s1(sd.documentElement,'fon
   let fid=x0&&x0.getAttribute('fontId')!==null?(parseInt(x0.getAttribute('fontId'),10)||0):0;const f=fonts[fid]||fonts[0];if(!f)return 7;
   const sz=parseFloat((s1(f,'sz')||{getAttribute:()=>'11'}).getAttribute('val'))||11,nm=String((s1(f,'name')||{getAttribute:()=>''}).getAttribute('val')||'').toLowerCase();
   const em=/times/.test(nm)?.5:/arial|helvetica/.test(nm)?.556:/tahoma|verdana/.test(nm)?.58:/calibri/.test(nm)?.507:.52;
-  return Math.max(5,Math.round(sz*96/72*em))}catch(e){return 7}}
+  const px=sz*96/72*em;return Math.max(5,/calibri/.test(nm)?Math.round(px):Math.round(px*2)/2)}catch(e){return 7}}
 const qName=n=>"'"+String(n).replace(/'/g,"''")+"'";
 function xlScan(doc){
   const root=doc.documentElement,sd=s1(root,'sheetData'),fmt=s1(root,'sheetFormatPr');
@@ -3642,6 +3642,7 @@ function xlSetPrint(doc,plan,xo,single){
   ['scale','useFirstPageNumber','firstPageNumber'].forEach(a=>pg.removeAttribute(a));
   pg.setAttribute('paperSize','9');pg.setAttribute('orientation',plan.o);pg.setAttribute('fitToWidth','1');pg.setAttribute('fitToHeight',plan.one?'1':'0');
   root.insertBefore(pg,ref);
+  if(single){const hf0=s1(root,'headerFooter');if(hf0){sk(hf0,'oddFooter').forEach(e=>{if(e.textContent.trim()==='&CTrang &P/&N')hf0.removeChild(e)});if(!hf0.children.length)root.removeChild(hf0)}}
   if(xo.footer&&!single){   /* số trang “Trang x/y” ở chân trang (chỉ khi in nhiều trang, và chưa có chân trang) */
     let hf=s1(root,'headerFooter');
     if(!hf){hf=mkS(doc,'headerFooter');const r2=Array.from(root.children).find(c=>XL_AFTER_PS.indexOf(c.localName)>0)||null;root.insertBefore(hf,r2)}
