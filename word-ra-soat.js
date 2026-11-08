@@ -64,7 +64,7 @@ const pbOnly=p=>p.localName==='p'&&p.namespaceURI===W&&hasPB(p)&&!all(p,'t').som
    NÂNG CẤP v2 — mô hình văn bản cấp ĐOẠN · sửa dấu câu · bắt lỗi gõ sai ·
    đánh dấu Comment tại chỗ · Track Changes · kiểm lại nhiều vòng
    ==================================================================== */
-const VERSION='v21 (v21: Excel — sau khi đổi Times New Roman 14, đo lại bảng theo kích thước thật rồi căn A4 vừa 1 trang, giãn cột/dòng cho bảng kín trang); nền v20 (v20: giữ nguyên hình có chữ chạy quanh (không đổi thành hình cùng dòng); sửa bảng ma trận bị bóp cột (chữ/số viết dọc), giữ tỉ lệ cột gốc, không tự thu nhỏ chữ khi đã chọn cỡ, mặc định Times New Roman 14; nền v19: đổi công thức MathType → Equation của Word; căn đáp án trắc nghiệm nằm trong ô bảng và giữ nguyên câu trên một trang; ghép đoạn bị ngắt giữa câu; tách gạch đầu dòng nằm giữa đoạn; tự sửa đáp số cặp số sai khi phép thay số ngay dưới đã cho biết đáp số đúng; gom tiêu đề bài bị tách nhiều đoạn, căn giữa, in đậm đồng nhất; bỏ dấu “-” thừa cuối dòng đầu trang; bảng giáo án 2 cột vừa vùng chữ và đường chia cột thẳng hàng; giữ lề của giáo án gốc); nền v18 (v18: tự sửa “ưo”→“ươ”, kiểm tra “cặp số là/không là nghiệm” bằng cách thay số, cảnh báo tổng thời lượng lệch khi >60 phút và không là bội của 45); nền v17-khbd-mau-loi-giao-an (v17: đọc ký hiệu w:sym (∈ ℝ…) cho AI, đặt ngôn ngữ tiếng Việt cho từng run, dấu trừ số âm “= - 0,5”, thiếu cách trước “+”, chữ thường đầu đoạn trong ô bảng, dấu phẩy cuối đoạn, gạch đầu dòng giữa đoạn, hết báo nhầm số thập phân do phép nhân/“Bài 1.1”; thêm: tự sửa “trọng tại”, “gọi tiếp xúc”, “a à đường”, viết hoa “Ổn định tổ chức” / “Luyện tập” / đầu câu “Vì…”; hết báo nhầm công thức A(x), thời gian có ổn định + hướng dẫn về nhà, bước 2–4 dùng chung ô bảng, “song song”, nhãn a) b) c); thêm cảnh báo: số HĐ lệch cột, tên hoạt động lệch tên bài, nhảy số hoạt động, “Chuẩn bị bài sau” khi tiết sau cùng bài, số HS ≠ “hai bạn”); nền v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
+const VERSION='v21 (v21: giữ nguyên cột ẩn/cột thu hẹp của file gốc, tính chiều cao dòng tiêu đề theo số dòng chữ thật, đo cột theo font Normal; Excel — sau khi đổi Times New Roman 14, đo lại bảng theo kích thước thật rồi căn A4 vừa 1 trang, giãn cột/dòng cho bảng kín trang); nền v20 (v20: giữ nguyên hình có chữ chạy quanh (không đổi thành hình cùng dòng); sửa bảng ma trận bị bóp cột (chữ/số viết dọc), giữ tỉ lệ cột gốc, không tự thu nhỏ chữ khi đã chọn cỡ, mặc định Times New Roman 14; nền v19: đổi công thức MathType → Equation của Word; căn đáp án trắc nghiệm nằm trong ô bảng và giữ nguyên câu trên một trang; ghép đoạn bị ngắt giữa câu; tách gạch đầu dòng nằm giữa đoạn; tự sửa đáp số cặp số sai khi phép thay số ngay dưới đã cho biết đáp số đúng; gom tiêu đề bài bị tách nhiều đoạn, căn giữa, in đậm đồng nhất; bỏ dấu “-” thừa cuối dòng đầu trang; bảng giáo án 2 cột vừa vùng chữ và đường chia cột thẳng hàng; giữ lề của giáo án gốc); nền v18 (v18: tự sửa “ưo”→“ươ”, kiểm tra “cặp số là/không là nghiệm” bằng cách thay số, cảnh báo tổng thời lượng lệch khi >60 phút và không là bội của 45); nền v17-khbd-mau-loi-giao-an (v17: đọc ký hiệu w:sym (∈ ℝ…) cho AI, đặt ngôn ngữ tiếng Việt cho từng run, dấu trừ số âm “= - 0,5”, thiếu cách trước “+”, chữ thường đầu đoạn trong ô bảng, dấu phẩy cuối đoạn, gạch đầu dòng giữa đoạn, hết báo nhầm số thập phân do phép nhân/“Bài 1.1”; thêm: tự sửa “trọng tại”, “gọi tiếp xúc”, “a à đường”, viết hoa “Ổn định tổ chức” / “Luyện tập” / đầu câu “Vì…”; hết báo nhầm công thức A(x), thời gian có ổn định + hướng dẫn về nhà, bước 2–4 dùng chung ô bảng, “song song”, nhãn a) b) c); thêm cảnh báo: số HĐ lệch cột, tên hoạt động lệch tên bài, nhảy số hoạt động, “Chuẩn bị bài sau” khi tiết sau cùng bài, số HS ≠ “hai bạn”); nền v14-khbd-5512 (kiểm tra thời gian & cấu trúc CV 5512, tự sửa phép tính sai, mở rộng bộ giải trắc nghiệm, thống nhất dấu trừ/số thập phân, phát hiện công thức bị mất, đầu trang còn dở, thêm lỗi chính tả thuật ngữ Toán); nền v13-sua-loi-noi-dung (tự xóa dấu chấm thừa, thêm nhãn “Câu 1.” còn thiếu, điền đáp án trống, sửa kết quả giải phương trình bậc nhất hai ẩn sai, sửa câu chữ chép nhầm “hai HĐ”; có Track Changes + Comment); nền v10-bang-gon-1-trang (dàn cột bảng theo nội dung: cột chữ dài được rộng, cột số vừa đủ; bỏ thụt lề thừa và dòng trống đầu ô; ma trận/bản đặc tả gọn 1 trang khi có thể; lặp đủ các hàng tiêu đề nhiều tầng; hàng “Tổng” không bị bỏ lẻ sang trang sau; hàng cao được phép tách trang; kiểm lại nhiều vòng không còn báo thay đổi giả); nền v9-hoan-chinh (lề đề thi gọn mặc định, không thụt đầu dòng đề trắc nghiệm, căn lại nhãn a./b./c., căn trái ô bảng hẹp, sửa “đúng/ sai” và “0,25đ”, bớt báo nhầm kì/kỳ và dấu hai chấm); nền v8-phan-cap-canh-bao (mức LỖI / NGHI NGỜ / GỢI Ý có công tắc từng loại, đối chiếu điểm–đáp án–hình/bảng–tham chiếu câu, xóa thông tin cá nhân, danh sách tự kiểm; nền v7-to-mau-bien-ban: tô màu đúng cụm chữ lỗi, Comment neo đúng chỗ, biên bản .docx khổ ngang, cột Xử lý để trống; nền v6-to-truong: bớt báo nhầm, nhất quán toàn đề, neo ô bảng đáp án, bằng chứng ngắn, mã số comment; nền v5: prompt rà soát đề chuẩn hóa, schema JSON, thẩm định kép, khớp bằng chứng mềm, Comment AI tại câu, đối chiếu đáp án)';
 const BAR='\u0001',MTH='\u0002',CTNS='http://schemas.openxmlformats.org/package/2006/content-types',RELNS='http://schemas.openxmlformats.org/package/2006/relationships';
 const TRK={on:false,id:900000,author:'Rà soát tự động',date:''};
 let PSEUDO=true;
@@ -3572,6 +3572,12 @@ function colNum(s){let n=0;for(const ch of s)n=n*26+ch.charCodeAt(0)-64;return n
 function colName(n){let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26}return s}
 function parseRef(a){const m=/^\$?([A-Z]+)\$?(\d+)$/.exec(a||'');return m?{c:colNum(m[1]),r:+m[2]}:null}
 const A4={w:595.28,h:841.89};
+/* [v21] Độ rộng 1 đơn vị cột (px) = độ rộng chữ số của font Normal: Calibri 11 → 7px, Times New Roman 14 → 9px... (không cố định 7) */
+let XL_MDW=7;
+function xlMdw(sd){try{const f=sd&&s1(s1(sd.documentElement,'fonts'),'font');if(!f)return 7;
+  const sz=parseFloat((s1(f,'sz')||{getAttribute:()=>'11'}).getAttribute('val'))||11,nm=String((s1(f,'name')||{getAttribute:()=>''}).getAttribute('val')||'').toLowerCase();
+  const em=/times/.test(nm)?.5:/arial|helvetica/.test(nm)?.556:/tahoma|verdana/.test(nm)?.58:/calibri/.test(nm)?.507:.52;
+  return Math.max(5,Math.round(sz*96/72*em))}catch(e){return 7}}
 const qName=n=>"'"+String(n).replace(/'/g,"''")+"'";
 function xlScan(doc){
   const root=doc.documentElement,sd=s1(root,'sheetData'),fmt=s1(root,'sheetFormatPr');
@@ -3592,7 +3598,7 @@ function xlScan(doc){
   return{rows,defH,colW,minR,maxR,minC,maxC,merges,empty:!maxR,drawing:!!(s1(root,'drawing')||s1(root,'legacyDrawing'))}}
 function xlSize(S){
   let cw=0,ch=0;
-  for(let c=S.minC;c<=S.maxC;c++)cw+=S.colW(c)*7*0.75;      /* độ rộng cột (ký tự) → điểm: ~7 px/ký tự, 1 px = 0,75 pt */
+  for(let c=S.minC;c<=S.maxC;c++)cw+=S.colW(c)*XL_MDW*0.75;      /* độ rộng cột (ký tự) → điểm: ~7 px/ký tự, 1 px = 0,75 pt */
   for(let r=S.minR;r<=S.maxR;r++){const ro=S.rows.get(r);ch+=ro?(ro.hid?0:(ro.ht!=null?ro.ht:S.defH)):S.defH}
   return{cw,ch}}
 function xlHeader(S){
@@ -3725,7 +3731,7 @@ function xlAddMerge(doc,r,c1,c2){const root=doc.documentElement;let mc=s1(root,'
 function xlSetCols(doc,widths,maxC){const root=doc.documentElement;let cols=s1(root,'cols');const per=new Map(),tail=[];
   sk(cols,'col').forEach(e=>{const a=+e.getAttribute('min'),b=+e.getAttribute('max'),at={};Array.from(e.attributes).forEach(x=>{if(x.name!=='min'&&x.name!=='max')at[x.name]=x.value});
     for(let c=a;c<=Math.min(b,maxC);c++)per.set(c,Object.assign({},at));if(b>maxC)tail.push({a:Math.max(a,maxC+1),b,at})});
-  widths.forEach((w,c)=>{const at=per.get(c)||{};at.width=String(w);at.customWidth='1';per.set(c,at)});
+  widths.forEach((w,c)=>{const at=per.get(c)||{};if(w&&typeof w==='object'){at.width=String(w.w);if(w.hidden)at.hidden='1';else delete at.hidden}else at.width=String(w);at.customWidth='1';per.set(c,at)});
   const out=[];Array.from(per.keys()).sort((x,y)=>x-y).forEach(c=>{const at=per.get(c),k=JSON.stringify(at),L=out[out.length-1];if(L&&L.b===c-1&&L.k===k)L.b=c;else out.push({a:c,b:c,at,k})});
   tail.forEach(t=>out.push({a:t.a,b:t.b,at:t.at}));out.sort((x,y)=>x.a-y.a);
   if(cols)while(cols.firstChild)cols.removeChild(cols.firstChild);else{cols=mkS(doc,'cols');root.insertBefore(cols,s1(root,'sheetData'))}
@@ -3954,6 +3960,8 @@ async function xlFinalFit(zip,xo,rep,shsIn){
   const wbF=zip.file('xl/workbook.xml');if(!wbF)return 0;
   const wbDoc=pX(await wbF.async('string'),'workbook.xml'),wbRoot=wbDoc.documentElement;
   let stDoc=null;const stF=zip.file('xl/styles.xml');if(stF)stDoc=pX(await stF.async('string'),'styles.xml');
+  XL_MDW=xlMdw(stDoc);
+  let SSL=[];const ssF=zip.file('xl/sharedStrings.xml');if(ssF){try{SSL=sk(pX(await ssF.async('string'),'sharedStrings.xml').documentElement,'si').map(si=>xlTs(si).map(t=>t.textContent).join(''))}catch(e){}}
   const vcCache=new Map();let stDirty=false,done=0;
   for(const sh of shsIn){
     if(sh.hidden||!/^xl\/worksheets\//.test(sh.path)||!zip.file(sh.path))continue;
@@ -3965,18 +3973,33 @@ async function xlFinalFit(zip,xo,rep,shsIn){
       if(m)area={c1:colNum(m[1]),r1:+m[2],c2:colNum(m[3]),r2:+m[4]}}
     const apply=()=>{S=xlScan(doc);S.minR=area.r1;S.maxR=area.r2;S.minC=area.c1;S.maxC=area.c2};
     apply();
-    /* (1) độ cao dòng: dòng có chữ tối thiểu đủ cho 14pt; dòng trống hẳn (không ô, không viền) thu gọn */
+    /* (0) cột bị ẩn / cố ý thu hẹp trong file gốc (vd. cột “Thành tiền” rộng 0,1) bị công cụ nới ra → trả về đúng như gốc */
+    if(sh.collapsed&&sh.collapsed.length){const nw=new Map();sh.collapsed.forEach(o=>{if(o.c<=area.c2)nw.set(o.c,{w:o.w,hidden:o.hidden})});if(nw.size){xlSetCols(doc,nw,area.c2);apply()}}
+    /* (1) độ cao dòng: tiêu đề tính theo số dòng chữ THẬT (chữ 14, bề rộng cột hiện tại) — không để dòng tiêu đề cao vọt; dòng dữ liệu tối thiểu 18,75pt; dòng trống hẳn thu gọn */
+    const hdr0=xlHeader(S),xfs=stDoc?sk(s1(stDoc.documentElement,'cellXfs'),'xf'):[],need=new Map(),spans=[];
+    const textOf=ce=>{const t=ce.getAttribute('t'),v=s1(ce,'v');if(t==='s'&&v)return SSL[+v.textContent]||'';if(t==='inlineStr'){const is=s1(ce,'is');return is?xlTs(is).map(x=>x.textContent).join(''):''}return v?v.textContent:''};
+    const wrapLines=(txt,avail)=>{let n=0;String(txt).split(/\n/).forEach(par=>{let cur=0,k=1;par.split(/\s+/).filter(Boolean).forEach(wd=>{const w=xlWordW(wd)*1.08;if(cur>0&&cur+w>avail){k++;cur=w+.5}else cur+=w+.5});n+=k});return Math.max(1,n)};
+    if(hdr0)for(let r=hdr0.a;r<=hdr0.b;r++){const ro=S.rows.get(r);if(!ro)continue;
+      sk(ro.el,'c').forEach(ce=>{const ref=parseRef(ce.getAttribute('r'));if(!ref)return;const txt=textOf(ce);if(!txt)return;
+        const mg=S.merges.find(m=>m.r1===r&&m.c1===ref.c),c2=mg?mg.c2:ref.c,r2=mg?mg.r2:r;let aw=0;for(let c=ref.c;c<=c2;c++)aw+=S.colW(c);
+        const xf=xfs[parseInt(ce.getAttribute('s')||'0',10)||0],al=xf&&s1(xf,'alignment'),wrap=!!(al&&isT(al.getAttribute('wrapText')));
+        const lines=(wrap&&aw>=3)?wrapLines(txt,Math.max(1,aw-1.2)):1,h=Math.max(XL_ROW14,lines*17+2);
+        if(r2>r)spans.push({r,r2,h});else need.set(r,Math.max(need.get(r)||0,h))})}
     for(let r=area.r1;r<=area.r2;r++){const ro=S.rows.get(r);if(!ro||ro.hid)continue;
       const cells=sk(ro.el,'c'),plain=cells.every(ce=>!(parseInt(ce.getAttribute('s')||'0',10)>0)&&!sk(ce,'f').length&&!sk(ce,'is').length&&!sk(ce,'v').some(v=>v.textContent!==''));
-      if(ro.cnt>0){if(ro.ht==null||ro.ht<XL_ROW14){ro.el.setAttribute('ht',String(XL_ROW14));ro.el.setAttribute('customHeight','1')}}
+      const inH=hdr0&&r>=hdr0.a&&r<=hdr0.b;
+      if(inH){ro.el.setAttribute('ht',String(need.get(r)||XL_ROW14));ro.el.setAttribute('customHeight','1')}
+      else if(ro.cnt>0){if(ro.ht==null||ro.ht<XL_ROW14){ro.el.setAttribute('ht',String(XL_ROW14));ro.el.setAttribute('customHeight','1')}}
       else if(plain&&(ro.ht==null||ro.ht>XL_GAP)){ro.el.setAttribute('ht',String(XL_GAP));ro.el.setAttribute('customHeight','1')}}
+    spans.forEach(sp=>{let tot=0;for(let r=sp.r;r<=sp.r2;r++){const ro=S.rows.get(r);tot+=ro&&ro.ht!=null?parseFloat(ro.el.getAttribute('ht')||ro.ht):XL_ROW14}
+      if(tot<sp.h){const ro=S.rows.get(sp.r2);if(ro){const cur=parseFloat(ro.el.getAttribute('ht')||XL_ROW14);ro.el.setAttribute('ht',String(cur+sp.h-tot));ro.el.setAttribute('customHeight','1')}}});
     apply();
     let sz=xlSize(S);if(!(sz.cw>0&&sz.ch>0))continue;
     let hdr=xlHeader(S),plan=xlPlan(sz.cw,sz.ch,xo),spreadN=0,stretched=0,addPt=0;
     /* (3) bảng bị giới hạn bởi chiều CAO → giãn đều cột cho kín chiều ngang */
     if(xo.spread&&plan.one&&plan.sa<plan.sw-0.02){
       const target=plan.aw/plan.sa,el=[];let cwEl=0,cwFix=0;
-      for(let c=area.c1;c<=area.c2;c++){const w=S.colW(c);if(!(w>0))continue;if(w>=9){el.push(c);cwEl+=w*7*0.75}else cwFix+=w*7*0.75}
+      for(let c=area.c1;c<=area.c2;c++){const w=S.colW(c);if(!(w>0))continue;if(w>=9){el.push(c);cwEl+=w*XL_MDW*0.75}else cwFix+=w*XL_MDW*0.75}
       const g=el.length?(target*0.99-cwFix)/cwEl:1;
       if(g>1.04){const k=Math.min(g,2),nw=new Map();el.forEach(c=>{nw.set(c,Math.min(255,Math.round(S.colW(c)*k*10)/10))});
         xlSetCols(doc,nw,area.c2);apply();sz=xlSize(S);hdr=xlHeader(S);plan=xlPlan(sz.cw,sz.ch,xo);spreadN=nw.size}}
@@ -3986,7 +4009,7 @@ async function xlFinalFit(zip,xo,rep,shsIn){
       for(let r=start;r<=area.r2;r++){const ro=S.rows.get(r);if(ro&&!ro.hid&&ro.cnt>0&&(ro.ht==null||ro.ht<=40))el.push(ro)}
       const room=plan.ah/plan.sw*0.965-sz.ch;
       if(el.length&&room>0){
-        const avg=el.reduce((a,ro)=>a+(ro.ht!=null?ro.ht:S.defH),0)/el.length,add=Math.min(room/el.length,0.5*avg);
+        const avg=el.reduce((a,ro)=>a+(ro.ht!=null?ro.ht:S.defH),0)/el.length,add=Math.min(room/el.length,0.8*avg);
         if(add>=2){addPt=add;
           el.forEach(ro=>{ro.el.setAttribute('ht',((ro.ht!=null?ro.ht:S.defH)+add).toFixed(2));ro.el.setAttribute('customHeight','1');
             sk(ro.el,'c').forEach(ce=>{const s=parseInt(ce.getAttribute('s')||'0',10)||0,n=xlVC(stDoc,vcCache,s);if(n!==s){ce.setAttribute('s',String(n));stDirty=true}})});
@@ -4011,7 +4034,7 @@ async function auditExcel(buf,xo,hooks){
   const shs=sk(s1(wbRoot,'sheets'),'sheet').map((e,i)=>({i,name:e.getAttribute('name'),hidden:(e.getAttribute('state')||'visible')!=='visible',path:rs('xl/',rel[e.getAttributeNS(RN,'id')]||'')}));
   if(!shs.length)throw new Error('File Excel không có sheet nào.');
   let stDoc=null;const stF=zip.file('xl/styles.xml');if(stF)stDoc=pX(await stF.async('string'),'styles.xml');
-  const X=stDoc?xlStyles(stDoc):null;
+  const X=stDoc?xlStyles(stDoc):null;XL_MDW=xlMdw(stDoc);
   const fixOn=!!(xo.clean||xo.num||xo.date||xo.err!=='off'||xo.fit||xo.border||xo.fmerge||xo.links||xo.check);
   const C={xo,rep,X,SS:[],recalc:false,ext:!!s1(wbRoot,'externalReferences'),cleanLbl:'Dọn khoảng trắng thừa, ký tự ẩn, chuẩn hóa dấu tiếng Việt (chuỗi văn bản)'};
   /* chuỗi dùng chung */
@@ -4029,6 +4052,10 @@ async function auditExcel(buf,xo,hooks){
   if(C.ssDirty||(ssDoc&&xo.font))zip.file('xl/sharedStrings.xml',ser(ssDoc));
   if(ssDoc)C.SS=sk(ssDoc.documentElement,'si').map(si=>xlTs(si).map(t=>t.textContent).join(''));
   if(C.ext&&!xo.links)rep.warn('File có liên kết tới file Excel khác (Excel sẽ hỏi “Cập nhật liên kết” khi mở). Bật mục “Ngắt liên kết ngoài” để loại bỏ.');
+  for(const sh of shs){sh.collapsed=[];if(!/^xl\/worksheets\//.test(sh.path)||!zip.file(sh.path))continue;   /* [v21] cột ẩn / cột cố ý thu hẹp (rộng <1) của file gốc: phải giữ nguyên */
+    try{const d0=pX(await zip.file(sh.path).async('string'),sh.path);
+      sk(s1(d0.documentElement,'cols'),'col').forEach(e=>{const a=+e.getAttribute('min'),b=Math.min(+e.getAttribute('max'),300),w=parseFloat(e.getAttribute('width')),h=isT(e.getAttribute('hidden'));
+        if(h||(isFinite(w)&&w<1))for(let c=a;c<=b;c++)sh.collapsed.push({c,w:isFinite(w)?w:0,hidden:h})})}catch(e){}}
   const vcCache=new Map();let done=0,stDirty=false;
   for(const sh of shs){
     prog('Sheet “'+sh.name+'” ('+(sh.i+1)+'/'+shs.length+')...');await tick();
@@ -4050,7 +4077,7 @@ async function auditExcel(buf,xo,hooks){
     /* Bảng bị giới hạn bởi chiều CAO trang (còn thừa bề ngang): giãn đều các cột để bảng lấp đầy chiều ngang, lề trái/phải bằng lề đã chọn */
     if(!window.XlsxChuan&&xo.spread&&plan.one&&plan.sa<plan.sw-0.02){
       const target=plan.aw/plan.sa,el=[];let cwEl=0,cwFix=0;
-      for(let c=area.c1;c<=area.c2;c++){const w=S.colW(c);if(!(w>0))continue;if(w>=9){el.push(c);cwEl+=w*7*0.75}else cwFix+=w*7*0.75}
+      for(let c=area.c1;c<=area.c2;c++){const w=S.colW(c);if(!(w>0))continue;if(w>=9){el.push(c);cwEl+=w*XL_MDW*0.75}else cwFix+=w*XL_MDW*0.75}
       const g=el.length?(target*0.99-cwFix)/cwEl:1;
       if(g>1.04){const k=Math.min(g,1.6),nw=new Map();el.forEach(c=>{nw.set(c,Math.min(255,Math.round(S.colW(c)*k*10)/10))});
         xlSetCols(doc,nw,area.c2);S=xlScan(doc);S.minR=area.r1;S.maxR=area.r2;S.minC=area.c1;S.maxC=area.c2;
