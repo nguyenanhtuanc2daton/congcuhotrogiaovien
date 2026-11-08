@@ -4040,12 +4040,12 @@ async function xlFinalFit(zip,xo,rep,shsIn){
           const mg=S.merges.find(m=>m.r1<=r&&m.r2>=r&&m.c1<=ref.c&&m.c2>=ref.c);
           if(mg&&mg.c2>mg.c1)return;                 /* ô gộp ngang: không dùng để đo cột */
           if(!inH)dataCnt.set(ref.c,(dataCnt.get(ref.c)||0)+1);
-          const xf=xfs0[parseInt(ce.getAttribute('s')||'0',10)||0],al=xf&&s1(xf,'alignment'),wrap=!!(al&&isT(al.getAttribute('wrapText')))||!!mg||inH;
+          const xf=xfs0[parseInt(ce.getAttribute('s')||'0',10)||0],al=xf&&s1(xf,'alignment'),wrap=!!(al&&isT(al.getAttribute('wrapText')));
           let units;
-          if(wrap&&!v.n){units=Math.max.apply(null,String(v.s).split(/\s+/).filter(Boolean).map(w=>xlWordW(w)))*1.08/0.97}
+          if(wrap&&!v.n){units=Math.max.apply(null,String(v.s).split(/\s+/).filter(Boolean).map(w=>xlWordW(w)))*1.08/0.93}
           else{
-            if(!v.n){const k=visC.indexOf(ref.c),nx=k>=0&&k<visC.length-1?visC[k+1]:null;if(nx!==null&&!occ.has(nx))return}   /* chữ tràn sang ô trống bên phải → bỏ qua */
-            units=xlWordW(v.s)*1.08/0.97*(v.n?1.05:1)}
+            if(!v.n&&!inH){const k=visC.indexOf(ref.c),nx=k>=0&&k<visC.length-1?visC[k+1]:null;if(nx!==null&&!occ.has(nx))return}   /* chữ tràn sang ô trống bên phải → bỏ qua */
+            units=xlWordW(v.s)*1.08/0.93*(v.n?1.05:1)}
           const aw=(units*dp+8)/XL_MDW;if(aw>(needC.get(ref.c)||0))needC.set(ref.c,aw)})});
       const nw=new Map();
       visC.forEach(c=>{const cur=S.colW(c);if(cur<9)return;
@@ -4276,7 +4276,7 @@ function buildUI(){
   +cb('xautofont','Sau khi giãn bảng: tự tăng cỡ chữ tới mức lớn nhất vẫn vừa mọi ô (chữ to, đẹp, vẫn gọn trong 1 tờ A4)',1)
   +cb('xstretch','Bảng vừa 1 trang mà còn trống phía dưới: tăng nhẹ độ cao dòng dữ liệu để bảng lấp đầy trang và căn chữ giữa ô',1)
   +cb('xtitles','Bảng dài nhiều trang: lặp dòng tiêu đề bảng ở đầu mỗi trang',1)
-  +'<div class="raR">Ép vừa 1 trang nếu chữ sau khi thu nhỏ còn từ: <select id="ra_xmin"><option value="0.6">60% trở lên</option><option value="0.7" selected>70% trở lên</option><option value="0.8">80% trở lên</option></select> (nhỏ hơn thì chia nhiều trang, mỗi trang vẫn đủ cột)</div></details>'
+  +'<div class="raR">Ép vừa 1 trang nếu chữ sau khi thu nhỏ còn từ: <select id="ra_xmin"><option value="0.6" selected>60% trở lên</option><option value="0.7">70% trở lên</option><option value="0.8">80% trở lên</option></select> (nhỏ hơn thì chia nhiều trang, mỗi trang vẫn đủ cột)</div></details>'
   +'<details class="raG"><summary>🔎 Kiểm tra &amp; đánh dấu</summary>'
   +cb('mark','Đánh dấu bằng Comment tại chỗ cần kiểm tra tay (nghi gõ sai, ngoặc/ngoặc kép lệch, thiếu dấu chấm cuối, viết hoa, dấu câu lạ…)',1)
   +cb('hl','Tô màu đúng cụm chữ lỗi (đỏ: lỗi chắc chắn · vàng: nghi ngờ · lục lam: gợi ý) và neo Comment đúng chỗ đó — tắt thì Comment gắn cả đoạn',1)
