@@ -1731,7 +1731,7 @@ function mcqPass(doc,body,secs,o,rep,ctx){
   /* lề trái đáp án theo đa số trong tài liệu (để mọi câu thẳng hàng với nhau) */
   const freq={};blocks.forEach(b=>{if(b.split)return;const v=indStart(one(b.ps[0],'pPr'));freq[v]=(freq[v]||0)+1});
   let L0=blocks.some(b=>b.split)&&!Object.keys(freq).length?567:0,best=-1;Object.keys(freq).map(Number).sort((a,b)=>a-b).forEach(k=>{if(freq[k]>best){best=freq[k];L0=k}});
-  const GAP=170;
+  const GAP=340;
   blocks.forEach(b=>{
     const ps=b.ps,first=ps[0],snap=psig(ps);
     const idx=bk.indexOf(mcqTop(first,body)),sec=secs.find(s=>s.end>=(idx<0?0:idx))||secs[secs.length-1];
@@ -1842,7 +1842,7 @@ const STEM_RE=/^(Câu|CÂU|Bài|BÀI)\s*\d+/;
    · Ý ngắn, vừa nửa dòng → dàn 2×2 với cột thẳng hàng (một điểm dừng tab ở giữa dòng)
    ==================================================================== */
 function subItemsPass(doc,body,secs,o,rep,ctx){
-  const sz=ctx.szEst||28,bk=secs.bk,GAP=170;let vert=0,two=0,four=0;
+  const sz=ctx.szEst||28,bk=secs.bk,GAP=340;let vert=0,two=0,four=0;   /* GAP: chừa tối thiểu ~0,6 cm giữa hai phương án */
   const LAB=/(^|[\s\u0001\u0002])([a-d])\)/g;
   const labs=S=>{const out=[];let m;LAB.lastIndex=0;while((m=LAB.exec(S))){out.push({L:m[2],pos:m.index+m[1].length});LAB.lastIndex=m.index+m[1].length+2}return out};
   const plain=p=>p&&p.localName==='p'&&p.namespaceURI===W&&!hasSect(p)&&!hasPB(p)&&!all(p,'br').length&&!all(p,'txbxContent').length;
@@ -1877,7 +1877,7 @@ function subItemsPass(doc,body,secs,o,rep,ctx){
       let pPr0=one(first,'pPr');const L0=indStart(pPr0);
       const aw=(box!==body?Math.max(1500,Math.min(sec.aw,mcqCellW(box,sec.aw))):sec.aw)-L0;
       const w=items.map(q=>estW(kidsOf(q),sz)),mx=Math.max.apply(null,w);
-      let lay=1;if(mx+GAP<=aw/2)lay=2;if(orig===1&&mx+GAP<=aw/4)lay=4;
+      let lay=1;if(mx+GAP<=aw/4)lay=4;else if(mx+GAP<=aw/2)lay=2;   /* ưu tiên: 4 ý/1 dòng → 2 ý/dòng (a,b rồi c,d) → mỗi dòng 1 ý; cột cách đều nhau */
       const setP=(q,tabs)=>{let pp=one(q,'pPr');if(!pp){pp=mk(doc,'pPr');q.insertBefore(pp,q.firstChild)}
         const tb=one(pp,'tabs');if(tb)rm(tb);
         if(tabs&&tabs.length){const t=sc(doc,pp,'tabs',ORD.pPr);tabs.forEach(pos=>{const e=mk(doc,'tab');sa(e,'val','left');sa(e,'pos',pos);t.appendChild(e)})}
@@ -1900,8 +1900,8 @@ function subItemsPass(doc,body,secs,o,rep,ctx){
         four++}
     }});
   rep.fix('Ý nhỏ a) b) c) d): có ý dài/tràn dòng → xếp cả 4 ý theo hàng dọc (nhóm)',vert);
-  rep.fix('Ý nhỏ a) b) c) d): ý ngắn → dàn 2 ý/dòng, cột thẳng hàng (nhóm)',two);
-  rep.fix('Ý nhỏ a) b) c) d): ý rất ngắn → dàn 4 ý trên một dòng, thẳng cột (nhóm)',four)}
+  rep.fix('Ý nhỏ a) b) c) d): ý vừa → dàn a,b rồi c,d, 2 cột cách đều (nhóm)',two);
+  rep.fix('Ý nhỏ a) b) c) d): ý ngắn → dàn 4 ý trên một dòng, 4 cột cách đều (nhóm)',four)}
 
 /* Khoảng cách giữa các câu đều nhau: bỏ dòng trống đơn lẻ trước "Câu n"/PHẦN và đặt cùng một khoảng sau đoạn cuối của mỗi câu */
 function questionGaps(doc,body,rep){
