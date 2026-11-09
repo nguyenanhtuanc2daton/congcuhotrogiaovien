@@ -383,8 +383,17 @@
     }
     return lead + o.replace(/\$\$/g, '') + trail;
   }
+  /* Chuỗi chỉ có đúng 1 dấu $ lẻ (thiếu $ mở hoặc $ đóng, ví dụ "{\left(-3\right)}^{15}$") → bỏ $ lẻ rồi tự bọc công thức.
+     Chỉ áp dụng khi chuỗi có đúng 1 dấu $ và nội dung nhìn ra là LaTeX; các chuỗi $...$ cân bằng khác giữ nguyên hoàn toàn. */
+  function fixLoneDollar(s) {
+    var d = s.match(/(^|[^\\])\$/g);
+    if (!d || d.length !== 1 || s.indexOf('$$') >= 0) return s;
+    var k = s.search(/(^|[^\\])\$/); k = s.charAt(k) === '$' ? k : k + 1;
+    var rest = s.slice(0, k) + s.slice(k + 1), fixed = fixGap(rest);
+    return fixed !== rest ? fixed : s;
+  }
   function autoMath(s) {
-    s = String(s);
+    s = fixLoneDollar(String(s));
     var out = '', last = 0, m, re = new RegExp(DELIM, 'g');
     function add(piece) { if (out.slice(-1) === '$' && piece.charAt(0) === '$') out += ' '; out += piece; }
     while ((m = re.exec(s))) { add(fixGap(s.slice(last, m.index))); add(m[0]); last = re.lastIndex; }
