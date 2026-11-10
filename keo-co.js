@@ -356,7 +356,7 @@
   /* Đoạn chữ nằm ngoài $...$ mà có mã LaTeX (AI hay quên bọc $) → tự bọc */
   function fixGap(g) {
     if (g.indexOf('$') >= 0) return g;
-    var hasCmd = /\\[a-zA-Z]{2,}/.test(g), hasCaret = /[A-Za-z0-9)\]]\s*\^\s*[-+{(\w]|[A-Za-z]_[{\d]/.test(g), hasUni = /[²³⁴⁵⁶⁷⁸⁹¹√]/.test(g);
+    var hasCmd = /\\[a-zA-Z]{2,}|\\[{}]/.test(g), hasCaret = /[A-Za-z0-9)\]]\s*\^\s*[-+{(\w]|[A-Za-z]_[{\d]/.test(g), hasUni = /[²³⁴⁵⁶⁷⁸⁹¹√]/.test(g);
     if (!hasCmd && !hasCaret && !hasUni) return g;
     var lead = g.match(/^\s*/)[0], trail = g.match(/\s*$/)[0], core = g.trim();
     if (!core) return g;
@@ -371,6 +371,10 @@
     while (i < n) {
       var c = core.charAt(i);
       if (c === '\\') { var be = blockEnd(core, i); if (be > i) { o += '$' + core.slice(i, be) + '$'; i = be; continue; } }
+      if (c === '\\' && core.charAt(i + 1) === '{') {                /* tập hợp \{ ... \} */
+        var ce = core.indexOf('\\}', i + 2);
+        if (ce > 0) { o += '$' + core.slice(i, ce + 2) + '$'; i = ce + 2; continue; }
+      }
       if (c === '\\' && /[a-zA-Z]/.test(core.charAt(i + 1))) {
         var j = i + 1; while (j < n && /[a-zA-Z]/.test(core.charAt(j))) j++;
         j = scanArgs(core, j); o += '$' + core.slice(i, j) + '$'; i = j; continue;
