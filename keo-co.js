@@ -356,7 +356,7 @@
   /* Đoạn chữ nằm ngoài $...$ mà có mã LaTeX (AI hay quên bọc $) → tự bọc */
   function fixGap(g) {
     if (g.indexOf('$') >= 0) return g;
-    var hasCmd = /\\[a-zA-Z]{2,}|\\[{}]/.test(g), hasCaret = /[A-Za-z0-9)\]]\s*\^\s*[-+{(\w]|[A-Za-z]_[{\d]/.test(g), hasUni = /[²³⁴⁵⁶⁷⁸⁹¹√]/.test(g);
+    var hasCmd = /\\[a-zA-Z]{2,}|\\[{}%]/.test(g), hasCaret = /[A-Za-z0-9)\]]\s*\^\s*[-+{(\w]|[A-Za-z]_[{\d]/.test(g), hasUni = /[²³⁴⁵⁶⁷⁸⁹¹√]/.test(g);
     if (!hasCmd && !hasCaret && !hasUni) return g;
     var lead = g.match(/^\s*/)[0], trail = g.match(/\s*$/)[0], core = g.trim();
     if (!core) return g;
@@ -379,6 +379,9 @@
         var j = i + 1; while (j < n && /[a-zA-Z]/.test(core.charAt(j))) j++;
         j = scanArgs(core, j); o += '$' + core.slice(i, j) + '$'; i = j; continue;
       }
+      m = /^\d+(?:[.,]\d+)?\s*\\%/.exec(core.slice(i));              /* số phần trăm viết 95\% */
+      if (m && (i === 0 || !/[A-Za-z0-9]/.test(core.charAt(i - 1)))) { o += '$' + m[0] + '$'; i += m[0].length; continue; }
+      if (c === '\\' && core.charAt(i + 1) === '%') { o += '$\\%$'; i += 2; continue; }
       m = /^(?:[A-Za-z0-9]+|\([^()]*\))(?:\^\s*(?:\{[^{}]*\}|[-+]?\w+)|_\s*(?:\{[^{}]*\}|\w))+/.exec(core.slice(i));
       if (m && (i === 0 || !/[A-Za-z0-9]/.test(core.charAt(i - 1)))) { o += '$' + m[0] + '$'; i += m[0].length; continue; }
       m = /^[A-Za-z0-9]*[²³⁴⁵⁶⁷⁸⁹¹]/.exec(core.slice(i));
@@ -390,17 +393,23 @@
   /* Sửa dấu $ bị thiếu / thừa (AI hay quên $ mở hoặc $ đóng, ví dụ "ta được \frac{a}{b} = 450$ triệu đồng").
      Nếu các dấu $ đã ghép cặp đúng thì giữ nguyên hoàn toàn; chỉ can thiệp khi có $ lẻ hoặc cặp $ bị ghép nhầm qua chữ thường. */
   var VIL = 'A-Za-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u1EF9', VID = '\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u1EF9';
+  var DL_FN = /^(?:sin|cos|tan|cot|sec|csc|log|ln|lim|max|min|mod|gcd|lcm|det|exp|arg|deg|dim|sup|inf|cm|mm|km|kg|dm|ha)$/;
   function dlTextLike(x) {              /* đoạn giữa hai dấu $ thực ra là chữ thường (tiếng Việt), không phải công thức */
     if (x.indexOf('\\') >= 0) return false;
     var w = x.match(new RegExp('[' + VIL + ']+', 'g')) || [], dia = new RegExp('[' + VID + ']'), n = 0, i;
-    for (i = 0; i < w.length; i++) { if (w[i].length >= 2 && dia.test(w[i])) return true; if (w[i].length >= 2) n++; }
+    for (i = 0; i < w.length; i++) {
+      if (w[i].length >= 2 && dia.test(w[i])) return true;                                   /* từ có dấu: và, thì, là, được... */
+      if (w[i].length >= 3 && /^[a-z]+$/.test(w[i]) && !DL_FN.test(w[i])) n++;                /* chữ in hoa (AB, CD) và biến ngắn (ab, xy) là toán, không tính */
+    }
     return n >= 2;
   }
   function dlMathTok(t) {
     if (/\\[a-zA-Z]/.test(t)) return true;
-    return !new RegExp('[' + VIL + ']{2,}').test(t.replace(/[{}]/g, ''));
+    var runs = t.replace(/[{}]/g, '').match(new RegExp('[' + VIL + ']{2,}', 'g')) || [], i;
+    for (i = 0; i < runs.length; i++) if (!/^[A-Z]+$/.test(runs[i])) return false;   /* AB, CD (hình học) là toán; từ thường là chữ */
+    return true;
   }
-  function dlSignal(r) { return /[\\^_={}+*<>]|\w-\w/.test(r); }
+  function dlSignal(r) { return /[\\^_={}+*<>%]|\w-\w/.test(r); }
   function repairDollars(s) {
     if (s.indexOf('$') < 0 || /\$\$|\\\$|\\\(|\\\[/.test(s)) return s;
     var pos = [], i, k = 0, cur = 0, out = '';
@@ -424,7 +433,7 @@
         while (j > 0) { var t = parts[j - 1]; if (/^\s*$/.test(t)) { j--; continue; } if (!dlMathTok(t)) break; j--; }
         head = parts.slice(0, j).join(''); run = parts.slice(j).join('');
         var lead = run.match(/^\s*/)[0]; head += lead; run = run.slice(lead.length);
-        if (run && dlSignal(run)) { out += head + '$' + run + '$'; cur = p + 1; k++; continue; }
+        if (run && dlSignal(run)) { out += (head === '' && out.slice(-1) === '$' ? ' ' : '') + head + '$' + run + '$'; cur = p + 1; k++; continue; }
       }
       if (r === 'o' || r === 'b') {                                   /* $ mở, thiếu $ đóng: gom cụm công thức đứng ngay sau */
         e = q >= 0 ? q : s.length; parts = s.slice(p + 1, e).split(/(\s+)/); j = 0;
@@ -1417,6 +1426,8 @@
       if (!x || !x.q || !Array.isArray(x.options) || x.options.length < 2 || x.answer == null) return;
       if (aiDoc && /năm học\s*\d{4}|khảo sát tháng|theo (tài liệu|đề bài|đoạn văn|văn bản|bài đọc|bảng|hình)|(ở|trong) (ví dụ|đề|bài|bảng|hình|đoạn) (trên|này|sau)|(bài toán|ví dụ|bảng|hình vẽ|đoạn văn|đề bài) (trên|nêu trên)|tên (trường|giáo viên)/i.test(x.q)) return;
       var opts = x.options.slice(0, 4).map(cleanCell);
+      var olt = opts.map(function (o) { return dupNz(o).replace(/\s+/g, ''); });
+      if (olt.some(function (o, i) { return olt.indexOf(o) !== i; })) return;   /* 2 đáp án giống nhau → câu sai, bỏ */
       var a = typeof x.answer === 'number' ? x.answer : (/^\d$/.test(String(x.answer).trim()) ? +String(x.answer).trim() : 'ABCD'.indexOf(String(x.answer).trim().toUpperCase()));
       if (!(a >= 0 && a < opts.length)) return;
       out.push({ q: cleanCell(x.q), line: cleanCell(x.q) + ' | ' + opts.join(' | ') + ' | ' + 'ABCD'.charAt(a) + (x.exp && opts.length === 4 ? ' | ' + cleanCell(x.exp) : '') });
@@ -1424,6 +1435,27 @@
     return out;
   }
   function normQ(q) { return String(q).toLowerCase().replace(/\$/g, '').replace(/[^a-z0-9\u00c0-\u1ef9]+/g, ' ').trim(); }
+  /* ---- Chống trùng câu hỏi: so sánh theo nội dung (bỏ khác biệt về $, khoảng trắng, \left \right...), không chỉ so chuỗi giống hệt ---- */
+  function dupNz(s) {
+    return String(s).toLowerCase().replace(/\\[dt]frac/g, '\\frac').replace(/\\(?:left|right|displaystyle)(?![a-z])/g, '').replace(/\$/g, ' ')
+      .replace(/\s*([+\-*\/=<>^_{}()'])\s*/g, '$1').replace(/\s+/g, ' ').trim();
+  }
+  function dupSig(q, opts, ans) {
+    var toks = dupNz(q).split(/[\s,;:?!]+|\.(?=\s|$)/).filter(Boolean), set = {}, nums = [];
+    toks.forEach(function (t) { set[t] = 1; if (/^\d+(?:[.,]\d+)?$/.test(t)) nums.push(t); });
+    opts = (opts || []).map(function (o) { return dupNz(o).replace(/\s+/g, ''); });
+    return { key: toks.join(' '), set: set, n: toks.length, nums: nums.sort().join(','), opts: opts.slice().sort().join('|'), ans: dupNz(ans || '').replace(/\s+/g, ''), olist: opts };
+  }
+  function dupIs(a, b) {
+    if (a.key === b.key && (a.opts === b.opts || a.n >= 4)) return true;
+    var ka = Object.keys(a.set), inter = 0, i;
+    for (i = 0; i < ka.length; i++) if (b.set[ka[i]]) inter++;
+    var uni = ka.length + Object.keys(b.set).length - inter, J = uni ? inter / uni : 0;
+    if (a.nums === b.nums && Math.min(a.n, b.n) >= 4 && J >= 0.75) return true;
+    if (a.opts && a.opts === b.opts && a.ans === b.ans && J >= 0.5) return true;
+    return false;
+  }
+  function dupSigOfLine(line) { var r = parse(line)[0]; return r ? dupSig(r.q, r.opts, r.ans) : null; }
 
   /* ---------- Tạo câu hỏi theo từng lô ---------- */
   var BATCH = 10;   /* mỗi lần gọi chỉ sinh ~10 câu: nhanh, nhẹ, lô nào lỗi chỉ chạy lại lô đó */
@@ -1442,19 +1474,20 @@
     var first = $('kcAiModel').value;
     var models = [first].concat(AI_MODELS.filter(function (x) { return x !== first; }));
     var cur = el.bank.value.trim(), keep = $('kcAiAdd').checked && !!cur;
-    var seen = {}, recent = [], acc = [], made = 0;
+    var seen = {}, recent = [], acc = [], made = 0, sigs = [];
     if (keep) cur.split('\n').forEach(function (ln) { var q = ln.split(' | ')[0]; if (q) { seen[normQ(q)] = 1; recent.push(q.slice(0, 90)); } });
+    if (keep) parse(cur).forEach(function (r) { sigs.push(dupSig(r.q, r.opts, r.ans)); });
     var nb = Math.ceil(n / BATCH), batchNo = 0, empty = 0;
     aiRunning = true; btn.disabled = true;
 
     function runBatch() {
-      if (made >= n || batchNo >= nb + 2 || empty >= 2) return Promise.resolve();
+      if (made >= n || batchNo >= nb + 4 || empty >= 2) return Promise.resolve();
       batchNo++;
-      var k = Math.min(BATCH, n - made);
+      var k = Math.min(BATCH, n - made) + (made ? 2 : 0);   /* xin dư vài câu để bù câu bị loại vì trùng */
       say('⏳ Lô ' + batchNo + (batchNo <= nb ? '/' + nb : '') + ': đang ' + (aiDoc ? 'đọc tài liệu và ' : '') + 'tạo ' + k + ' câu (đã có ' + made + '/' + n + ')...');
       var tries = 0;
       function go() {
-        return callGemini(models, buildParts(buildPrompt(k, topic, recent.slice(-40))), m).then(function (d) {
+        return callGemini(models, buildParts(buildPrompt(k, topic, recent.slice(-120))), m).then(function (d) {
           try { return parseBatch(d); } catch (pe) {
             if (++tries < 2) { say('⏳ Lô ' + batchNo + ': kết quả bị lỗi định dạng, đang tạo lại...'); return go(); }
             var er = new Error('AI trả về kết quả không đọc được. Hãy bấm “Tạo câu hỏi” lại.'); er.details = String(pe && pe.message || pe); throw er;
@@ -1465,12 +1498,15 @@
         var added = 0;
         items.forEach(function (it) {
           var key = normQ(it.q); if (seen[key] || made >= n) return;
+          var sg = dupSigOfLine(it.line);
+          if (sg && sigs.some(function (x) { return dupIs(x, sg); })) return;   /* trùng ý với câu đã có */
+          if (sg) sigs.push(sg);
           seen[key] = 1; recent.push(it.q.slice(0, 90)); acc.push(it.line); made++; added++;
         });
         empty = added ? 0 : empty + 1;
         /* lưu ngay vào ngân hàng câu hỏi — lô sau lỗi cũng không mất phần đã có */
         if (added) { el.bank.value = (keep ? cur + '\n' : '') + acc.join('\n'); updCount(); }
-        if (made >= n || batchNo >= nb + 2) return;
+        if (made >= n || batchNo >= nb + 4) return;
         return waitMsg(2, m, '✓ Lô ' + batchNo + ' xong (' + made + '/' + n + ' câu). Nghỉ ngắn rồi làm lô tiếp...').then(runBatch);
       });
     }
@@ -1636,7 +1672,8 @@
     rvGo(0);
   }
   function rvStart() {
-    var all = parse(el.bank.value);
+    var all = [], sgs = [];
+    parse(el.bank.value).forEach(function (r) { var sg = dupSig(r.q, r.opts, r.ans); if (sgs.some(function (x) { return dupIs(x, sg); })) return; sgs.push(sg); all.push(r); });   /* ôn tập: mỗi câu chỉ xuất hiện 1 lần */
     if (!all.length) { el.msg.textContent = 'Chưa có câu hỏi hợp lệ. Mỗi dòng cần: Câu hỏi | các đáp án | đáp án đúng.'; return; }
     cfg.bank = el.bank.value;
     cfg.rvSecs = Math.max(0, Math.min(300, parseInt($('kcRvSecs').value, 10) || 0));
