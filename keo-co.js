@@ -354,8 +354,15 @@
     return i;
   }
   /* Đoạn chữ nằm ngoài $...$ mà có mã LaTeX (AI hay quên bọc $) → tự bọc */
+  /* AI / tài liệu đôi khi viết ký hiệu song song thành chữ "smallparallel" hoặc "parallel" → đổi về \parallel và bọc cả cặp đoạn thẳng: MN ∥ BC */
+  var PARA_RE = /((?:[A-Z]'?){1,4})\s*(?:\\)?(?:small|short)?parallel(?![A-Za-z])\s*((?:[A-Z]'?){1,4})/g;
   function fixGap(g) {
     if (g.indexOf('$') >= 0) return g;
+    if (/parallel/.test(g)) {
+      var re = new RegExp(PARA_RE.source, 'g'), out = '', last = 0, pm, hit = false;
+      while ((pm = re.exec(g))) { hit = true; out += fixGap(g.slice(last, pm.index)) + '$' + pm[1] + ' \\parallel ' + pm[2] + '$'; last = pm.index + pm[0].length; }
+      if (hit) return out + fixGap(g.slice(last));
+    }
     var hasCmd = /\\[a-zA-Z]{2,}|\\[{}%]/.test(g), hasCaret = /[A-Za-z0-9)\]]\s*\^\s*[-+{(\w]|[A-Za-z]_[{\d]/.test(g), hasUni = /[²³⁴⁵⁶⁷⁸⁹¹√]/.test(g);
     if (!hasCmd && !hasCaret && !hasUni) return g;
     var lead = g.match(/^\s*/)[0], trail = g.match(/\s*$/)[0], core = g.trim();
@@ -447,6 +454,7 @@
   }
   function autoMath(s) {
     s = repairDollars(String(s));
+    s = s.replace(/\\(?:small|short)parallel(?![A-Za-z])/g, '\\parallel').replace(/(^|[^\\A-Za-z])(?:small|short)parallel(?![A-Za-z])/g, '$1\\parallel');   /* KaTeX không có \smallparallel */
     var out = '', last = 0, m, re = new RegExp(DELIM, 'g');
     function add(piece) { if (out.slice(-1) === '$' && piece.charAt(0) === '$') out += ' '; out += piece; }
     while ((m = re.exec(s))) { add(fixGap(s.slice(last, m.index))); add(m[0]); last = re.lastIndex; }
@@ -1401,7 +1409,7 @@
       'ĐỘ DÀI: câu hỏi kiến thức thì ngắn gọn (khoảng 20 từ); câu có nêu dữ kiện bài toán được dài tới khoảng 40 từ — ưu tiên đủ dữ kiện hơn là ngắn. Mỗi đáp án tối đa 6 từ hoặc một biểu thức ngắn. Chỉ viết gọn khi vẫn giữ nguyên nghĩa và đủ dữ kiện; tuyệt đối không bỏ dữ kiện hay làm đổi ý chỉ để cho ngắn. ' +
       'Mỗi câu có đúng 4 đáp án, chỉ 1 đáp án đúng, 3 đáp án nhiễu hợp lý (là lỗi học sinh hay mắc), vị trí đáp án đúng phân bố đều. Viết bằng tiếng Việt. ' +
       'QUY TẮC TOÁN HỌC: mọi công thức, biểu thức, số mũ, phân số, căn, phương trình, ký hiệu toán PHẢI viết bằng LaTeX đặt trong cặp dấu $...$ — KỂ CẢ trong từng đáp án (ví dụ đáp án phân số viết $\\frac{7}{6}$, không viết \\frac{7}{6} trần). ' +
-      'Ví dụ: $x^2$, $\\frac{a}{b}$, $\\sqrt{3}$, $(a+b)^2$, $x \\leq 5$. Không dùng ký tự Unicode như ², √, ≤ trong công thức. Không dùng ký tự | trong công thức (dùng \\lvert, \\rvert). Phần chữ thường nằm ngoài dấu $. ' +
+      'Ví dụ: $x^2$, $\\frac{a}{b}$, $\\sqrt{3}$, $(a+b)^2$, $x \\leq 5$. Không dùng ký tự Unicode như ², √, ≤ trong công thức. Không dùng ký tự | trong công thức (dùng \\lvert, \\rvert). Song song viết $MN \\parallel BC$, vuông góc viết $MN \\perp BC$ (không viết chữ parallel hay smallparallel). Phần chữ thường nằm ngoài dấu $. ' +
       'GIẢI THÍCH: mỗi câu kèm trường "exp" là lời giải thích ngắn 1-2 câu (khoảng 35 từ trở xuống) cho biết vì sao đáp án đúng là đúng, có thể nêu thêm lỗi sai hay gặp ở một đáp án nhiễu. Giải thích dựa trên kiến thức của bài, tự đủ ý, KHÔNG nhắc "đáp án A/B/C/D" hay "như trên" mà nêu thẳng nội dung; công thức toán trong giải thích cũng đặt trong $...$. ' +
       'Vì kết quả là JSON nên mọi dấu gạch chéo ngược phải viết đôi (\\\\frac, \\\\sqrt, \\\\leq). ' +
       'Chỉ trả về một mảng JSON, mỗi phần tử có dạng {"q":"...","options":["...","...","...","..."],"answer":0} với answer là chỉ số (0-3) của đáp án đúng. Mỗi phần tử có thêm trường "exp" (chuỗi) là lời giải thích theo quy tắc GIẢI THÍCH ở trên.';
