@@ -383,17 +383,57 @@
     }
     return lead + o.replace(/\$\$/g, '') + trail;
   }
-  /* Chuỗi chỉ có đúng 1 dấu $ lẻ (thiếu $ mở hoặc $ đóng, ví dụ "{\left(-3\right)}^{15}$") → bỏ $ lẻ rồi tự bọc công thức.
-     Chỉ áp dụng khi chuỗi có đúng 1 dấu $ và nội dung nhìn ra là LaTeX; các chuỗi $...$ cân bằng khác giữ nguyên hoàn toàn. */
-  function fixLoneDollar(s) {
-    var d = s.match(/(^|[^\\])\$/g);
-    if (!d || d.length !== 1 || s.indexOf('$$') >= 0) return s;
-    var k = s.search(/(^|[^\\])\$/); k = s.charAt(k) === '$' ? k : k + 1;
-    var rest = s.slice(0, k) + s.slice(k + 1), fixed = fixGap(rest);
-    return fixed !== rest ? fixed : s;
+  /* Sửa dấu $ bị thiếu / thừa (AI hay quên $ mở hoặc $ đóng, ví dụ "ta được \frac{a}{b} = 450$ triệu đồng").
+     Nếu các dấu $ đã ghép cặp đúng thì giữ nguyên hoàn toàn; chỉ can thiệp khi có $ lẻ hoặc cặp $ bị ghép nhầm qua chữ thường. */
+  var VIL = 'A-Za-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u1EF9', VID = '\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u1EF9';
+  function dlTextLike(x) {              /* đoạn giữa hai dấu $ thực ra là chữ thường (tiếng Việt), không phải công thức */
+    if (x.indexOf('\\') >= 0) return false;
+    var w = x.match(new RegExp('[' + VIL + ']+', 'g')) || [], dia = new RegExp('[' + VID + ']'), n = 0, i;
+    for (i = 0; i < w.length; i++) { if (w[i].length >= 2 && dia.test(w[i])) return true; if (w[i].length >= 2) n++; }
+    return n >= 2;
+  }
+  function dlMathTok(t) {
+    if (/\\[a-zA-Z]/.test(t)) return true;
+    return !new RegExp('[' + VIL + ']{2,}').test(t.replace(/[{}]/g, ''));
+  }
+  function dlSignal(r) { return /[\\^_={}+*<>]|\w-\w/.test(r); }
+  function repairDollars(s) {
+    if (s.indexOf('$') < 0 || /\$\$|\\\$|\\\(|\\\[/.test(s)) return s;
+    var pos = [], i, k = 0, cur = 0, out = '';
+    for (i = 0; i < s.length; i++) if (s.charAt(i) === '$') pos.push(i);
+    if (pos.length % 2 === 0) {
+      var ok = true;
+      for (i = 0; i < pos.length; i += 2) if (dlTextLike(s.slice(pos[i] + 1, pos[i + 1]))) { ok = false; break; }
+      if (ok) return s;
+    }
+    function role(p) {
+      var a = s.charAt(p - 1), b = s.charAt(p + 1);
+      var opn = (p === 0 || /[\s(\[]/.test(a)) && b !== '' && !/\s/.test(b);
+      var cls = p > 0 && !/\s/.test(a) && (b === '' || /[\s.,;:!?)\]]/.test(b));
+      return opn && cls ? 'b' : opn ? 'o' : cls ? 'c' : 'n';
+    }
+    while (k < pos.length) {
+      var p = pos[k], r = role(p), q = k + 1 < pos.length ? pos[k + 1] : -1, parts, j, head, run, tail, e;
+      if (r !== 'c' && q >= 0 && role(q) !== 'o' && !dlTextLike(s.slice(p + 1, q))) { out += s.slice(cur, q + 1); cur = q + 1; k += 2; continue; }
+      if (r === 'c' || r === 'b') {                                   /* $ đóng, thiếu $ mở: gom cụm công thức đứng ngay trước */
+        parts = s.slice(cur, p).split(/(\s+)/); j = parts.length;
+        while (j > 0) { var t = parts[j - 1]; if (/^\s*$/.test(t)) { j--; continue; } if (!dlMathTok(t)) break; j--; }
+        head = parts.slice(0, j).join(''); run = parts.slice(j).join('');
+        var lead = run.match(/^\s*/)[0]; head += lead; run = run.slice(lead.length);
+        if (run && dlSignal(run)) { out += head + '$' + run + '$'; cur = p + 1; k++; continue; }
+      }
+      if (r === 'o' || r === 'b') {                                   /* $ mở, thiếu $ đóng: gom cụm công thức đứng ngay sau */
+        e = q >= 0 ? q : s.length; parts = s.slice(p + 1, e).split(/(\s+)/); j = 0;
+        while (j < parts.length) { var t2 = parts[j]; if (/^\s*$/.test(t2)) { j++; continue; } if (!dlMathTok(t2)) break; j++; }
+        run = parts.slice(0, j).join('').replace(/\s+$/, ''); var pu = run.match(/[.,;:!?]+$/); if (pu) run = run.slice(0, -pu[0].length);
+        if (run && dlSignal(run)) { out += s.slice(cur, p) + '$' + run + '$'; cur = p + 1 + run.length; k++; continue; }
+      }
+      out += s.slice(cur, p + 1); cur = p + 1; k++;                   /* không nhận ra công thức: giữ nguyên ký tự $ */
+    }
+    return out + s.slice(cur);
   }
   function autoMath(s) {
-    s = fixLoneDollar(String(s));
+    s = repairDollars(String(s));
     var out = '', last = 0, m, re = new RegExp(DELIM, 'g');
     function add(piece) { if (out.slice(-1) === '$' && piece.charAt(0) === '$') out += ' '; out += piece; }
     while ((m = re.exec(s))) { add(fixGap(s.slice(last, m.index))); add(m[0]); last = re.lastIndex; }
