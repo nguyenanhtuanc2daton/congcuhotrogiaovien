@@ -197,14 +197,13 @@
     var bar3 = el('div', 'bar');
     bar3.style.justifyContent = 'center';
     var bDl = el('button', null, '⬇ Tải file ZIP'); bDl.type = 'button'; bDl.style.display = 'none';
-    var bSh = el('button', 'ghost', '📤 Chia sẻ'); bSh.type = 'button'; bSh.style.display = 'none';
-    bar3.appendChild(bDl); bar3.appendChild(bSh);
+    bar3.appendChild(bDl);
     root.appendChild(bar3);
 
     root.appendChild(el('div', 'nf-note', 'File được nén ngay trên máy của bạn, không tải lên mạng. Với file ảnh, video, PDF, Word, Excel (vốn đã nén sẵn) chế độ Tự động chỉ đóng gói để nhanh hơn.'));
 
     els = { root: root, fin: fin, din: din, drop: drop, bFile: bFile, bDir: bDir, bClr: bClr, sum: sum, list: list,
-      inName: inName, selLv: selLv, bGo: bGo, pg: pg, pgi: pgi, st: st, bDl: bDl, bSh: bSh };
+      inName: inName, selLv: selLv, bGo: bGo, pg: pg, pgi: pgi, st: st, bDl: bDl };
 
     /* sự kiện */
     function pick(input) { try { input.value = ''; } catch (e) {} input.click(); }
@@ -217,7 +216,6 @@
     din.addEventListener('change', function () { addFileList(din.files); try { din.value = ''; } catch (e) {} });
     bGo.addEventListener('click', compress);
     bDl.addEventListener('click', download);
-    bSh.addEventListener('click', share);
     list.addEventListener('click', function (e) {
       var t = e.target;
       while (t && t !== list && !(t.getAttribute && t.getAttribute('data-i') != null)) t = t.parentNode;
@@ -254,7 +252,7 @@
   function resetResult() {
     if (outUrl) { try { URL.revokeObjectURL(outUrl); } catch (e) {} }
     outUrl = null; outBlob = null; outName = '';
-    if (els.bDl) { els.bDl.style.display = 'none'; els.bSh.style.display = 'none'; }
+    if (els.bDl) { els.bDl.style.display = 'none'; }
   }
   function totalSize() {
     var t = 0; for (var i = 0; i < items.length; i++) t += items[i].size; return t;
@@ -444,12 +442,6 @@
       setStatus('✅ Xong! ' + snapshot.length + ' file: ' + fmt(total) + ' → ' + fmt(blob.size) +
         (total > 0 ? ' (giảm ' + saved.toFixed(0) + '%)' : '') + ' • ' + secs + ' giây. Bấm "Tải file ZIP" bên dưới.', 'ok');
       els.bDl.style.display = ''; els.bDl.textContent = '⬇ Tải ' + name;
-      try {
-        if (navigator.canShare && typeof File === 'function') {
-          var f = new File([blob], name, { type: 'application/zip' });
-          if (navigator.canShare({ files: [f] })) els.bSh.style.display = '';
-        }
-      } catch (e) {}
       setBusy(false);
       render();
     }).catch(function (err) {
@@ -478,16 +470,6 @@
       window.open(outUrl, '_blank');
     }
   }
-  function share() {
-    if (!outBlob) return;
-    try {
-      var f = new File([outBlob], outName || 'nen-file.zip', { type: 'application/zip' });
-      navigator.share({ files: [f], title: outName }).catch(function () {});
-    } catch (e) {
-      setStatus('Thiết bị không hỗ trợ chia sẻ, hãy dùng nút Tải file ZIP.', 'wa');
-    }
-  }
-
   /* ---------- gắn vào ô chọn công cụ ---------- */
   function ensureOption() {
     var sel = document.getElementById('utSel');
