@@ -78,7 +78,28 @@
     '#mVeHinh .vh-numrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}' +
     '#mVeHinh .vh-numrow label{font-size:14px;display:inline-flex;align-items:center;gap:4px}' +
     '#mVeHinh .vh-numrow input[type=text]{width:78px;min-height:36px;padding:4px 8px}' +
-    '#mVeHinh .vh-numhelp{font-size:12.5px;opacity:.85}';
+    '#mVeHinh .vh-numhelp{font-size:12.5px;opacity:.85}' +
+    /* Toàn màn hình: nền trắng, chữ và viền màu tối (khối vẽ được chuyển ra <body> nên mất biến màu của .panel) */
+    '#mVeHinh.vh-full{--bg:#ffffff;--card:#ffffff;--card2:#ffffff;--bd:#cdd9f3;--fg:#14275c;--mut:#51648f;background:#ffffff!important;color:#14275c!important}' +
+    '#mVeHinh.vh-full .vh-b{border-color:rgba(20,39,92,.25);background:rgba(20,39,92,.05);color:#14275c}' +
+    '#mVeHinh.vh-full .vh-b.on{background:var(--a1,#4f5bf0);border-color:transparent;color:#fff}' +
+    '#mVeHinh.vh-full .vh-chip{border-color:rgba(20,39,92,.25);background:rgba(255,213,79,.28);color:#14275c}' +
+    '#mVeHinh.vh-full .vh-a{border-color:rgba(180,120,0,.6);background:rgba(255,213,79,.25);color:#14275c}' +
+    '#mVeHinh.vh-full .vh-a.red{border-color:rgba(198,40,40,.7);background:rgba(248,113,113,.2);color:#8a1c1c}' +
+    '#mVeHinh.vh-full .vh-a.tri{border-color:rgba(29,59,139,.5);background:rgba(127,212,255,.25)}' +
+    '#mVeHinh.vh-full .vh-tail .vh-a{background:rgba(20,39,92,.05);border-color:rgba(20,39,92,.25)}' +
+    '#mVeHinh.vh-full .vh-tail{border-top-color:rgba(20,39,92,.2)}' +
+    '#mVeHinh.vh-full .vh-sep{color:#b45309}' +
+    '#mVeHinh.vh-full .vh-m{border-color:rgba(20,39,92,.2)}' +
+    '#mVeHinh.vh-full .vh-m button{color:#14275c}' +
+    '#mVeHinh.vh-full .vh-cols button{border-color:rgba(20,39,92,.4)}' +
+    '#mVeHinh.vh-full details.vh-num{border-color:rgba(20,39,92,.25);background:rgba(20,39,92,.04)}' +
+    '#mVeHinh.vh-full .vh-wrap svg.vh-svg{background:#ffffff;border-color:#cdd9f3}' +
+    '#mVeHinh.vh-full .vh-dock{background:#f1f5ff;border-color:#cdd9f3;color:#14275c}' +
+    '#mVeHinh.vh-full.vh-menu .vh-drawer{background:#ffffff;border-color:#cdd9f3;box-shadow:0 8px 30px rgba(20,39,92,.25)}' +
+    '#mVeHinh.vh-full label,#mVeHinh.vh-full summary,#mVeHinh.vh-full span,#mVeHinh.vh-full .vh-status,#mVeHinh.vh-full .vh-sel,#mVeHinh.vh-full .vh-numhelp{color:#14275c}' +
+    '#mVeHinh.vh-full .vh-sep{color:#b45309}' +
+    '#mVeHinh.vh-full input[type=text],#mVeHinh.vh-full input[type=number],#mVeHinh.vh-full select,#mVeHinh.vh-full textarea{color:#14275c;background:#ffffff;border:1px solid #9fb3df;border-radius:8px}';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
   var TOOLS = [
@@ -1051,8 +1072,8 @@
     return res;
   }
 
-  function draw(theme) {
-    var C = PAL[theme || 'dark'], CL = COLS[theme || 'dark'], s = '', i, W = SW, H = SH, exp = theme === 'light';
+  function draw(theme, live) {
+    var C = PAL[theme || 'dark'], CL = COLS[theme || 'dark'], s = '', i, W = SW, H = SH, exp = theme === 'light' && !live;
     var FONT = 'font-family="system-ui,Arial,sans-serif"';
     if (exp ? ui.expGrid : ui.grid) {
       var step = S >= 14 ? 1 : 5, minx = -view.ox / S, maxx = (W - view.ox) / S, miny = -view.oy / S, maxy = (H - view.oy) / S, d = '', x, y;
@@ -1146,7 +1167,7 @@
     if (!resize()) return;
     ui.sel = ui.sel.filter(itemValid);
     compute(); computeLocus(); recordTraces();
-    svg.innerHTML = draw('dark');
+    svg.innerHTML = draw(ui.full ? 'light' : 'dark', true);
     updMeas(); updSelPanel(); updUndoBtns();
   }
 
@@ -1703,7 +1724,7 @@
     if (h !== lastActsKey) { elActs.innerHTML = h; lastActsKey = h; }
     var ch = '';
     if (ui.sel.length) {
-      ch = '<span style="font-size:13px">Màu:</span>' + COLS.dark.map(function (c, i) { return '<button type="button" data-c="' + i + '" style="background:' + c + '" aria-label="Màu ' + (i + 1) + '"></button>'; }).join('');
+      ch = '<span style="font-size:13px">Màu:</span>' + COLS[ui.full ? 'light' : 'dark'].map(function (c, i) { return '<button type="button" data-c="' + i + '" style="background:' + c + '" aria-label="Màu ' + (i + 1) + '"></button>'; }).join('');
     }
     if (elCols.getAttribute('data-k') !== ch) { elCols.innerHTML = ch; elCols.setAttribute('data-k', ch); }
   }
